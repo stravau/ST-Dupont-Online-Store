@@ -129,12 +129,14 @@ model Address {
 // Catalog: Product (concept) -> ProductVariant (sellable SKU)
 // ---------------------------------------------------------------------------
 
+// Localized text fields hold { "pt": "...", "en": "..." } as JSON so DB
+// content stays bilingual (matches the Localized shape used in the UI).
 model Category {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  name        String
-  description String?
-  products    Product[]
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      Json // Localized
+  tagline   Json // Localized
+  products  Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -143,9 +145,12 @@ model Category {
 model Product {
   id          String  @id @default(cuid())
   slug        String  @unique
-  name        String
-  description String
+  name        Json // Localized
+  description Json // Localized
+  collection  String
+  image       String? // /products/<file> or CDN URL; null -> placeholder
   categoryId  String
+  featured    Boolean @default(false) // surfaced in "Novidades"
   active      Boolean @default(true)
 
   category Category         @relation(fields: [categoryId], references: [id])
@@ -162,12 +167,12 @@ model ProductVariant {
   id            String   @id @default(cuid())
   productId     String
   sku           String   @unique
-  name          String // e.g. "Palladium", "Chinese Lacquer"
-  attributes    Json // { finish: "palladium", color: "black" }
+  name          Json // Localized — e.g. { pt: "Paládio", en: "Palladium" }
+  attributes    Json     @default("{}") // { finish: "palladium", color: "black" }
   priceCents    Int
   currency      String   @default("EUR")
   stock         Int      @default(0)
-  images        String[] // ordered image URLs (CDN)
+  images        String[] @default([]) // ordered image URLs (CDN)
   stripePriceId String? // Stripe Price id, set when synced
   active        Boolean  @default(true)
 

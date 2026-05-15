@@ -5,15 +5,17 @@ import { getCategories, getCollections } from "@/lib/catalog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 
-export function SiteHeader({ lang }: { lang: Locale }) {
+export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
-  const categories = getCategories();
-  const menuItems = categories.map((c) => ({
-    slug: c.slug,
-    name: c.name[lang],
-    tagline: c.tagline[lang],
-    collections: getCollections(c.slug),
-  }));
+  const categories = await getCategories();
+  const menuItems = await Promise.all(
+    categories.map(async (c) => ({
+      slug: c.slug,
+      name: c.name[lang],
+      tagline: c.tagline[lang],
+      collections: await getCollections(c.slug),
+    })),
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-cream/90 backdrop-blur">
@@ -42,6 +44,16 @@ export function SiteHeader({ lang }: { lang: Locale }) {
               <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
             </svg>
           </button>
+          <Link
+            href={`/${lang}/conta`}
+            aria-label={dict.auth.account}
+            className="text-ink transition-colors hover:text-gold"
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+            </svg>
+          </Link>
           <button aria-label={dict.nav.cart} className="relative text-ink transition-colors hover:text-gold">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M6 7h12l-1 13H7L6 7Z" strokeLinejoin="round" />

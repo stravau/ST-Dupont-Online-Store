@@ -10,8 +10,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
-  const categories = getCategories();
-  const novelties = getNovelties(6);
+  const [categories, novelties] = await Promise.all([getCategories(), getNovelties(6)]);
 
   return (
     <>

@@ -1,13 +1,21 @@
 import Link from "next/link";
 import { defaultLocale, getDictionary } from "@/lib/i18n";
-import { getCategories } from "@/lib/catalog";
 
 // Not-found boundaries don't receive route params, so we present the default
 // locale with category re-entry — a curated salvage, not a dead end.
+// Category slugs are stable and inlined so the 404 stays resilient if the DB
+// is unavailable.
+const CATEGORIES = [
+  { slug: "isqueiros", pt: "Isqueiros", en: "Lighters" },
+  { slug: "escrita", pt: "Escrita", en: "Writing Instruments" },
+  { slug: "pele", pt: "Pele", en: "Leather Goods" },
+  { slug: "acessorios", pt: "Acessórios", en: "Accessories" },
+] as const;
+
 export default function NotFound() {
   const lang = defaultLocale;
   const dict = getDictionary(lang);
-  const categories = getCategories();
+  const categories = CATEGORIES;
 
   return (
     <section className="mx-auto flex max-w-2xl flex-col items-center px-6 py-32 text-center">
@@ -23,7 +31,7 @@ export default function NotFound() {
             href={`/${lang}/c/${c.slug}`}
             className="text-sm tracking-[0.14em] text-ink uppercase transition-colors hover:text-gold"
           >
-            {c.name[lang]}
+            {c[lang]}
           </Link>
         ))}
       </div>

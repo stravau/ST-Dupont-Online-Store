@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
-import { getProduct, products, getCategory, formatPrice } from "@/lib/catalog";
+import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { getProduct, getCategory, formatPrice } from "@/lib/catalog";
 import { estimatedDeliveryDate } from "@/lib/delivery";
 import { ProductMedia } from "@/components/product-media";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { VariantSelector } from "@/components/variant-selector";
-
-export function generateStaticParams() {
-  return locales.flatMap((lang) => products.map((p) => ({ lang, slug: p.slug })));
-}
 
 export async function generateMetadata({
   params,
@@ -19,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ lang: string; slug: string }>;
 }): Promise<Metadata> {
   const { lang, slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!isLocale(lang) || !product) return {};
   return { title: product.name[lang as Locale], description: product.description[lang as Locale] };
 }
@@ -32,10 +28,10 @@ export default async function ProductPage({
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
   const dict = getDictionary(locale);
-  const cat = getCategory(product.categorySlug)!;
+  const cat = (await getCategory(product.categorySlug))!;
 
   const variantOptions = product.variants.map((v) => ({
     sku: v.sku,

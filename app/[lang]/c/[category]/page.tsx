@@ -2,21 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import {
-  getCategory,
-  getCategories,
-  getProductsByCategory,
-  getCollections,
-} from "@/lib/catalog";
+import { getCategory, getProductsByCategory, getCollections } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { locales } from "@/lib/i18n";
-
-export function generateStaticParams() {
-  return locales.flatMap((lang) =>
-    getCategories().map((c) => ({ lang, category: c.slug })),
-  );
-}
 
 export async function generateMetadata({
   params,
@@ -24,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ lang: string; category: string }>;
 }): Promise<Metadata> {
   const { lang, category } = await params;
-  const cat = getCategory(category);
+  const cat = await getCategory(category);
   if (!isLocale(lang) || !cat) return {};
   return { title: cat.name[lang as Locale] };
 }
@@ -40,12 +28,12 @@ export default async function CategoryPage({
   const { col } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
-  const cat = getCategory(category);
+  const cat = await getCategory(category);
   if (!cat) notFound();
   const dict = getDictionary(locale);
-  const collections = getCollections(category);
+  const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
-  const items = getProductsByCategory(category, activeCol);
+  const items = await getProductsByCategory(category, activeCol);
   const base = `/${locale}/c/${category}`;
 
   return (
