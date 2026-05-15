@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   S.T. Dupont — design system
+   Editorial luxury + heritage classic: ink, warm cream, antique gold,
+   display serif headings, refined sans body.
+--------------------------------------------------------------------------- */
+
+:root {
+  --ink: #0e0e0f;
+  --charcoal: #1c1c1e;
+  --cream: #f7f4ee;
+  --paper: #fffdf8;
+  --gold: #b08c3f;
+  --gold-soft: #c9a961;
+  --muted: #6b6862;
+  --line: #e3ddd0;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-charcoal: var(--charcoal);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+
+  --font-serif: var(--font-display-serif);
+  --font-sans: var(--font-body-sans);
+
+  --tracking-luxe: 0.22em;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Display serif for headings */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+}
+
+/* Eyebrow / overline label — heritage detailing */
+.overline {
+  font-family: var(--font-sans), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-luxe);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--gold);
+}
+
+/* Thin gold rule used as a recurring editorial divider */
+.gold-rule {
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* Subtle diamond monogram motif for heritage (gold-on-black) sections */
+.monogram-bg {
+  background-color: var(--ink);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(201, 169, 97, 0.05) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, rgba(201, 169, 97, 0.05) 0 1px, transparent 1px 22px);
+}
+
+/* Quiet, refined hover lift for interactive cards */
+.lux-hover {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lux-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 48px -28px rgba(14, 14, 15, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-hover { transition: none; }
+  .lux-hover:hover { transform: none; }
+}

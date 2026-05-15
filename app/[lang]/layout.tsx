@@ -1,0 +1,53 @@
+import type { Metadata } from "next";
+import { Cormorant_Garamond, Jost } from "next/font/google";
+import { notFound } from "next/navigation";
+import "../globals.css";
+import { locales, isLocale, type Locale } from "@/lib/i18n";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+
+const displaySerif = Cormorant_Garamond({
+  variable: "--font-display-serif",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const bodySans = Jost({
+  variable: "--font-body-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: { default: "S.T. Dupont — Maison de Luxe Française", template: "%s · S.T. Dupont" },
+  description:
+    "S.T. Dupont — lighters, writing instruments and leather goods. French luxury craftsmanship since 1872.",
+};
+
+export function generateStaticParams() {
+  return locales.map((lang) => ({ lang }));
+}
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+  const locale = lang as Locale;
+
+  return (
+    <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full`}>
+      <body className="flex min-h-full flex-col">
+        <SiteHeader lang={locale} />
+        <main className="flex-1">{children}</main>
+        <SiteFooter lang={locale} />
+      </body>
+    </html>
+  );
+}
