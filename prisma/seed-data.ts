@@ -296,14 +296,14 @@ export const products: SeedProduct[] = [
     name: { pt: "Classique", en: "Classique" },
     collection: "Classique",
     description: {
-      pt: "A caneta de tinta permanente clássica da maison — proporções intemporais, aparo em ouro.",
-      en: "The maison's classic fountain pen — timeless proportions, gold nib.",
+      pt: "A esferográfica clássica da maison, apresentada em 1973 — silhueta intemporal, guilhoché e clip lacado.",
+      en: "The maison's classic ballpoint, introduced in 1973 — a timeless silhouette, guilloché and lacquered clip.",
     },
     categorySlug: "escrita",
     image: null,
     variants: penMatrix(
       "CQ",
-      [{ key: "FP", price: 49000 }],
+      [{ key: "BP", price: 28000 }],
       [
         { code: "BG", c: COLOR.blackGold },
         { code: "BLG", c: COLOR.blueGold },
