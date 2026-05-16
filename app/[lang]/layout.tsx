@@ -27,6 +27,10 @@ export const metadata: Metadata = {
     "S.T. Dupont — lighters, writing instruments and leather goods. French luxury craftsmanship since 1872.",
 };
 
+// Data is DB-backed and per-request; never prerender at build time (so the
+// build never needs the database — Vercel builds stay green pre-seed).
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }

@@ -42,14 +42,17 @@ database is required.
    - `DATABASE_URL` = the Neon connection string
    - `AUTH_SECRET` = a long random string (`npx auth secret` or `openssl rand -base64 32`)
    - `AUTH_URL` = your Vercel URL, e.g. `https://your-app.vercel.app`
-4. **Deploy.** `vercel-build` runs `prisma migrate deploy` (creates the tables)
-   then `next build`. `postinstall` runs `prisma generate`.
-5. **Seed the catalogue once** against the cloud DB (from your machine):
+4. **Deploy.** The build (`next build`, `postinstall: prisma generate`) does
+   **not** touch the database, so it stays green even before the DB is set up.
+5. **Create the tables + seed the catalogue once**, from your machine, pointed
+   at the cloud DB:
    ```powershell
-   $env:DATABASE_URL="<your Neon URL>"; npm.cmd run db:seed
+   $env:DATABASE_URL="<your Neon URL>"; $env:NODE_OPTIONS="--use-system-ca"
+   npm.cmd run db:migrate   # creates all tables on Neon
+   npm.cmd run db:seed      # loads the 51 products
    ```
-   (or run it from a Vercel deploy hook / one-off). The site is then live and
-   shareable.
+   The site is then live and shareable. (`DATABASE_URL` must also be set in
+   Vercel env for the running app.)
 
 `NODE_OPTIONS=--use-system-ca` is **only** needed on this local machine (TLS
 inspection) — do not set it on Vercel.
