@@ -84,7 +84,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <div className="gold-rule my-7" />
             <p className="text-cream/70">{dict.sections.heritageBody}</p>
             <Link
-              href={`/${locale}`}
+              href={`/${locale}/historia`}
               className="mt-9 inline-block text-xs tracking-[0.22em] text-gold-soft uppercase transition-colors hover:text-cream"
             >
               {dict.sections.heritageCta} →
