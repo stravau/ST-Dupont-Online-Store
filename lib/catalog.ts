@@ -124,6 +124,53 @@ export async function getNovelties(limit = 6): Promise<Product[]> {
   return rows.map(mapProduct);
 }
 
+function normalize(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
+// Full-catalogue search. Matches every term (AND) against product name (PT/EN),
+// description, collection, category slug + name, and every variant finish/SKU.
+// Catalogue is small, so in-memory filtering is exact and fast.
+export async function searchProducts(query: string): Promise<Product[]> {
+  const q = normalize(query);
+  if (!q) return [];
+  const terms = q.split(/\s+/).filter(Boolean);
+
+  const [rows, cats] = await Promise.all([
+    prisma.product.findMany({
+      where: { active: true },
+      include: productInclude,
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.category.findMany({ select: { slug: true, name: true } }),
+  ]);
+  const catName = new Map(cats.map((c) => [c.slug, c.name as Record<string, string>]));
+
+  return rows.map(mapProduct).filter((p) => {
+    const cn = catName.get(p.categorySlug);
+    const blob = normalize(
+      [
+        p.name.pt,
+        p.name.en,
+        p.description.pt,
+        p.description.en,
+        p.collection,
+        p.categorySlug,
+        cn?.pt,
+        cn?.en,
+        ...p.variants.flatMap((v) => [v.name.pt, v.name.en, v.sku]),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+    return terms.every((t) => blob.includes(t));
+  });
+}
+
 // --- pure helpers (no DB) ---
 
 export function fromPrice(product: Product): Variant {

@@ -43,6 +43,14 @@ const dictionaries = {
       subtitle: "Toda a maison, casa a casa.",
       jumpTo: "Navegar",
     },
+    search: {
+      placeholder: "Pesquisar na maison…",
+      title: "Pesquisa",
+      resultsFor: "Resultados para",
+      count: "resultado(s)",
+      noResults: "Nenhum artigo encontrado. Tente outra pesquisa.",
+      submit: "Pesquisar",
+    },
     cart: {
       title: "Carrinho",
       empty: "O seu carrinho está vazio.",
@@ -179,6 +187,14 @@ const dictionaries = {
       title: "The Collection",
       subtitle: "The entire maison, house by house.",
       jumpTo: "Jump to",
+    },
+    search: {
+      placeholder: "Search the maison…",
+      title: "Search",
+      resultsFor: "Results for",
+      count: "result(s)",
+      noResults: "No items found. Try another search.",
+      submit: "Search",
     },
     cart: {
       title: "Cart",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 
 export interface MenuCategory {
@@ -20,19 +20,43 @@ export function MegaMenu({
   labels: { viewAll: string; collections: string };
 }) {
   const [open, setOpen] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Hover-intent: cancel any pending close on enter; close only after a short
+  // grace period so moving between a category and its panel never drops it.
+  const cancelClose = useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }, []);
+
+  const show = useCallback(
+    (slug: string) => {
+      cancelClose();
+      setOpen(slug);
+    },
+    [cancelClose],
+  );
+
+  const scheduleClose = useCallback(() => {
+    cancelClose();
+    timer.current = setTimeout(() => setOpen(null), 220);
+  }, [cancelClose]);
 
   return (
     <nav
       className="hidden lg:block"
-      onMouseLeave={() => setOpen(null)}
+      onMouseEnter={cancelClose}
+      onMouseLeave={scheduleClose}
     >
       <ul className="flex items-center gap-9">
         {items.map((c) => (
           <li key={c.slug} className="static">
             <Link
               href={`/${lang}/c/${c.slug}`}
-              onMouseEnter={() => setOpen(c.slug)}
-              onFocus={() => setOpen(c.slug)}
+              onMouseEnter={() => show(c.slug)}
+              onFocus={() => show(c.slug)}
               aria-expanded={open === c.slug}
               className="group relative block py-2 text-sm tracking-[0.14em] text-ink uppercase"
             >
@@ -45,7 +69,17 @@ export function MegaMenu({
             </Link>
 
             {open === c.slug && c.collections.length > 0 && (
-              <div className="absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur">
+              <div
+                onMouseEnter={() => show(c.slug)}
+                onMouseLeave={scheduleClose}
+                className="absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur"
+              >
+                {/* Invisible bridge so the gap between the link row and the
+                    panel never breaks the hover. */}
+                <span
+                  aria-hidden
+                  className="absolute -top-4 left-0 right-0 h-4"
+                />
                 <div className="mx-auto flex max-w-7xl gap-16 px-6 py-12">
                   <div className="w-56 shrink-0">
                     <p className="overline">{c.name}</p>

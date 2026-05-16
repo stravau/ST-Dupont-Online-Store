@@ -5,6 +5,7 @@ import { getCategories, getCollections } from "@/lib/catalog";
 import { currentUserId, getCartCount } from "@/lib/cart";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
+import { SearchBar } from "@/components/search-bar";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
@@ -41,12 +42,11 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         {/* Utilities */}
         <div className="flex items-center gap-5">
           <LanguageSwitcher current={lang} />
-          <button aria-label={dict.nav.search} className="text-ink transition-colors hover:text-gold">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="11" cy="11" r="7" />
-              <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
-            </svg>
-          </button>
+          <SearchBar
+            lang={lang}
+            placeholder={dict.search.placeholder}
+            label={dict.search.title}
+          />
           <Link
             href={`/${lang}/conta`}
             aria-label={dict.auth.account}
