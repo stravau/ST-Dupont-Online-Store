@@ -32,11 +32,13 @@ export function VariantSelector({
   variants,
   labels,
   lang,
+  initialType,
   addAction,
 }: {
   variants: VariantOption[];
   labels: SelectorLabels;
   lang: string;
+  initialType?: string;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
 }) {
   const [state, formAction, pending] = useActionState(addAction, null);
@@ -49,7 +51,9 @@ export function VariantSelector({
     if (v.color && !colorList.some((c) => c.label === v.color!.label)) colorList.push(v.color);
   }
 
-  const [sku, setSku] = useState(variants[0].sku);
+  const initialSku =
+    (initialType && variants.find((v) => v.type === initialType)?.sku) || variants[0].sku;
+  const [sku, setSku] = useState(initialSku);
   const active = variants.find((v) => v.sku === sku) ?? variants[0];
 
   // Pick the best variant when an axis changes: keep the other axes if a
@@ -196,7 +200,7 @@ export function VariantSelector({
           key={state!.id}
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 right-6 z-[60] w-[min(90vw,22rem)] border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
+          className="fixed right-4 top-[5.25rem] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
         >
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-paper">

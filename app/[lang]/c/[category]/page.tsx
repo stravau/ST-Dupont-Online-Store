@@ -86,9 +86,29 @@ export default async function CategoryPage({
       </nav>
 
       <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((p) => (
-          <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
-        ))}
+        {items.flatMap((p) => {
+          // One card per pen type when a product offers several (writing
+          // lines); a single card with colour options otherwise.
+          const types: string[] = [];
+          for (const v of p.variants) {
+            const t = v.attributes.type?.[locale];
+            if (t && !types.includes(t)) types.push(t);
+          }
+          if (types.length > 1) {
+            return types.map((t) => (
+              <ProductCard
+                key={`${p.slug}-${t}`}
+                product={p}
+                lang={locale}
+                wishlisted={wl.has(p.id)}
+                variantType={t}
+              />
+            ));
+          }
+          return [
+            <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />,
+          ];
+        })}
       </div>
     </div>
   );

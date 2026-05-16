@@ -25,10 +25,13 @@ export async function generateMetadata({
 
 export default async function ProductPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; slug: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { lang, slug } = await params;
+  const { t: typeParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const product = await getProduct(slug);
@@ -95,6 +98,7 @@ export default async function ProductPage({
             <VariantSelector
               variants={variantOptions}
               lang={locale}
+              initialType={typeParam}
               addAction={addAction}
               labels={{
                 typeLabel: dict.product.typeLabel,
