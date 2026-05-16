@@ -50,6 +50,9 @@ const dictionaries = {
       count: "resultado(s)",
       noResults: "Nenhum artigo encontrado. Tente outra pesquisa.",
       submit: "Pesquisar",
+      start: "Comece a escrever para descobrir a maison.",
+      searching: "A pesquisar…",
+      viewAll: "Ver todos os resultados",
     },
     cart: {
       title: "Carrinho",
@@ -195,6 +198,9 @@ const dictionaries = {
       count: "result(s)",
       noResults: "No items found. Try another search.",
       submit: "Search",
+      start: "Start typing to discover the maison.",
+      searching: "Searching…",
+      viewAll: "View all results",
     },
     cart: {
       title: "Cart",

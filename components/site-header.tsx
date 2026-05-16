@@ -44,8 +44,14 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           <LanguageSwitcher current={lang} />
           <SearchBar
             lang={lang}
-            placeholder={dict.search.placeholder}
-            label={dict.search.title}
+            t={{
+              placeholder: dict.search.placeholder,
+              title: dict.search.title,
+              start: dict.search.start,
+              searching: dict.search.searching,
+              noResults: dict.search.noResults,
+              viewAll: dict.search.viewAll,
+            }}
           />
           <Link
             href={`/${lang}/conta`}
