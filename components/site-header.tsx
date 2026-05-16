@@ -36,6 +36,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         <MegaMenu
           lang={lang}
           items={menuItems}
+          links={[{ label: dict.nav.about, href: `/${lang}/historia` }]}
           labels={{ viewAll: dict.nav.viewAll, collections: dict.nav.collections }}
         />
 
@@ -92,6 +93,12 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
             {c.name[lang]}
           </Link>
         ))}
+        <Link
+          href={`/${lang}/historia`}
+          className="whitespace-nowrap text-xs tracking-[0.14em] text-muted uppercase"
+        >
+          {dict.nav.about}
+        </Link>
       </nav>
     </header>
   );

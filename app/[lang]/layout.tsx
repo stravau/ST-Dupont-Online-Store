@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
-import { locales, isLocale, type Locale } from "@/lib/i18n";
+import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { BackHome } from "@/components/back-home";
 
 const displaySerif = Cormorant_Garamond({
   variable: "--font-display-serif",
@@ -45,6 +46,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full scroll-smooth`}>
       <body className="flex min-h-full flex-col">
         <SiteHeader lang={locale} />
+        <BackHome lang={locale} label={getDictionary(locale).nav.backHome} />
         <main className="flex-1">{children}</main>
         <SiteFooter lang={locale} />
       </body>

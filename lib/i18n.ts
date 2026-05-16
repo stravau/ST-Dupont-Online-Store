@@ -11,7 +11,7 @@ export function isLocale(value: string): value is Locale {
 
 const dictionaries = {
   pt: {
-    nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", cart: "Carrinho", collections: "Coleções", viewAll: "Ver tudo" },
+    nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", cart: "Carrinho", collections: "Coleções", viewAll: "Ver tudo", about: "Sobre Nós", backHome: "Início" },
     common: { home: "Início", available: "Disponível" },
     notFound: {
       title: "Página não encontrada",
@@ -165,7 +165,7 @@ const dictionaries = {
     },
   },
   en: {
-    nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", cart: "Cart", collections: "Collections", viewAll: "View all" },
+    nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", cart: "Cart", collections: "Collections", viewAll: "View all", about: "About Us", backHome: "Home" },
     common: { home: "Home", available: "Available" },
     notFound: {
       title: "Page not found",

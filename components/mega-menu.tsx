@@ -13,10 +13,12 @@ export interface MenuCategory {
 export function MegaMenu({
   lang,
   items,
+  links = [],
   labels,
 }: {
   lang: string;
   items: MenuCategory[];
+  links?: { label: string; href: string }[];
   labels: { viewAll: string; collections: string };
 }) {
   const [open, setOpen] = useState<string | null>(null);
@@ -111,6 +113,19 @@ export function MegaMenu({
                 </div>
               </div>
             )}
+          </li>
+        ))}
+
+        {links.map((l) => (
+          <li key={l.href}>
+            <Link
+              href={l.href}
+              onMouseEnter={cancelClose}
+              className="group relative block py-2 text-sm tracking-[0.14em] text-ink uppercase"
+            >
+              {l.label}
+              <span className="absolute -bottom-0 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />
+            </Link>
           </li>
         ))}
       </ul>
