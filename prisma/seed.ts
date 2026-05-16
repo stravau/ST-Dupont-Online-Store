@@ -2,7 +2,7 @@
 // Idempotent: clears catalog tables then recreates. Run: npm run db:seed
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../app/generated/prisma/client";
+import { PrismaClient, type Prisma } from "../app/generated/prisma/client";
 import { categories, products } from "./seed-data";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -41,6 +41,7 @@ async function main() {
             name: v.name,
             priceCents: v.priceCents,
             currency: v.currency,
+            attributes: v.attributes as unknown as Prisma.InputJsonValue,
             stock: 25,
           })),
         },

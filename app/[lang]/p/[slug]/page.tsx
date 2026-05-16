@@ -38,8 +38,12 @@ export default async function ProductPage({
 
   const variantOptions = product.variants.map((v) => ({
     sku: v.sku,
-    name: v.name[locale],
     price: formatPrice(v.priceCents, v.currency, locale),
+    type: v.attributes.type?.[locale],
+    finish: v.attributes.finish?.[locale],
+    color: v.attributes.color
+      ? { label: v.attributes.color.label[locale], hex: v.attributes.color.hex }
+      : undefined,
   }));
 
   const wl = await myWishlistIds();
@@ -92,8 +96,12 @@ export default async function ProductPage({
               variants={variantOptions}
               addAction={addAction}
               labels={{
-                selectFinish: dict.product.selectFinish,
+                typeLabel: dict.product.typeLabel,
+                selectType: dict.product.selectType,
                 finishes: dict.product.finishes,
+                selectFinish: dict.product.selectFinish,
+                colorLabel: dict.product.colorLabel,
+                selectColor: dict.product.selectColor,
                 addToCart: dict.product.addToCart,
               }}
             />

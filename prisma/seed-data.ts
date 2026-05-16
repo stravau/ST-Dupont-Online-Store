@@ -1,16 +1,28 @@
-// Raw catalogue data for seeding (decoupled from the Prisma-backed runtime
-// query layer in lib/catalog.ts). Verified against the official S.T. Dupont
-// EU site, 2025/2026 lineup. Prices are INDICATIVE placeholders — replace
-// from the official price list before launch.
+// Raw catalogue data for seeding. Verified against the official S.T. Dupont
+// EU site (st-dupont.com), 2025/2026 lineup. Prices are INDICATIVE
+// placeholders — replace from the official price list before launch.
+//
+// Each variant carries up to THREE independent option axes (never mixed):
+//   - type   : pen type (Ballpoint / Rollerball / Fountain Pen) — writing only
+//   - finish : metal / lacquer treatment (Palladium, Yellow Gold…) — text chip
+//   - color  : a colour option with 1–2 hex values — rendered as a swatch
+// A product only carries the axes that actually apply to it.
 
 type L = { pt: string; en: string };
 
+export interface SeedColor {
+  label: L;
+  hex: string[]; // 1 hex = solid swatch, 2 = two-tone (e.g. "Black & Gold")
+}
+
 export interface SeedVariant {
   sku: string;
-  name: L;
+  name: L; // composed human label (used for cart/order snapshots)
   priceCents: number;
   currency: "EUR";
+  attributes: { type?: L; finish?: L; color?: SeedColor };
 }
+
 export interface SeedProduct {
   slug: string;
   name: L;
@@ -21,6 +33,7 @@ export interface SeedProduct {
   novelty?: boolean;
   variants: SeedVariant[];
 }
+
 export interface SeedCategory {
   slug: "isqueiros" | "escrita" | "pele" | "acessorios";
   name: L;
@@ -34,15 +47,71 @@ export const categories: SeedCategory[] = [
   { slug: "acessorios", name: { pt: "Acessórios", en: "Accessories" }, tagline: { pt: "Os detalhes mais raros", en: "The rarest details" } },
 ];
 
-const v = (sku: string, pt: string, en: string, priceCents: number): SeedVariant => ({
+// --- option presets ---------------------------------------------------------
+
+const TYPE = {
+  BP: { pt: "Esferográfica", en: "Ballpoint" },
+  RB: { pt: "Rollerball", en: "Rollerball" },
+  FP: { pt: "Caneta de Tinta Permanente", en: "Fountain Pen" },
+};
+
+const col = (pt: string, en: string, ...hex: string[]): SeedColor => ({ label: { pt, en }, hex });
+
+const COLOR = {
+  blackGold: col("Preto & Ouro", "Black & Gold", "#15171c", "#c8a24a"),
+  whiteGold: col("Laca Branca & Ouro", "White Lacquer & Gold", "#f3efe6", "#c8a24a"),
+  blackChrome: col("Preto & Crómio", "Black & Chrome", "#15171c", "#c9ccd1"),
+  blueGold: col("Azul & Ouro", "Blue & Gold", "#1f3c66", "#c8a24a"),
+  blueLacqPall: col("Laca Azul & Paládio", "Blue Lacquer & Palladium", "#1f3c66", "#b9bcc2"),
+  blackPall: col("Preto & Paládio", "Black & Palladium", "#15171c", "#b9bcc2"),
+  pearl: col("Laca Pérola", "Pearl Lacquer", "#ece9e1"),
+  nightBlue: col("Laca Azul Noite", "Night Blue Lacquer", "#1a2236"),
+  black: col("Preto", "Black", "#15171c"),
+  cognac: col("Castanho Cognac", "Cognac Brown", "#7a4a26"),
+  navy: col("Azul Marinho", "Navy", "#1b2a44"),
+  blackBrown: col("Preto / Castanho", "Black / Brown", "#15171c", "#7a4a26"),
+};
+
+// type × colour matrix for writing instruments
+function penMatrix(
+  prefix: string,
+  types: { key: keyof typeof TYPE; price: number }[],
+  colours: { code: string; c: SeedColor }[],
+): SeedVariant[] {
+  const out: SeedVariant[] = [];
+  for (const t of types) {
+    const ty = TYPE[t.key];
+    for (const cc of colours) {
+      out.push({
+        sku: `${prefix}-${t.key}-${cc.code}`,
+        name: { pt: `${ty.pt} · ${cc.c.label.pt}`, en: `${ty.en} · ${cc.c.label.en}` },
+        priceCents: t.price,
+        currency: "EUR",
+        attributes: { type: ty, color: cc.c },
+      });
+    }
+  }
+  return out;
+}
+
+const fin = (sku: string, pt: string, en: string, priceCents: number): SeedVariant => ({
   sku,
   name: { pt, en },
   priceCents,
   currency: "EUR",
+  attributes: { finish: { pt, en } },
+});
+
+const clr = (sku: string, c: SeedColor, priceCents: number): SeedVariant => ({
+  sku,
+  name: c.label,
+  priceCents,
+  currency: "EUR",
+  attributes: { color: c },
 });
 
 export const products: SeedProduct[] = [
-  // --- Isqueiros / Lighters ---
+  // --- Isqueiros / Lighters — FINISH only ---
   {
     slug: "ligne-2",
     name: { pt: "Isqueiro Ligne 2", en: "Ligne 2 Lighter" },
@@ -55,10 +124,10 @@ export const products: SeedProduct[] = [
     image: null,
     novelty: true,
     variants: [
-      v("L2-SILV", "Acabamento Prata", "Silver Finish", 126000),
-      v("L2-PALL", "Acabamento Paládio", "Palladium Finish", 119000),
-      v("L2-GOLD", "Ouro Amarelo", "Yellow Gold Finish", 178000),
-      v("L2-LACQ", "Laca Natural & Paládio", "Natural Lacquer & Palladium", 139000),
+      fin("L2-SILV", "Acabamento Prata", "Silver Finish", 126000),
+      fin("L2-PALL", "Acabamento Paládio", "Palladium Finish", 119000),
+      fin("L2-GOLD", "Ouro Amarelo", "Yellow Gold Finish", 178000),
+      fin("L2-LACQ", "Laca Natural & Paládio", "Natural Lacquer & Palladium", 139000),
     ],
   },
   {
@@ -71,7 +140,7 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "isqueiros",
     image: null,
-    variants: [v("L1-BRUS", "Crómio Escovado", "Brushed Chrome", 89000), v("L1-LACQ", "Laca Preta", "Black Lacquer", 99000)],
+    variants: [fin("L1-BRUS", "Crómio Escovado", "Brushed Chrome", 89000), fin("L1-LACQ", "Laca Preta", "Black Lacquer", 99000)],
   },
   {
     slug: "le-grand-dupont",
@@ -84,7 +153,7 @@ export const products: SeedProduct[] = [
     categorySlug: "isqueiros",
     image: null,
     novelty: true,
-    variants: [v("LG-PALL", "Paládio", "Palladium", 158000), v("LG-BLK", "PVD Preto", "Black PVD", 169000)],
+    variants: [fin("LG-PALL", "Paládio", "Palladium", 158000), fin("LG-BLK", "PVD Preto", "Black PVD", 169000)],
   },
   {
     slug: "defi-extreme",
@@ -96,7 +165,7 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "isqueiros",
     image: null,
-    variants: [v("DX-GUN", "Metal Gun", "Gunmetal", 56000), v("DX-CARB", "Fibra de Carbono", "Carbon Fibre", 62000)],
+    variants: [fin("DX-GUN", "Metal Gun", "Gunmetal", 56000), fin("DX-CARB", "Fibra de Carbono", "Carbon Fibre", 62000)],
   },
   {
     slug: "twiggy",
@@ -109,7 +178,7 @@ export const products: SeedProduct[] = [
     categorySlug: "isqueiros",
     image: null,
     novelty: true,
-    variants: [v("TW-PALL", "Paládio", "Palladium", 32000), v("TW-LACQ", "Laca Preta", "Black Lacquer", 35000)],
+    variants: [fin("TW-PALL", "Paládio", "Palladium", 32000), fin("TW-LACQ", "Laca Preta", "Black Lacquer", 35000)],
   },
   {
     slug: "slim-7",
@@ -118,10 +187,10 @@ export const products: SeedProduct[] = [
     description: { pt: "Maçarico esguio de chama jato, para o dia a dia com elegância.", en: "Slim jet-flame torch, for everyday elegance." },
     categorySlug: "isqueiros",
     image: null,
-    variants: [v("S7-CHR", "Crómio", "Chrome", 23000), v("S7-BLK", "Preto Mate", "Matte Black", 25000)],
+    variants: [fin("S7-CHR", "Crómio", "Chrome", 23000), fin("S7-BLK", "Preto Mate", "Matte Black", 25000)],
   },
 
-  // --- Escrita / Writing Instruments ---
+  // --- Escrita / Writing — TYPE × COLOUR ---
   {
     slug: "line-d-eternity",
     name: { pt: "Line D Eternity", en: "Line D Eternity" },
@@ -133,27 +202,42 @@ export const products: SeedProduct[] = [
     categorySlug: "escrita",
     image: null,
     novelty: true,
-    variants: [
-      v("LDE-FP", "Caneta de Tinta Permanente (Grande)", "Fountain Pen (Large)", 138000),
-      v("LDE-RB", "Rollerball (Grande)", "Rollerball (Large)", 92000),
-      v("LDE-BP", "Esferográfica (Grande)", "Ballpoint (Large)", 78000),
-    ],
+    variants: penMatrix(
+      "LDE",
+      [
+        { key: "FP", price: 138000 },
+        { key: "RB", price: 92000 },
+        { key: "BP", price: 78000 },
+      ],
+      [
+        { code: "BG", c: COLOR.blackGold },
+        { code: "BLP", c: COLOR.blueLacqPall },
+      ],
+    ),
   },
   {
     slug: "initial",
     name: { pt: "Initial", en: "Initial" },
     collection: "Initial",
     description: {
-      pt: "O ponto de entrada na escrita Dupont — equilíbrio e traço fluido, laca e crómio.",
-      en: "The entry point to Dupont writing — balance and a fluid stroke, lacquer and chrome.",
+      pt: "O ponto de entrada na escrita Dupont — equilíbrio e traço fluido, laca e metal.",
+      en: "The entry point to Dupont writing — balance and a fluid stroke, lacquer and metal.",
     },
     categorySlug: "escrita",
     image: null,
-    variants: [
-      v("DI-FP", "Caneta de Tinta Permanente", "Fountain Pen", 32500),
-      v("DI-RB", "Rollerball", "Rollerball", 25000),
-      v("DI-BP", "Esferográfica", "Ballpoint", 23000),
-    ],
+    variants: penMatrix(
+      "INI",
+      [
+        { key: "BP", price: 23000 },
+        { key: "RB", price: 25000 },
+        { key: "FP", price: 32500 },
+      ],
+      [
+        { code: "BG", c: COLOR.blackGold },
+        { code: "WG", c: COLOR.whiteGold },
+        { code: "BC", c: COLOR.blackChrome },
+      ],
+    ),
   },
   {
     slug: "classique",
@@ -165,7 +249,14 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "escrita",
     image: null,
-    variants: [v("CQ-FP", "Caneta de Tinta Permanente", "Fountain Pen", 49000)],
+    variants: penMatrix(
+      "CQ",
+      [{ key: "FP", price: 49000 }],
+      [
+        { code: "BG", c: COLOR.blackGold },
+        { code: "BLG", c: COLOR.blueGold },
+      ],
+    ),
   },
   {
     slug: "defi-millenium",
@@ -175,7 +266,14 @@ export const products: SeedProduct[] = [
     categorySlug: "escrita",
     image: null,
     novelty: true,
-    variants: [v("DM-RB", "Rollerball", "Rollerball", 38500), v("DM-BP", "Esferográfica", "Ballpoint", 43500)],
+    variants: penMatrix(
+      "DM",
+      [
+        { key: "RB", price: 38500 },
+        { key: "BP", price: 43500 },
+      ],
+      [{ code: "BPA", c: COLOR.blackPall }],
+    ),
   },
   {
     slug: "liberte",
@@ -184,10 +282,17 @@ export const products: SeedProduct[] = [
     description: { pt: "Equilíbrio perfeito e um traço fluido, vestido em laca e paládio.", en: "Perfect balance and a fluid stroke, dressed in lacquer and palladium." },
     categorySlug: "escrita",
     image: null,
-    variants: [v("LB-PEARL", "Rollerball Laca Pérola", "Pearl Lacquer Rollerball", 39000)],
+    variants: penMatrix(
+      "LB",
+      [{ key: "RB", price: 39000 }],
+      [
+        { code: "PRL", c: COLOR.pearl },
+        { code: "NGT", c: COLOR.nightBlue },
+      ],
+    ),
   },
 
-  // --- Pele / Leather Goods ---
+  // --- Pele / Leather — COLOUR only ---
   {
     slug: "apex-wallet",
     name: { pt: "Carteira Apex", en: "Apex Wallet" },
@@ -196,7 +301,7 @@ export const products: SeedProduct[] = [
     categorySlug: "pele",
     image: null,
     novelty: true,
-    variants: [v("AW-BLK", "Preto", "Black", 34000), v("AW-BRN", "Castanho Cognac", "Cognac Brown", 34000)],
+    variants: [clr("AW-BLK", COLOR.black, 34000), clr("AW-COG", COLOR.cognac, 34000)],
   },
   {
     slug: "apex-card-holder",
@@ -205,7 +310,7 @@ export const products: SeedProduct[] = [
     description: { pt: "Compacto, essencial, irrepreensível.", en: "Compact, essential, impeccable." },
     categorySlug: "pele",
     image: null,
-    variants: [v("AC-BLK", "Preto", "Black", 16500), v("AC-NVY", "Azul Marinho", "Navy", 16500)],
+    variants: [clr("AC-BLK", COLOR.black, 16500), clr("AC-NVY", COLOR.navy, 16500)],
   },
   {
     slug: "defi-explorer-document-holder",
@@ -214,7 +319,7 @@ export const products: SeedProduct[] = [
     description: { pt: "Uma pasta esguia e resistente, da linha de viagem Défi Explorer.", en: "A slim, resilient portfolio from the Défi Explorer travel line." },
     categorySlug: "pele",
     image: null,
-    variants: [v("DD-BLK", "Pele Preta", "Black Leather", 96000)],
+    variants: [clr("DD-BLK", COLOR.black, 96000)],
   },
   {
     slug: "defi-explorer-backpack",
@@ -224,10 +329,10 @@ export const products: SeedProduct[] = [
     categorySlug: "pele",
     image: null,
     novelty: true,
-    variants: [v("DB-BLK", "Preto", "Black", 119000)],
+    variants: [clr("DB-BLK", COLOR.black, 119000)],
   },
 
-  // --- Acessórios / Accessories ---
+  // --- Acessórios / Accessories — mixed (each only its own axis) ---
   {
     slug: "cufflinks-montecristo-aurore",
     name: { pt: "Botões de Punho Montecristo l’Aurore", en: "Montecristo l’Aurore Cufflinks" },
@@ -236,7 +341,7 @@ export const products: SeedProduct[] = [
     categorySlug: "acessorios",
     image: null,
     novelty: true,
-    variants: [v("CL-AUR", "Paládio & Laca", "Palladium & Lacquer", 24000)],
+    variants: [fin("CL-AUR", "Paládio & Laca", "Palladium & Lacquer", 24000)],
   },
   {
     slug: "money-clip",
@@ -245,7 +350,7 @@ export const products: SeedProduct[] = [
     description: { pt: "Simplicidade afiada, com a assinatura gravada da maison.", en: "Sharp simplicity, with the maison's engraved signature." },
     categorySlug: "acessorios",
     image: null,
-    variants: [v("MC-CHR", "Crómio Polido", "Polished Chrome", 18000)],
+    variants: [fin("MC-CHR", "Crómio Polido", "Polished Chrome", 18000)],
   },
   {
     slug: "key-ring",
@@ -254,7 +359,7 @@ export const products: SeedProduct[] = [
     description: { pt: "Pele e metal, o detalhe que acompanha todos os dias.", en: "Leather and metal, the detail that accompanies every day." },
     categorySlug: "acessorios",
     image: null,
-    variants: [v("KR-BLK", "Aro em Pele Preta", "Black Leather Loop", 9500)],
+    variants: [clr("KR-BLK", COLOR.black, 9500)],
   },
   {
     slug: "cigar-cutter-fire-x",
@@ -264,7 +369,7 @@ export const products: SeedProduct[] = [
     categorySlug: "acessorios",
     image: null,
     novelty: true,
-    variants: [v("CC-FX", "Aço & Laca", "Steel & Lacquer", 21000)],
+    variants: [fin("CC-FX", "Aço & Laca", "Steel & Lacquer", 21000)],
   },
   {
     slug: "belt",
@@ -273,7 +378,7 @@ export const products: SeedProduct[] = [
     description: { pt: "Pele de vitela com fivela gravada da maison, reversível.", en: "Calfskin with the maison's engraved buckle, reversible." },
     categorySlug: "acessorios",
     image: null,
-    variants: [v("BT-BLK", "Preto / Castanho", "Black / Brown", 28000)],
+    variants: [clr("BT-REV", COLOR.blackBrown, 28000)],
   },
   {
     slug: "tie-clip",
@@ -282,7 +387,7 @@ export const products: SeedProduct[] = [
     description: { pt: "Linha precisa em paládio, com a assinatura Dupont.", en: "A precise line in palladium, with the Dupont signature." },
     categorySlug: "acessorios",
     image: null,
-    variants: [v("TC-PALL", "Paládio", "Palladium", 16000)],
+    variants: [fin("TC-PALL", "Paládio", "Palladium", 16000)],
   },
   {
     slug: "gas-refill",
@@ -294,6 +399,14 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "acessorios",
     image: null,
-    variants: [v("GR-STD", "Recarga Standard", "Standard Refill", 2000)],
+    variants: [
+      {
+        sku: "GR-STD",
+        name: { pt: "Recarga Standard", en: "Standard Refill" },
+        priceCents: 2000,
+        currency: "EUR",
+        attributes: {},
+      },
+    ],
   },
 ];

@@ -9,11 +9,23 @@ import { prisma } from "@/lib/prisma";
 export type Localized = Record<Locale, string>;
 export type CategorySlug = "isqueiros" | "escrita" | "pele" | "acessorios";
 
+export interface VariantColor {
+  label: Localized;
+  hex: string[]; // 1 hex = solid swatch, 2 = two-tone colourway
+}
+
+export interface VariantAttributes {
+  type?: Localized; // pen type (writing) — text chip
+  finish?: Localized; // metal/lacquer finish — text chip
+  color?: VariantColor; // colour — swatch circle
+}
+
 export interface Variant {
   sku: string;
   name: Localized;
   priceCents: number;
   currency: "EUR";
+  attributes: VariantAttributes;
 }
 
 export interface Product {
@@ -36,7 +48,13 @@ export interface Category {
 
 const loc = (j: unknown): Localized => j as Localized;
 
-type VariantRow = { sku: string; name: unknown; priceCents: number; currency: string };
+type VariantRow = {
+  sku: string;
+  name: unknown;
+  priceCents: number;
+  currency: string;
+  attributes: unknown;
+};
 type ProductRow = {
   id: string;
   slug: string;
@@ -64,6 +82,7 @@ function mapProduct(p: ProductRow): Product {
       name: loc(v.name),
       priceCents: v.priceCents,
       currency: v.currency as "EUR",
+      attributes: (v.attributes ?? {}) as VariantAttributes,
     })),
   };
 }
