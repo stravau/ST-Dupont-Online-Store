@@ -11,9 +11,11 @@ export interface VariantOption {
 export function VariantSelector({
   variants,
   labels,
+  addAction,
 }: {
   variants: VariantOption[];
   labels: { selectFinish: string; finishes: string; addToCart: string };
+  addAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [selected, setSelected] = useState(0);
   const active = variants[selected];
@@ -57,12 +59,16 @@ export function VariantSelector({
         {active.price}
       </p>
 
-      <button
-        type="button"
-        className="mt-6 w-full bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
-      >
-        {labels.addToCart} · {active.price}
-      </button>
+      <form action={addAction} className="mt-6">
+        <input type="hidden" name="sku" value={active.sku} />
+        <input type="hidden" name="quantity" value="1" />
+        <button
+          type="submit"
+          className="w-full bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+        >
+          {labels.addToCart} · {active.price}
+        </button>
+      </form>
     </div>
   );
 }

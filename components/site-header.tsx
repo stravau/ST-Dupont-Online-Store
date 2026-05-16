@@ -2,11 +2,14 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { getCategories, getCollections } from "@/lib/catalog";
+import { currentUserId, getCartCount } from "@/lib/cart";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
+  const userId = await currentUserId();
+  const cartCount = userId ? await getCartCount(userId) : 0;
   const categories = await getCategories();
   const menuItems = await Promise.all(
     categories.map(async (c) => ({
@@ -54,15 +57,21 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
             </svg>
           </Link>
-          <button aria-label={dict.nav.cart} className="relative text-ink transition-colors hover:text-gold">
+          <Link
+            href={`/${lang}/carrinho`}
+            aria-label={dict.nav.cart}
+            className="relative text-ink transition-colors hover:text-gold"
+          >
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M6 7h12l-1 13H7L6 7Z" strokeLinejoin="round" />
               <path d="M9 7a3 3 0 0 1 6 0" />
             </svg>
-            <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[0.6rem] text-paper">
-              0
-            </span>
-          </button>
+            {cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[0.6rem] text-paper">
+                {cartCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 

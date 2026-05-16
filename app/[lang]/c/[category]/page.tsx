@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategory, getProductsByCategory, getCollections } from "@/lib/catalog";
+import { myWishlistIds } from "@/lib/cart";
 import { ProductCard } from "@/components/product-card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 
@@ -34,6 +35,7 @@ export default async function CategoryPage({
   const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
   const items = await getProductsByCategory(category, activeCol);
+  const wl = await myWishlistIds();
   const base = `/${locale}/c/${category}`;
 
   return (
@@ -80,7 +82,7 @@ export default async function CategoryPage({
 
       <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((p) => (
-          <ProductCard key={p.slug} product={p} lang={locale} />
+          <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
         ))}
       </div>
     </div>

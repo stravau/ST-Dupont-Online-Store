@@ -4,14 +4,34 @@ import { getDictionary } from "@/lib/i18n";
 import { type Product, fromPrice, formatPrice } from "@/lib/catalog";
 import { ProductMedia } from "@/components/product-media";
 import { StatusPill } from "@/components/status-pill";
+import { WishlistButton } from "@/components/wishlist-button";
 
-export function ProductCard({ product, lang }: { product: Product; lang: Locale }) {
+export function ProductCard({
+  product,
+  lang,
+  wishlisted = false,
+}: {
+  product: Product;
+  lang: Locale;
+  wishlisted?: boolean;
+}) {
   const dict = getDictionary(lang);
   const base = fromPrice(product);
 
   return (
-    <Link href={`/${lang}/p/${product.slug}`} className="group block">
-      <article className="lux-hover overflow-hidden border border-line bg-paper">
+    <article className="lux-hover relative overflow-hidden border border-line bg-paper">
+      {/* Wishlist heart — sibling of the link (no nested interactive) */}
+      <div className="absolute right-3 top-3 z-10">
+        <WishlistButton
+          productId={product.id}
+          lang={lang}
+          initialActive={wishlisted}
+          label={dict.client.addToWishlist}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/80 backdrop-blur"
+        />
+      </div>
+
+      <Link href={`/${lang}/p/${product.slug}`} className="group block">
         <div className="relative aspect-[5/6] overflow-hidden">
           <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.04]">
             <ProductMedia
@@ -48,7 +68,7 @@ export function ProductCard({ product, lang }: { product: Product; lang: Locale 
             )}
           </div>
         </div>
-      </article>
-    </Link>
+      </Link>
+    </article>
   );
 }

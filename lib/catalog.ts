@@ -17,6 +17,7 @@ export interface Variant {
 }
 
 export interface Product {
+  id: string;
   slug: string;
   name: Localized;
   description: Localized;
@@ -37,6 +38,7 @@ const loc = (j: unknown): Localized => j as Localized;
 
 type VariantRow = { sku: string; name: unknown; priceCents: number; currency: string };
 type ProductRow = {
+  id: string;
   slug: string;
   name: unknown;
   description: unknown;
@@ -49,6 +51,7 @@ type ProductRow = {
 
 function mapProduct(p: ProductRow): Product {
   return {
+    id: p.id,
     slug: p.slug,
     name: loc(p.name),
     description: loc(p.description),

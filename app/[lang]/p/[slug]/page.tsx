@@ -3,11 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProduct, getCategory, formatPrice } from "@/lib/catalog";
+import { myWishlistIds } from "@/lib/cart";
+import { addToCart } from "@/lib/actions";
 import { estimatedDeliveryDate } from "@/lib/delivery";
 import { ProductMedia } from "@/components/product-media";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { VariantSelector } from "@/components/variant-selector";
+import { WishlistButton } from "@/components/wishlist-button";
 
 export async function generateMetadata({
   params,
@@ -39,6 +42,9 @@ export default async function ProductPage({
     price: formatPrice(v.priceCents, v.currency, locale),
   }));
 
+  const wl = await myWishlistIds();
+  const addAction = addToCart.bind(null, locale);
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <Breadcrumbs
@@ -68,13 +74,23 @@ export default async function ProductPage({
             </p>
             <StatusPill lang={locale} />
           </div>
-          <h1 className="mt-4 font-serif text-4xl text-ink md:text-5xl">{product.name[locale]}</h1>
+          <div className="mt-4 flex items-start justify-between gap-4">
+            <h1 className="font-serif text-4xl text-ink md:text-5xl">{product.name[locale]}</h1>
+            <WishlistButton
+              productId={product.id}
+              lang={locale}
+              initialActive={wl.has(product.id)}
+              label={dict.client.addToWishlist}
+              className="mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line"
+            />
+          </div>
           <div className="gold-rule my-7" />
           <p className="text-muted">{product.description[locale]}</p>
 
           <div className="mt-10">
             <VariantSelector
               variants={variantOptions}
+              addAction={addAction}
               labels={{
                 selectFinish: dict.product.selectFinish,
                 finishes: dict.product.finishes,

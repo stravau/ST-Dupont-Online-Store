@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategories, getNovelties } from "@/lib/catalog";
+import { myWishlistIds } from "@/lib/cart";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { notFound } from "next/navigation";
@@ -10,7 +11,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
-  const [categories, novelties] = await Promise.all([getCategories(), getNovelties(6)]);
+  const [categories, novelties, wl] = await Promise.all([
+    getCategories(),
+    getNovelties(6),
+    myWishlistIds(),
+  ]);
 
   return (
     <>
@@ -68,7 +73,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {novelties.map((p) => (
-            <ProductCard key={p.slug} product={p} lang={locale} />
+            <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
           ))}
         </div>
       </section>

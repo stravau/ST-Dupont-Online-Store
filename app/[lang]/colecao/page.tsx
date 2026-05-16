@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategory, getProductsByCategory, type Category, type Product } from "@/lib/catalog";
+import { myWishlistIds } from "@/lib/cart";
 import { ProductCard } from "@/components/product-card";
 
 // Fixed walkthrough order requested: Lighters -> Writing -> Leather -> Accessories
@@ -27,6 +28,7 @@ export default async function CollectionPage({
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
+  const wl = await myWishlistIds();
 
   const sections = (
     await Promise.all(
@@ -88,7 +90,7 @@ export default async function CollectionPage({
 
             <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((p) => (
-                <ProductCard key={p.slug} product={p} lang={locale} />
+                <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
               ))}
             </div>
 
