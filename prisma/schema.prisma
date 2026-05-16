@@ -150,6 +150,7 @@ model Category {
   slug      String    @unique
   name      Json // Localized
   tagline   Json // Localized
+  history   Json? // Localized — brief heritage of the category/craft
   products  Product[]
 
   createdAt DateTime @default(now())

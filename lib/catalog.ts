@@ -45,6 +45,7 @@ export interface Category {
   slug: CategorySlug;
   name: Localized;
   tagline: Localized;
+  history: Localized | null;
 }
 
 const loc = (j: unknown): Localized => j as Localized;
@@ -101,12 +102,20 @@ export async function getCategories(): Promise<Category[]> {
     slug: c.slug as CategorySlug,
     name: loc(c.name),
     tagline: loc(c.tagline),
+    history: c.history ? loc(c.history) : null,
   }));
 }
 
 export async function getCategory(slug: string): Promise<Category | undefined> {
   const c = await prisma.category.findUnique({ where: { slug } });
-  return c ? { slug: c.slug as CategorySlug, name: loc(c.name), tagline: loc(c.tagline) } : undefined;
+  return c
+    ? {
+        slug: c.slug as CategorySlug,
+        name: loc(c.name),
+        tagline: loc(c.tagline),
+        history: c.history ? loc(c.history) : null,
+      }
+    : undefined;
 }
 
 export async function getProductsByCategory(

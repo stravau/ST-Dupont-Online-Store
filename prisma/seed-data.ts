@@ -38,13 +38,46 @@ export interface SeedCategory {
   slug: "isqueiros" | "escrita" | "pele" | "acessorios";
   name: L;
   tagline: L;
+  history: L; // brief heritage of the craft/category
 }
 
 export const categories: SeedCategory[] = [
-  { slug: "isqueiros", name: { pt: "Isqueiros", en: "Lighters" }, tagline: { pt: "O gesto que define o luxo", en: "The gesture that defines luxury" } },
-  { slug: "escrita", name: { pt: "Escrita", en: "Writing Instruments" }, tagline: { pt: "Instrumentos de uma vida", en: "Instruments for a lifetime" } },
-  { slug: "pele", name: { pt: "Pele", en: "Leather Goods" }, tagline: { pt: "Savoir-faire em cada costura", en: "Savoir-faire in every stitch" } },
-  { slug: "acessorios", name: { pt: "Acessórios", en: "Accessories" }, tagline: { pt: "Os detalhes mais raros", en: "The rarest details" } },
+  {
+    slug: "isqueiros",
+    name: { pt: "Isqueiros", en: "Lighters" },
+    tagline: { pt: "O gesto que define o luxo", en: "The gesture that defines luxury" },
+    history: {
+      pt: "Em 1941, a S.T. Dupont criou o primeiro isqueiro de luxo do mundo — então em alumínio, pois o latão estava restrito em tempo de guerra. Desde então, cada isqueiro é montado à mão na manufatura de Faverges, percorrendo centenas de operações de precisão antes de ser digno do nome da casa.",
+      en: "In 1941, S.T. Dupont created the world's first luxury lighter — then in aluminium, as brass was restricted in wartime. Ever since, each lighter is hand-assembled at the Faverges manufacture through hundreds of precise operations before it is worthy of the house's name.",
+    },
+  },
+  {
+    slug: "escrita",
+    name: { pt: "Escrita", en: "Writing Instruments" },
+    tagline: { pt: "Instrumentos de uma vida", en: "Instruments for a lifetime" },
+    history: {
+      pt: "A história da escrita da maison começou em 1973, quando Jacqueline Kennedy pediu um instrumento a condizer com o seu isqueiro: nasceu o Classique, a primeira esferográfica de luxo assinada S.T. Dupont. Seguiram-se aparos em ouro, lacas e metais preciosos.",
+      en: "The maison's writing story began in 1973, when Jacqueline Kennedy asked for an instrument to match her lighter: the Classique was born, S.T. Dupont's first signed luxury ballpoint. Gold nibs, lacquers and precious metals followed.",
+    },
+  },
+  {
+    slug: "pele",
+    name: { pt: "Pele", en: "Leather Goods" },
+    tagline: { pt: "Savoir-faire em cada costura", en: "Savoir-faire in every stitch" },
+    history: {
+      pt: "A pele é o primeiro métier da casa. Em 1872, em Paris, Simon Tissot-Dupont fundou uma oficina de estojos e malas de viagem feitos à mão para diplomatas e viajantes exigentes — uma arte que perdura na curtimenta diamante e na costura selada à mão.",
+      en: "Leather is the house's first métier. In 1872, in Paris, Simon Tissot-Dupont founded a workshop of hand-made travel cases and trunks for diplomats and discerning travellers — a craft that endures in diamond tanning and hand-sealed stitching.",
+    },
+  },
+  {
+    slug: "acessorios",
+    name: { pt: "Acessórios", en: "Accessories" },
+    tagline: { pt: "Os detalhes mais raros", en: "The rarest details" },
+    history: {
+      pt: "Dos botões de punho aos cortadores de charutos, os acessórios prolongam o saber-fazer da maison em metal e pele — os detalhes mais raros, com a assinatura S.T. Dupont desde 1872.",
+      en: "From cufflinks to cigar cutters, accessories extend the maison's savoir-faire in metal and leather — the rarest details, bearing the S.T. Dupont signature since 1872.",
+    },
+  },
 ];
 
 // --- option presets ---------------------------------------------------------

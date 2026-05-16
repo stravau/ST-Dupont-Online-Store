@@ -43,6 +43,7 @@ const dictionaries = {
       subtitle: "Toda a maison, casa a casa.",
       jumpTo: "Navegar",
     },
+    categoryStory: "A Arte da Casa",
     search: {
       placeholder: "Pesquisar na maison…",
       title: "Pesquisa",
@@ -196,6 +197,7 @@ const dictionaries = {
       subtitle: "The entire maison, house by house.",
       jumpTo: "Jump to",
     },
+    categoryStory: "The House's Craft",
     search: {
       placeholder: "Search the maison…",
       title: "Search",

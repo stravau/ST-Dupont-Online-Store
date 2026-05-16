@@ -17,7 +17,7 @@ async function main() {
   const categoryIdBySlug = new Map<string, string>();
   for (const c of categories) {
     const row = await prisma.category.create({
-      data: { slug: c.slug, name: c.name, tagline: c.tagline },
+      data: { slug: c.slug, name: c.name, tagline: c.tagline, history: c.history },
     });
     categoryIdBySlug.set(c.slug, row.id);
   }

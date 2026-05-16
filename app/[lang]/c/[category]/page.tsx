@@ -85,6 +85,18 @@ export default async function CategoryPage({
           <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
         ))}
       </div>
+
+      {cat.history && (
+        <section className="mx-auto mt-24 max-w-3xl border-t border-line pt-16 text-center">
+          <p className="overline">
+            {dict.categoryStory} · {cat.name[locale]}
+          </p>
+          <div className="gold-rule mx-auto my-6" />
+          <p className="font-serif text-xl leading-relaxed text-ink md:text-2xl">
+            {cat.history[locale]}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
