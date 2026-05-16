@@ -97,6 +97,14 @@ h1, h2, h3, .font-serif {
   .lux-hover:hover { transform: none; }
 }
 
+/* Cart confirmation toast: slide/fade in, hold, then fade out */
+@keyframes toastInOut {
+  0% { opacity: 0; transform: translateY(12px); }
+  8% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(12px); }
+}
+
 /* Search panel entrance */
 @keyframes fadeIn {
   from {

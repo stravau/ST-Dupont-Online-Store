@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
+import Link from "next/link";
+import type { AddResult } from "@/lib/actions";
 
 export interface VariantOption {
   sku: string;
@@ -18,6 +20,8 @@ export interface SelectorLabels {
   colorLabel: string;
   selectColor: string;
   addToCart: string;
+  added: string;
+  viewCart: string;
 }
 
 function uniq<T>(arr: T[]): T[] {
@@ -27,12 +31,17 @@ function uniq<T>(arr: T[]): T[] {
 export function VariantSelector({
   variants,
   labels,
+  lang,
   addAction,
 }: {
   variants: VariantOption[];
   labels: SelectorLabels;
-  addAction: (formData: FormData) => void | Promise<void>;
+  lang: string;
+  addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
 }) {
+  const [state, formAction, pending] = useActionState(addAction, null);
+  const [closedId, setClosedId] = useState<number | null>(null);
+  const showToast = !!state?.ok && state.id !== undefined && state.id !== closedId;
   const types = uniq(variants.map((v) => v.type).filter(Boolean) as string[]);
   const finishes = uniq(variants.map((v) => v.finish).filter(Boolean) as string[]);
   const colorList: { label: string; hex: string[] }[] = [];
@@ -170,16 +179,55 @@ export function VariantSelector({
         {active.price}
       </p>
 
-      <form action={addAction}>
+      <form action={formAction}>
         <input type="hidden" name="sku" value={active.sku} />
         <input type="hidden" name="quantity" value="1" />
         <button
           type="submit"
-          className="w-full bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+          disabled={pending}
+          className="w-full bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink disabled:opacity-60"
         >
           {labels.addToCart} · {active.price}
         </button>
       </form>
+
+      {showToast && (
+        <div
+          key={state!.id}
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-[60] w-[min(90vw,22rem)] border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
+        >
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-paper">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="overline text-[0.6rem]">{labels.added}</p>
+              <p className="mt-1 truncate font-serif text-base text-ink">{state!.name}</p>
+              <p className="mt-0.5 text-sm text-muted">{state!.price}</p>
+              <Link
+                href={`/${lang}/carrinho`}
+                className="mt-3 inline-block text-xs tracking-[0.18em] text-gold uppercase transition-colors hover:text-ink"
+              >
+                {labels.viewCart} →
+              </Link>
+            </div>
+            <button
+              type="button"
+              aria-label="×"
+              onClick={() => setClosedId(state!.id ?? null)}
+              className="shrink-0 text-muted transition-colors hover:text-ink"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

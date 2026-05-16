@@ -71,6 +71,7 @@ const dictionaries = {
       checkout: "Finalizar Encomenda",
       addToCart: "Adicionar ao Carrinho",
       added: "Adicionado ao carrinho",
+      viewCart: "Ver carrinho",
       signInToBuy: "Inicie sessão para comprar",
       paymentNote:
         "O pagamento seguro online (Stripe) será ativado em breve. Ao finalizar, a sua encomenda fica registada a aguardar pagamento e a boutique entrará em contacto.",
@@ -225,6 +226,7 @@ const dictionaries = {
       checkout: "Complete Order",
       addToCart: "Add to Cart",
       added: "Added to cart",
+      viewCart: "View cart",
       signInToBuy: "Sign in to purchase",
       paymentNote:
         "Secure online payment (Stripe) is coming soon. On completing, your order is recorded as awaiting payment and the boutique will be in touch.",

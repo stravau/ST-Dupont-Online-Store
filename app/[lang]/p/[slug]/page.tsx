@@ -94,6 +94,7 @@ export default async function ProductPage({
           <div className="mt-10">
             <VariantSelector
               variants={variantOptions}
+              lang={locale}
               addAction={addAction}
               labels={{
                 typeLabel: dict.product.typeLabel,
@@ -103,6 +104,8 @@ export default async function ProductPage({
                 colorLabel: dict.product.colorLabel,
                 selectColor: dict.product.selectColor,
                 addToCart: dict.product.addToCart,
+                added: dict.cart.added,
+                viewCart: dict.cart.viewCart,
               }}
             />
           </div>

@@ -26,16 +26,29 @@ async function getOrCreateCartId(userId: string): Promise<string> {
   return cart.id;
 }
 
-export async function addToCart(lang: string, formData: FormData) {
+export type AddResult = { ok: boolean; name?: string; price?: string; id?: number };
+
+// useActionState-compatible. Does NOT redirect on success — returns a result
+// the client uses to show a confirmation toast. (Auth still redirects.)
+export async function addToCart(
+  lang: string,
+  _prev: AddResult | null,
+  formData: FormData,
+): Promise<AddResult> {
   const userId = await requireUserId(lang);
   const sku = String(formData.get("sku") ?? "");
   const quantity = Math.max(1, Number(formData.get("quantity") ?? 1) || 1);
 
   const variant = await prisma.productVariant.findUnique({
     where: { sku },
-    select: { id: true },
+    select: {
+      id: true,
+      priceCents: true,
+      currency: true,
+      product: { select: { name: true } },
+    },
   });
-  if (!variant) redirect(`/${lang}/carrinho`);
+  if (!variant) return { ok: false };
 
   const cartId = await getOrCreateCartId(userId);
   await prisma.cartItem.upsert({
@@ -45,7 +58,15 @@ export async function addToCart(lang: string, formData: FormData) {
   });
 
   revalidatePath(`/${lang}`, "layout");
-  redirect(`/${lang}/carrinho`);
+
+  const name = (variant.product.name as Record<string, string>)[lang] ?? "";
+  const price = new Intl.NumberFormat(lang === "pt" ? "pt-PT" : "en-IE", {
+    style: "currency",
+    currency: variant.currency,
+    maximumFractionDigits: 0,
+  }).format(variant.priceCents / 100);
+
+  return { ok: true, name, price, id: Date.now() };
 }
 
 export async function updateCartItem(lang: string, formData: FormData) {
