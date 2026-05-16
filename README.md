@@ -28,6 +28,32 @@ npm.cmd run dev
 
 You need a PostgreSQL database before `migrate` works — either a free [Neon](https://neon.tech) project or local Postgres. Put its URL in `DATABASE_URL` in `.env`.
 
+## Deploy to Vercel
+
+Vercel is serverless — it **cannot** reach the local dev Postgres, so a cloud
+database is required.
+
+1. **Create a free cloud Postgres** at [neon.tech](https://neon.tech) → new
+   project → copy the **direct** connection string (ends with
+   `?sslmode=require`).
+2. **Import the repo on Vercel** (vercel.com → Add New → Project → pick
+   `ST-Dupont-Online-Store`). Framework auto-detected as Next.js.
+3. **Set Environment Variables** (Production + Preview):
+   - `DATABASE_URL` = the Neon connection string
+   - `AUTH_SECRET` = a long random string (`npx auth secret` or `openssl rand -base64 32`)
+   - `AUTH_URL` = your Vercel URL, e.g. `https://your-app.vercel.app`
+4. **Deploy.** `vercel-build` runs `prisma migrate deploy` (creates the tables)
+   then `next build`. `postinstall` runs `prisma generate`.
+5. **Seed the catalogue once** against the cloud DB (from your machine):
+   ```powershell
+   $env:DATABASE_URL="<your Neon URL>"; npm.cmd run db:seed
+   ```
+   (or run it from a Vercel deploy hook / one-off). The site is then live and
+   shareable.
+
+`NODE_OPTIONS=--use-system-ca` is **only** needed on this local machine (TLS
+inspection) — do not set it on Vercel.
+
 ## Data model
 
 `Product` (concept) → `ProductVariant` (sellable SKU: finish/colour, price, stock, images, Stripe price id). `OrderItem` snapshots the variant at purchase time so historical orders stay accurate. See [prisma/schema.prisma](prisma/schema.prisma).
