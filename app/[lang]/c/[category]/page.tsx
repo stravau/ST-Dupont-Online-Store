@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategory, getProductsByCategory, getCollections } from "@/lib/catalog";
+import { categoryArt } from "@/lib/category-art";
 import { myWishlistIds } from "@/lib/cart";
 import { ProductCard } from "@/components/product-card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -35,6 +35,7 @@ export default async function CategoryPage({
   const dict = getDictionary(locale);
   const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
+  const art = categoryArt[category];
   const items = await getProductsByCategory(category, activeCol);
   const wl = await myWishlistIds();
   const base = `/${locale}/c/${category}`;
@@ -50,41 +51,37 @@ export default async function CategoryPage({
       />
 
       <header className="mx-auto mt-10 max-w-2xl text-center">
-        <p className="overline">{cat.tagline[locale]}</p>
-        <h1 className="mt-5 font-serif text-5xl text-ink">{cat.name[locale]}</h1>
+        <p className="overline">{cat.name[locale]}</p>
+        <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
+          {art?.art ?? cat.name[locale]}
+        </h1>
         <div className="gold-rule mx-auto mt-7" />
         {cat.history && (
           <p className="mx-auto mt-7 max-w-xl text-sm leading-relaxed text-muted">
             {cat.history[locale]}
           </p>
         )}
-        <p className="mt-7 text-[0.7rem] tracking-[0.18em] text-muted uppercase">
-          {items.length} {locale === "pt" ? "peças" : "pieces"}
-        </p>
       </header>
 
-      {/* Collection filter strip (the discoverable axis st-dupont.com surfaces) */}
-      <nav className="mt-10 flex flex-wrap items-center justify-center gap-3">
-        <Link
-          href={base}
-          className={`border px-4 py-2 text-xs tracking-[0.14em] uppercase transition-colors ${
-            !activeCol ? "border-gold text-ink" : "border-line text-muted hover:text-ink"
-          }`}
-        >
-          {dict.nav.viewAll}
-        </Link>
-        {collections.map((c) => (
-          <Link
-            key={c}
-            href={`${base}?col=${encodeURIComponent(c)}`}
-            className={`border px-4 py-2 text-xs tracking-[0.14em] uppercase transition-colors ${
-              activeCol === c ? "border-gold text-ink" : "border-line text-muted hover:text-ink"
-            }`}
-          >
-            {c}
-          </Link>
-        ))}
-      </nav>
+      {/* The product types of this universe (S.T. Dupont's own groupings) */}
+      {art && (
+        <nav className="mt-12 flex flex-wrap items-start justify-center gap-x-14 gap-y-8 border-y border-line py-8">
+          {art.groups.map((g) => (
+            <div key={g.label[locale]} className="text-center">
+              <p className="overline">{g.label[locale]}</p>
+              {g.items && (
+                <ul className="mt-3 space-y-1.5">
+                  {g.items.map((it) => (
+                    <li key={it[locale]} className="text-sm text-muted">
+                      {it[locale]}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </nav>
+      )}
 
       {(() => {
         // Split: lines with several pen types become one card per type;
