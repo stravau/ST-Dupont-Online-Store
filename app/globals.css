@@ -2,22 +2,28 @@
 
 /* ---------------------------------------------------------------------------
    S.T. Dupont — design system
-   Editorial luxury + heritage classic: ink, warm cream, antique gold,
-   display serif headings, refined sans body.
+   Midnight-to-sky blue palette with antique gold accents, clean white
+   surfaces, display serif headings, refined sans body.
 --------------------------------------------------------------------------- */
 
 :root {
-  --ink: #0e0e0f;
-  --charcoal: #1c1c1e;
-  --cream: #f7f4ee;
-  --paper: #fffdf8;
-  --gold: #b08c3f;
-  --gold-soft: #c9a961;
-  --muted: #6b6862;
-  --line: #e3ddd0;
+  /* Deep navy → mid-blue (from the brand gradient); used for dark sections */
+  --navy-deep: #061020;
+  --navy: #15314f;
+
+  --ink: #0a1a30; /* primary dark — text & dark base */
+  --charcoal: #112842; /* slightly lifted navy */
+  --cream: #eef3fa; /* cool near-white: page background & light-on-dark text */
+  --paper: #ffffff; /* clean white surfaces (cards) */
+  --gold: #b58a34; /* antique gold accent */
+  --gold-soft: #d8bd7c; /* lighter gold for fine details on dark */
+  --muted: #5b6b82; /* slate-blue secondary text */
+  --line: #d4deec; /* light blue-grey borders */
 }
 
 @theme inline {
+  --color-navy-deep: var(--navy-deep);
+  --color-navy: var(--navy);
   --color-ink: var(--ink);
   --color-charcoal: var(--charcoal);
   --color-cream: var(--cream);
@@ -66,12 +72,14 @@ h1, h2, h3, .font-serif {
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
-/* Subtle diamond monogram motif for heritage (gold-on-black) sections */
+/* Dark hero / heritage sections: deep-navy → mid-blue gradient (echoing the
+   brand sky), with a subtle gold diamond monogram motif over it. */
 .monogram-bg {
-  background-color: var(--ink);
+  background-color: var(--navy-deep);
   background-image:
-    repeating-linear-gradient(45deg, rgba(201, 169, 97, 0.05) 0 1px, transparent 1px 22px),
-    repeating-linear-gradient(-45deg, rgba(201, 169, 97, 0.05) 0 1px, transparent 1px 22px);
+    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.05) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.05) 0 1px, transparent 1px 22px),
+    linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
 }
 
 /* Quiet, refined hover lift for interactive cards */
@@ -81,7 +89,7 @@ h1, h2, h3, .font-serif {
 }
 .lux-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 24px 48px -28px rgba(14, 14, 15, 0.4);
+  box-shadow: 0 24px 48px -28px rgba(6, 16, 32, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
