@@ -48,11 +48,16 @@ export default async function CategoryPage({
         ]}
       />
 
-      <header className="mt-10 text-center">
+      <header className="mx-auto mt-10 max-w-2xl text-center">
         <p className="overline">{cat.tagline[locale]}</p>
         <h1 className="mt-5 font-serif text-5xl text-ink">{cat.name[locale]}</h1>
         <div className="gold-rule mx-auto mt-7" />
-        <p className="mt-5 text-sm text-muted">
+        {cat.history && (
+          <p className="mx-auto mt-7 max-w-xl text-sm leading-relaxed text-muted">
+            {cat.history[locale]}
+          </p>
+        )}
+        <p className="mt-7 text-[0.7rem] tracking-[0.18em] text-muted uppercase">
           {items.length} {locale === "pt" ? "peças" : "pieces"}
         </p>
       </header>
@@ -85,18 +90,6 @@ export default async function CategoryPage({
           <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
         ))}
       </div>
-
-      {cat.history && (
-        <section className="mx-auto mt-24 max-w-3xl border-t border-line pt-16 text-center">
-          <p className="overline">
-            {dict.categoryStory} · {cat.name[locale]}
-          </p>
-          <div className="gold-rule mx-auto my-6" />
-          <p className="font-serif text-xl leading-relaxed text-ink md:text-2xl">
-            {cat.history[locale]}
-          </p>
-        </section>
-      )}
     </div>
   );
 }
