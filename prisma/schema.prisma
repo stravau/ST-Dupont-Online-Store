@@ -161,6 +161,7 @@ model Product {
   slug        String  @unique
   name        Json // Localized
   description Json // Localized
+  history     Json? // Localized — brief heritage of the line
   collection  String
   image       String? // /products/<file> or CDN URL; null -> placeholder
   categoryId  String

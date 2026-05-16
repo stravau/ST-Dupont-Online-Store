@@ -3,7 +3,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "../app/generated/prisma/client";
-import { categories, products } from "./seed-data";
+import { categories, products, historyByCollection } from "./seed-data";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -30,6 +30,7 @@ async function main() {
         slug: p.slug,
         name: p.name,
         description: p.description,
+        history: historyByCollection[p.collection] ?? undefined,
         collection: p.collection,
         image: p.image,
         featured: p.novelty ?? false,

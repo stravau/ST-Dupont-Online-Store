@@ -33,6 +33,7 @@ export interface Product {
   slug: string;
   name: Localized;
   description: Localized;
+  history: Localized | null;
   collection: string;
   categorySlug: CategorySlug;
   image: string | null;
@@ -60,6 +61,7 @@ type ProductRow = {
   slug: string;
   name: unknown;
   description: unknown;
+  history: unknown;
   collection: string;
   image: string | null;
   featured: boolean;
@@ -73,6 +75,7 @@ function mapProduct(p: ProductRow): Product {
     slug: p.slug,
     name: loc(p.name),
     description: loc(p.description),
+    history: p.history ? loc(p.history) : null,
     collection: p.collection,
     categorySlug: p.category.slug as CategorySlug,
     image: p.image,

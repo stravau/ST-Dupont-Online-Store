@@ -131,6 +131,18 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
+
+      {product.history && (
+        <section className="mx-auto mt-24 max-w-3xl border-t border-line pt-16 text-center">
+          <p className="overline">
+            {dict.product.heritage} · {product.collection}
+          </p>
+          <div className="gold-rule mx-auto my-6" />
+          <p className="font-serif text-xl leading-relaxed text-ink md:text-2xl">
+            {product.history[locale]}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
