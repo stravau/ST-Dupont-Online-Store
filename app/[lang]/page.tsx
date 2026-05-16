@@ -26,7 +26,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             {dict.hero.subtitle}
           </p>
           <Link
-            href={`/${locale}/c/isqueiros`}
+            href={`/${locale}/colecao`}
             className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
           >
             {dict.hero.cta}

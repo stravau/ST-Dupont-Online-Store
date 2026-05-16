@@ -38,6 +38,11 @@ const dictionaries = {
       role: "Tipo de conta",
       memberSince: "Membro desde",
     },
+    collection: {
+      title: "A Coleção",
+      subtitle: "Toda a maison, casa a casa.",
+      jumpTo: "Navegar",
+    },
     hero: {
       eyebrow: "Estabelecida 1872 · Paris",
       title: "L’Art du Briquet",
@@ -108,6 +113,11 @@ const dictionaries = {
       welcome: "Welcome",
       role: "Account type",
       memberSince: "Member since",
+    },
+    collection: {
+      title: "The Collection",
+      subtitle: "The entire maison, house by house.",
+      jumpTo: "Jump to",
     },
     hero: {
       eyebrow: "Established 1872 · Paris",

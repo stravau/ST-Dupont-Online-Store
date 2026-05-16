@@ -42,7 +42,7 @@ export default async function LocaleLayout({
   const locale = lang as Locale;
 
   return (
-    <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full`}>
+    <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full scroll-smooth`}>
       <body className="flex min-h-full flex-col">
         <SiteHeader lang={locale} />
         <main className="flex-1">{children}</main>
