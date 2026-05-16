@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -85,31 +86,51 @@ export default async function CategoryPage({
         ))}
       </nav>
 
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.flatMap((p) => {
-          // One card per pen type when a product offers several (writing
-          // lines); a single card with colour options otherwise.
+      {(() => {
+        // Split: lines with several pen types become one card per type;
+        // single-type / colour-only items are isolated in their own row
+        // so they don't get confused with the multi-type lineups.
+        const multi: ReactNode[] = [];
+        const single: ReactNode[] = [];
+        for (const p of items) {
           const types: string[] = [];
           for (const v of p.variants) {
             const t = v.attributes.type?.[locale];
             if (t && !types.includes(t)) types.push(t);
           }
           if (types.length > 1) {
-            return types.map((t) => (
-              <ProductCard
-                key={`${p.slug}-${t}`}
-                product={p}
-                lang={locale}
-                wishlisted={wl.has(p.id)}
-                variantType={t}
-              />
-            ));
+            for (const t of types) {
+              multi.push(
+                <ProductCard
+                  key={`${p.slug}-${t}`}
+                  product={p}
+                  lang={locale}
+                  wishlisted={wl.has(p.id)}
+                  variantType={t}
+                />,
+              );
+            }
+          } else {
+            single.push(
+              <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />,
+            );
           }
-          return [
-            <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />,
-          ];
-        })}
-      </div>
+        }
+        const grid = "grid gap-6 sm:grid-cols-2 lg:grid-cols-3";
+        return (
+          <>
+            {multi.length > 0 && <div className={`mt-14 ${grid}`}>{multi}</div>}
+            {multi.length > 0 && single.length > 0 && (
+              <div className="mx-auto mt-20 max-w-xs">
+                <div className="gold-rule mx-auto" />
+              </div>
+            )}
+            {single.length > 0 && (
+              <div className={`${multi.length > 0 ? "mt-20" : "mt-14"} ${grid}`}>{single}</div>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }
