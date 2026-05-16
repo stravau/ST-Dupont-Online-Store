@@ -70,7 +70,42 @@ const COLOR = {
   cognac: col("Castanho Cognac", "Cognac Brown", "#7a4a26"),
   navy: col("Azul Marinho", "Navy", "#1b2a44"),
   blackBrown: col("Preto / Castanho", "Black / Brown", "#15171c", "#7a4a26"),
+  // Twiggy lacquer colours (same lacquered material across all)
+  white: col("Branco", "White", "#f3efe6"),
+  skyBlue: col("Azul Céu", "Sky Blue", "#8fb8d8"),
+  coral: col("Coral", "Coral", "#e3735e"),
+  blue: col("Azul", "Blue", "#2f5c9e"),
+  // Slim 7 colours
+  red: col("Vermelho", "Red", "#7d2b27"),
+  steel: col("Aço", "Steel", "#b9bcc2"),
+  goldTone: col("Ouro", "Gold", "#c8a24a"),
+  // Gas refill canister colours — colour-coded by compatible model
+  gasYellow: col("Amarelo · Ligne 1 / Ligne 2 / Mesa Longa", "Yellow · Ligne 1 / Ligne 2 / Long Table", "#d8b53a"),
+  gasBlue: col("Azul · Ligne 8 / Ligne D / D Light / Urban", "Blue · Ligne 8 / Ligne D / D Light / Urban", "#2f5c9e"),
+  gasGreen: col("Verde · Ligne 2 Small / Gatsby", "Green · Ligne 2 Small / Gatsby", "#2e8b57"),
+  gasRed: col("Vermelho · Mesa Cilíndrica / Jeroboam", "Red · Cylindrical Table / Jeroboam", "#b3322f"),
+  gasBlack: col("Preto · Liberté / Maxijet / Minijet / Ligne 2 Torch", "Black · Liberté / Maxijet / Minijet / Ligne 2 Torch", "#1a1c20"),
+  gasDefiRed: col("Vermelho · Défi Extrême & XXtrême", "Red · Défi Extrême & XXtrême", "#9e2b27"),
+  // Flint (stone) colours — colour-coded by compatible model
+  flintBlack: col("Preto · Ligne 1 / Ligne 2 / Gatsby / Mesa Longa", "Black · Ligne 1 / Ligne 2 / Gatsby / Long Table", "#1a1c20"),
+  flintRed: col("Vermelho · Liberté / Ligne 8 / Ligne D", "Red · Liberté / Ligne 8 / Ligne D", "#9e2b27"),
 };
+
+const FINISH = {
+  glossy: { pt: "Laca Brilhante", en: "Glossy Lacquer" },
+  matte: { pt: "Mate", en: "Matte" },
+  brushed: { pt: "Metal Escovado", en: "Brushed Metal" },
+  polished: { pt: "Metal Polido", en: "Polished Metal" },
+};
+
+// Slim 7: explicit finish × colour combinations that actually exist.
+const fc = (sku: string, finish: L, c: SeedColor, priceCents: number): SeedVariant => ({
+  sku,
+  name: { pt: `${finish.pt} · ${c.label.pt}`, en: `${finish.en} · ${c.label.en}` },
+  priceCents,
+  currency: "EUR",
+  attributes: { finish, color: c },
+});
 
 // type × colour matrix for writing instruments
 function penMatrix(
@@ -172,22 +207,39 @@ export const products: SeedProduct[] = [
     name: { pt: "Isqueiro Twiggy", en: "Twiggy Lighter" },
     collection: "Twiggy",
     description: {
-      pt: "Silhueta ultrafina inspirada na moda mod dos anos 60 — o Ligne 2 reinventado para o bolso moderno.",
-      en: "Ultra-slim silhouette inspired by 1960s mod fashion — the Ligne 2 reinvented for the modern pocket.",
+      pt: "Silhueta ultrafina inspirada na moda mod dos anos 60 — o Ligne 2 reinventado para o bolso moderno. Mesmo corpo lacado, várias cores.",
+      en: "Ultra-slim silhouette inspired by 1960s mod fashion — the Ligne 2 reinvented for the modern pocket. Same lacquered body, multiple colours.",
     },
     categorySlug: "isqueiros",
     image: null,
     novelty: true,
-    variants: [fin("TW-PALL", "Paládio", "Palladium", 32000), fin("TW-LACQ", "Laca Preta", "Black Lacquer", 35000)],
+    variants: [
+      clr("TW-BLK", COLOR.black, 32000),
+      clr("TW-WHT", COLOR.white, 32000),
+      clr("TW-SKY", COLOR.skyBlue, 32000),
+      clr("TW-COR", COLOR.coral, 32000),
+      clr("TW-BLU", COLOR.blue, 32000),
+    ],
   },
   {
     slug: "slim-7",
     name: { pt: "Isqueiro Slim 7", en: "Slim 7 Lighter" },
     collection: "Slim 7",
-    description: { pt: "Maçarico esguio de chama jato, para o dia a dia com elegância.", en: "Slim jet-flame torch, for everyday elegance." },
+    description: {
+      pt: "Maçarico esguio de chama jato. Várias cores e acabamentos — laca brilhante, mate, metal escovado ou polido.",
+      en: "Slim jet-flame torch. Multiple colours and finishes — glossy lacquer, matte, brushed or polished metal.",
+    },
     categorySlug: "isqueiros",
     image: null,
-    variants: [fin("S7-CHR", "Crómio", "Chrome", 23000), fin("S7-BLK", "Preto Mate", "Matte Black", 25000)],
+    variants: [
+      fc("S7-GL-BLK", FINISH.glossy, COLOR.black, 23000),
+      fc("S7-GL-RED", FINISH.glossy, COLOR.red, 23000),
+      fc("S7-GL-WHT", FINISH.glossy, COLOR.white, 23000),
+      fc("S7-MT-BLK", FINISH.matte, COLOR.black, 24000),
+      fc("S7-BR-STL", FINISH.brushed, COLOR.steel, 25000),
+      fc("S7-BR-GLD", FINISH.brushed, COLOR.goldTone, 27000),
+      fc("S7-PO-STL", FINISH.polished, COLOR.steel, 25000),
+    ],
   },
 
   // --- Escrita / Writing — TYPE × COLOUR ---
@@ -394,19 +446,31 @@ export const products: SeedProduct[] = [
     name: { pt: "Recarga de Gás", en: "Gas Refill" },
     collection: "Refill & Stones",
     description: {
-      pt: "Gás de alta qualidade para isqueiros S.T. Dupont. Essencial para a manutenção.",
-      en: "High-quality gas for S.T. Dupont lighters. Essential for upkeep.",
+      pt: "Gás de alta qualidade S.T. Dupont. A cor da recarga é codificada por modelo — escolha a que corresponde ao seu isqueiro.",
+      en: "High-quality S.T. Dupont gas. The refill colour is colour-coded by model — choose the one matching your lighter.",
     },
     categorySlug: "acessorios",
     image: null,
     variants: [
-      {
-        sku: "GR-STD",
-        name: { pt: "Recarga Standard", en: "Standard Refill" },
-        priceCents: 2000,
-        currency: "EUR",
-        attributes: {},
-      },
+      clr("GR-YEL", COLOR.gasYellow, 2000),
+      clr("GR-BLU", COLOR.gasBlue, 2000),
+      clr("GR-GRN", COLOR.gasGreen, 2000),
+      clr("GR-RED", COLOR.gasRed, 2000),
+      clr("GR-BLK", COLOR.gasBlack, 1500),
+      clr("GR-DEF", COLOR.gasDefiRed, 1500),
     ],
+  },
+  {
+    slug: "stones",
+    name: { pt: "Pedras (Sílex)", en: "Stones (Flints)" },
+    collection: "Refill & Stones",
+    description: {
+      pt: "Caixa de 8 pedras de sílex S.T. Dupont. Tal como o gás, a cor é codificada por modelo — substituição essencial para uma faísca perfeita.",
+      en: "Box of 8 S.T. Dupont flints. Like the gas, the colour is model-coded — an essential replacement for a perfect spark.",
+    },
+    categorySlug: "acessorios",
+    image: null,
+    novelty: true,
+    variants: [clr("ST-BLK", COLOR.flintBlack, 300), clr("ST-RED", COLOR.flintRed, 300)],
   },
 ];
