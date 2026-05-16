@@ -6,7 +6,8 @@ type L = Record<Locale, string>;
 
 export interface ArtGroup {
   label: L;
-  items?: L[];
+  items?: L[]; // sub-types listed under the label (informational groups)
+  href?: string; // locale-relative path → renders as a smart button
 }
 
 export interface CategoryArt {
@@ -16,11 +17,16 @@ export interface CategoryArt {
 
 const t = (pt: string, en: string): L => ({ pt, en });
 
+const NEW_RELEASES = (): ArtGroup => ({
+  label: t("Novidades", "New Releases"),
+  href: "/novidades",
+});
+
 export const categoryArt: Record<string, CategoryArt> = {
   isqueiros: {
     art: "L'Art du Feu",
     groups: [
-      { label: t("Novidades", "New Releases") },
+      NEW_RELEASES(),
       {
         label: t("Acessórios para Fumadores", "Smoking Accessories"),
         items: [
@@ -29,14 +35,18 @@ export const categoryArt: Record<string, CategoryArt> = {
           t("Cinzeiros", "Ashtrays"),
           t("Humidores", "Humidors"),
         ],
+        href: "/fumadores",
       },
-      { label: t("Recargas & Pedras", "Refills & Stones") },
+      {
+        label: t("Recargas & Pedras", "Refills & Stones"),
+        href: "/c/acessorios?col=Refill%20%26%20Stones",
+      },
     ],
   },
   escrita: {
     art: "L'Art de l'Écriture",
     groups: [
-      { label: t("Novidades", "New Releases") },
+      NEW_RELEASES(),
       {
         label: t("Acessórios de Escrita", "Writing Accessories"),
         items: [
@@ -51,7 +61,7 @@ export const categoryArt: Record<string, CategoryArt> = {
   pele: {
     art: "L'Art du Voyage",
     groups: [
-      { label: t("Novidades", "New Releases") },
+      NEW_RELEASES(),
       {
         label: t("Malas", "Bags"),
         items: [
@@ -74,7 +84,7 @@ export const categoryArt: Record<string, CategoryArt> = {
   acessorios: {
     art: "L'Art de la Séduction",
     groups: [
-      { label: t("Novidades", "New Releases") },
+      NEW_RELEASES(),
       { label: t("Botões de Punho", "Cufflinks") },
       { label: t("Cintos", "Belts") },
       { label: t("Clips de Notas", "Money Clips") },

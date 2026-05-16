@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategory, getProductsByCategory, getCollections } from "@/lib/catalog";
@@ -63,23 +64,37 @@ export default async function CategoryPage({
         )}
       </header>
 
-      {/* The product types of this universe (S.T. Dupont's own groupings) */}
+      {/* The product types of this universe (S.T. Dupont's own groupings).
+          Navigable ones render as smart buttons; the rest are informational. */}
       {art && (
-        <nav className="mt-12 flex flex-wrap items-start justify-center gap-x-14 gap-y-8 border-y border-line py-8">
-          {art.groups.map((g) => (
-            <div key={g.label[locale]} className="text-center">
-              <p className="overline">{g.label[locale]}</p>
-              {g.items && (
-                <ul className="mt-3 space-y-1.5">
-                  {g.items.map((it) => (
-                    <li key={it[locale]} className="text-sm text-muted">
-                      {it[locale]}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+        <nav className="mt-12 flex flex-wrap items-start justify-center gap-x-12 gap-y-8 border-y border-line py-8">
+          {art.groups.map((g) =>
+            g.href ? (
+              <Link
+                key={g.label[locale]}
+                href={`/${locale}${g.href}`}
+                className="group inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 text-xs tracking-[0.18em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:bg-ink hover:text-cream"
+              >
+                {g.label[locale]}
+                <span className="text-gold transition-transform duration-300 group-hover:translate-x-0.5">
+                  →
+                </span>
+              </Link>
+            ) : (
+              <div key={g.label[locale]} className="text-center">
+                <p className="overline">{g.label[locale]}</p>
+                {g.items && (
+                  <ul className="mt-3 space-y-1.5">
+                    {g.items.map((it) => (
+                      <li key={it[locale]} className="text-sm text-muted">
+                        {it[locale]}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ),
+          )}
         </nav>
       )}
 

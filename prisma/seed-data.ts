@@ -558,6 +558,43 @@ export const products: SeedProduct[] = [
     variants: [fin("CC-FX", "Aço & Laca", "Steel & Lacquer", 21000)],
   },
   {
+    slug: "cigar-case",
+    name: { pt: "Estojo de Charutos", en: "Cigar Case" },
+    collection: "Accessories",
+    description: {
+      pt: "Estojo em pele de vitela para charutos, interior em cedro, costura selada à mão.",
+      en: "Calfskin cigar case with a cedar-lined interior and hand-sealed stitching.",
+    },
+    categorySlug: "acessorios",
+    image: null,
+    variants: [clr("CG-BLK", COLOR.black, 34000), clr("CG-COG", COLOR.cognac, 34000)],
+  },
+  {
+    slug: "ashtray-fire-x",
+    name: { pt: "Cinzeiro Fire X", en: "Fire X Ashtray" },
+    collection: "Fire X",
+    description: {
+      pt: "Cinzeiro em porcelana com decoração da coleção Fire X — uma peça de mesa de exceção.",
+      en: "Porcelain ashtray with Fire X collection artwork — an exceptional table piece.",
+    },
+    categorySlug: "acessorios",
+    image: null,
+    novelty: true,
+    variants: [fin("AT-FX", "Porcelana & Laca", "Porcelain & Lacquer", 42000)],
+  },
+  {
+    slug: "humidor",
+    name: { pt: "Humidor", en: "Humidor" },
+    collection: "Accessories",
+    description: {
+      pt: "Humidor em madeira preciosa e laca, com higrómetro e humidificador — conservação perfeita.",
+      en: "Precious-wood and lacquer humidor with hygrometer and humidifier — perfect conservation.",
+    },
+    categorySlug: "acessorios",
+    image: null,
+    variants: [fin("HM-LAC", "Madeira & Laca", "Wood & Lacquer", 190000)],
+  },
+  {
     slug: "belt",
     name: { pt: "Cinto", en: "Belt" },
     collection: "Accessories",
