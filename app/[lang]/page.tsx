@@ -2,6 +2,7 @@ import Link from "next/link";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategories, getNovelties } from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
+import { categoryArt } from "@/lib/category-art";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { notFound } from "next/navigation";
@@ -45,20 +46,18 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <p className="overline">{dict.sections.categories}</p>
           <div className="gold-rule mx-auto mt-5" />
         </div>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((c) => (
-            <Link key={c.slug} href={`/${locale}/c/${c.slug}`} className="group block">
-              <div className="lux-hover overflow-hidden border border-line">
-                <div className="aspect-[4/5] overflow-hidden">
-                  <div className="h-full w-full transition-transform duration-700 group-hover:scale-105">
-                    <ProductImage seed={c.slug} label={c.name[locale]} className="h-full w-full" />
-                  </div>
-                </div>
-                <div className="bg-paper px-6 py-7 text-center">
-                  <h3 className="font-serif text-2xl text-ink">{c.name[locale]}</h3>
-                  <p className="mt-2 text-sm text-muted">{c.tagline[locale]}</p>
-                </div>
-              </div>
+            <Link
+              key={c.slug}
+              href={`/${locale}/c/${c.slug}`}
+              className="lux-hover group flex flex-col items-center border border-line bg-paper px-6 py-8 text-center"
+            >
+              <p className="overline text-[0.6rem]">{c.name[locale]}</p>
+              <h3 className="mt-3 font-serif text-xl text-ink md:text-2xl">
+                {categoryArt[c.slug]?.art ?? c.name[locale]}
+              </h3>
+              <span className="mt-4 h-px w-8 bg-line transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
             </Link>
           ))}
         </div>
