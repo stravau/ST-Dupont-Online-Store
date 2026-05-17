@@ -118,7 +118,7 @@ const dictionaries = {
       },
     },
     hero: {
-      eyebrow: "Estabelecida 1872 · Paris",
+      eyebrow: "Est. 1872 · Paris",
       title: "L’Art du Briquet",
       subtitle: "A arte francesa do luxo, desde o gesto mais íntimo ao detalhe mais raro.",
       cta: "Descobrir a Coleção",
@@ -134,7 +134,7 @@ const dictionaries = {
       heritageCta: "A Nossa História",
       boutiqueEyebrow: "Boutique",
       boutiqueTitle: "Visite-nos em Lisboa",
-      boutiqueBody: "Aconselhamento personalizado, gravação e serviços de personalização exclusivos.",
+      boutiqueBody: "Aconselhamento personalizado e serviços de personalização exclusivos.",
     },
     product: {
       from: "Desde",
@@ -170,7 +170,7 @@ const dictionaries = {
     store: {
       eyebrow: "Boutique",
       title: "Visite-nos em Lisboa",
-      lede: "Aconselhamento personalizado, gravação e serviços de personalização exclusivos S.T. Dupont, no coração de Lisboa.",
+      lede: "Aconselhamento personalizado e serviços de personalização exclusivos S.T. Dupont, no coração de Lisboa.",
       addressTitle: "Morada",
       floor: "Piso 0",
       hoursTitle: "Horário",
@@ -186,7 +186,8 @@ const dictionaries = {
       official: "Site oficial: st-dupont.com",
       servicesTitle: "Serviços em loja",
       services: [
-        "Gravação e personalização",
+        "Personalização",
+        "Gravação disponível mediante pedido (serviço externo)",
         "Assistência e manutenção vitalícia",
         "Aconselhamento de especialista",
       ],
@@ -310,7 +311,7 @@ const dictionaries = {
       },
     },
     hero: {
-      eyebrow: "Established 1872 · Paris",
+      eyebrow: "Est. 1872 · Paris",
       title: "L’Art du Briquet",
       subtitle: "The French art of luxury — from the most intimate gesture to the rarest detail.",
       cta: "Discover the Collection",
@@ -326,7 +327,7 @@ const dictionaries = {
       heritageCta: "Our Story",
       boutiqueEyebrow: "Boutique",
       boutiqueTitle: "Visit us in Lisbon",
-      boutiqueBody: "Personalised advice, engraving and exclusive customisation services.",
+      boutiqueBody: "Personalised advice and exclusive customisation services.",
     },
     product: {
       from: "From",
@@ -362,7 +363,7 @@ const dictionaries = {
     store: {
       eyebrow: "Boutique",
       title: "Visit us in Lisbon",
-      lede: "Personalised advice, engraving and exclusive S.T. Dupont customisation services, in the heart of Lisbon.",
+      lede: "Personalised advice and exclusive S.T. Dupont customisation services, in the heart of Lisbon.",
       addressTitle: "Address",
       floor: "Floor 0",
       hoursTitle: "Opening hours",
@@ -378,7 +379,8 @@ const dictionaries = {
       official: "Official site: st-dupont.com",
       servicesTitle: "In-store services",
       services: [
-        "Engraving & personalisation",
+        "Personalisation",
+        "Engraving available on request (off-site)",
         "Lifetime service & maintenance",
         "Expert advice",
       ],

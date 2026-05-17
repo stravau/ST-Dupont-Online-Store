@@ -14,9 +14,9 @@ export interface CardSwatch {
   price: string;
 }
 
-// Compact catalogue card. The whole card navigates to the product via a
-// stretched link; the colour swatches sit above it and only swap the
-// previewed colour + image (they never navigate).
+// Catalogue card. The whole card navigates via a stretched link; the
+// colour swatches sit in normal flow (never overlapping the text) and
+// only swap the previewed colour + image.
 export function ProductCardInteractive({
   href,
   seed,
@@ -49,7 +49,6 @@ export function ProductCardInteractive({
   const image = imgSrc(active?.image ?? fallbackImage);
   const price = active?.price ?? basePrice;
   const colorName = active?.label;
-  // Carry the previewed colourway into the product page.
   const linkHref = active
     ? `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`
     : href;
@@ -60,57 +59,38 @@ export function ProductCardInteractive({
       : { background: hex[0] };
 
   return (
-    <article className="lux-hover group relative overflow-hidden border border-line bg-paper">
-      {/* Stretched navigation hit-area (under interactive controls) */}
+    <article className="lux-hover group relative flex flex-col overflow-hidden border border-line bg-paper">
+      {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
-      {/* Wishlist — above the link */}
-      <div className="absolute right-2.5 top-2.5 z-20">{wishlist}</div>
+      <div className="absolute right-2 top-2 z-20">{wishlist}</div>
 
-      {/* Visual content (non-interactive) */}
-      <div className="pointer-events-none">
-        <div className="relative aspect-[4/5] overflow-hidden">
-          <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.04]">
-            {image ? (
-              <Image
-                key={image}
-                src={image}
-                alt={title}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-contain"
-              />
-            ) : (
-              <ProductImage seed={seed} label={title} className="h-full w-full" />
-            )}
-          </div>
-          {noveltyLabel && (
-            <span className="overline absolute left-3 top-3 bg-ink/85 px-2.5 py-1 text-[0.55rem] text-paper">
-              {noveltyLabel}
-            </span>
+      {/* Image */}
+      <div className="relative aspect-[5/6] overflow-hidden">
+        <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]">
+          {image ? (
+            <Image
+              key={image}
+              src={image}
+              alt={title}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
+              className="object-contain"
+            />
+          ) : (
+            <ProductImage seed={seed} label={title} className="h-full w-full" />
           )}
         </div>
-
-        <div className="px-4 pb-4 pt-4 text-center">
-          <p className="overline text-[0.55rem]">{collection}</p>
-          <h3 className="mt-1.5 font-serif text-base text-ink">{title}</h3>
-          <p className="mt-2 text-xs text-muted">
-            {fromLabel} <span className="text-ink">{price}</span>
-          </p>
-          <div className="mt-3 flex items-center justify-center gap-3">
-            {status}
-            {colorName && swatches.length > 1 && (
-              <span className="text-[0.55rem] tracking-[0.14em] text-muted uppercase">
-                {colorName}
-              </span>
-            )}
-          </div>
-        </div>
+        {noveltyLabel && (
+          <span className="overline absolute left-2.5 top-2.5 bg-ink/85 px-2 py-0.5 text-[0.5rem] text-paper">
+            {noveltyLabel}
+          </span>
+        )}
       </div>
 
-      {/* Interactive swatches — above the link, do not navigate */}
+      {/* Colour swatches — normal flow, above the link, do not navigate */}
       {swatches.length > 1 && (
-        <div className="absolute inset-x-0 bottom-[5.4rem] z-20 flex flex-wrap items-center justify-center gap-1.5 px-3 opacity-100 transition-opacity duration-500 md:opacity-0 md:group-hover:opacity-100">
+        <div className="relative z-20 flex flex-wrap items-center justify-center gap-1.5 border-t border-line/60 px-2 py-2.5">
           {swatches.slice(0, 8).map((c, i) => (
             <button
               key={c.label}
@@ -122,17 +102,34 @@ export function ProductCardInteractive({
                 e.stopPropagation();
                 setSel(i);
               }}
-              className={`h-4 w-4 rounded-full ring-offset-1 ring-offset-paper transition-all ${
+              className={`h-3.5 w-3.5 rounded-full ring-offset-1 ring-offset-paper transition-all ${
                 sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
               }`}
               style={swatchStyle(c.hex)}
             />
           ))}
           {swatches.length > 8 && (
-            <span className="text-[0.55rem] text-muted">+{swatches.length - 8}</span>
+            <span className="text-[0.5rem] text-muted">+{swatches.length - 8}</span>
           )}
         </div>
       )}
+
+      {/* Text */}
+      <div className="px-3 pb-4 pt-3 text-center">
+        <p className="overline text-[0.5rem]">{collection}</p>
+        <h3 className="mt-1 font-serif text-sm leading-snug text-ink">{title}</h3>
+        <p className="mt-1.5 text-[0.7rem] text-muted">
+          {fromLabel} <span className="text-ink">{price}</span>
+        </p>
+        <div className="mt-2 flex items-center justify-center gap-2">
+          {status}
+          {colorName && swatches.length > 1 && (
+            <span className="text-[0.5rem] tracking-[0.12em] text-muted uppercase">
+              {colorName}
+            </span>
+          )}
+        </div>
+      </div>
     </article>
   );
 }

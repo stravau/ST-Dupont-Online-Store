@@ -112,7 +112,7 @@ export default async function CategoryPage({
             );
           }
         }
-        const grid = "grid gap-6 sm:grid-cols-2 lg:grid-cols-3";
+        const grid = "product-grid grid gap-6 sm:grid-cols-2 lg:grid-cols-3";
         return (
           <>
             {multi.length > 0 && <div className={`mt-14 ${grid}`}>{multi}</div>}

@@ -37,7 +37,7 @@ export default async function NewReleasesPage({
         <div className="gold-rule mx-auto mt-7" />
       </header>
 
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="product-grid mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
         ))}

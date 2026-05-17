@@ -87,11 +87,18 @@ export function MegaMenu({
                     </Link>
                   </div>
 
-                  {/* Product types */}
+                  {/* Item types — labelled "Collections" (inverted). Long
+                      lists (e.g. Accessories) flow into two columns. */}
                   {c.groups.length > 0 && (
-                    <div className="min-w-[12rem]">
-                      <p className="overline mb-4 text-[0.6rem]">{labels.products}</p>
-                      <ul className="space-y-2.5">
+                    <div className={c.groups.length > 4 ? "min-w-[18rem]" : "min-w-[12rem]"}>
+                      <p className="overline mb-4 text-[0.6rem]">{labels.collections}</p>
+                      <ul
+                        className={
+                          c.groups.length > 4
+                            ? "grid grid-cols-2 gap-x-10 gap-y-2.5"
+                            : "space-y-2.5"
+                        }
+                      >
                         {c.groups.map((g) => (
                           <li key={g.href}>
                             <Link
@@ -106,10 +113,10 @@ export function MegaMenu({
                     </div>
                   )}
 
-                  {/* Collections */}
+                  {/* Product lines — labelled "Products" (inverted) */}
                   {c.collections.length > 0 && (
                     <div className="flex-1">
-                      <p className="overline mb-4 text-[0.6rem]">{labels.collections}</p>
+                      <p className="overline mb-4 text-[0.6rem]">{labels.products}</p>
                       <ul className="grid grid-cols-2 gap-x-12 gap-y-2.5 xl:grid-cols-3">
                         {c.collections.map((col) => (
                           <li key={col}>

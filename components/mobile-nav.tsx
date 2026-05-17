@@ -71,19 +71,22 @@ export function MobileNav({
                     {labels.viewAll} →
                   </Link>
                   {c.groups.length > 0 && (
-                    <ul className="mt-2 space-y-1.5">
-                      {c.groups.map((g) => (
-                        <li key={g.href}>
-                          <Link href={g.href} className="block py-1 text-sm text-ink">
-                            {g.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      <p className="overline mt-3 mb-2 text-[0.55rem]">{labels.collections}</p>
+                      <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+                        {c.groups.map((g) => (
+                          <li key={g.href}>
+                            <Link href={g.href} className="block py-1 text-sm text-ink">
+                              {g.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
                   )}
                   {c.collections.length > 0 && (
                     <>
-                      <p className="overline mt-4 mb-2 text-[0.55rem]">{labels.collections}</p>
+                      <p className="overline mt-4 mb-2 text-[0.55rem]">{labels.products}</p>
                       <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5">
                         {c.collections.map((col) => (
                           <li key={col}>

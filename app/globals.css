@@ -48,6 +48,13 @@ body {
   background: var(--cream);
   color: var(--ink);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Overall UI scaled to 80% */
+  zoom: 0.8;
+}
+
+/* Product grids scaled so cards land at 60% of original (0.8 × 0.75) */
+.product-grid {
+  zoom: 0.75;
 }
 
 /* Display serif for headings */
