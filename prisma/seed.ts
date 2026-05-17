@@ -43,6 +43,7 @@ async function main() {
             priceCents: v.priceCents,
             currency: v.currency,
             attributes: v.attributes as unknown as Prisma.InputJsonValue,
+            images: v.image ? [v.image] : [],
             stock: 25,
           })),
         },

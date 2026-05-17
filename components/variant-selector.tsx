@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useEffect, useActionState } from "react";
 import Link from "next/link";
 import type { AddResult } from "@/lib/actions";
 
@@ -10,6 +10,7 @@ export interface VariantOption {
   type?: string;
   finish?: string;
   color?: { label: string; hex: string[] };
+  image?: string | null;
 }
 
 export interface SelectorLabels {
@@ -34,12 +35,14 @@ export function VariantSelector({
   lang,
   initialType,
   addAction,
+  onActiveSkuChange,
 }: {
   variants: VariantOption[];
   labels: SelectorLabels;
   lang: string;
   initialType?: string;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
+  onActiveSkuChange?: (sku: string) => void;
 }) {
   const [state, formAction, pending] = useActionState(addAction, null);
   const [closedId, setClosedId] = useState<number | null>(null);
@@ -55,6 +58,11 @@ export function VariantSelector({
     (initialType && variants.find((v) => v.type === initialType)?.sku) || variants[0].sku;
   const [sku, setSku] = useState(initialSku);
   const active = variants.find((v) => v.sku === sku) ?? variants[0];
+
+  // Lift the active SKU so a parent can swap the product image per colourway.
+  useEffect(() => {
+    onActiveSkuChange?.(active.sku);
+  }, [active.sku, onActiveSkuChange]);
 
   // Pick the best variant when an axis changes: keep the other axes if a
   // matching combination exists, otherwise fall back to the first match.

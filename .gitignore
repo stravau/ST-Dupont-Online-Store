@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# catalogue extraction workspace (large PDF + tooling, not part of the app)
+/catalogue/
+server.log
+server.err.log

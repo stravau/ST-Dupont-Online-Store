@@ -21,6 +21,7 @@ export interface SeedVariant {
   priceCents: number;
   currency: "EUR";
   attributes: { type?: L; finish?: L; color?: SeedColor };
+  image?: string; // per-colourway photo (/products/<slug>/<ref>.jpg)
 }
 
 export interface SeedProduct {
@@ -133,22 +134,6 @@ const COLOR = {
   flintRed: col("Vermelho · Liberté / Ligne 8 / Ligne D", "Red · Liberté / Ligne 8 / Ligne D", "#9e2b27"),
 };
 
-const FINISH = {
-  glossy: { pt: "Laca Brilhante", en: "Glossy Lacquer" },
-  matte: { pt: "Mate", en: "Matte" },
-  brushed: { pt: "Metal Escovado", en: "Brushed Metal" },
-  polished: { pt: "Metal Polido", en: "Polished Metal" },
-};
-
-// Slim 7: explicit finish × colour combinations that actually exist.
-const fc = (sku: string, finish: L, c: SeedColor, priceCents: number): SeedVariant => ({
-  sku,
-  name: { pt: `${finish.pt} · ${c.label.pt}`, en: `${finish.en} · ${c.label.en}` },
-  priceCents,
-  currency: "EUR",
-  attributes: { finish, color: c },
-});
-
 // type × colour matrix for writing instruments
 function penMatrix(
   prefix: string,
@@ -185,6 +170,24 @@ const clr = (sku: string, c: SeedColor, priceCents: number): SeedVariant => ({
   priceCents,
   currency: "EUR",
   attributes: { color: c },
+});
+
+// Catalogue colourway: each S.T. Dupont reference is its own colourway,
+// rendered as a colour swatch with its own catalogue photo.
+const cw = (
+  sku: string,
+  pt: string,
+  en: string,
+  hex: string[],
+  priceCents: number,
+  image: string,
+): SeedVariant => ({
+  sku,
+  name: { pt, en },
+  priceCents,
+  currency: "EUR",
+  attributes: { color: { label: { pt, en }, hex } },
+  image,
 });
 
 // Brief heritage per line — factual, sourced from st-dupont.com and
@@ -271,13 +274,21 @@ export const products: SeedProduct[] = [
       en: "The maison's iconic lighter, designed with jeweller Jean Dinh Van — a timeless rectangular silhouette and the unmistakable crystalline 'cling' on opening.",
     },
     categorySlug: "isqueiros",
-    image: null,
+    image: "/products/ligne-2/C16601N.jpg",
     novelty: true,
     variants: [
-      fin("L2-SILV", "Acabamento Prata", "Silver Finish", 126000),
-      fin("L2-PALL", "Acabamento Paládio", "Palladium Finish", 119000),
-      fin("L2-GOLD", "Ouro Amarelo", "Yellow Gold Finish", 178000),
-      fin("L2-LACQ", "Laca Natural & Paládio", "Natural Lacquer & Palladium", 139000),
+      cw("C16601N", "Preto Mate & Ouro", "Matt Black & Yellow Gold", ["#15171c", "#c8a24a"], 139000, "/products/ligne-2/C16601N.jpg"),
+      cw("C16457N", "Laca Azul & Ouro", "Blue Lacquer & Yellow Gold", ["#1f3c66", "#c8a24a"], 139000, "/products/ligne-2/C16457N.jpg"),
+      cw("C16602N", "Preto Mate & Paládio", "Matt Black & Palladium", ["#15171c", "#b9bcc2"], 129000, "/products/ligne-2/C16602N.jpg"),
+      cw("C16134N", "Atelier Azul Marinho & Ouro", "Atelier Navy Blue & Yellow Gold", ["#1b2a44", "#c8a24a"], 149000, "/products/ligne-2/C16134N.jpg"),
+      cw("C16296N", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 129000, "/products/ligne-2/C16296N.jpg"),
+      cw("C16884N", "Laca Preta & Ouro", "Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 139000, "/products/ligne-2/C16884N.jpg"),
+      cw("C16184N", "Paládio", "Palladium", ["#b9bcc2"], 119000, "/products/ligne-2/C16184N.jpg"),
+      cw("C16284N", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 178000, "/products/ligne-2/C16284N.jpg"),
+      cw("C16424N", "Ouro Rosa", "Pink Gold", ["#d6a191"], 178000, "/products/ligne-2/C16424N.jpg"),
+      cw("C16455N", "Paládio Ponta de Diamante", "Diamond Head Palladium", ["#b9bcc2"], 126000, "/products/ligne-2/C16455N.jpg"),
+      cw("C16817N", "Paládio Linhas", "Lined Palladium", ["#b9bcc2"], 126000, "/products/ligne-2/C16817N.jpg"),
+      cw("C16827N", "Ouro Amarelo Linhas", "Lined Yellow Gold", ["#c8a24a"], 178000, "/products/ligne-2/C16827N.jpg"),
     ],
   },
   {
@@ -289,8 +300,13 @@ export const products: SeedProduct[] = [
       en: "The house's classic, slender and elegant design, faithful to the origins of the Dupont signature.",
     },
     categorySlug: "isqueiros",
-    image: null,
-    variants: [fin("L1-BRUS", "Crómio Escovado", "Brushed Chrome", 89000), fin("L1-LACQ", "Laca Preta", "Black Lacquer", 99000)],
+    image: "/products/ligne-1/C14120.jpg",
+    variants: [
+      cw("C14120", "Laca Preta & Ouro", "Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 109000, "/products/ligne-1/C14120.jpg"),
+      cw("C14121", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 99000, "/products/ligne-1/C14121.jpg"),
+      cw("C14020", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 119000, "/products/ligne-1/C14020.jpg"),
+      cw("C14021", "Paládio", "Palladium", ["#b9bcc2"], 99000, "/products/ligne-1/C14021.jpg"),
+    ],
   },
   {
     slug: "le-grand-dupont",
@@ -301,9 +317,16 @@ export const products: SeedProduct[] = [
       en: "Premium larger format with an adjustable double flame — presence and performance.",
     },
     categorySlug: "isqueiros",
-    image: null,
+    image: "/products/le-grand-dupont/C23780CL.jpg",
     novelty: true,
-    variants: [fin("LG-PALL", "Paládio", "Palladium", 158000), fin("LG-BLK", "PVD Preto", "Black PVD", 169000)],
+    variants: [
+      cw("C23780CL", "Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23780CL.jpg"),
+      cw("C23790CL", "Laca Preta Brilhante & Ouro", "Shiny Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 189000, "/products/le-grand-dupont/C23790CL.jpg"),
+      cw("C23010N", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23010N.jpg"),
+      cw("C23013N", "Laca Azul Sunburst & Paládio", "Sunburst Blue Lacquer & Palladium", ["#1f3c66", "#b9bcc2"], 175000, "/products/le-grand-dupont/C23013N.jpg"),
+      cw("C23009N", "Ponta de Diamante Ouro", "Diamond Head Yellow Gold", ["#c8a24a"], 198000, "/products/le-grand-dupont/C23009N.jpg"),
+      cw("C23011N", "Ponta de Diamante Paládio", "Diamond Head Palladium", ["#b9bcc2"], 178000, "/products/le-grand-dupont/C23011N.jpg"),
+    ],
   },
   {
     slug: "defi-extreme",
@@ -326,14 +349,18 @@ export const products: SeedProduct[] = [
       en: "Ultra-slim silhouette inspired by 1960s mod fashion — the Ligne 2 reinvented for the modern pocket. Same lacquered body, multiple colours.",
     },
     categorySlug: "isqueiros",
-    image: null,
+    image: "/products/twiggy/030111.jpg",
     novelty: true,
     variants: [
-      clr("TW-BLK", COLOR.black, 32000),
-      clr("TW-WHT", COLOR.white, 32000),
-      clr("TW-SKY", COLOR.skyBlue, 32000),
-      clr("TW-COR", COLOR.coral, 32000),
-      clr("TW-BLU", COLOR.blue, 32000),
+      cw("030111", "Laca Preta Brilhante & Crómio", "Shiny Black Lacquer & Chrome", ["#15171c", "#c9ccd1"], 32000, "/products/twiggy/030111.jpg"),
+      cw("030115", "Laca Azul Brilhante & Crómio", "Shiny Blue Lacquer & Chrome", ["#2f5c9e", "#c9ccd1"], 32000, "/products/twiggy/030115.jpg"),
+      cw("030177", "Fire X · Laca Preta & Crómio", "Fire X · Black Lacquer & Chrome", ["#15171c", "#c9ccd1"], 35000, "/products/twiggy/030177.jpg"),
+      cw("030030", "Laca Framboesa & Dourado", "Raspberry Lacquer & Golden", ["#8e2f4a", "#c8a24a"], 33000, "/products/twiggy/030030.jpg"),
+      cw("030031", "Laca Branca & Dourado", "White Lacquer & Golden", ["#f3efe6", "#c8a24a"], 33000, "/products/twiggy/030031.jpg"),
+      cw("030112", "Laca Preta & Dourado", "Black Lacquer & Golden", ["#15171c", "#c8a24a"], 33000, "/products/twiggy/030112.jpg"),
+      cw("030078", "Monograma 1872 & Dourado", "Monogram 1872 & Golden", ["#9a6b2f", "#c8a24a"], 36000, "/products/twiggy/030078.jpg"),
+      cw("030080", "Monograma 1872 & Crómio", "Monogram 1872 & Chrome", ["#c9ccd1"], 35000, "/products/twiggy/030080.jpg"),
+      cw("030079", "Monograma 1872 Preto & Dourado", "Black Monogram 1872 & Golden", ["#15171c", "#c8a24a"], 36000, "/products/twiggy/030079.jpg"),
     ],
   },
   {
@@ -345,15 +372,12 @@ export const products: SeedProduct[] = [
       en: "Slim jet-flame torch. Multiple colours and finishes — glossy lacquer, matte, brushed or polished metal.",
     },
     categorySlug: "isqueiros",
-    image: null,
+    image: "/products/slim-7/027700.jpg",
     variants: [
-      fc("S7-GL-BLK", FINISH.glossy, COLOR.black, 23000),
-      fc("S7-GL-RED", FINISH.glossy, COLOR.red, 23000),
-      fc("S7-GL-WHT", FINISH.glossy, COLOR.white, 23000),
-      fc("S7-MT-BLK", FINISH.matte, COLOR.black, 24000),
-      fc("S7-BR-STL", FINISH.brushed, COLOR.steel, 25000),
-      fc("S7-BR-GLD", FINISH.brushed, COLOR.goldTone, 27000),
-      fc("S7-PO-STL", FINISH.polished, COLOR.steel, 25000),
+      cw("027700", "Preto & Crómio", "Black & Chrome", ["#15171c", "#c9ccd1"], 23000, "/products/slim-7/027700.jpg"),
+      cw("027710", "Preto Mate & Crómio Escovado", "Matt Black & Brushed Chrome", ["#15171c", "#b9bcc2"], 24000, "/products/slim-7/027710.jpg"),
+      cw("027707", "Vermelho Lótus & PVD Dourado", "Lotus Red & Golden PVD", ["#7d2b27", "#c8a24a"], 27000, "/products/slim-7/027707.jpg"),
+      cw("027708", "Preto & PVD Dourado", "Black & Golden PVD", ["#15171c", "#c8a24a"], 26000, "/products/slim-7/027708.jpg"),
     ],
   },
 

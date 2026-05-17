@@ -26,6 +26,7 @@ export interface Variant {
   priceCents: number;
   currency: "EUR";
   attributes: VariantAttributes;
+  image: string | null; // per-colourway photo, if supplied
 }
 
 export interface Product {
@@ -56,6 +57,7 @@ type VariantRow = {
   priceCents: number;
   currency: string;
   attributes: unknown;
+  images: string[];
 };
 type ProductRow = {
   id: string;
@@ -87,6 +89,7 @@ function mapProduct(p: ProductRow): Product {
       priceCents: v.priceCents,
       currency: v.currency as "EUR",
       attributes: (v.attributes ?? {}) as VariantAttributes,
+      image: v.images?.[0] ?? null,
     })),
   };
 }
