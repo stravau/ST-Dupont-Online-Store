@@ -82,7 +82,7 @@ export function ProductCardInteractive({
           )}
         </div>
         {noveltyLabel && (
-          <span className="overline absolute left-2.5 top-2.5 bg-ink/85 px-2 py-0.5 text-[0.5rem] text-paper">
+          <span className="overline absolute left-3 top-3 bg-ink/85 px-3 py-1 text-[0.7rem] text-paper">
             {noveltyLabel}
           </span>
         )}
@@ -90,7 +90,7 @@ export function ProductCardInteractive({
 
       {/* Colour swatches — normal flow, above the link, do not navigate */}
       {swatches.length > 1 && (
-        <div className="relative z-20 flex flex-wrap items-center justify-center gap-1.5 border-t border-line/60 px-2 py-2.5">
+        <div className="relative z-20 flex flex-wrap items-center justify-center gap-2 border-t border-line/60 px-3 py-4">
           {swatches.slice(0, 8).map((c, i) => (
             <button
               key={c.label}
@@ -102,29 +102,29 @@ export function ProductCardInteractive({
                 e.stopPropagation();
                 setSel(i);
               }}
-              className={`h-3.5 w-3.5 rounded-full ring-offset-1 ring-offset-paper transition-all ${
+              className={`h-6 w-6 rounded-full ring-offset-2 ring-offset-paper transition-all ${
                 sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
               }`}
               style={swatchStyle(c.hex)}
             />
           ))}
           {swatches.length > 8 && (
-            <span className="text-[0.5rem] text-muted">+{swatches.length - 8}</span>
+            <span className="text-sm text-muted">+{swatches.length - 8}</span>
           )}
         </div>
       )}
 
       {/* Text */}
-      <div className="px-3 pb-4 pt-3 text-center">
-        <p className="overline text-[0.5rem]">{collection}</p>
-        <h3 className="mt-1 font-serif text-sm leading-snug text-ink">{title}</h3>
-        <p className="mt-1.5 text-[0.7rem] text-muted">
+      <div className="px-5 pb-7 pt-5 text-center">
+        <p className="overline text-[0.7rem]">{collection}</p>
+        <h3 className="mt-2.5 font-serif text-2xl leading-snug text-ink">{title}</h3>
+        <p className="mt-3 text-base text-muted">
           {fromLabel} <span className="text-ink">{price}</span>
         </p>
-        <div className="mt-2 flex items-center justify-center gap-2">
+        <div className="mt-4 flex items-center justify-center gap-4">
           {status}
           {colorName && swatches.length > 1 && (
-            <span className="text-[0.5rem] tracking-[0.12em] text-muted uppercase">
+            <span className="text-xs tracking-[0.14em] text-muted uppercase">
               {colorName}
             </span>
           )}
