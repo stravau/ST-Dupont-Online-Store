@@ -10,6 +10,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductDetail } from "@/components/product-detail";
 import { WishlistButton } from "@/components/wishlist-button";
+import { CONTACT_ANCHOR } from "@/lib/store-info";
 
 export async function generateMetadata({
   params,
@@ -120,10 +121,10 @@ export default async function ProductPage({
             </div>
 
             <div className="mt-6 flex gap-6 text-xs tracking-[0.16em] uppercase">
-              <Link href={`/${locale}`} className="text-muted transition-colors hover:text-gold">
+              <a href={`#${CONTACT_ANCHOR}`} className="text-muted transition-colors hover:text-gold">
                 {dict.product.needHelp}
-              </Link>
-              <Link href={`/${locale}`} className="text-muted transition-colors hover:text-gold">
+              </a>
+              <Link href={`/${locale}/loja`} className="text-muted transition-colors hover:text-gold">
                 {dict.product.findStore}
               </Link>
             </div>

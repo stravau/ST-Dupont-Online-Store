@@ -3,6 +3,7 @@ import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategories, getNovelties } from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
 import { categoryArt } from "@/lib/category-art";
+import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { notFound } from "next/navigation";
@@ -107,8 +108,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <div className="gold-rule mx-auto my-7" />
         <p className="text-muted">{dict.sections.boutiqueBody}</p>
         <p className="mt-6 text-sm tracking-widest text-ink uppercase">
-          El Corte Inglés · Av. António Augusto de Aguiar 31 · Lisboa
+          {STORE.venue} · {STORE.street} · {locale === "pt" ? "Piso 0" : "Floor 0"}
         </p>
+        <Link
+          href={`/${locale}/loja`}
+          className="mt-9 inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
+        >
+          {dict.footer.viewStore}
+        </Link>
       </section>
     </>
   );

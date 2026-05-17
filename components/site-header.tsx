@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { getCategories, getCollections } from "@/lib/catalog";
+import { categoryArt } from "@/lib/category-art";
 import { currentUserId, getCartCount } from "@/lib/cart";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
@@ -17,6 +18,10 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
       slug: c.slug,
       name: c.name[lang],
       tagline: c.tagline[lang],
+      groups: (categoryArt[c.slug]?.groups ?? []).map((g) => ({
+        label: g.label[lang],
+        href: `/${lang}${g.href}`,
+      })),
       collections: await getCollections(c.slug),
     })),
   );
@@ -37,7 +42,11 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           lang={lang}
           items={menuItems}
           links={[{ label: dict.nav.about, href: `/${lang}/historia` }]}
-          labels={{ viewAll: dict.nav.viewAll, collections: dict.nav.collections }}
+          labels={{
+            viewAll: dict.nav.viewAll,
+            collections: dict.nav.collections,
+            products: dict.nav.products,
+          }}
         />
 
         {/* Utilities */}

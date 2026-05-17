@@ -11,8 +11,8 @@ export function isLocale(value: string): value is Locale {
 
 const dictionaries = {
   pt: {
-    nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", cart: "Carrinho", collections: "Coleções", viewAll: "Ver tudo", about: "Sobre Nós", backHome: "Início" },
-    common: { home: "Início", available: "Disponível" },
+    nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", cart: "Carrinho", collections: "Coleções", viewAll: "Ver tudo", about: "Sobre Nós", backHome: "Início", store: "Loja", products: "Produtos" },
+    common: { home: "Início", available: "Disponível", back: "Voltar" },
     notFound: {
       title: "Página não encontrada",
       body: "A página que procura já não existe ou foi movida. Explore as nossas coleções.",
@@ -163,11 +163,45 @@ const dictionaries = {
       returns: "Devoluções",
       follow: "Seguir",
       rights: "Todos os direitos reservados.",
+      contact: "Contacto",
+      official: "Site oficial S.T. Dupont",
+      viewStore: "Ver loja e direções",
+    },
+    store: {
+      eyebrow: "Boutique",
+      title: "Visite-nos em Lisboa",
+      lede: "Aconselhamento personalizado, gravação e serviços de personalização exclusivos S.T. Dupont, no coração de Lisboa.",
+      addressTitle: "Morada",
+      floor: "Piso 0",
+      hoursTitle: "Horário",
+      hours: [
+        { d: "Segunda a Quinta", h: "10:00 – 22:00" },
+        { d: "Sexta e Sábado", h: "10:00 – 23:00" },
+        { d: "Domingo", h: "10:00 – 20:00" },
+      ],
+      contactTitle: "Contacto",
+      phoneLabel: "Telefone",
+      emailLabel: "Email",
+      directions: "Obter direções",
+      official: "Site oficial: st-dupont.com",
+      servicesTitle: "Serviços em loja",
+      services: [
+        "Gravação e personalização",
+        "Assistência e manutenção vitalícia",
+        "Aconselhamento de especialista",
+      ],
+      mapTitle: "Como chegar",
+    },
+    legal: {
+      backToStore: "Voltar à loja",
+      updated: "Última atualização",
+      draftNotice:
+        "Documento preliminar fornecido como modelo. Deve ser revisto por aconselhamento jurídico e completado com os dados da entidade legal antes do lançamento.",
     },
   },
   en: {
-    nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", cart: "Cart", collections: "Collections", viewAll: "View all", about: "About Us", backHome: "Home" },
-    common: { home: "Home", available: "Available" },
+    nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", cart: "Cart", collections: "Collections", viewAll: "View all", about: "About Us", backHome: "Home", store: "Store", products: "Products" },
+    common: { home: "Home", available: "Available", back: "Back" },
     notFound: {
       title: "Page not found",
       body: "The page you are looking for no longer exists or has moved. Explore our collections.",
@@ -318,6 +352,40 @@ const dictionaries = {
       returns: "Returns",
       follow: "Follow",
       rights: "All rights reserved.",
+      contact: "Contact",
+      official: "Official S.T. Dupont site",
+      viewStore: "View store & directions",
+    },
+    store: {
+      eyebrow: "Boutique",
+      title: "Visit us in Lisbon",
+      lede: "Personalised advice, engraving and exclusive S.T. Dupont customisation services, in the heart of Lisbon.",
+      addressTitle: "Address",
+      floor: "Floor 0",
+      hoursTitle: "Opening hours",
+      hours: [
+        { d: "Monday to Thursday", h: "10:00 – 22:00" },
+        { d: "Friday & Saturday", h: "10:00 – 23:00" },
+        { d: "Sunday", h: "10:00 – 20:00" },
+      ],
+      contactTitle: "Contact",
+      phoneLabel: "Phone",
+      emailLabel: "Email",
+      directions: "Get directions",
+      official: "Official site: st-dupont.com",
+      servicesTitle: "In-store services",
+      services: [
+        "Engraving & personalisation",
+        "Lifetime service & maintenance",
+        "Expert advice",
+      ],
+      mapTitle: "Getting here",
+    },
+    legal: {
+      backToStore: "Back to store",
+      updated: "Last updated",
+      draftNotice:
+        "Draft document provided as a template. It must be reviewed by legal counsel and completed with the legal entity's details before launch.",
     },
   },
 } as const;

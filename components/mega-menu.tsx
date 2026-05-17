@@ -7,6 +7,7 @@ export interface MenuCategory {
   slug: string;
   name: string;
   tagline: string;
+  groups: { label: string; href: string }[];
   collections: string[];
 }
 
@@ -19,13 +20,11 @@ export function MegaMenu({
   lang: string;
   items: MenuCategory[];
   links?: { label: string; href: string }[];
-  labels: { viewAll: string; collections: string };
+  labels: { viewAll: string; collections: string; products: string };
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Hover-intent: cancel any pending close on enter; close only after a short
-  // grace period so moving between a category and its panel never drops it.
   const cancelClose = useCallback(() => {
     if (timer.current) {
       clearTimeout(timer.current);
@@ -47,11 +46,7 @@ export function MegaMenu({
   }, [cancelClose]);
 
   return (
-    <nav
-      className="hidden lg:block"
-      onMouseEnter={cancelClose}
-      onMouseLeave={scheduleClose}
-    >
+    <nav className="hidden lg:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
       <ul className="flex items-center gap-9">
         {items.map((c) => (
           <li key={c.slug} className="static">
@@ -70,46 +65,65 @@ export function MegaMenu({
               />
             </Link>
 
-            {open === c.slug && c.collections.length > 0 && (
+            {open === c.slug && (c.groups.length > 0 || c.collections.length > 0) && (
               <div
                 onMouseEnter={() => show(c.slug)}
                 onMouseLeave={scheduleClose}
                 className="absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur"
               >
-                {/* Invisible bridge so the gap between the link row and the
-                    panel never breaks the hover. */}
-                <span
-                  aria-hidden
-                  className="absolute -top-4 left-0 right-0 h-4"
-                />
-                <div className="mx-auto flex max-w-7xl gap-16 px-6 py-12">
-                  <div className="w-56 shrink-0">
+                <span aria-hidden className="absolute -top-4 left-0 right-0 h-4" />
+                <div className="mx-auto flex max-w-7xl items-start gap-14 px-6 py-7">
+                  {/* Intro */}
+                  <div className="w-52 shrink-0 border-r border-line pr-10">
                     <p className="overline">{c.name}</p>
-                    <p className="mt-3 font-serif text-2xl leading-snug text-ink">
+                    <p className="mt-2 font-serif text-lg leading-snug text-ink">
                       {c.tagline}
                     </p>
                     <Link
                       href={`/${lang}/c/${c.slug}`}
-                      className="mt-6 inline-block text-xs tracking-[0.2em] text-gold uppercase transition-colors hover:text-ink"
+                      className="mt-4 inline-block text-[0.7rem] tracking-[0.2em] text-gold uppercase transition-colors hover:text-ink"
                     >
                       {labels.viewAll} →
                     </Link>
                   </div>
-                  <div>
-                    <p className="overline mb-5">{labels.collections}</p>
-                    <ul className="grid grid-cols-2 gap-x-14 gap-y-3">
-                      {c.collections.map((col) => (
-                        <li key={col}>
-                          <Link
-                            href={`/${lang}/c/${c.slug}?col=${encodeURIComponent(col)}`}
-                            className="text-sm text-muted transition-colors hover:text-gold"
-                          >
-                            {col}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+
+                  {/* Product types */}
+                  {c.groups.length > 0 && (
+                    <div className="min-w-[12rem]">
+                      <p className="overline mb-4 text-[0.6rem]">{labels.products}</p>
+                      <ul className="space-y-2.5">
+                        {c.groups.map((g) => (
+                          <li key={g.href}>
+                            <Link
+                              href={g.href}
+                              className="text-sm text-ink transition-colors hover:text-gold"
+                            >
+                              {g.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Collections */}
+                  {c.collections.length > 0 && (
+                    <div className="flex-1">
+                      <p className="overline mb-4 text-[0.6rem]">{labels.collections}</p>
+                      <ul className="grid grid-cols-2 gap-x-12 gap-y-2.5 xl:grid-cols-3">
+                        {c.collections.map((col) => (
+                          <li key={col}>
+                            <Link
+                              href={`/${lang}/c/${c.slug}?col=${encodeURIComponent(col)}`}
+                              className="text-sm text-muted transition-colors hover:text-gold"
+                            >
+                              {col}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

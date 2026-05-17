@@ -5,7 +5,7 @@ import "../globals.css";
 import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { BackHome } from "@/components/back-home";
+import { NavBack } from "@/components/nav-back";
 
 const displaySerif = Cormorant_Garamond({
   variable: "--font-display-serif",
@@ -50,7 +50,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full scroll-smooth`}>
       <body className="flex min-h-full flex-col">
         <SiteHeader lang={locale} />
-        <BackHome lang={locale} label={getDictionary(locale).nav.backHome} />
+        <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
         <main className="flex-1">{children}</main>
         <SiteFooter lang={locale} />
       </body>
