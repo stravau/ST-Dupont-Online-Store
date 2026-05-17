@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import {
-  STORE,
-  mapsEmbedSrc,
-  mapsDirectionsUrl,
-} from "@/lib/store-info";
+import { STORE, mapsEmbedSrc, mapsDirectionsUrl } from "@/lib/store-info";
+import { StoreMap } from "@/components/store-map";
 
 export async function generateMetadata({
   params,
@@ -143,14 +140,12 @@ export default async function StorePage({
           <div className="flex flex-col">
             <p className="overline">{s.mapTitle}</p>
             <div className="gold-rule mt-4" />
-            <div className="relative mt-5 aspect-[4/5] w-full overflow-hidden border border-line md:aspect-auto md:flex-1">
-              <iframe
-                title={STORE.venue}
+            <div className="mt-5 flex md:flex-1">
+              <StoreMap
                 src={mapsEmbedSrc}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
+                title={STORE.venue}
+                loadLabel={s.loadMap}
+                consent={s.mapConsent}
               />
             </div>
             <a

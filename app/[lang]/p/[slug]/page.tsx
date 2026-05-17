@@ -28,10 +28,10 @@ export default async function ProductPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; slug: string }>;
-  searchParams: Promise<{ t?: string }>;
+  searchParams: Promise<{ t?: string; v?: string }>;
 }) {
   const { lang, slug } = await params;
-  const { t: typeParam } = await searchParams;
+  const { t: typeParam, v: skuParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const product = await getProduct(slug);
@@ -70,6 +70,7 @@ export default async function ProductPage({
         variants={variantOptions}
         lang={locale}
         initialType={typeParam}
+        initialSku={skuParam}
         addAction={addAction}
         labels={{
           typeLabel: dict.product.typeLabel,

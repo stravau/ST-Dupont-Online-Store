@@ -6,6 +6,7 @@ import { categoryArt } from "@/lib/category-art";
 import { currentUserId, getCartCount } from "@/lib/cart";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
+import { MobileNav } from "@/components/mobile-nav";
 import { SearchBar } from "@/components/search-bar";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
@@ -51,6 +52,19 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
 
         {/* Utilities */}
         <div className="flex items-center gap-5">
+          <MobileNav
+            lang={lang}
+            items={menuItems}
+            links={[
+              { label: dict.nav.store, href: `/${lang}/loja` },
+              { label: dict.nav.about, href: `/${lang}/historia` },
+            ]}
+            labels={{
+              viewAll: dict.nav.viewAll,
+              collections: dict.nav.collections,
+              products: dict.nav.products,
+            }}
+          />
           <LanguageSwitcher current={lang} />
           <SearchBar
             lang={lang}
@@ -91,24 +105,6 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         </div>
       </div>
 
-      {/* Mobile category strip */}
-      <nav className="flex items-center justify-center gap-6 overflow-x-auto border-t border-line px-6 py-3 lg:hidden">
-        {categories.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/${lang}/c/${c.slug}`}
-            className="whitespace-nowrap text-xs tracking-[0.14em] text-muted uppercase"
-          >
-            {c.name[lang]}
-          </Link>
-        ))}
-        <Link
-          href={`/${lang}/historia`}
-          className="whitespace-nowrap text-xs tracking-[0.14em] text-muted uppercase"
-        >
-          {dict.nav.about}
-        </Link>
-      </nav>
     </header>
   );
 }

@@ -33,6 +33,7 @@ export function ProductCard({
     const c = v.attributes.color;
     if (c && !swatches.some((x) => x.label === c.label[lang])) {
       swatches.push({
+        sku: v.sku,
         label: c.label[lang],
         hex: c.hex,
         image: v.image ?? product.image,

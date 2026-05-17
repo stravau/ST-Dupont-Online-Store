@@ -13,17 +13,15 @@ export const STORE = {
   officialLabel: "st-dupont.com",
 } as const;
 
-const MAPS_QUERY =
-  "El Corte Inglés Lisboa, Av. António Augusto de Aguiar 31, 1050-012 Lisboa";
+// Precise coordinates of El Corte Inglés Lisboa (Av. António Augusto de
+// Aguiar 31) — exact pin instead of a fuzzy address text query.
+export const STORE_COORDS = { lat: 38.73386, lng: -9.15351 } as const;
+const COORDS = `${STORE_COORDS.lat},${STORE_COORDS.lng}`;
 
 // Keyless Google Maps embed (no API key required) + a directions deep link.
-export const mapsEmbedSrc = `https://www.google.com/maps?q=${encodeURIComponent(
-  MAPS_QUERY,
-)}&z=16&output=embed`;
+export const mapsEmbedSrc = `https://www.google.com/maps?q=${COORDS}&z=17&output=embed`;
 
-export const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-  MAPS_QUERY,
-)}`;
+export const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${COORDS}`;
 
 // Stable id for the footer contact block (Need help? anchors here).
 export const CONTACT_ANCHOR = "contacto";

@@ -4,8 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductImage } from "@/components/product-image";
+import { imgSrc } from "@/lib/img";
 
 export interface CardSwatch {
+  sku: string;
   label: string;
   hex: string[];
   image: string | null;
@@ -44,9 +46,13 @@ export function ProductCardInteractive({
 }) {
   const [sel, setSel] = useState(0);
   const active = swatches[sel];
-  const image = active?.image ?? fallbackImage;
+  const image = imgSrc(active?.image ?? fallbackImage);
   const price = active?.price ?? basePrice;
   const colorName = active?.label;
+  // Carry the previewed colourway into the product page.
+  const linkHref = active
+    ? `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`
+    : href;
 
   const swatchStyle = (hex: string[]) =>
     hex.length > 1
@@ -56,7 +62,7 @@ export function ProductCardInteractive({
   return (
     <article className="lux-hover group relative overflow-hidden border border-line bg-paper">
       {/* Stretched navigation hit-area (under interactive controls) */}
-      <Link href={href} aria-label={title} className="absolute inset-0 z-10" />
+      <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
       {/* Wishlist — above the link */}
       <div className="absolute right-2.5 top-2.5 z-20">{wishlist}</div>
@@ -104,7 +110,7 @@ export function ProductCardInteractive({
 
       {/* Interactive swatches — above the link, do not navigate */}
       {swatches.length > 1 && (
-        <div className="absolute inset-x-0 bottom-[5.4rem] z-20 flex flex-wrap items-center justify-center gap-1.5 px-3 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+        <div className="absolute inset-x-0 bottom-[5.4rem] z-20 flex flex-wrap items-center justify-center gap-1.5 px-3 opacity-100 transition-opacity duration-500 md:opacity-0 md:group-hover:opacity-100">
           {swatches.slice(0, 8).map((c, i) => (
             <button
               key={c.label}

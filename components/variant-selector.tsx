@@ -34,6 +34,7 @@ export function VariantSelector({
   labels,
   lang,
   initialType,
+  initialSku: initialSkuProp,
   addAction,
   onActiveSkuChange,
 }: {
@@ -41,6 +42,7 @@ export function VariantSelector({
   labels: SelectorLabels;
   lang: string;
   initialType?: string;
+  initialSku?: string;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
   onActiveSkuChange?: (sku: string) => void;
 }) {
@@ -55,7 +57,9 @@ export function VariantSelector({
   }
 
   const initialSku =
-    (initialType && variants.find((v) => v.type === initialType)?.sku) || variants[0].sku;
+    (initialSkuProp && variants.find((v) => v.sku === initialSkuProp)?.sku) ||
+    (initialType && variants.find((v) => v.type === initialType)?.sku) ||
+    variants[0].sku;
   const [sku, setSku] = useState(initialSku);
   const active = variants.find((v) => v.sku === sku) ?? variants[0];
 

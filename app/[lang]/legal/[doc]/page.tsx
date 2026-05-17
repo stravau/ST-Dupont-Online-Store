@@ -12,7 +12,8 @@ export async function generateMetadata({
   const { lang, doc } = await params;
   const d = legalDocs[doc];
   if (!isLocale(lang) || !d) return {};
-  return { title: d.title[lang as Locale] };
+  // Drafts: don't index until reviewed by legal counsel.
+  return { title: d.title[lang as Locale], robots: { index: false, follow: true } };
 }
 
 export default async function LegalPage({

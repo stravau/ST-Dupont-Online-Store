@@ -191,6 +191,9 @@ const dictionaries = {
         "Aconselhamento de especialista",
       ],
       mapTitle: "Como chegar",
+      loadMap: "Carregar mapa",
+      mapConsent:
+        "O mapa é fornecido pelo Google Maps. Ao carregar, poderão ser definidos cookies do Google.",
     },
     legal: {
       backToStore: "Voltar à loja",
@@ -380,6 +383,9 @@ const dictionaries = {
         "Expert advice",
       ],
       mapTitle: "Getting here",
+      loadMap: "Load map",
+      mapConsent:
+        "The map is provided by Google Maps. Loading it may set Google cookies.",
     },
     legal: {
       backToStore: "Back to store",

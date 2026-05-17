@@ -6,38 +6,58 @@ import Link from "next/link";
 import { routeLabel } from "@/lib/route-label";
 import type { Locale } from "@/lib/i18n";
 
-// Global "Back" control. Tracks the in-app navigation stack (per tab) so it
-// shows the *previously visited* page, e.g. "← Writing" after going from
-// Writing into Writing Accessories. Falls back to Home on a fresh entry.
+interface Entry {
+  p: string;
+  t?: string;
+}
+
+// Global "Back" control. Tracks the in-app navigation stack (per tab) and
+// shows the *previously visited* page by its real title, e.g.
+// "← Isqueiro Ligne 2" or "← Writing". Falls back to Home on a fresh entry.
 export function NavBack({ lang, homeLabel }: { lang: Locale; homeLabel: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [prev, setPrev] = useState<string | null>(null);
+  const [prev, setPrev] = useState<Entry | null>(null);
   const home = `/${lang}`;
   const isHome = pathname === home || pathname === `${home}/`;
 
   useEffect(() => {
     const KEY = "navStack";
-    let stack: string[] = [];
+    const cleanTitle = () =>
+      document.title.replace(/\s*[·|]\s*S\.?T\.?\s*Dupont.*$/i, "").trim() || undefined;
+
+    let stack: Entry[] = [];
     try {
       stack = JSON.parse(sessionStorage.getItem(KEY) || "[]");
     } catch {
       stack = [];
     }
-    if (stack[stack.length - 2] === pathname) {
-      // user went back — drop the page we left
-      stack.pop();
-    } else if (stack[stack.length - 1] !== pathname) {
-      stack.push(pathname);
+    if (stack[stack.length - 2]?.p === pathname) {
+      stack.pop(); // went back
+    } else if (stack[stack.length - 1]?.p !== pathname) {
+      stack.push({ p: pathname });
     }
+    // Capture the current page's title (settles a tick after navigation).
+    stack[stack.length - 1].t = cleanTitle();
     sessionStorage.setItem(KEY, JSON.stringify(stack));
     const before = stack[stack.length - 2];
-    setPrev(before && before !== pathname ? before : null);
+    setPrev(before && before.p !== pathname ? before : null);
+
+    const id = setTimeout(() => {
+      try {
+        const s: Entry[] = JSON.parse(sessionStorage.getItem(KEY) || "[]");
+        if (s[s.length - 1]?.p === pathname) {
+          s[s.length - 1].t = cleanTitle();
+          sessionStorage.setItem(KEY, JSON.stringify(s));
+        }
+      } catch {}
+    }, 400);
+    return () => clearTimeout(id);
   }, [pathname]);
 
   if (isHome) return null;
 
-  const label = prev ? routeLabel(prev, lang) : homeLabel;
+  const label = prev ? prev.t || routeLabel(prev.p, lang) : homeLabel;
 
   return (
     <div className="mx-auto max-w-7xl px-6 pt-6">

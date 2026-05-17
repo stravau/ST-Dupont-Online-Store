@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { ProductImage } from "@/components/product-image";
 import { VariantSelector, type VariantOption, type SelectorLabels } from "@/components/variant-selector";
+import { imgSrc } from "@/lib/img";
 import type { AddResult } from "@/lib/actions";
 
 // Two-column product top: the left image swaps to the selected colourway's
@@ -16,6 +17,7 @@ export function ProductDetail({
   labels,
   lang,
   initialType,
+  initialSku,
   addAction,
   header,
   extras,
@@ -27,19 +29,22 @@ export function ProductDetail({
   labels: SelectorLabels;
   lang: string;
   initialType?: string;
+  initialSku?: string;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
   header: React.ReactNode;
   extras: React.ReactNode;
 }) {
-  const initialSku =
-    (initialType && variants.find((v) => v.type === initialType)?.sku) || variants[0].sku;
-  const initialImage = variants.find((v) => v.sku === initialSku)?.image ?? fallbackImage;
-  const [image, setImage] = useState<string | null>(initialImage ?? null);
+  const startSku =
+    (initialSku && variants.find((v) => v.sku === initialSku)?.sku) ||
+    (initialType && variants.find((v) => v.type === initialType)?.sku) ||
+    variants[0].sku;
+  const initialImage = variants.find((v) => v.sku === startSku)?.image ?? fallbackImage;
+  const [image, setImage] = useState<string | null>(imgSrc(initialImage));
 
   const handleActiveSku = useCallback(
     (sku: string) => {
       const v = variants.find((x) => x.sku === sku);
-      setImage(v?.image ?? fallbackImage ?? null);
+      setImage(imgSrc(v?.image ?? fallbackImage));
     },
     [variants, fallbackImage],
   );
@@ -69,6 +74,7 @@ export function ProductDetail({
             variants={variants}
             lang={lang}
             initialType={initialType}
+            initialSku={initialSku}
             addAction={addAction}
             labels={labels}
             onActiveSkuChange={handleActiveSku}
