@@ -1,12 +1,33 @@
 "use client";
 
-// "Our Maisons" + arrow that smooth-scrolls to the #maisons section.
-// Uses scrollIntoView so it's reliably smooth regardless of CSS/zoom.
+// "Our Maisons" + arrow that scrolls to the #maisons section.
+// Manual rAF tween (easeOutCubic) — native smooth scroll is broken on
+// desktop Chrome when an ancestor uses CSS `zoom`, so we animate ourselves.
 export function ScrollCue({ label }: { label: string }) {
   function go() {
-    document
-      .getElementById("maisons")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById("maisons");
+    if (!el) return;
+
+    const targetY = el.getBoundingClientRect().top + window.scrollY - 72;
+    const startY = window.scrollY;
+    const dist = targetY - startY;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || Math.abs(dist) < 4) {
+      window.scrollTo(0, targetY);
+      return;
+    }
+
+    const duration = 750;
+    let t0: number | null = null;
+    function step(ts: number) {
+      if (t0 === null) t0 = ts;
+      const p = Math.min(1, (ts - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      window.scrollTo(0, startY + dist * eased);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   }
 
   return (
