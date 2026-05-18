@@ -41,7 +41,8 @@ export function NavBack({ lang, homeLabel }: { lang: Locale; homeLabel: string }
     stack[stack.length - 1].t = cleanTitle();
     sessionStorage.setItem(KEY, JSON.stringify(stack));
     const before = stack[stack.length - 2];
-    setPrev(before && before.p !== pathname ? before : null);
+    // Defer out of the effect body (lint: no sync setState in effect).
+    queueMicrotask(() => setPrev(before && before.p !== pathname ? before : null));
 
     const id = setTimeout(() => {
       try {

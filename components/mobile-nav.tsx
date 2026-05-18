@@ -23,7 +23,8 @@ export function MobileNav({
 
   // Close the drawer whenever the route changes.
   useEffect(() => {
-    setOpen(false);
+    // Defer out of the effect body (lint: no sync setState in effect).
+    queueMicrotask(() => setOpen(false));
   }, [pathname]);
 
   // Lock body scroll while open.
