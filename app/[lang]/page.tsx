@@ -6,6 +6,7 @@ import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
+import { Crest } from "@/components/crest";
 import { notFound } from "next/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -21,46 +22,49 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   return (
     <>
-      {/* Cinematic hero */}
-      <section className="monogram-bg relative flex min-h-[82vh] items-center justify-center text-center text-cream">
-        <div className="px-6">
-          <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
-          <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
-            {dict.hero.title}
-          </h1>
-          <div className="gold-rule mx-auto my-8" />
-          <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
-            {dict.hero.subtitle}
-          </p>
-          <Link
-            href={`/${locale}/colecao`}
-            className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
-          >
-            {dict.hero.cta}
-          </Link>
-        </div>
-      </section>
-
-      {/* Category cards */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="text-center">
-          <p className="overline">{dict.sections.categories}</p>
-          <div className="gold-rule mx-auto mt-5" />
-        </div>
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((c) => (
+      {/* Cinematic hero + the four Arts — one continuous midnight backdrop */}
+      <section className="monogram-bg text-cream">
+        <div className="relative flex min-h-[78vh] items-center justify-center px-6 text-center">
+          <div>
+            <Crest className="mb-8 text-gold-soft" />
+            <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
+            <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
+              {dict.hero.title}
+            </h1>
+            <div className="gold-rule mx-auto my-8" />
+            <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
+              {dict.hero.subtitle}
+            </p>
             <Link
-              key={c.slug}
-              href={`/${locale}/c/${c.slug}`}
-              className="lux-hover group flex flex-col items-center border border-line bg-paper px-6 py-8 text-center"
+              href={`/${locale}/colecao`}
+              className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
             >
-              <p className="overline text-[0.6rem]">{c.name[locale]}</p>
-              <h3 className="mt-3 font-serif text-xl text-ink md:text-2xl">
-                {categoryArt[c.slug]?.art ?? c.name[locale]}
-              </h3>
-              <span className="mt-4 h-px w-8 bg-line transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
+              {dict.hero.cta}
             </Link>
-          ))}
+          </div>
+        </div>
+
+        {/* The four Arts — light cards floating on the blue */}
+        <div className="mx-auto max-w-7xl px-6 pb-28">
+          <div className="text-center">
+            <p className="overline text-gold-soft">{dict.sections.categories}</p>
+            <div className="gold-rule mx-auto mt-5" />
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {categories.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/${locale}/c/${c.slug}`}
+                className="lux-hover group flex flex-col items-center border border-line bg-paper px-6 py-8 text-center"
+              >
+                <p className="overline text-[0.6rem]">{c.name[locale]}</p>
+                <h3 className="mt-3 font-serif text-xl text-ink md:text-2xl">
+                  {categoryArt[c.slug]?.art ?? c.name[locale]}
+                </h3>
+                <span className="mt-4 h-px w-8 bg-line transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

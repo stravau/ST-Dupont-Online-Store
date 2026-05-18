@@ -64,7 +64,7 @@ export default async function CategoryPage({
         ]}
       />
 
-      <header className="mx-auto mt-10 max-w-2xl text-center">
+      <header className="mx-auto mt-2 max-w-2xl text-center">
         <Crest className="mb-6" />
         <p className="overline">{cat.name[locale]}</p>
         <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
