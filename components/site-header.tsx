@@ -32,6 +32,21 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-cream/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        {/* Mobile menu trigger (top-left on small screens) */}
+        <MobileNav
+          lang={lang}
+          items={menuItems}
+          links={[
+            { label: dict.nav.store, href: `/${lang}/loja` },
+            { label: dict.nav.about, href: `/${lang}/historia` },
+          ]}
+          labels={{
+            viewAll: dict.nav.viewAll,
+            collections: dict.nav.collections,
+            products: dict.nav.products,
+          }}
+        />
+
         {/* Wordmark */}
         <Link href={`/${lang}`} className="leading-none">
           <span className="block font-serif text-2xl tracking-[0.18em] text-ink">
@@ -54,19 +69,6 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
 
         {/* Utilities */}
         <div className="flex items-center gap-5">
-          <MobileNav
-            lang={lang}
-            items={menuItems}
-            links={[
-              { label: dict.nav.store, href: `/${lang}/loja` },
-              { label: dict.nav.about, href: `/${lang}/historia` },
-            ]}
-            labels={{
-              viewAll: dict.nav.viewAll,
-              collections: dict.nav.collections,
-              products: dict.nav.products,
-            }}
-          />
           <LanguageSwitcher current={lang} />
           <SearchBar
             lang={lang}

@@ -56,8 +56,25 @@ export function MobileNav({
       </button>
 
       {open && (
-        <div className="fixed inset-x-0 bottom-0 top-[var(--hdr,5.5rem)] z-40 overflow-y-auto border-t border-line bg-cream/98 backdrop-blur">
-          <nav className="mx-auto max-w-2xl px-6 py-8">
+        // Full-screen overlay. Sized to 111vw/111vh so the global
+        // `zoom: 0.9` can't leave an uncovered strip, and z above the header.
+        <div className="fixed left-0 top-0 z-[100] flex h-[111vh] w-[111vw] flex-col overflow-y-auto bg-cream">
+          <div className="flex items-center justify-between border-b border-line px-6 py-5">
+            <span className="font-serif text-xl tracking-[0.18em] text-ink">
+              S.T. DUPONT
+            </span>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={() => setOpen(false)}
+              className="text-ink transition-colors hover:text-gold"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+          <nav className="mx-auto w-full max-w-2xl px-6 py-8">
             {items.map((c) => (
               <details key={c.slug} className="border-b border-line py-2">
                 <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-sm tracking-[0.16em] text-ink uppercase">

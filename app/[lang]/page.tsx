@@ -22,30 +22,54 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   return (
     <>
-      {/* Cinematic hero + the four Arts — one continuous midnight backdrop */}
+      {/* Cinematic hero + the four Arts — one continuous midnight backdrop.
+          The hero fills the screen; only the "Our Maisons" cue + arrow show
+          on landing, scrolling down to the cards. */}
       <section className="monogram-bg text-cream">
-        <div className="relative flex min-h-[78vh] items-center justify-center px-6 text-center">
-          <div>
-            <Crest className="mb-8 text-gold-soft" />
-            <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
-            <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
-              {dict.hero.title}
-            </h1>
-            <div className="gold-rule mx-auto my-8" />
-            <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
-              {dict.hero.subtitle}
-            </p>
-            <Link
-              href={`/${locale}/colecao`}
-              className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
-            >
-              {dict.hero.cta}
-            </Link>
+        <div className="relative flex min-h-[111vh] flex-col px-6">
+          <div className="flex flex-1 items-center justify-center text-center">
+            <div>
+              <Crest className="mb-8 text-gold-soft" />
+              <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
+              <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
+                {dict.hero.title}
+              </h1>
+              <div className="gold-rule mx-auto my-8" />
+              <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
+                {dict.hero.subtitle}
+              </p>
+              <Link
+                href={`/${locale}/colecao`}
+                className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
+              >
+                {dict.hero.cta}
+              </Link>
+            </div>
           </div>
+
+          {/* Bottom cue — the only thing besides the hero on first screen */}
+          <a
+            href="#maisons"
+            aria-label={dict.sections.categories}
+            className="mb-12 flex flex-col items-center gap-3 text-gold-soft transition-colors hover:text-cream"
+          >
+            <span className="overline">{dict.sections.categories}</span>
+            <svg
+              className="scroll-hint"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
         </div>
 
         {/* The four Arts — light cards floating on the blue */}
-        <div className="mx-auto max-w-7xl px-6 pb-28">
+        <div id="maisons" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-28 pt-10">
           <div className="text-center">
             <p className="overline text-gold-soft">{dict.sections.categories}</p>
             <div className="gold-rule mx-auto mt-5" />
