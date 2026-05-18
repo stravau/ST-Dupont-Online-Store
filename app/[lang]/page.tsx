@@ -6,6 +6,7 @@ import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
+import { ScrollCue } from "@/components/scroll-cue";
 import { notFound } from "next/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -25,47 +26,26 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           The hero fills the screen; only the "Our Maisons" cue + arrow show
           on landing, scrolling down to the cards. */}
       <section className="monogram-bg text-cream">
-        <div className="relative flex min-h-[111vh] flex-col px-6">
-          <div className="flex flex-1 items-center justify-center text-center">
-            <div className="mx-auto flex flex-col items-center">
-              <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
-              <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
-                {dict.hero.title}
-              </h1>
-              <div className="gold-rule mx-auto my-8" />
-              <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
-                {dict.hero.subtitle}
-              </p>
-              <Link
-                href={`/${locale}/colecao`}
-                className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
-              >
-                {dict.hero.cta}
-              </Link>
-            </div>
-          </div>
-
-          {/* Bottom cue — the only thing besides the hero on first screen */}
-          <a
-            href="#maisons"
-            aria-label={dict.sections.categories}
-            className="mb-16 flex flex-col items-center gap-5 text-gold-soft transition-colors hover:text-cream"
-          >
-            <span className="text-[1.4rem] font-medium uppercase tracking-[0.22em]">
-              {dict.sections.categories}
-            </span>
-            <svg
-              className="scroll-hint"
-              width="66"
-              height="66"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
+        <div className="flex min-h-[111vh] items-center justify-center px-6 text-center">
+          <div className="flex flex-col items-center">
+            <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
+            <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
+              {dict.hero.title}
+            </h1>
+            <div className="gold-rule mx-auto my-8" />
+            <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
+              {dict.hero.subtitle}
+            </p>
+            <Link
+              href={`/${locale}/colecao`}
+              className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
             >
-              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+              {dict.hero.cta}
+            </Link>
+
+            {/* Cue — close under the CTA, smooth-scrolls to the cards */}
+            <ScrollCue label={dict.sections.categories} />
+          </div>
         </div>
 
         {/* The four Arts — light cards floating on the blue */}
