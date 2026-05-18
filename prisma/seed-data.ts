@@ -435,20 +435,42 @@ export const products: SeedProduct[] = [
     name: { pt: "Classique", en: "Classique" },
     collection: "Classique",
     description: {
-      pt: "A esferográfica clássica da maison, apresentada em 1973 — silhueta intemporal, guilhoché e clip lacado.",
-      en: "The maison's classic ballpoint, introduced in 1973 — a timeless silhouette, guilloché and lacquered clip.",
+      pt: "Mais de 50 anos após o lançamento, a S.T. Dupont reinventa o primeiro instrumento de escrita de luxo da história — criado para Jackie Kennedy. Corpo facetado ou guilhoché, proporções «número de ouro», agora unissexo e ergonómico.",
+      en: "Over 50 years after its launch, S.T. Dupont reinvents the first ever luxury writing instrument — created for Jackie Kennedy. Faceted or guilloché barrel, «golden ratio» proportions, now unisex and ergonomic.",
     },
     categorySlug: "escrita",
     image: null,
-    variants: penMatrix(
-      "CQ",
-      [{ key: "BP", price: 28000 }],
-      [
-        { code: "BLK", c: COLOR.blackLacqGold },
-        { code: "BLU", c: COLOR.blueLacqGold },
-        { code: "PAL", c: COLOR.brushedPalladium },
-      ],
-    ),
+    // Real 2026/2027 catalogue: 3 pen types × 5 finishes (REF codes = SKUs).
+    variants: (() => {
+      const FP = { pt: "Caneta de Tinta Permanente", en: "Fountain Pen" };
+      const RB = { pt: "Rollerball", en: "Convertible Roller" };
+      const BP = { pt: "Esferográfica", en: "Ballpoint" };
+      const finishes = [
+        { s: "075N", label: { pt: "Paládio Escovado", en: "Brushed Palladium" }, hex: ["#b9bcc2"] },
+        { s: "076N", label: { pt: "Laca Preta & Ouro Amarelo", en: "Shiny Black Lacquer & Yellow Gold" }, hex: ["#15171c", "#c8a24a"] },
+        { s: "077N", label: { pt: "Laca Azul & Paládio", en: "Shiny Blue Lacquer & Palladium" }, hex: ["#1f3c66", "#b9bcc2"] },
+        { s: "078N", label: { pt: "Guilhoché Entraînador & Ouro", en: "Trigger Guilloche & Yellow Gold" }, hex: ["#c8a24a"] },
+        { s: "079N", label: { pt: "Guilhoché Oblíquo & Paládio", en: "Oblique Guilloche & Palladium" }, hex: ["#b9bcc2"] },
+      ];
+      const types = [
+        { pfx: "040", t: FP, price: 49000 },
+        { pfx: "042", t: RB, price: 39000 },
+        { pfx: "045", t: BP, price: 33000 },
+      ];
+      const out = [];
+      for (const ty of types) {
+        for (const f of finishes) {
+          out.push({
+            sku: `${ty.pfx}${f.s}`,
+            name: { pt: `${ty.t.pt} · ${f.label.pt}`, en: `${ty.t.en} · ${f.label.en}` },
+            priceCents: ty.price,
+            currency: "EUR" as const,
+            attributes: { type: ty.t, color: { label: f.label, hex: f.hex } },
+          });
+        }
+      }
+      return out;
+    })(),
   },
   {
     slug: "defi-millenium",
