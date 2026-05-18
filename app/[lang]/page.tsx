@@ -26,7 +26,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           The hero fills the screen; only the "Our Maisons" cue + arrow show
           on landing, scrolling down to the cards. */}
       <section className="monogram-bg text-cream">
-        <div className="relative flex min-h-[111vh] items-center justify-center px-6 text-center">
+        <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center px-6 text-center">
           {/* Lettering — vertically centred on the blue, elements tightened */}
           <div className="flex flex-col items-center">
             <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
