@@ -44,7 +44,7 @@ export default async function WishlistPage({
                 />
               </div>
               <Link href={`/${locale}/p/${p.slug}`} className="group block">
-                <div className="aspect-square overflow-hidden">
+                <div className="aspect-[20/17] overflow-hidden">
                   <div className="h-full w-full transition-transform duration-700 group-hover:scale-[1.04]">
                     <ProductMedia
                       image={p.image}

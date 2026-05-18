@@ -1,32 +1,42 @@
 "use client";
 
 // "Our Maisons" + arrow that scrolls to the #maisons section.
-// Manual rAF tween (easeOutCubic) — native smooth scroll is broken on
-// desktop Chrome when an ancestor uses CSS `zoom`, so we animate ourselves.
+// Uses offsetTop layout coordinates (consistent with scrollY under the
+// global CSS `zoom`, unlike getBoundingClientRect) + a manual rAF tween,
+// so it animates reliably on desktop and mobile.
 export function ScrollCue({ label }: { label: string }) {
   function go() {
     const el = document.getElementById("maisons");
     if (!el) return;
-    const offset = 72;
+    const headerOffset = 72;
+
+    // Absolute document position via the offsetParent chain (layout px).
+    let y = 0;
+    let n: HTMLElement | null = el;
+    while (n) {
+      y += n.offsetTop;
+      n = n.offsetParent as HTMLElement | null;
+    }
+    const targetY = Math.max(0, y - headerOffset);
+    const startY = window.scrollY;
+    const dist = targetY - startY;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      window.scrollBy(0, el.getBoundingClientRect().top - offset);
+    if (reduce || Math.abs(dist) < 4) {
+      window.scrollTo(0, targetY);
       return;
     }
 
-    // Self-correcting easing: each frame move a fraction of the element's
-    // *current* distance from the top. No precomputed absolute target, so
-    // the CSS `zoom` unit mismatch can't break it; it just converges.
-    let frames = 0;
-    function tick() {
-      const remaining = el!.getBoundingClientRect().top - offset;
-      if (Math.abs(remaining) < 2 || frames > 150) return;
-      window.scrollBy(0, remaining * 0.18);
-      frames += 1;
-      requestAnimationFrame(tick);
+    const duration = 700;
+    let t0: number | null = null;
+    function frame(ts: number) {
+      if (t0 === null) t0 = ts;
+      const p = Math.min(1, (ts - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+      window.scrollTo(0, startY + dist * eased);
+      if (p < 1) requestAnimationFrame(frame);
     }
-    requestAnimationFrame(tick);
+    requestAnimationFrame(frame);
   }
 
   return (
@@ -34,7 +44,7 @@ export function ScrollCue({ label }: { label: string }) {
       type="button"
       onClick={go}
       aria-label={label}
-      className="mt-14 flex flex-col items-center gap-4 text-gold-soft transition-colors hover:text-cream"
+      className="flex flex-col items-center gap-4 text-gold-soft transition-colors hover:text-cream"
     >
       <span className="text-base font-medium uppercase tracking-[0.22em] md:text-[1.35rem]">
         {label}

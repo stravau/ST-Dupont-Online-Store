@@ -65,8 +65,9 @@ export function ProductCardInteractive({
 
       <div className="absolute right-2 top-2 z-20">{wishlist}</div>
 
-      {/* Image — square keeps the card compact without shrinking the text */}
-      <div className="relative aspect-square overflow-hidden">
+      {/* Image — ~15% shorter than square shrinks the card without
+          touching the text or colour swatches below */}
+      <div className="relative aspect-[20/17] overflow-hidden">
         <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]">
           {image ? (
             <Image

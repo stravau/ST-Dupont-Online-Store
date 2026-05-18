@@ -26,24 +26,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           The hero fills the screen; only the "Our Maisons" cue + arrow show
           on landing, scrolling down to the cards. */}
       <section className="monogram-bg text-cream">
-        <div className="flex min-h-[111vh] items-center justify-center px-6 text-center">
+        <div className="relative flex min-h-[111vh] items-center justify-center px-6 text-center">
+          {/* Lettering — vertically centred on the blue, elements tightened */}
           <div className="flex flex-col items-center">
             <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
-            <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
+            <h1 className="mt-3 font-serif text-5xl font-light leading-tight md:text-7xl">
               {dict.hero.title}
             </h1>
-            <div className="gold-rule mx-auto my-8" />
+            <div className="gold-rule mx-auto my-5" />
             <p className="mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
               {dict.hero.subtitle}
             </p>
             <Link
               href={`/${locale}/colecao`}
-              className="mt-10 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
+              className="mt-7 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
             >
               {dict.hero.cta}
             </Link>
+          </div>
 
-            {/* Cue — close under the CTA, smooth-scrolls to the cards */}
+          {/* Cue pinned near the bottom so the lettering stays centred */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
             <ScrollCue label={dict.sections.categories} />
           </div>
         </div>
@@ -55,13 +58,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <Link
                 key={c.slug}
                 href={`/${locale}/c/${c.slug}`}
-                className="lux-hover group flex flex-col items-center border border-line bg-paper px-6 py-8 text-center"
+                className="lux-hover group flex flex-col items-center border border-line bg-paper px-6 py-5 text-center"
               >
                 <p className="overline text-[0.6rem]">{c.name[locale]}</p>
-                <h3 className="mt-3 font-serif text-xl text-ink md:text-2xl">
+                <h3 className="mt-2 font-serif text-xl text-ink md:text-2xl">
                   {categoryArt[c.slug]?.art ?? c.name[locale]}
                 </h3>
-                <span className="mt-4 h-px w-8 bg-line transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
+                <span className="mt-3 h-px w-8 bg-line transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
               </Link>
             ))}
           </div>
