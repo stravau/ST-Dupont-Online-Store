@@ -481,25 +481,53 @@ export const products: SeedProduct[] = [
     name: { pt: "Liberté", en: "Liberté" },
     collection: "Liberté",
     description: {
-      pt: "Curvas suaves e nobres em latão lacado e apontamentos em paládio. Disponível em esferográfica, rollerball e caneta de tinta permanente.",
-      en: "Smooth, noble curves in lacquered brass with palladium appointments. Available as ballpoint, rollerball and fountain pen.",
+      pt: "A linha emblemática reinventada em 2023 com proporções mais esguias e a nova agrafe «Épée», também presente no Line D Eternity. Elegância, requinte feminino e o savoir-faire excecional da S.T. Dupont.",
+      en: "The iconic line reinvented in 2023 with a sleeker silhouette and the new «Sword» clip, also featured on Line D Eternity. Elegance, feminine refinement and S.T. Dupont's exceptional craftsmanship.",
     },
     categorySlug: "escrita",
     image: null,
-    variants: penMatrix(
-      "LB",
-      [
-        { key: "BP", price: 33000 },
-        { key: "RB", price: 39000 },
-        { key: "FP", price: 45000 },
-      ],
-      [
-        { code: "BPA", c: COLOR.blackPall },
-        { code: "BG", c: COLOR.blackGold },
-        { code: "WG", c: COLOR.whiteGold },
-        { code: "BLG", c: COLOR.blueGold },
-      ],
-    ),
+    // Real 2026/2027 catalogue lineup (REF codes = SKUs).
+    variants: (() => {
+      const FP = { pt: "Caneta de Tinta Permanente", en: "Fountain Pen" };
+      const RB = { pt: "Rollerball", en: "Convertible Roller" };
+      const BP = { pt: "Esferográfica", en: "Ballpoint" };
+      const blackPall = {
+        label: { pt: "Laca Preta & Paládio", en: "Shiny Black Lacquer & Palladium" },
+        hex: ["#15171c", "#b9bcc2"],
+      };
+      const blackGold = {
+        label: { pt: "Laca Preta & Ouro Amarelo", en: "Shiny Black Lacquer & Yellow Gold" },
+        hex: ["#15171c", "#c8a24a"],
+      };
+      const blueGold = {
+        label: { pt: "Laca Azul & Ouro Amarelo", en: "Shiny Blue Lacquer & Yellow Gold" },
+        hex: ["#1f3c66", "#c8a24a"],
+      };
+      const mk = (
+        sku: string,
+        type: { pt: string; en: string },
+        c: { label: { pt: string; en: string }; hex: string[] },
+        priceCents: number,
+      ) => ({
+        sku,
+        name: {
+          pt: `${type.pt} · ${c.label.pt}`,
+          en: `${type.en} · ${c.label.en}`,
+        },
+        priceCents,
+        currency: "EUR" as const,
+        attributes: { type, color: c },
+      });
+      return [
+        mk("460220G", FP, blackPall, 45000),
+        mk("462220G", RB, blackPall, 39000),
+        mk("465220G", BP, blackPall, 33000),
+        mk("460221F", FP, blackGold, 45000),
+        mk("462221F", RB, blackGold, 39000),
+        mk("465221F", BP, blackGold, 33000),
+        mk("465222G", BP, blueGold, 33000),
+      ];
+    })(),
   },
 
   // --- Pele / Leather — COLOUR only ---
