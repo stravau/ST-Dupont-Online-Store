@@ -2,9 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getCategory, getProductsByCategory, type Category, type Product } from "@/lib/catalog";
+import {
+  getCategory,
+  getProductsByCategory,
+  sortProducts,
+  type Category,
+  type Product,
+} from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
+import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
+import { SortSelect } from "@/components/sort-select";
 
 // Fixed walkthrough order requested: Lighters -> Writing -> Leather -> Accessories
 const ORDER = ["isqueiros", "escrita", "pele", "acessorios"] as const;
@@ -21,13 +29,17 @@ export async function generateMetadata({
 
 export default async function CollectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { lang } = await params;
+  const { sort: sortParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
+  const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   const wl = await myWishlistIds();
 
   const sections = (
@@ -37,7 +49,9 @@ export default async function CollectionPage({
           getCategory(slug),
           getProductsByCategory(slug),
         ]);
-        return category ? { category, products } : null;
+        return category
+          ? { category, products: sortProducts(products, sort, locale) }
+          : null;
       }),
     )
   ).filter(Boolean) as { category: Category; products: Product[] }[];
@@ -51,6 +65,9 @@ export default async function CollectionPage({
           {dict.collection.title}
         </h1>
         <div className="gold-rule mx-auto mt-7" />
+        <div className="mt-8 flex justify-center">
+          <SortSelect value={sort} labels={dict.sort} />
+        </div>
       </header>
 
       {/* Sticky in-page navigation through the categories, in order */}

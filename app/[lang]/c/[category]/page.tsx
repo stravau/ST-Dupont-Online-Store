@@ -3,10 +3,17 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getCategory, getProductsByCategory, getCollections } from "@/lib/catalog";
+import {
+  getCategory,
+  getProductsByCategory,
+  getCollections,
+  sortProducts,
+} from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { myWishlistIds } from "@/lib/cart";
+import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
+import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 
 export async function generateMetadata({
@@ -25,10 +32,11 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; category: string }>;
-  searchParams: Promise<{ col?: string }>;
+  searchParams: Promise<{ col?: string; sort?: string }>;
 }) {
   const { lang, category } = await params;
-  const { col } = await searchParams;
+  const { col, sort: sortParam } = await searchParams;
+  const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const cat = await getCategory(category);
@@ -37,7 +45,11 @@ export default async function CategoryPage({
   const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
   const art = categoryArt[category];
-  const items = await getProductsByCategory(category, activeCol);
+  const items = sortProducts(
+    await getProductsByCategory(category, activeCol),
+    sort,
+    locale,
+  );
   const wl = await myWishlistIds();
   const base = `/${locale}/c/${category}`;
 
@@ -81,6 +93,10 @@ export default async function CategoryPage({
           ))}
         </nav>
       )}
+
+      <div className="mt-10 flex justify-end">
+        <SortSelect value={sort} labels={dict.sort} />
+      </div>
 
       {(() => {
         // Split: lines with several pen types become one card per type;

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -7,17 +7,19 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { NavBack } from "@/components/nav-back";
 
-const displaySerif = Cormorant_Garamond({
+// Fuller, more present yet still premium: Playfair Display (high-contrast
+// luxury serif) for headings, Inter (clean, highly legible) for body/UI.
+const displaySerif = Playfair_Display({
   variable: "--font-display-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
-const bodySans = Jost({
+const bodySans = Inter({
   variable: "--font-body-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 

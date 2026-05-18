@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { searchProducts } from "@/lib/catalog";
+import { searchProducts, sortProducts } from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
+import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
+import { SortSelect } from "@/components/sort-select";
 
 export async function generateMetadata({
   params,
@@ -20,19 +22,22 @@ export default async function SearchPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
   const { lang } = await params;
-  const { q } = await searchParams;
+  const { q, sort: sortParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
-  const s = getDictionary(locale).search;
+  const dict = getDictionary(locale);
+  const s = dict.search;
   const query = (q ?? "").trim();
+  const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
 
-  const [results, wl] = await Promise.all([
+  const [raw, wl] = await Promise.all([
     query ? searchProducts(query) : Promise.resolve([]),
     myWishlistIds(),
   ]);
+  const results = sortProducts(raw, sort, locale);
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
@@ -63,6 +68,12 @@ export default async function SearchPage({
         <p className="mt-10 text-center text-sm text-muted">
           {s.resultsFor} <span className="text-ink">“{query}”</span> · {results.length} {s.count}
         </p>
+      )}
+
+      {query && results.length > 0 && (
+        <div className="mt-8 flex justify-end">
+          <SortSelect value={sort} labels={dict.sort} />
+        </div>
       )}
 
       {query && results.length === 0 ? (

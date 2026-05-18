@@ -4,6 +4,7 @@
 // did not need restructuring. Localized text is stored as JSON: { pt, en }.
 // Prices are integer cents. Seed source: prisma/seed.ts.
 import type { Locale } from "@/lib/i18n";
+import type { SortKey } from "@/lib/sort";
 import { prisma } from "@/lib/prisma";
 
 export type Localized = Record<Locale, string>;
@@ -212,6 +213,29 @@ export function fromPrice(product: Product): Variant {
     (min, cur) => (cur.priceCents < min.priceCents ? cur : min),
     product.variants[0],
   );
+}
+
+// Common sales-page sorting. Catalogue queries return oldest→newest
+// (createdAt asc), so reversing yields most-recent first.
+export function sortProducts(
+  items: Product[],
+  sort: SortKey,
+  locale: Locale,
+): Product[] {
+  const arr = [...items];
+  switch (sort) {
+    case "price-asc":
+      return arr.sort((a, b) => fromPrice(a).priceCents - fromPrice(b).priceCents);
+    case "price-desc":
+      return arr.sort((a, b) => fromPrice(b).priceCents - fromPrice(a).priceCents);
+    case "newest":
+      return arr.reverse();
+    case "name":
+      return arr.sort((a, b) => a.name[locale].localeCompare(b.name[locale]));
+    case "featured":
+    default:
+      return arr.sort((a, b) => Number(b.novelty) - Number(a.novelty));
+  }
 }
 
 export function formatPrice(cents: number, currency: string, locale: Locale): string {

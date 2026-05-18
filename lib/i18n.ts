@@ -44,6 +44,14 @@ const dictionaries = {
       jumpTo: "Navegar",
     },
     categoryStory: "A Arte da Casa",
+    sort: {
+      label: "Ordenar por",
+      featured: "Destaques",
+      "price-asc": "Preço: do mais baixo ao mais alto",
+      "price-desc": "Preço: do mais alto ao mais baixo",
+      newest: "Mais recentes",
+      name: "Nome (A–Z)",
+    },
     search: {
       placeholder: "Pesquisar na maison…",
       title: "Pesquisa",
@@ -237,6 +245,14 @@ const dictionaries = {
       jumpTo: "Jump to",
     },
     categoryStory: "The House's Craft",
+    sort: {
+      label: "Sort by",
+      featured: "Featured",
+      "price-asc": "Price: low to high",
+      "price-desc": "Price: high to low",
+      newest: "Most recent",
+      name: "Name (A–Z)",
+    },
     search: {
       placeholder: "Search the maison…",
       title: "Search",

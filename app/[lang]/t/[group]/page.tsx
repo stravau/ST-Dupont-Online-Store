@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isLocale, type Locale } from "@/lib/i18n";
-import { getProduct, type Product } from "@/lib/catalog";
+import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { getProduct, sortProducts, type Product } from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
 import { productGroups } from "@/lib/product-groups";
+import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
+import { SortSelect } from "@/components/sort-select";
 
 export async function generateMetadata({
   params,
@@ -23,12 +25,14 @@ export default async function GroupPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; group: string }>;
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; sort?: string }>;
 }) {
   const { lang, group } = await params;
-  const { type } = await searchParams;
+  const { type, sort: sortParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
+  const dict = getDictionary(locale);
+  const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   const g = productGroups[group];
   if (!g) notFound();
 
@@ -39,7 +43,7 @@ export default async function GroupPage({
     Promise.all(slugs.map((s) => getProduct(s))),
     myWishlistIds(),
   ]);
-  const items = products.filter(Boolean) as Product[];
+  const items = sortProducts(products.filter(Boolean) as Product[], sort, locale);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-16">
@@ -67,7 +71,11 @@ export default async function GroupPage({
         </nav>
       )}
 
-      <div className="product-grid mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 flex justify-end">
+        <SortSelect value={sort} labels={dict.sort} />
+      </div>
+
+      <div className="product-grid mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
         ))}
