@@ -55,28 +55,54 @@ export default async function CategoryPage({
   const base = `/${locale}/c/${category}`;
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <Breadcrumbs
-        items={[
-          { label: dict.common.home, href: `/${locale}` },
-          { label: cat.name[locale], href: base },
-          ...(activeCol ? [{ label: activeCol }] : []),
-        ]}
-      />
+    <div>
+      {art?.hero ? (
+        /* Full-bleed photo header. monogram-bg is the fallback if the image
+           is missing; the gradient scrim keeps all text legible over it. */
+        <header className="monogram-bg relative isolate overflow-hidden text-center text-cream">
+          <div
+            className="absolute inset-0 -z-10 bg-cover bg-center"
+            style={{ backgroundImage: `url('${art.hero}')` }}
+          />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/80 via-ink/65 to-ink/90" />
+          <div className="mx-auto max-w-2xl px-6 py-28">
+            <Crest className="mb-6 text-gold-soft" />
+            <p className="overline text-gold-soft">{cat.name[locale]}</p>
+            <h1 className="mt-4 font-serif text-5xl md:text-6xl">{art.art}</h1>
+            <div className="gold-rule mx-auto mt-7" />
+            {cat.history && (
+              <p className="mx-auto mt-7 max-w-xl text-sm leading-relaxed text-cream/85">
+                {cat.history[locale]}
+              </p>
+            )}
+          </div>
+        </header>
+      ) : null}
 
-      <header className="mx-auto mt-2 max-w-2xl text-center">
-        <Crest className="mb-6" />
-        <p className="overline">{cat.name[locale]}</p>
-        <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
-          {art?.art ?? cat.name[locale]}
-        </h1>
-        <div className="gold-rule mx-auto mt-7" />
-        {cat.history && (
-          <p className="mx-auto mt-7 max-w-xl text-sm leading-relaxed text-muted">
-            {cat.history[locale]}
-          </p>
+      <div className="mx-auto max-w-7xl px-6 py-12">
+        <Breadcrumbs
+          items={[
+            { label: dict.common.home, href: `/${locale}` },
+            { label: cat.name[locale], href: base },
+            ...(activeCol ? [{ label: activeCol }] : []),
+          ]}
+        />
+
+        {!art?.hero && (
+          <header className="mx-auto mt-2 max-w-2xl text-center">
+            <Crest className="mb-6" />
+            <p className="overline">{cat.name[locale]}</p>
+            <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
+              {art?.art ?? cat.name[locale]}
+            </h1>
+            <div className="gold-rule mx-auto mt-7" />
+            {cat.history && (
+              <p className="mx-auto mt-7 max-w-xl text-sm leading-relaxed text-muted">
+                {cat.history[locale]}
+              </p>
+            )}
+          </header>
         )}
-      </header>
 
       {/* The product types of this universe — each a smart button to its page */}
       {art && (
@@ -145,6 +171,7 @@ export default async function CategoryPage({
           </>
         );
       })()}
+      </div>
     </div>
   );
 }

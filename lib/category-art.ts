@@ -12,6 +12,7 @@ export interface ArtGroup {
 
 export interface CategoryArt {
   art: string; // brand term, French — used as-is in both locales
+  hero?: string; // optional /public path to a full-bleed header photo
   groups: ArtGroup[];
 }
 
@@ -29,6 +30,7 @@ export const categoryArt: Record<string, CategoryArt> = {
   },
   escrita: {
     art: "L'Art de l'Écriture",
+    hero: "/headers/escrita.jpg",
     groups: [
       NEW_RELEASES,
       { label: t("Acessórios de Escrita", "Writing Accessories"), href: "/t/writing-accessories" },
