@@ -6,7 +6,6 @@ import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
-import { Crest } from "@/components/crest";
 import { notFound } from "next/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -28,8 +27,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       <section className="monogram-bg text-cream">
         <div className="relative flex min-h-[111vh] flex-col px-6">
           <div className="flex flex-1 items-center justify-center text-center">
-            <div>
-              <Crest className="mb-8 text-gold-soft" />
+            <div className="mx-auto flex flex-col items-center">
               <p className="overline text-gold-soft">{dict.hero.eyebrow}</p>
               <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
                 {dict.hero.title}
