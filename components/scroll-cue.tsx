@@ -7,27 +7,26 @@ export function ScrollCue({ label }: { label: string }) {
   function go() {
     const el = document.getElementById("maisons");
     if (!el) return;
-
-    const targetY = el.getBoundingClientRect().top + window.scrollY - 72;
-    const startY = window.scrollY;
-    const dist = targetY - startY;
+    const offset = 72;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || Math.abs(dist) < 4) {
-      window.scrollTo(0, targetY);
+    if (reduce) {
+      window.scrollBy(0, el.getBoundingClientRect().top - offset);
       return;
     }
 
-    const duration = 750;
-    let t0: number | null = null;
-    function step(ts: number) {
-      if (t0 === null) t0 = ts;
-      const p = Math.min(1, (ts - t0) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      window.scrollTo(0, startY + dist * eased);
-      if (p < 1) requestAnimationFrame(step);
+    // Self-correcting easing: each frame move a fraction of the element's
+    // *current* distance from the top. No precomputed absolute target, so
+    // the CSS `zoom` unit mismatch can't break it; it just converges.
+    let frames = 0;
+    function tick() {
+      const remaining = el!.getBoundingClientRect().top - offset;
+      if (Math.abs(remaining) < 2 || frames > 150) return;
+      window.scrollBy(0, remaining * 0.18);
+      frames += 1;
+      requestAnimationFrame(tick);
     }
-    requestAnimationFrame(step);
+    requestAnimationFrame(tick);
   }
 
   return (
