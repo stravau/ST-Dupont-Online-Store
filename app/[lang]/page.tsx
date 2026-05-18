@@ -51,17 +51,19 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <a
             href="#maisons"
             aria-label={dict.sections.categories}
-            className="mb-12 flex flex-col items-center gap-3 text-gold-soft transition-colors hover:text-cream"
+            className="mb-16 flex flex-col items-center gap-5 text-gold-soft transition-colors hover:text-cream"
           >
-            <span className="overline">{dict.sections.categories}</span>
+            <span className="text-[1.4rem] font-medium uppercase tracking-[0.22em]">
+              {dict.sections.categories}
+            </span>
             <svg
               className="scroll-hint"
-              width="22"
-              height="22"
+              width="66"
+              height="66"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1"
             >
               <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -69,12 +71,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
 
         {/* The four Arts — light cards floating on the blue */}
-        <div id="maisons" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-28 pt-10">
-          <div className="text-center">
-            <p className="overline text-gold-soft">{dict.sections.categories}</p>
-            <div className="gold-rule mx-auto mt-5" />
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div id="maisons" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-24 pt-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {categories.map((c) => (
               <Link
                 key={c.slug}
@@ -93,7 +91,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       </section>
 
       {/* Novidades grid */}
-      <section className="mx-auto max-w-7xl px-6 pb-24">
+      <section className="mx-auto max-w-7xl px-6 pb-24 pt-24">
         <div className="text-center">
           <p className="overline">{dict.sections.novelties}</p>
           <h2 className="mt-4 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>
