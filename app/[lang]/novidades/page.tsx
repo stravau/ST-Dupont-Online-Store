@@ -6,6 +6,7 @@ import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
+import { Crest } from "@/components/crest";
 
 export async function generateMetadata({
   params,
@@ -37,6 +38,7 @@ export default async function NewReleasesPage({
   return (
     <div className="mx-auto max-w-7xl px-6 py-16">
       <header className="text-center">
+        <Crest className="mb-6" />
         <p className="overline">{dict.sections.novelties}</p>
         <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
           {dict.sections.noveltiesSub}

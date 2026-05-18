@@ -13,6 +13,7 @@ import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
+import { Crest } from "@/components/crest";
 
 // Fixed walkthrough order requested: Lighters -> Writing -> Leather -> Accessories
 const ORDER = ["isqueiros", "escrita", "pele", "acessorios"] as const;
@@ -60,6 +61,7 @@ export default async function CollectionPage({
     <div>
       {/* Header */}
       <header className="mx-auto max-w-7xl px-6 pb-10 pt-20 text-center">
+        <Crest className="mb-6" />
         <p className="overline">{dict.collection.subtitle}</p>
         <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
           {dict.collection.title}

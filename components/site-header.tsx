@@ -23,7 +23,9 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         label: g.label[lang],
         href: `/${lang}${g.href}`,
       })),
-      collections: await getCollections(c.slug),
+      // "Accessories" is its own category/menu entry — don't repeat it as a
+      // product line under Writing/Accessories.
+      collections: (await getCollections(c.slug)).filter((x) => x !== "Accessories"),
     })),
   );
 

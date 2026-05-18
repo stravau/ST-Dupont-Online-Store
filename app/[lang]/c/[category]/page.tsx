@@ -15,6 +15,7 @@ import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { Crest } from "@/components/crest";
 
 export async function generateMetadata({
   params,
@@ -64,6 +65,7 @@ export default async function CategoryPage({
       />
 
       <header className="mx-auto mt-10 max-w-2xl text-center">
+        <Crest className="mb-6" />
         <p className="overline">{cat.name[locale]}</p>
         <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
           {art?.art ?? cat.name[locale]}

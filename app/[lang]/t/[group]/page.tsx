@@ -8,6 +8,7 @@ import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
+import { Crest } from "@/components/crest";
 
 export async function generateMetadata({
   params,
@@ -48,6 +49,7 @@ export default async function GroupPage({
   return (
     <div className="mx-auto max-w-7xl px-6 py-16">
       <header className="text-center">
+        <Crest className="mb-6" />
         <p className="overline">{g.eyebrow}</p>
         <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">{g.title[locale]}</h1>
         <div className="gold-rule mx-auto mt-7" />

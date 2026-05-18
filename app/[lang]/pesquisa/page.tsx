@@ -6,6 +6,7 @@ import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
+import { Crest } from "@/components/crest";
 
 export async function generateMetadata({
   params,
@@ -41,6 +42,7 @@ export default async function SearchPage({
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
+      <Crest className="mb-6" />
       <h1 className="text-center font-serif text-5xl text-ink">{s.title}</h1>
       <div className="gold-rule mx-auto my-8" />
 
