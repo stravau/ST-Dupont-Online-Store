@@ -53,15 +53,15 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* The four Arts. The section fills one screen & centres its grid so
-          the arrow lands mid-screen; an inner blue band sits behind the
-          cards and ends partway down, before the "New Arrivals" title. */}
+      {/* The four Arts. One continuous blue with the hero (no white gap);
+          the section fills a screen & centres the grid so the arrow lands
+          mid-screen, and the blue ends at the section foot — before the
+          "New Arrivals" title. */}
       <section
         id="maisons"
-        className="flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
+        className="monogram-bg flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
       >
-        <div className="monogram-bg w-full py-16 sm:py-24">
-          <div className="mx-auto w-full max-w-7xl px-6">
+        <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:py-24">
             <div className="grid grid-cols-2 gap-4">
               {categories.map((c) => (
                 <Link
@@ -90,7 +90,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               </Link>
               ))}
             </div>
-          </div>
         </div>
       </section>
 
