@@ -61,7 +61,7 @@ export default async function CategoryPage({
            is missing; the gradient scrim keeps all text legible over it. */
         <header className="monogram-bg relative isolate overflow-hidden text-center text-cream">
           <div
-            className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+            className={`absolute inset-0 -z-10 bg-cover bg-no-repeat ${art.heroPos ?? "bg-center"}`}
             style={{ backgroundImage: `url('${art.hero}')` }}
           />
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/80 via-ink/65 to-ink/90" />
