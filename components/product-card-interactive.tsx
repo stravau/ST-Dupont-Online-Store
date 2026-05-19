@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import type { AddResult } from "@/lib/actions";
@@ -179,8 +180,10 @@ export function ProductCardInteractive({
         </form>
       </div>
 
-      {/* "Added to cart" toast (same look as the product-detail page) */}
-      {showToast && (
+      {/* "Added to cart" toast — portalled to document.body so the card's
+          hover transform can't capture its fixed positioning (was making
+          the toast render inside the card on mobile). */}
+      {showToast && createPortal(
         <div
           key={addState!.id}
           role="status"
@@ -217,7 +220,8 @@ export function ProductCardInteractive({
               </svg>
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </article>
   );
