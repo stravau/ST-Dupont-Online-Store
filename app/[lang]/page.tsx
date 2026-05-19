@@ -51,19 +51,22 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <ScrollCue label={dict.sections.categories} />
           </div>
         </div>
+      </section>
 
-        {/* The four Arts — image cards floating on the blue. Square &
-            2×2 on mobile; taller rectangles across 4 columns on desktop. */}
-        <div
-          id="maisons"
-          className="mx-auto flex min-h-[calc((100svh-5rem)/0.9)] max-w-7xl scroll-mt-20 flex-col justify-center px-6 pb-16 pt-6"
-        >
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* The four Arts — image cards on a light backdrop (blue is now only
+          the hero). 2×2 everywhere; rectangular on desktop. The section
+          fills one screen & centres its grid so the arrow lands mid-screen. */}
+      <section
+        id="maisons"
+        className="flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
+      >
+        <div className="mx-auto w-full max-w-7xl px-6 pb-16 pt-6">
+          <div className="grid grid-cols-2 gap-4">
             {categories.map((c) => (
               <Link
                 key={c.slug}
                 href={`/${locale}/c/${c.slug}`}
-                className="lux-hover group relative flex aspect-square flex-col justify-end overflow-hidden border border-cream/15 text-center lg:aspect-[3/4]"
+                className="lux-hover group relative flex aspect-square flex-col justify-end overflow-hidden border border-line text-center lg:aspect-[16/9]"
               >
                 <Image
                   src={`/maisons/${c.slug}.jpg`}
