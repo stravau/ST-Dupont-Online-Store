@@ -77,7 +77,7 @@ export function MobileNav({
 
           <nav className="flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-24">
             <Link href={`/${lang}`} aria-label="S.T. Dupont" onClick={() => setOpen(false)}>
-              <Logo width={260} className="w-[240px]" />
+              <Logo width={480} className="w-[480px] max-w-[90vw]" />
             </Link>
 
             {entries.map((e) => (
