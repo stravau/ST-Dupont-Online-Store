@@ -22,6 +22,7 @@ const NEW_RELEASES: ArtGroup = { label: t("Novidades", "New Releases"), href: "/
 export const categoryArt: Record<string, CategoryArt> = {
   isqueiros: {
     art: "L'Art du Feu",
+    hero: "/headers/isqueiros.jpg",
     groups: [
       NEW_RELEASES,
       { label: t("Acessórios para Fumadores", "Smoking Accessories"), href: "/t/smoking" },
@@ -39,6 +40,7 @@ export const categoryArt: Record<string, CategoryArt> = {
   },
   pele: {
     art: "L'Art du Voyage",
+    hero: "/headers/pele.jpg",
     groups: [
       NEW_RELEASES,
       { label: t("Malas", "Bags"), href: "/t/bags" },
@@ -47,6 +49,7 @@ export const categoryArt: Record<string, CategoryArt> = {
   },
   acessorios: {
     art: "L'Art de la Séduction",
+    hero: "/headers/acessorios.jpg",
     groups: [
       NEW_RELEASES,
       { label: t("Botões de Punho", "Cufflinks"), href: "/t/cufflinks" },

@@ -50,7 +50,7 @@ export default async function NewReleasesPage({
         <SortSelect value={sort} labels={dict.sort} />
       </div>
 
-      <div className="product-grid mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="product-grid mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
         ))}

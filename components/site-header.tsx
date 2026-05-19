@@ -3,16 +3,31 @@ import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
-import { currentUserId, getCartCount } from "@/lib/cart";
+import { currentUserId, getCart } from "@/lib/cart";
+import { formatPrice } from "@/lib/catalog";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { SearchBar } from "@/components/search-bar";
+import { CartMenu } from "@/components/cart-menu";
+import { Logo } from "@/components/logo";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
   const userId = await currentUserId();
-  const cartCount = userId ? await getCartCount(userId) : 0;
+  const cart = userId
+    ? await getCart(userId, lang)
+    : { lines: [], subtotalCents: 0, count: 0, currency: "EUR" };
+  const cartCount = cart.count;
+  const cartLines = cart.lines.map((l) => ({
+    itemId: l.itemId,
+    productSlug: l.productSlug,
+    productName: l.productName,
+    variantName: l.variantName,
+    quantity: l.quantity,
+    linePrice: formatPrice(l.lineCents, l.currency, lang),
+    image: l.image,
+  }));
   const categories = await getCategories();
   const menuItems = await Promise.all(
     categories.map(async (c) => ({
@@ -48,11 +63,8 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         />
 
         {/* Wordmark */}
-        <Link href={`/${lang}`} className="leading-none">
-          <span className="block font-serif text-2xl tracking-[0.18em] text-ink">
-            S.T. DUPONT
-          </span>
-          <span className="overline mt-1 block text-[0.6rem]">Paris · 1872</span>
+        <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
+          <Logo width={158} priority className="w-[120px] sm:w-[158px]" />
         </Link>
 
         {/* Primary nav — mega-menu */}
@@ -91,21 +103,19 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
             </svg>
           </Link>
-          <Link
-            href={`/${lang}/carrinho`}
-            aria-label={dict.nav.cart}
-            className="relative text-ink transition-colors hover:text-gold"
-          >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M6 7h12l-1 13H7L6 7Z" strokeLinejoin="round" />
-              <path d="M9 7a3 3 0 0 1 6 0" />
-            </svg>
-            {cartCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[0.6rem] text-paper">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          <CartMenu
+            count={cartCount}
+            cartHref={`/${lang}/carrinho`}
+            lines={cartLines}
+            subtotal={formatPrice(cart.subtotalCents, cart.currency, lang)}
+            labels={{
+              title: dict.cart.title,
+              empty: dict.cart.empty,
+              subtotal: dict.cart.subtotal,
+              finalize: dict.cart.finalize,
+              qty: dict.cart.qty,
+            }}
+          />
         </div>
       </div>
 

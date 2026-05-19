@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { STORE, CONTACT_ANCHOR } from "@/lib/store-info";
+import { Logo } from "@/components/logo";
 
 export function SiteFooter({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
@@ -12,8 +13,8 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     <footer className="monogram-bg mt-24 text-cream">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-3">
         <div>
-          <p className="font-serif text-2xl tracking-[0.18em]">S.T. DUPONT</p>
-          <p className="overline mt-3">{dict.footer.tagline}</p>
+          <Logo variant="light" width={170} className="w-[150px]" />
+          <p className="overline mt-4">{dict.footer.tagline}</p>
         </div>
 
         <div id={CONTACT_ANCHOR} className="scroll-mt-28">

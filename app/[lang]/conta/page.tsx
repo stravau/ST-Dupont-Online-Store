@@ -39,7 +39,6 @@ export default async function AccountOverview({
   const stats = [
     { label: c.orders, value: user._count.orders, href: `/${locale}/conta/encomendas` },
     { label: c.wishlist, value: user._count.wishlist, href: `/${locale}/conta/favoritos` },
-    { label: c.addresses, value: user._count.addresses, href: `/${locale}/conta/moradas` },
   ];
 
   return (
@@ -47,7 +46,7 @@ export default async function AccountOverview({
       <p className="overline">{c.greeting}</p>
       <h1 className="mt-3 font-serif text-4xl text-ink">{user.name || user.email}</h1>
 
-      <div className="mt-10 grid grid-cols-3 gap-4">
+      <div className="mt-10 grid grid-cols-2 gap-4">
         {stats.map((s) => (
           <Link
             key={s.label}

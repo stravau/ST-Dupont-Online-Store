@@ -81,7 +81,7 @@ export default async function SearchPage({
       {query && results.length === 0 ? (
         <p className="mt-10 text-center text-muted">{s.noResults}</p>
       ) : (
-        <div className="product-grid mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="product-grid mt-12 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
           {results.map((p) => (
             <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
           ))}

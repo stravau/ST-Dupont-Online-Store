@@ -39,20 +39,21 @@ export default async function AccountLayout({
 
       <div className="mt-12 grid gap-12 md:grid-cols-[220px_1fr]">
         <aside className="md:border-r md:border-line md:pr-8">
-          <nav className="flex flex-wrap gap-x-6 gap-y-3 md:flex-col md:gap-3">
+          <nav className="flex flex-wrap gap-3 md:flex-col md:gap-2">
             {nav.map((n) => (
               <Link
                 key={n.href}
                 href={n.href}
-                className="text-xs tracking-[0.18em] text-muted uppercase transition-colors hover:text-gold"
+                className="group flex items-center gap-3 border border-line bg-paper px-5 py-4 text-sm font-medium tracking-[0.14em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:bg-ink hover:text-cream"
               >
+                <span className="h-1.5 w-1.5 rounded-full bg-gold transition-transform duration-300 group-hover:scale-150" />
                 {n.label}
               </Link>
             ))}
-            <form action={doSignOut} className="md:mt-8">
+            <form action={doSignOut} className="md:mt-6">
               <button
                 type="submit"
-                className="text-xs tracking-[0.18em] text-muted uppercase transition-colors hover:text-ink"
+                className="w-full text-xs tracking-[0.18em] text-muted uppercase transition-colors hover:text-ink"
               >
                 {c.signOut}
               </button>
