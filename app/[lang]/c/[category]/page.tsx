@@ -61,11 +61,11 @@ export default async function CategoryPage({
            is missing; the gradient scrim keeps all text legible over it. */
         <header className="monogram-bg relative isolate overflow-hidden text-center text-cream">
           <div
-            className="absolute inset-0 -z-10 bg-cover bg-center"
+            className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url('${art.hero}')` }}
           />
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/80 via-ink/65 to-ink/90" />
-          <div className="mx-auto max-w-2xl px-6 py-28">
+          <div className="mx-auto max-w-2xl px-6 py-20 sm:py-28 md:py-36">
             <Crest className="mb-6 text-gold-soft" />
             <p className="overline text-gold-soft">{cat.name[locale]}</p>
             <h1 className="mt-4 font-serif text-5xl md:text-6xl">{art.art}</h1>
