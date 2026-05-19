@@ -35,7 +35,6 @@ export function ProductCardInteractive({
   addToCartLabel,
   addedLabel,
   viewCartLabel,
-  cartHref,
   wishlist,
 }: {
   href: string;
@@ -53,7 +52,6 @@ export function ProductCardInteractive({
   addToCartLabel: string;
   addedLabel: string;
   viewCartLabel: string;
-  cartHref: string;
   wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(0);
