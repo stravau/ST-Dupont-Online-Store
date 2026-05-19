@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategories, getNovelties } from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
@@ -51,20 +52,32 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </div>
 
-        {/* The four Arts — light cards floating on the blue */}
+        {/* The four Arts — image cards floating on the blue. Square &
+            2×2 on mobile; taller rectangles across 4 columns on desktop. */}
         <div id="maisons" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-24 pt-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {categories.map((c) => (
               <Link
                 key={c.slug}
                 href={`/${locale}/c/${c.slug}`}
-                className="lux-hover group flex flex-col items-center border border-line bg-paper px-6 py-5 text-center"
+                className="lux-hover group relative flex aspect-square flex-col justify-end overflow-hidden border border-cream/15 text-center lg:aspect-[3/4]"
               >
-                <p className="overline text-[0.6rem]">{c.name[locale]}</p>
-                <h3 className="mt-2 font-serif text-xl text-ink md:text-2xl">
-                  {categoryArt[c.slug]?.art ?? c.name[locale]}
-                </h3>
-                <span className="mt-3 h-px w-8 bg-line transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
+                <Image
+                  src={`/maisons/${c.slug}.jpg`}
+                  alt={c.name[locale]}
+                  fill
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+                {/* Blend scrim — keeps the lettering legible over the photo */}
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/40 to-ink/10" />
+                <div className="relative z-10 w-full px-5 pb-7">
+                  <p className="overline text-[0.6rem] text-gold-soft">{c.name[locale]}</p>
+                  <h3 className="mt-2 font-serif text-xl text-cream md:text-2xl">
+                    {categoryArt[c.slug]?.art ?? c.name[locale]}
+                  </h3>
+                  <span className="mx-auto mt-3 block h-px w-8 bg-cream/40 transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
+                </div>
               </Link>
             ))}
           </div>

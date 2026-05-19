@@ -1,7 +1,6 @@
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { type Product, formatPrice } from "@/lib/catalog";
-import { StatusPill } from "@/components/status-pill";
 import { WishlistButton } from "@/components/wishlist-button";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 
@@ -68,7 +67,6 @@ export function ProductCard({
           className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/80 backdrop-blur"
         />
       }
-      status={<StatusPill lang={lang} />}
     />
   );
 }
