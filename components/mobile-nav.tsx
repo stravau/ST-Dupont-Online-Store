@@ -76,8 +76,13 @@ export function MobileNav({
           </div>
 
           <nav className="flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-24">
-            <Link href={`/${lang}`} aria-label="S.T. Dupont" onClick={() => setOpen(false)}>
-              <Logo width={480} className="w-[480px] max-w-[90vw]" />
+            <Link
+              href={`/${lang}`}
+              aria-label="S.T. Dupont"
+              onClick={() => setOpen(false)}
+              className="mb-6"
+            >
+              <Logo width={340} className="w-[300px] max-w-[78vw]" />
             </Link>
 
             {entries.map((e) => (
