@@ -1,9 +1,8 @@
 import Image from "next/image";
 
-// The official S.T. Dupont wordmark. The source asset is black artwork on a
-// white field, so we blend it into the surrounding surface:
-//  - "dark"  : on light backgrounds → multiply drops the white field
-//  - "light" : on dark backgrounds  → invert + screen yields a light mark
+// The official S.T. Dupont wordmark — transparent PNG (black artwork),
+// trimmed to its bounding box (450×73). On dark surfaces we invert it to
+// a light mark; transparency means no background blending is needed.
 export function Logo({
   variant = "dark",
   className = "",
@@ -17,15 +16,13 @@ export function Logo({
 }) {
   return (
     <Image
-      src="/logo/dupont-logo.jpeg"
-      alt="S.T. Dupont Paris"
+      src="/logo/dupont-logo.png"
+      alt="S.T. Dupont"
       width={width}
-      height={Math.round((width * 178) / 600)}
+      height={Math.round((width * 73) / 450)}
       priority={priority}
       className={`h-auto w-auto select-none ${
-        variant === "light"
-          ? "[filter:invert(1)] mix-blend-screen"
-          : "mix-blend-multiply"
+        variant === "light" ? "[filter:invert(1)]" : ""
       } ${className}`}
     />
   );

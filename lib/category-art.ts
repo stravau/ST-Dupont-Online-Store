@@ -51,8 +51,8 @@ export const categoryArt: Record<string, CategoryArt> = {
   acessorios: {
     art: "L'Art de la Séduction",
     hero: "/headers/acessorios.jpg",
-    // Show the lower part of the photo on desktop (subject sits low)
-    heroPos: "bg-center md:bg-bottom",
+    // Favour the lower portion on desktop — halfway between centre & bottom
+    heroPos: "bg-center md:bg-[center_75%]",
     groups: [
       NEW_RELEASES,
       { label: t("Botões de Punho", "Cufflinks"), href: "/t/cufflinks" },

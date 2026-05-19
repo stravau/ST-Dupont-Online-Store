@@ -101,8 +101,8 @@ export function ProductCardInteractive({
         {wishlist}
       </div>
 
-      {/* Image — portrait, dominates the card */}
-      <div className="relative aspect-[4/5] overflow-hidden">
+      {/* Image — portrait, dominates the card (taller on mobile) */}
+      <div className="relative aspect-[3/4] overflow-hidden sm:aspect-[4/5]">
         <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]">
           {image ? (
             <Image
@@ -149,7 +149,7 @@ export function ProductCardInteractive({
         <div className="mt-3 flex items-center justify-center gap-4">
           <span className="hidden sm:inline-flex">{status}</span>
           {colorName && swatches.length > 1 && (
-            <span className="whitespace-nowrap text-xs tracking-[0.14em] text-muted uppercase">
+            <span className="whitespace-nowrap text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
               {colorName}
             </span>
           )}
