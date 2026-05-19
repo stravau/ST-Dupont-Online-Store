@@ -150,8 +150,9 @@ export function ProductCardInteractive({
         </div>
       )}
 
-      {/* Text — price given the strongest weight */}
-      <div className="px-5 pb-6 pt-4 text-center">
+      {/* Text — price given the strongest weight. Flex column so the CTA
+          gets pinned to the bottom regardless of text length above. */}
+      <div className="flex flex-1 flex-col px-5 pb-6 pt-4 text-center">
         <p className="overline text-[0.7rem]">{collection}</p>
         <h3 className="mt-2 font-serif text-xl leading-snug text-ink sm:text-2xl">
           {title}
@@ -168,7 +169,7 @@ export function ProductCardInteractive({
         <form
           action={formAction}
           onClick={(e) => e.stopPropagation()}
-          className="relative z-20 mt-5"
+          className="relative z-20 mt-auto pt-5"
         >
           <input type="hidden" name="sku" value={activeSku} />
           <input type="hidden" name="quantity" value="1" />
