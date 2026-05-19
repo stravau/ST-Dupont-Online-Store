@@ -13,7 +13,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     <footer className="monogram-bg mt-24 text-cream">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-3">
         <div>
-          <Logo variant="light" width={170} className="w-[150px]" />
+          <Logo variant="light" width={210} className="w-[195px]" />
           <p className="overline mt-4">{dict.footer.tagline}</p>
         </div>
 

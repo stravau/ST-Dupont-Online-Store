@@ -64,7 +64,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
 
         {/* Wordmark */}
         <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-          <Logo width={158} priority className="w-[120px] sm:w-[158px]" />
+          <Logo width={210} priority className="w-[150px] sm:w-[210px]" />
         </Link>
 
         {/* Primary nav — mega-menu */}
