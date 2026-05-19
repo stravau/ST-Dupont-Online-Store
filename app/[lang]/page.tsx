@@ -53,28 +53,31 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* The four Arts — image cards on a light backdrop (blue is now only
-          the hero). 2×2 everywhere; rectangular on desktop. The section
-          fills one screen & centres its grid so the arrow lands mid-screen. */}
+      {/* The four Arts. The section fills one screen & centres its grid so
+          the arrow lands mid-screen; an inner blue band sits behind the
+          cards and ends partway down, before the "New Arrivals" title. */}
       <section
         id="maisons"
         className="flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
       >
-        <div className="mx-auto w-full max-w-7xl px-6 pb-16 pt-6">
-          <div className="grid grid-cols-2 gap-4">
-            {categories.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/${locale}/c/${c.slug}`}
-                className="lux-hover group relative flex aspect-square flex-col justify-end overflow-hidden border border-line text-center lg:aspect-[16/9]"
-              >
-                <Image
-                  src={`/maisons/${c.slug}.jpg`}
-                  alt={c.name[locale]}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
+        <div className="monogram-bg w-full py-16 sm:py-24">
+          <div className="mx-auto w-full max-w-7xl px-6">
+            <div className="grid grid-cols-2 gap-4">
+              {categories.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/${locale}/c/${c.slug}`}
+                  className="lux-hover group relative flex aspect-[5/4] flex-col justify-end overflow-hidden border border-cream/15 text-center lg:aspect-[2/1]"
+                >
+                  <Image
+                    src={`/maisons/${c.slug}.jpg`}
+                    alt={c.name[locale]}
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 25vw"
+                    className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${
+                      c.slug === "isqueiros" ? "object-[center_25%]" : "object-center"
+                    }`}
+                  />
                 {/* Blend scrim — keeps the lettering legible over the photo */}
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/40 to-ink/10" />
                 <div className="relative z-10 w-full px-5 pb-7">
@@ -85,7 +88,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                   <span className="mx-auto mt-3 block h-px w-8 bg-cream/40 transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
                 </div>
               </Link>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
