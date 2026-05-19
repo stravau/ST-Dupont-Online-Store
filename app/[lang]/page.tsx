@@ -24,9 +24,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   return (
     <>
       {/* Cinematic hero + the four Arts — one continuous midnight backdrop.
-          The hero fills the screen; only the "Our Maisons" cue + arrow show
-          on landing, scrolling down to the cards. */}
-      <section className="monogram-bg text-cream">
+          monogram-bg lives on the wrapper so its top→bottom gradient spans
+          both sections seamlessly (no per-section restart / visible seam). */}
+      <div className="monogram-bg">
+      <section className="text-cream">
         <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center px-6 text-center">
           {/* Lettering — vertically centred on the blue, elements tightened */}
           <div className="flex flex-col items-center">
@@ -59,7 +60,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           "New Arrivals" title. */}
       <section
         id="maisons"
-        className="monogram-bg flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
+        className="text-cream flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
       >
         <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:py-24">
             <div className="grid grid-cols-2 gap-4">
@@ -92,6 +93,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             </div>
         </div>
       </section>
+      </div>
 
       {/* Novidades grid */}
       <section className="mx-auto max-w-7xl px-6 pb-24 pt-24">
