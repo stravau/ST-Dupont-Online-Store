@@ -134,3 +134,79 @@ h1, h2, h3, .font-serif {
     transform: none;
   }
 }
+
+/* --- Global interactivity ------------------------------------------------ */
+
+/* Every interactive surface uses the pointer cursor. */
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]),
+summary,
+label[for],
+select:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="reset"]:not(:disabled) {
+  cursor: pointer;
+}
+button:disabled,
+[aria-disabled="true"],
+select:disabled {
+  cursor: not-allowed;
+}
+
+/* Subtle press feedback for buttons & links (mobile + desktop). */
+button:not(:disabled):active,
+a[href]:active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Default colour-transition for hover where the component didn't define one. */
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]) {
+  transition: color 0.22s ease, background-color 0.22s ease,
+    border-color 0.22s ease, transform 0.08s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active, a[href]:active, [role="button"]:active { transform: none; }
+}
+
+/* --- Scroll-triggered reveal -------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* Stagger helpers — apply with .reveal to delay neighbouring items. */
+.reveal-d1 { transition-delay: 0.08s; }
+.reveal-d2 { transition-delay: 0.16s; }
+.reveal-d3 { transition-delay: 0.24s; }
+.reveal-d4 { transition-delay: 0.32s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-d1, .reveal-d2, .reveal-d3, .reveal-d4 {
+    opacity: 1; transform: none; transition: none;
+  }
+}
+
+/* --- Page entry transition ---------------------------------------------- */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-transition {
+  animation: pageIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-transition { animation: none; }
+}

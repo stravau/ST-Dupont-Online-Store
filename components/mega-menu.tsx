@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export interface MenuCategory {
   slug: string;
@@ -24,6 +25,13 @@ export function MegaMenu({
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pathname = usePathname();
+
+  // Collapse any open submenu whenever the route changes — so a fresh
+  // page never inherits a stuck-open mega-menu panel.
+  useEffect(() => {
+    queueMicrotask(() => setOpen(null));
+  }, [pathname]);
 
   const cancelClose = useCallback(() => {
     if (timer.current) {
