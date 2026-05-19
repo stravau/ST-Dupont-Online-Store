@@ -60,15 +60,15 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           "New Arrivals" title. */}
       <section
         id="maisons"
-        className="text-cream flex min-h-[calc((100svh-5rem)/0.9)] scroll-mt-20 flex-col justify-center"
+        className="text-cream flex scroll-mt-20 flex-col lg:min-h-[calc((100svh-5rem)/0.9)] lg:justify-center"
       >
-        <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:py-24">
-            <div className="grid grid-cols-2 gap-4">
+        <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:py-16 lg:py-24">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {categories.map((c) => (
                 <Link
                   key={c.slug}
                   href={`/${locale}/c/${c.slug}`}
-                  className="lux-hover group relative flex aspect-[5/4] flex-col justify-end overflow-hidden border border-cream/15 text-center lg:aspect-[2/1]"
+                  className="lux-hover group relative flex aspect-[16/9] flex-col justify-end overflow-hidden border border-cream/15 text-center lg:aspect-[2/1]"
                 >
                   <Image
                     src={`/maisons/${c.slug}.jpg`}
