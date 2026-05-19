@@ -54,7 +54,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
         {/* The four Arts — image cards floating on the blue. Square &
             2×2 on mobile; taller rectangles across 4 columns on desktop. */}
-        <div id="maisons" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-24 pt-6">
+        <div
+          id="maisons"
+          className="mx-auto flex min-h-[calc((100svh-5rem)/0.9)] max-w-7xl scroll-mt-20 flex-col justify-center px-6 pb-16 pt-6"
+        >
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {categories.map((c) => (
               <Link
