@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { AddResult } from "@/lib/actions";
@@ -33,6 +33,8 @@ export function ProductCardInteractive({
   addAction,
   addToCartLabel,
   addedLabel,
+  viewCartLabel,
+  cartHref,
   wishlist,
 }: {
   href: string;
@@ -49,6 +51,8 @@ export function ProductCardInteractive({
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
   addToCartLabel: string;
   addedLabel: string;
+  viewCartLabel: string;
+  cartHref: string;
   wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(0);
@@ -58,23 +62,13 @@ export function ProductCardInteractive({
   const colorName = active?.label;
   const activeSku = active?.sku ?? baseSku;
 
-  // Add-to-cart action + transient "Added" confirmation on the button.
+  // Add-to-cart action; confirmation is shown via a top-right toast popup
+  // (same one used by the product-detail page) rather than animating the
+  // button itself — works the same on PC and mobile.
   const [addState, formAction, pending] = useActionState(addAction, null);
-  const [justAdded, setJustAdded] = useState(false);
-  useEffect(() => {
-    if (!addState?.ok || addState.id === undefined) return;
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setJustAdded(true);
-    });
-    const t = setTimeout(() => {
-      if (!cancelled) setJustAdded(false);
-    }, 1600);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, [addState]);
+  const [closedId, setClosedId] = useState<number | null>(null);
+  const showToast =
+    !!addState?.ok && addState.id !== undefined && addState.id !== closedId;
   const linkHref = active
     ? `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`
     : href;
@@ -165,7 +159,8 @@ export function ProductCardInteractive({
           </p>
         )}
 
-        {/* Add to cart — outlined, fits the card, gold accent for highlight */}
+        {/* Add to cart — blue with gold lettering; on PC, hover flips to
+            gold with blue lettering. No tap animation on mobile. */}
         <form
           action={formAction}
           onClick={(e) => e.stopPropagation()}
@@ -175,25 +170,55 @@ export function ProductCardInteractive({
           <input type="hidden" name="quantity" value="1" />
           <button
             type="submit"
-            disabled={pending || justAdded}
-            className="group/cta inline-flex w-full items-center justify-center gap-2 border border-ink py-3 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:bg-ink hover:text-cream disabled:opacity-80 sm:py-3.5 sm:text-xs"
+            disabled={pending}
+            className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-3 text-[0.65rem] tracking-[0.22em] text-gold uppercase disabled:opacity-80 sm:py-3.5 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
           >
-            {justAdded ? (
-              <>
-                <span className="text-gold">✓</span>
-                {addedLabel}
-              </>
-            ) : (
-              <>
-                <span className="text-gold transition-colors duration-300 group-hover/cta:text-gold-soft">
-                  +
-                </span>
-                {addToCartLabel}
-              </>
-            )}
+            <span>+</span>
+            {addToCartLabel}
           </button>
         </form>
       </div>
+
+      {/* "Added to cart" toast (same look as the product-detail page) */}
+      {showToast && (
+        <div
+          key={addState!.id}
+          role="status"
+          aria-live="polite"
+          className="fixed right-4 top-[5.25rem] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
+        >
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-paper">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="overline text-[0.6rem]">{addedLabel}</p>
+              <p className="mt-1 truncate font-serif text-base text-ink">
+                {addState!.name ?? title}
+              </p>
+              <p className="mt-0.5 text-sm text-muted">{addState!.price ?? price}</p>
+              <Link
+                href={cartHref}
+                className="mt-3 inline-block text-xs tracking-[0.18em] text-gold uppercase transition-colors hover:text-ink"
+              >
+                {viewCartLabel} →
+              </Link>
+            </div>
+            <button
+              type="button"
+              aria-label="×"
+              onClick={() => setClosedId(addState!.id ?? null)}
+              className="shrink-0 text-muted transition-colors hover:text-ink"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </article>
   );
 }

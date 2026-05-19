@@ -63,6 +63,8 @@ export function ProductCard({
       addAction={addToCart.bind(null, lang)}
       addToCartLabel={dict.cart.addToCart}
       addedLabel={dict.cart.added}
+      viewCartLabel={dict.cart.viewCart}
+      cartHref={`/${lang}/carrinho`}
       wishlist={
         <WishlistButton
           productId={product.id}
