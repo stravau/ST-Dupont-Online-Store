@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { AddResult } from "@/lib/actions";
 import { ProductImage } from "@/components/product-image";
 import { imgSrc } from "@/lib/img";
 
@@ -28,6 +29,10 @@ export function ProductCardInteractive({
   fallbackImage,
   swatches,
   basePrice,
+  baseSku,
+  addAction,
+  addToCartLabel,
+  addedLabel,
   wishlist,
 }: {
   href: string;
@@ -40,6 +45,10 @@ export function ProductCardInteractive({
   fallbackImage: string | null;
   swatches: CardSwatch[];
   basePrice: string;
+  baseSku: string;
+  addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
+  addToCartLabel: string;
+  addedLabel: string;
   wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(0);
@@ -47,6 +56,25 @@ export function ProductCardInteractive({
   const image = imgSrc(active?.image ?? fallbackImage);
   const price = active?.price ?? basePrice;
   const colorName = active?.label;
+  const activeSku = active?.sku ?? baseSku;
+
+  // Add-to-cart action + transient "Added" confirmation on the button.
+  const [addState, formAction, pending] = useActionState(addAction, null);
+  const [justAdded, setJustAdded] = useState(false);
+  useEffect(() => {
+    if (!addState?.ok || addState.id === undefined) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setJustAdded(true);
+    });
+    const t = setTimeout(() => {
+      if (!cancelled) setJustAdded(false);
+    }, 1600);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [addState]);
   const linkHref = active
     ? `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`
     : href;
@@ -135,6 +163,35 @@ export function ProductCardInteractive({
             {colorName}
           </p>
         )}
+
+        {/* Add to cart — outlined, fits the card, gold accent for highlight */}
+        <form
+          action={formAction}
+          onClick={(e) => e.stopPropagation()}
+          className="relative z-20 mt-5"
+        >
+          <input type="hidden" name="sku" value={activeSku} />
+          <input type="hidden" name="quantity" value="1" />
+          <button
+            type="submit"
+            disabled={pending || justAdded}
+            className="group/cta inline-flex w-full items-center justify-center gap-2 border border-ink py-3 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:bg-ink hover:text-cream disabled:opacity-80 sm:py-3.5 sm:text-xs"
+          >
+            {justAdded ? (
+              <>
+                <span className="text-gold">✓</span>
+                {addedLabel}
+              </>
+            ) : (
+              <>
+                <span className="text-gold transition-colors duration-300 group-hover/cta:text-gold-soft">
+                  +
+                </span>
+                {addToCartLabel}
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </article>
   );
