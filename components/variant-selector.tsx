@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useActionState } from "react";
-import Link from "next/link";
 import type { AddResult } from "@/lib/actions";
 
 export interface VariantOption {
@@ -32,7 +31,6 @@ function uniq<T>(arr: T[]): T[] {
 export function VariantSelector({
   variants,
   labels,
-  lang,
   initialType,
   initialSku: initialSkuProp,
   addAction,
@@ -40,7 +38,6 @@ export function VariantSelector({
 }: {
   variants: VariantOption[];
   labels: SelectorLabels;
-  lang: string;
   initialType?: string;
   initialSku?: string;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
@@ -224,12 +221,16 @@ export function VariantSelector({
               <p className="overline text-[0.6rem]">{labels.added}</p>
               <p className="mt-1 truncate font-serif text-base text-ink">{state!.name}</p>
               <p className="mt-0.5 text-sm text-muted">{state!.price}</p>
-              <Link
-                href={`/${lang}/carrinho`}
+              <button
+                type="button"
+                onClick={() => {
+                  setClosedId(state!.id ?? null);
+                  window.dispatchEvent(new CustomEvent("stdupont:open-cart"));
+                }}
                 className="mt-3 inline-block text-xs tracking-[0.18em] text-gold uppercase transition-colors hover:text-ink"
               >
                 {labels.viewCart} →
-              </Link>
+              </button>
             </div>
             <button
               type="button"

@@ -68,7 +68,6 @@ export default async function ProductPage({
         seed={product.slug}
         label={product.name[locale]}
         variants={variantOptions}
-        lang={locale}
         initialType={typeParam}
         initialSku={skuParam}
         addAction={addAction}

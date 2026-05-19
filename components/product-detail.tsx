@@ -15,7 +15,6 @@ export function ProductDetail({
   label,
   variants,
   labels,
-  lang,
   initialType,
   initialSku,
   addAction,
@@ -27,7 +26,6 @@ export function ProductDetail({
   label: string;
   variants: VariantOption[];
   labels: SelectorLabels;
-  lang: string;
   initialType?: string;
   initialSku?: string;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
@@ -72,7 +70,6 @@ export function ProductDetail({
         <div className="mt-10">
           <VariantSelector
             variants={variants}
-            lang={lang}
             initialType={initialType}
             initialSku={initialSku}
             addAction={addAction}
