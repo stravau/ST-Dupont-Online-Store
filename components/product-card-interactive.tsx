@@ -185,7 +185,7 @@ export function ProductCardInteractive({
           key={addState!.id}
           role="status"
           aria-live="polite"
-          className="fixed right-4 top-[5.25rem] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
+          className="fixed right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] top-[5.25rem] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
         >
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-paper">
