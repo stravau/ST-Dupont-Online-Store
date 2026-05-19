@@ -154,7 +154,7 @@ export function ProductCardInteractive({
         <p className="overline mt-3 text-[0.55rem] text-muted">{fromLabel}</p>
         <p className="mt-1 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
         {colorName && swatches.length > 1 && (
-          <p className="mt-3 whitespace-nowrap text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
+          <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
             {colorName}
           </p>
         )}

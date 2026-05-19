@@ -59,9 +59,11 @@ export function MobileNav({
       </button>
 
       {open && (
-        // Full-screen panel. 111vw/111vh defeats the global `zoom: 0.9`
-        // so no uncovered strip shows; z above the sticky header.
-        <div className="fixed left-0 top-0 z-[100] flex h-[111vh] w-[111vw] flex-col bg-cream">
+        // Full-screen panel. `inset-0` is robust under the body `zoom: 0.9`
+        // (fixed positioning is viewport-relative on every browser, unlike
+        // `vw`/`vh` units which iOS scales differently). `100dvh` keeps it
+        // covering the screen as iOS Safari's URL bar shows/hides.
+        <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream">
           <div className="flex items-center justify-end px-6 py-5">
             <button
               type="button"
