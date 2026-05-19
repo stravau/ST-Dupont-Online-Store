@@ -5,6 +5,7 @@ import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { currentUserId, getCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
+import { updateCartItemQty, removeCartItemQuick } from "@/lib/actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
@@ -108,12 +109,15 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
             cartHref={`/${lang}/carrinho`}
             lines={cartLines}
             subtotal={formatPrice(cart.subtotalCents, cart.currency, lang)}
+            updateAction={updateCartItemQty.bind(null, lang)}
+            removeAction={removeCartItemQuick.bind(null, lang)}
             labels={{
               title: dict.cart.title,
               empty: dict.cart.empty,
               subtotal: dict.cart.subtotal,
               finalize: dict.cart.finalize,
               qty: dict.cart.qty,
+              remove: dict.cart.remove,
             }}
           />
         </div>

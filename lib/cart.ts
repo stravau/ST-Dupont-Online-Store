@@ -49,7 +49,10 @@ export async function getCart(userId: string, lang: Locale) {
     currency: it.variant.currency,
     quantity: it.quantity,
     lineCents: it.variant.priceCents * it.quantity,
-    image: it.variant.product.image,
+    // Use the chosen colourway's photo when present; fall back to the
+    // product's hero image so older lines without a per-variant shot still
+    // render something.
+    image: it.variant.images?.[0] ?? it.variant.product.image,
   }));
 
   const subtotalCents = lines.reduce((s, l) => s + l.lineCents, 0);

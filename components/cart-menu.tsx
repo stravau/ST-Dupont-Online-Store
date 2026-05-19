@@ -16,24 +16,30 @@ export interface CartMenuLine {
 }
 
 // Header cart: a real shopping-cart icon that opens a dropdown summarising
-// every line. "Finalizar compra" leads to the full cart page.
+// every line. Each line has -/+ quantity controls and an × to remove;
+// "Finalizar compra" at the foot leads to the full cart page.
 export function CartMenu({
   count,
   cartHref,
   lines,
   subtotal,
+  updateAction,
+  removeAction,
   labels,
 }: {
   count: number;
   cartHref: string;
   lines: CartMenuLine[];
   subtotal: string;
+  updateAction: (formData: FormData) => Promise<void>;
+  removeAction: (formData: FormData) => Promise<void>;
   labels: {
     title: string;
     empty: string;
     subtotal: string;
     finalize: string;
     qty: string;
+    remove: string;
   };
 }) {
   const [open, setOpen] = useState(false);
@@ -96,9 +102,9 @@ export function CartMenu({
             <p className="px-5 py-10 text-center text-sm text-muted">{labels.empty}</p>
           ) : (
             <>
-              <ul className="max-h-[22rem] divide-y divide-line/70 overflow-y-auto">
+              <ul className="max-h-[24rem] divide-y divide-line/70 overflow-y-auto">
                 {lines.map((l) => (
-                  <li key={l.itemId} className="flex gap-4 px-5 py-4">
+                  <li key={l.itemId} className="relative flex gap-4 px-5 py-4 pr-9">
                     <Link
                       href={`${cartHref.replace(/\/carrinho$/, "")}/p/${l.productSlug}`}
                       className="block h-16 w-14 shrink-0 border border-line"
@@ -115,11 +121,54 @@ export function CartMenu({
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-serif text-sm text-ink">{l.productName}</p>
                       <p className="mt-0.5 truncate text-xs text-muted">{l.variantName}</p>
-                      <p className="mt-1 text-xs text-muted">
-                        {labels.qty}: {l.quantity}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        {/* −  N  + */}
+                        <div className="inline-flex items-center border border-line">
+                          <form action={updateAction}>
+                            <input type="hidden" name="itemId" value={l.itemId} />
+                            <input type="hidden" name="quantity" value={l.quantity - 1} />
+                            <button
+                              type="submit"
+                              aria-label="−"
+                              disabled={l.quantity <= 1}
+                              className="flex h-7 w-7 items-center justify-center text-sm text-ink transition-colors hover:text-gold disabled:cursor-not-allowed disabled:text-muted/60"
+                            >
+                              −
+                            </button>
+                          </form>
+                          <span className="min-w-[1.5rem] border-x border-line text-center text-xs tabular-nums text-ink">
+                            {l.quantity}
+                          </span>
+                          <form action={updateAction}>
+                            <input type="hidden" name="itemId" value={l.itemId} />
+                            <input type="hidden" name="quantity" value={l.quantity + 1} />
+                            <button
+                              type="submit"
+                              aria-label="+"
+                              disabled={l.quantity >= 99}
+                              className="flex h-7 w-7 items-center justify-center text-sm text-ink transition-colors hover:text-gold disabled:cursor-not-allowed disabled:text-muted/60"
+                            >
+                              +
+                            </button>
+                          </form>
+                        </div>
+                        <p className="whitespace-nowrap text-sm text-ink">{l.linePrice}</p>
+                      </div>
                     </div>
-                    <p className="whitespace-nowrap text-sm text-ink">{l.linePrice}</p>
+                    {/* Remove (×) — top-right corner */}
+                    <form action={removeAction} className="absolute right-2 top-2">
+                      <input type="hidden" name="itemId" value={l.itemId} />
+                      <button
+                        type="submit"
+                        aria-label={labels.remove}
+                        title={labels.remove}
+                        className="flex h-6 w-6 items-center justify-center text-muted transition-colors hover:text-ink"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                          <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </form>
                   </li>
                 ))}
               </ul>

@@ -100,6 +100,35 @@ export async function removeCartItem(lang: string, formData: FormData) {
   redirect(`/${lang}/carrinho`);
 }
 
+// Quiet variants used by the header cart popup — same work, but only
+// revalidate (no redirect) so the user stays in their current page.
+export async function updateCartItemQty(lang: string, formData: FormData) {
+  const userId = await requireUserId(lang);
+  const itemId = String(formData.get("itemId") ?? "");
+  const quantity = Number(formData.get("quantity") ?? 1);
+  const item = await prisma.cartItem.findFirst({
+    where: { id: itemId, cart: { userId } },
+    select: { id: true },
+  });
+  if (!item) return;
+  if (quantity <= 0) {
+    await prisma.cartItem.delete({ where: { id: itemId } });
+  } else {
+    await prisma.cartItem.update({
+      where: { id: itemId },
+      data: { quantity: Math.min(99, Math.max(1, quantity)) },
+    });
+  }
+  revalidatePath(`/${lang}`, "layout");
+}
+
+export async function removeCartItemQuick(lang: string, formData: FormData) {
+  const userId = await requireUserId(lang);
+  const itemId = String(formData.get("itemId") ?? "");
+  await prisma.cartItem.deleteMany({ where: { id: itemId, cart: { userId } } });
+  revalidatePath(`/${lang}`, "layout");
+}
+
 export async function placeOrder(lang: string) {
   const userId = await requireUserId(lang);
   const cart = await prisma.cart.findUnique({
