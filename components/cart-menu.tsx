@@ -51,6 +51,14 @@ export function CartMenu({
     queueMicrotask(() => setOpen(false));
   }, [pathname]);
 
+  // Let the add-to-cart toast's "View cart" button open this dropdown
+  // instead of navigating to the full /carrinho page.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("stdupont:open-cart", onOpen);
+    return () => window.removeEventListener("stdupont:open-cart", onOpen);
+  }, []);
+
   // Close on outside click / Escape.
   useEffect(() => {
     if (!open) return;

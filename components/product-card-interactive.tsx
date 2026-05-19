@@ -202,12 +202,16 @@ export function ProductCardInteractive({
                 {addState!.name ?? title}
               </p>
               <p className="mt-0.5 text-sm text-muted">{addState!.price ?? price}</p>
-              <Link
-                href={cartHref}
+              <button
+                type="button"
+                onClick={() => {
+                  setClosedId(addState!.id ?? null);
+                  window.dispatchEvent(new CustomEvent("stdupont:open-cart"));
+                }}
                 className="mt-3 inline-block text-xs tracking-[0.18em] text-gold uppercase transition-colors hover:text-ink"
               >
                 {viewCartLabel} →
-              </Link>
+              </button>
             </div>
             <button
               type="button"
