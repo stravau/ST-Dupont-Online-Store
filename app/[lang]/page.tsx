@@ -28,10 +28,23 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           both sections seamlessly (no per-section restart / visible seam). */}
       <div className="monogram-bg">
       <section className="text-cream">
-        <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center px-6 text-center">
+        <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center overflow-hidden px-6 text-center">
+          {/* Full-bleed wallpaper. object-cover fills the viewport without
+              letterboxing; a top-to-bottom ink gradient lifts the cream
+              lettering off the texture so it stays readable. */}
+          <Image
+            src="/hero/homepage-bg.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 z-0 object-cover"
+          />
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/50 to-ink/85" />
+
           {/* Lettering — vertically centred on the blue, elements tightened.
               Each piece fades in with a slight stagger as the page lands. */}
-          <div className="flex flex-col items-center">
+          <div className="relative z-20 flex flex-col items-center">
             <p className="reveal overline text-gold-soft">{dict.hero.eyebrow}</p>
             <h1 className="reveal reveal-d1 mt-3 font-serif text-5xl font-light leading-tight md:text-7xl">
               {dict.hero.title}
@@ -49,7 +62,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
 
           {/* Cue pinned near the bottom so the lettering stays centred */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+          <div className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2">
             <ScrollCue label={dict.sections.categories} />
           </div>
         </div>
