@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { AddResult } from "@/lib/actions";
 import { ProductImage } from "@/components/product-image";
+import { LoadingOverlay } from "@/components/loading-overlay";
 import { imgSrc } from "@/lib/img";
 
 export interface CardSwatch {
@@ -176,28 +177,14 @@ export function ProductCardInteractive({
             disabled={pending}
             className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-3 text-[0.65rem] tracking-[0.22em] text-gold uppercase disabled:opacity-80 sm:py-3.5 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
           >
-            {pending ? (
-              <>
-                <svg
-                  className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden
-                >
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
-                  <path d="M21 12a9 9 0 0 1-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                {addToCartLabel}
-              </>
-            ) : (
-              <>
-                <span>+</span>
-                {addToCartLabel}
-              </>
-            )}
+            <span>+</span>
+            {addToCartLabel}
           </button>
         </form>
       </div>
+
+      {/* Centred loading spinner while the add-to-cart request is in flight */}
+      <LoadingOverlay show={pending} />
 
       {/* "Added to cart" toast — portalled to document.body so the card's
           hover transform can't capture its fixed positioning (was making
