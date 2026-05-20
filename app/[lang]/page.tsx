@@ -57,9 +57,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <div className="relative z-20 flex flex-col items-center">
             <Logo
               variant="light"
-              width={480}
+              width={780}
               priority
-              className="reveal mb-6 w-[260px] sm:w-[400px]"
+              className="reveal mb-10 w-[780px] max-w-[88vw] sm:mb-8 sm:w-[600px]"
             />
             <p className="reveal overline text-gold-soft">{dict.hero.eyebrow}</p>
             <h1 className="reveal reveal-d1 mt-3 font-serif text-5xl font-light leading-tight md:text-7xl">
