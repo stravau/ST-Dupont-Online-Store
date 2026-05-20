@@ -84,10 +84,13 @@ export function AccountMenu({
             ))}
           </ul>
 
-          <form action={signOutAction} className="border-t border-line p-4">
+          <form
+            action={signOutAction}
+            className="border-t border-line px-5 py-4 text-center"
+          >
             <button
               type="submit"
-              className="block w-full bg-[#a93226] py-4 text-center text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-[#8e2a20]"
+              className="text-xs tracking-[0.22em] text-[#a93226] uppercase transition-colors duration-200 hover:text-[#7a1d15]"
             >
               {signOutLabel}
             </button>
