@@ -200,13 +200,39 @@ a[href],
 }
 
 /* --- Page entry transition ---------------------------------------------- */
+/* Depth + movement on every navigation: text and images come in with a
+   gentle zoom-out-of-fog feel (blur clears as scale/translate settles). */
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 .page-transition {
-  animation: pageIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pageIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center top;
 }
 @media (prefers-reduced-motion: reduce) {
   .page-transition { animation: none; }
+}
+
+/* --- Scroll-cue attention pulse ---------------------------------------- */
+@keyframes cueBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+@keyframes cueGlow {
+  0%, 100% { opacity: 0.82; letter-spacing: 0.22em; }
+  50%      { opacity: 1; letter-spacing: 0.26em; }
+}
+.cue-bounce { animation: cueBounce 1.8s ease-in-out infinite; }
+.cue-glow   { animation: cueGlow 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .cue-bounce, .cue-glow { animation: none; }
 }
