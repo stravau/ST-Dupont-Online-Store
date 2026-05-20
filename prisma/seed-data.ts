@@ -441,6 +441,7 @@ export const products: SeedProduct[] = [
     categorySlug: "escrita",
     image: null,
     // Real 2026/2027 catalogue: 3 pen types × 5 finishes (REF codes = SKUs).
+    // Colours / photos cross-checked against the supplied catalogue photos.
     variants: (() => {
       const FP = { pt: "Caneta de Tinta Permanente", en: "Fountain Pen" };
       const RB = { pt: "Rollerball", en: "Convertible Roller" };
@@ -448,8 +449,8 @@ export const products: SeedProduct[] = [
       const finishes = [
         { s: "075N", label: { pt: "Paládio Escovado", en: "Brushed Palladium" }, hex: ["#b9bcc2"] },
         { s: "076N", label: { pt: "Laca Preta & Ouro Amarelo", en: "Shiny Black Lacquer & Yellow Gold" }, hex: ["#15171c", "#c8a24a"] },
-        { s: "077N", label: { pt: "Laca Azul & Paládio", en: "Shiny Blue Lacquer & Palladium" }, hex: ["#1f3c66", "#b9bcc2"] },
-        { s: "078N", label: { pt: "Guilhoché Entraînador & Ouro", en: "Trigger Guilloche & Yellow Gold" }, hex: ["#c8a24a"] },
+        { s: "077N", label: { pt: "Laca Azul & Ouro Amarelo", en: "Shiny Blue Lacquer & Yellow Gold" }, hex: ["#1f3c66", "#c8a24a"] },
+        { s: "078N", label: { pt: "Ouro Amarelo", en: "Yellow Gold" }, hex: ["#c8a24a"] },
         { s: "079N", label: { pt: "Guilhoché Oblíquo & Paládio", en: "Oblique Guilloche & Palladium" }, hex: ["#b9bcc2"] },
       ];
       const types = [
@@ -460,12 +461,18 @@ export const products: SeedProduct[] = [
       const out = [];
       for (const ty of types) {
         for (const f of finishes) {
+          const sku = `${ty.pfx}${f.s}`;
+          // Catalogue photo on disk: /products/classique/<SKU>.jpg.
+          // BP 045079N (Oblique Guilloche) has no shot supplied — falls
+          // back to the on-brand placeholder until one is delivered.
+          const image = sku === "045079N" ? undefined : `/products/classique/${sku}.jpg`;
           out.push({
-            sku: `${ty.pfx}${f.s}`,
+            sku,
             name: { pt: `${ty.t.pt} · ${f.label.pt}`, en: `${ty.t.en} · ${f.label.en}` },
             priceCents: ty.price,
             currency: "EUR" as const,
             attributes: { type: ty.t, color: { label: f.label, hex: f.hex } },
+            image,
           });
         }
       }
