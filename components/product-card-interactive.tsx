@@ -83,7 +83,7 @@ export function ProductCardInteractive({
   const extra = swatches.length - showCount;
 
   return (
-    <article className="lux-hover group relative flex flex-col overflow-hidden border border-line bg-paper">
+    <article className="lux-hover reveal group relative flex flex-col overflow-hidden border border-line bg-paper">
       {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
