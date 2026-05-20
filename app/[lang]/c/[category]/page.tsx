@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -58,14 +59,20 @@ export default async function CategoryPage({
     <div>
       {art?.hero ? (
         /* Full-bleed photo header. monogram-bg is the fallback if the image
-           is missing; the gradient scrim keeps all text legible over it. */
-        <header className="monogram-bg relative isolate overflow-hidden text-center text-cream">
-          <div
-            className={`absolute inset-0 -z-10 bg-cover bg-no-repeat ${art.heroPos ?? "bg-center"}`}
-            style={{ backgroundImage: `url('${art.hero}')` }}
+           fails to load. Explicit positive z-stacking instead of -z-10 to
+           avoid Safari painting the negative-z image *behind* the parent
+           background under body zoom (showed as a navy stripe up top). */
+        <header className="monogram-bg relative overflow-hidden text-center text-cream">
+          <Image
+            src={art.hero}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className={`absolute inset-0 z-0 object-cover ${art.heroPos ?? "object-center"}`}
           />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/80 via-ink/65 to-ink/90" />
-          <div className="mx-auto max-w-2xl px-6 py-20 sm:py-28 md:py-36">
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/80 via-ink/65 to-ink/90" />
+          <div className="relative z-20 mx-auto max-w-2xl px-6 py-20 sm:py-28 md:py-36">
             <Crest className="mb-6 text-gold-soft" />
             <p className="overline text-gold-soft">{cat.name[locale]}</p>
             <h1 className="mt-4 font-serif text-5xl md:text-6xl">{art.art}</h1>

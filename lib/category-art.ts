@@ -13,7 +13,7 @@ export interface ArtGroup {
 export interface CategoryArt {
   art: string; // brand term, French — used as-is in both locales
   hero?: string; // optional /public path to a full-bleed header photo
-  heroPos?: string; // Tailwind bg-position for the hero (default bg-center)
+  heroPos?: string; // Tailwind object-position for the hero (default object-center)
   groups: ArtGroup[];
 }
 
@@ -52,7 +52,7 @@ export const categoryArt: Record<string, CategoryArt> = {
     art: "L'Art de la Séduction",
     hero: "/headers/acessorios.jpg",
     // Favour the lower portion on desktop — halfway between centre & bottom
-    heroPos: "bg-center md:bg-[center_75%]",
+    heroPos: "object-center md:object-[center_75%]",
     groups: [
       NEW_RELEASES,
       { label: t("Botões de Punho", "Cufflinks"), href: "/t/cufflinks" },
