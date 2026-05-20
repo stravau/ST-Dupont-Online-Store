@@ -33,7 +33,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               letterboxing; a top-to-bottom ink gradient lifts the cream
               lettering off the texture so it stays readable. */}
           <Image
-            src="/hero/homepage-bg.png"
+            src="/hero/homepage-bg.jpg"
             alt=""
             fill
             priority
