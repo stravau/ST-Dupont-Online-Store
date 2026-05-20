@@ -69,7 +69,7 @@ export default async function CategoryPage({
             fill
             priority
             sizes="100vw"
-            className={`absolute inset-0 z-0 object-cover ${art.heroPos ?? "object-center"}`}
+            className={`absolute inset-0 z-0 scale-125 object-cover sm:scale-100 ${art.heroPos ?? "object-center"}`}
           />
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/80 via-ink/65 to-ink/90" />
           <div className="relative z-20 mx-auto max-w-2xl px-6 py-20 sm:py-28 md:py-36">
