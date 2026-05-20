@@ -10,7 +10,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
   const floor = lang === "pt" ? "Piso 0" : "Floor 0";
 
   return (
-    <footer className="app-footer-fixed monogram-bg text-cream">
+    <footer className="monogram-bg mt-24 text-cream">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-3">
         <div>
           <Logo variant="light" width={244} className="w-[244px]" />

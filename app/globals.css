@@ -199,30 +199,6 @@ a[href],
   }
 }
 
-/* --- Reveal-from-below footer ------------------------------------------ */
-/* The footer is pinned to the viewport bottom; the main content sits at a
-   higher z-index with a solid cream background, so the footer is hidden
-   behind the page until the user scrolls past the content's end — at
-   which point the blue footer "appears from below". `--footer-h` is set
-   by <FooterReveal /> on the body so padding-bottom matches the live
-   footer height across viewport widths. */
-.app-main {
-  position: relative;
-  z-index: 1;
-  background: var(--cream);
-}
-.app-footer-fixed {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  zoom: 1.1112; /* counter body's zoom: 0.9 so the footer fills its width */
-}
-body {
-  padding-bottom: var(--footer-h, 0px);
-}
-
 /* --- Page entry transition ---------------------------------------------- */
 /* Depth + movement on every navigation: text and images come in with a
    gentle zoom-out-of-fog feel (blur clears as scale/translate settles). */
