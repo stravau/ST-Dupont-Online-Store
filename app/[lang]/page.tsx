@@ -7,6 +7,7 @@ import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ScrollCue } from "@/components/scroll-cue";
+import { Logo } from "@/components/logo";
 import { notFound } from "next/navigation";
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
@@ -54,6 +55,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           {/* Lettering — vertically centred on the blue, elements tightened.
               Each piece fades in with a slight stagger as the page lands. */}
           <div className="relative z-20 flex flex-col items-center">
+            <Logo
+              variant="light"
+              width={480}
+              priority
+              className="reveal mb-6 w-[260px] sm:w-[400px]"
+            />
             <p className="reveal overline text-gold-soft">{dict.hero.eyebrow}</p>
             <h1 className="reveal reveal-d1 mt-3 font-serif text-5xl font-light leading-tight md:text-7xl">
               {dict.hero.title}
