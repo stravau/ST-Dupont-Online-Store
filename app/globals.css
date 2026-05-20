@@ -222,6 +222,26 @@ a[href],
   .page-transition { animation: none; }
 }
 
+/* --- Footer entrance: gold line draws across, columns stagger up ------- */
+/* `.gold-rule-anim` rides on the same `.reveal` observer (toggled via
+   `.is-visible`); the selector specificity above plain `.reveal` lets us
+   swap the opacity-fade for a horizontal scale-in instead. */
+.gold-rule-anim.reveal {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gold-rule-anim.reveal.is-visible {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gold-rule-anim.reveal {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
+
 /* --- Mega-menu open animation ------------------------------------------ */
 /* Panel drops in with a soft blur clear; items inside stagger up. The
    per-item delay is supplied inline via `style={{animationDelay}}`. */

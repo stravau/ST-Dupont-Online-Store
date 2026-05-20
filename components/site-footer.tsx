@@ -11,13 +11,16 @@ export function SiteFooter({ lang }: { lang: Locale }) {
 
   return (
     <footer className="monogram-bg mt-24 text-cream">
+      {/* Gold rule draws across as the footer scrolls into view */}
+      <div className="reveal gold-rule-anim mx-auto h-px max-w-[64rem] bg-gradient-to-r from-transparent via-gold-soft to-transparent" />
+
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-3">
-        <div>
+        <div className="reveal">
           <Logo variant="light" width={244} className="w-[244px]" />
           <p className="overline mt-4">{dict.footer.tagline}</p>
         </div>
 
-        <div id={CONTACT_ANCHOR} className="scroll-mt-28">
+        <div id={CONTACT_ANCHOR} className="reveal reveal-d1 scroll-mt-28">
           <p className="overline mb-5">{dict.footer.boutique}</p>
           <address className="space-y-1 text-sm not-italic text-cream/70">
             <p>{STORE.venue}</p>
@@ -49,7 +52,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
           </div>
         </div>
 
-        <div>
+        <div className="reveal reveal-d2">
           <p className="overline mb-5">{dict.footer.legal}</p>
           <ul className="space-y-2 text-sm text-cream/70">
             <li><Link href={`/${lang}/legal/privacidade`} className="link-grow transition-colors hover:text-gold">{dict.footer.privacy}</Link></li>
@@ -64,7 +67,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
         </div>
       </div>
 
-      <div className="border-t border-cream/10">
+      <div className="reveal reveal-d3 border-t border-cream/10">
         <p className="mx-auto max-w-7xl px-6 py-6 text-center text-xs tracking-widest text-cream/40">
           © {year} S.T. Dupont. {dict.footer.rights}
         </p>
