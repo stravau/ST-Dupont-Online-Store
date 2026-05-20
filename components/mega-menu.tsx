@@ -77,19 +77,22 @@ export function MegaMenu({
               <div
                 onMouseEnter={() => show(c.slug)}
                 onMouseLeave={scheduleClose}
-                className="absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur"
+                className="menu-panel absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur"
               >
                 <span aria-hidden className="absolute -top-4 left-0 right-0 h-4" />
                 <div className="mx-auto flex max-w-7xl items-start gap-14 px-6 py-7">
                   {/* Intro */}
-                  <div className="w-52 shrink-0 border-r border-line pr-10">
+                  <div
+                    className="menu-item w-52 shrink-0 border-r border-line pr-10"
+                    style={{ animationDelay: "0.04s" }}
+                  >
                     <p className="overline">{c.name}</p>
                     <p className="mt-2 font-serif text-lg leading-snug text-ink">
                       {c.tagline}
                     </p>
                     <Link
                       href={`/${lang}/c/${c.slug}`}
-                      className="mt-4 inline-block text-[0.7rem] tracking-[0.2em] text-gold uppercase transition-colors hover:text-ink"
+                      className="link-grow mt-4 inline-block text-[0.7rem] tracking-[0.2em] text-gold uppercase transition-colors hover:text-ink"
                     >
                       {labels.viewAll} →
                     </Link>
@@ -99,7 +102,12 @@ export function MegaMenu({
                       lists (e.g. Accessories) flow into two columns. */}
                   {c.groups.length > 0 && (
                     <div className={c.groups.length > 4 ? "min-w-[18rem]" : "min-w-[12rem]"}>
-                      <p className="overline mb-4 text-[0.6rem]">{labels.collections}</p>
+                      <p
+                        className="menu-item overline mb-4 text-[0.6rem]"
+                        style={{ animationDelay: "0.08s" }}
+                      >
+                        {labels.collections}
+                      </p>
                       <ul
                         className={
                           c.groups.length > 4
@@ -107,11 +115,15 @@ export function MegaMenu({
                             : "space-y-2.5"
                         }
                       >
-                        {c.groups.map((g) => (
-                          <li key={g.href}>
+                        {c.groups.map((g, i) => (
+                          <li
+                            key={g.href}
+                            className="menu-item"
+                            style={{ animationDelay: `${0.12 + i * 0.045}s` }}
+                          >
                             <Link
                               href={g.href}
-                              className="text-sm text-ink transition-colors hover:text-gold"
+                              className="menu-item-hover text-sm text-ink"
                             >
                               {g.label}
                             </Link>
@@ -124,13 +136,22 @@ export function MegaMenu({
                   {/* Product lines — labelled "Products" (inverted) */}
                   {c.collections.length > 0 && (
                     <div className="flex-1">
-                      <p className="overline mb-4 text-[0.6rem]">{labels.products}</p>
+                      <p
+                        className="menu-item overline mb-4 text-[0.6rem]"
+                        style={{ animationDelay: "0.14s" }}
+                      >
+                        {labels.products}
+                      </p>
                       <ul className="grid grid-cols-2 gap-x-12 gap-y-2.5 xl:grid-cols-3">
-                        {c.collections.map((col) => (
-                          <li key={col}>
+                        {c.collections.map((col, i) => (
+                          <li
+                            key={col}
+                            className="menu-item"
+                            style={{ animationDelay: `${0.18 + i * 0.035}s` }}
+                          >
                             <Link
                               href={`/${lang}/c/${c.slug}?col=${encodeURIComponent(col)}`}
-                              className="text-sm text-muted transition-colors hover:text-gold"
+                              className="menu-item-hover text-sm text-muted"
                             >
                               {col}
                             </Link>

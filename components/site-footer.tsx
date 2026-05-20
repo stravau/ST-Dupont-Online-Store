@@ -24,25 +24,25 @@ export function SiteFooter({ lang }: { lang: Locale }) {
             <p>{STORE.street} · {floor}</p>
             <p>{STORE.postcode}</p>
             <p>
-              <a href={STORE.phoneHref} className="transition-colors hover:text-gold">
+              <a href={STORE.phoneHref} className="link-grow transition-colors hover:text-gold">
                 {STORE.phone}
               </a>
             </p>
             <p>
-              <a href={`mailto:${STORE.email}`} className="transition-colors hover:text-gold">
+              <a href={`mailto:${STORE.email}`} className="link-grow transition-colors hover:text-gold">
                 {STORE.email}
               </a>
             </p>
           </address>
           <div className="mt-5 flex flex-col gap-2 text-sm text-cream/70">
-            <Link href={`/${lang}/loja`} className="transition-colors hover:text-gold">
+            <Link href={`/${lang}/loja`} className="link-grow transition-colors hover:text-gold">
               {dict.footer.viewStore} →
             </Link>
             <a
               href={STORE.officialUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-gold"
+              className="link-grow transition-colors hover:text-gold"
             >
               {dict.footer.official} ↗
             </a>
@@ -52,9 +52,9 @@ export function SiteFooter({ lang }: { lang: Locale }) {
         <div>
           <p className="overline mb-5">{dict.footer.legal}</p>
           <ul className="space-y-2 text-sm text-cream/70">
-            <li><Link href={`/${lang}/legal/privacidade`} className="transition-colors hover:text-gold">{dict.footer.privacy}</Link></li>
-            <li><Link href={`/${lang}/legal/termos`} className="transition-colors hover:text-gold">{dict.footer.terms}</Link></li>
-            <li><Link href={`/${lang}/legal/devolucoes`} className="transition-colors hover:text-gold">{dict.footer.returns}</Link></li>
+            <li><Link href={`/${lang}/legal/privacidade`} className="link-grow transition-colors hover:text-gold">{dict.footer.privacy}</Link></li>
+            <li><Link href={`/${lang}/legal/termos`} className="link-grow transition-colors hover:text-gold">{dict.footer.terms}</Link></li>
+            <li><Link href={`/${lang}/legal/devolucoes`} className="link-grow transition-colors hover:text-gold">{dict.footer.returns}</Link></li>
           </ul>
           <p className="overline mb-3 mt-8">{dict.footer.follow}</p>
           <div className="flex gap-4 text-sm text-cream/70">
