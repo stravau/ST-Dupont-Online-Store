@@ -31,7 +31,7 @@ export default async function HistoryPage({
       {/* Hero — full-bleed history photo + ink scrim + staggered fade-ins */}
       <section className="monogram-bg relative isolate overflow-hidden text-cream">
         <Image
-          src="/headers/historia.png"
+          src="/headers/historia.jpg"
           alt=""
           fill
           priority
