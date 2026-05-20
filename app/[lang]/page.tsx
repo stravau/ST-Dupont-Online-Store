@@ -40,7 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             fill
             priority
             sizes="100vw"
-            className="absolute inset-0 z-0 object-contain sm:hidden"
+            className="absolute inset-0 z-0 object-cover object-center sm:hidden"
           />
           <Image
             src="/hero/homepage-bg.jpg"
