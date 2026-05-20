@@ -36,7 +36,7 @@ export default async function HistoryPage({
           fill
           priority
           sizes="100vw"
-          className="absolute inset-0 z-0 object-cover"
+          className="absolute inset-0 z-0 scale-90 object-cover"
         />
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/55 to-ink/90" />
         <div className="relative z-20 mx-auto max-w-4xl px-6 py-32 text-center">
