@@ -84,7 +84,7 @@ export function MobileNav({
               onClick={() => setOpen(false)}
               className="mb-6"
             >
-              <Logo width={340} className="w-[300px] max-w-[78vw]" />
+              <Logo width={340} className="w-[340px] max-w-[80vw]" />
             </Link>
 
             {entries.map((e) => (
