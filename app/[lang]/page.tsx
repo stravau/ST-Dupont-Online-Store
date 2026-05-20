@@ -29,16 +29,26 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       <div className="monogram-bg">
       <section className="text-cream">
         <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center overflow-hidden px-6 text-center">
-          {/* Full-bleed wallpaper. object-cover fills the viewport without
-              letterboxing; a top-to-bottom ink gradient lifts the cream
-              lettering off the texture so it stays readable. */}
+          {/* Full-bleed wallpaper. Mobile uses a portrait-cropped image
+              rendered as-is (object-contain preserves the curated
+              framing); desktop uses the landscape image with object-cover
+              and a small scale-down. The ink gradient overlay lifts the
+              cream lettering off either texture. */}
+          <Image
+            src="/hero/homepage-bg-mobile.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 z-0 object-contain sm:hidden"
+          />
           <Image
             src="/hero/homepage-bg.jpg"
             alt=""
             fill
             priority
             sizes="100vw"
-            className="absolute inset-0 z-0 scale-90 object-cover"
+            className="absolute inset-0 z-0 hidden scale-90 object-cover sm:block"
           />
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/50 to-ink/85" />
 
