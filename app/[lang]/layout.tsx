@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
@@ -30,6 +30,12 @@ export const metadata: Metadata = {
   title: { default: "S.T. Dupont — Maison de Luxe Française", template: "%s · S.T. Dupont" },
   description:
     "S.T. Dupont — lighters, writing instruments and leather goods. French luxury craftsmanship since 1872.",
+};
+
+// Match the cream page/header background so iOS Safari doesn't tint the
+// URL bar / notch area into a visible blue strip above the navbar.
+export const viewport: Viewport = {
+  themeColor: "#eef3fa",
 };
 
 // Data is DB-backed and per-request; never prerender at build time (so the
