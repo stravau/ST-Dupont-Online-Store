@@ -108,7 +108,7 @@ export default async function CollectionPage({
             </div>
 
             <div className="product-grid mt-14 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
-              {products.map((p) => (
+              {products.slice(0, 6).map((p) => (
                 <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
               ))}
             </div>
