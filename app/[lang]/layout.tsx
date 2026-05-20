@@ -8,7 +8,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { NavBack } from "@/components/nav-back";
 import { PageTransition } from "@/components/page-transition";
 import { RevealRoot } from "@/components/reveal-root";
-import { FooterReveal } from "@/components/footer-reveal";
 
 // Fuller, more present yet still premium: Playfair Display (high-contrast
 // luxury serif) for headings, Inter (clean, highly legible) for body/UI.
@@ -62,12 +61,11 @@ export default async function LocaleLayout({
       <body className="flex min-h-full flex-col">
         <SiteHeader lang={locale} />
         <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
-        <main className="app-main flex-1">
+        <main className="flex-1">
           <PageTransition>{children}</PageTransition>
         </main>
         <SiteFooter lang={locale} />
         <RevealRoot />
-        <FooterReveal />
       </body>
     </html>
   );
