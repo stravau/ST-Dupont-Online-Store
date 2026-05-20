@@ -103,7 +103,7 @@ export function CartMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-[60] mt-4 w-[22rem] max-w-[calc(100vw-2rem)] border border-line bg-cream shadow-[0_18px_50px_rgba(10,26,48,0.25)]">
+        <div className="fixed right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] top-[5.25rem] z-[60] w-[22rem] max-w-[calc(100vw-2rem)] border border-line bg-cream shadow-[0_18px_50px_rgba(10,26,48,0.25)]">
           <p className="overline border-b border-line px-5 py-4">{labels.title}</p>
 
           {lines.length === 0 ? (

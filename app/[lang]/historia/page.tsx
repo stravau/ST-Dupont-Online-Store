@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -27,15 +28,24 @@ export default async function HistoryPage({
 
   return (
     <div>
-      {/* Hero — gold-on-ink with monogram motif */}
-      <section className="monogram-bg text-cream">
-        <div className="mx-auto max-w-4xl px-6 py-32 text-center">
-          <p className="overline text-gold-soft">{history.eyebrow[l]}</p>
-          <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
+      {/* Hero — full-bleed history photo + ink scrim + staggered fade-ins */}
+      <section className="monogram-bg relative isolate overflow-hidden text-cream">
+        <Image
+          src="/headers/historia.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 z-0 object-cover"
+        />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/55 to-ink/90" />
+        <div className="relative z-20 mx-auto max-w-4xl px-6 py-32 text-center">
+          <p className="reveal overline text-gold-soft">{history.eyebrow[l]}</p>
+          <h1 className="reveal reveal-d1 mt-6 font-serif text-5xl font-light leading-tight md:text-7xl">
             {history.title[l]}
           </h1>
-          <div className="gold-rule mx-auto my-8" />
-          <p className="mx-auto max-w-2xl text-base font-light text-cream/75 md:text-lg">
+          <div className="reveal reveal-d2 gold-rule mx-auto my-8" />
+          <p className="reveal reveal-d2 mx-auto max-w-2xl text-base font-light text-cream/75 md:text-lg">
             {history.lede[l]}
           </p>
         </div>

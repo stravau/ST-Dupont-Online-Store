@@ -6,7 +6,6 @@ import { myWishlistIds } from "@/lib/cart";
 import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
-import { ProductImage } from "@/components/product-image";
 import { ScrollCue } from "@/components/scroll-cue";
 import { notFound } from "next/navigation";
 
@@ -152,8 +151,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               {dict.sections.heritageCta} →
             </Link>
           </div>
-          <div className="reveal reveal-d2 aspect-square border border-gold-soft/30">
-            <ProductImage seed="heritage-1872" label="S.T. Dupont — 1872" className="h-full w-full opacity-90" />
+          <div className="reveal reveal-d2 relative aspect-square overflow-hidden border border-gold-soft/30">
+            <Image
+              src="/heritage/heritage-1872.png"
+              alt="S.T. Dupont — 1872"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover opacity-95"
+            />
           </div>
         </div>
       </section>
