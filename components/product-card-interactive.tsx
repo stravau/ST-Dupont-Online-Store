@@ -119,10 +119,12 @@ export function ProductCardInteractive({
         )}
       </div>
 
-      {/* Colour swatches — below the image */}
-      {swatches.length > 1 && (
-        <div className="relative z-20 flex flex-wrap items-center justify-center gap-2 px-3 pt-4 sm:gap-2.5">
-          {swatches.slice(0, showCount).map((c, i) => (
+      {/* Colour swatches — always rendered (even when there's just one
+          variant) so every card reserves the same vertical slot and the
+          text below lines up across the row. */}
+      <div className="relative z-20 flex min-h-[2.5rem] flex-wrap items-center justify-center gap-2 px-3 pt-4 sm:min-h-[3rem] sm:gap-2.5">
+        {swatches.length > 1 &&
+          swatches.slice(0, showCount).map((c, i) => (
             <button
               key={c.label}
               type="button"
@@ -139,24 +141,26 @@ export function ProductCardInteractive({
               style={swatchStyle(c.hex)}
             />
           ))}
-          {extra > 0 && <span className="text-xs text-muted sm:text-sm">+{extra}</span>}
-        </div>
-      )}
+        {swatches.length > 1 && extra > 0 && (
+          <span className="text-xs text-muted sm:text-sm">+{extra}</span>
+        )}
+      </div>
 
-      {/* Text — price given the strongest weight. Flex column so the CTA
-          gets pinned to the bottom regardless of text length above. */}
+      {/* Text — price given the strongest weight. Each element reserves a
+          consistent line/min-height so the colour name, price and CTA
+          line up across every card in the row. */}
       <div className="flex flex-1 flex-col px-5 pb-6 pt-4 text-center">
         <p className="overline text-[0.7rem]">{collection}</p>
-        <h3 className="mt-2 font-serif text-xl leading-snug text-ink sm:text-2xl">
+        <h3 className="mt-2 line-clamp-2 min-h-[3rem] font-serif text-xl leading-snug text-ink sm:min-h-[3.5rem] sm:text-2xl">
           {title}
         </h3>
         <p className="overline mt-3 text-[0.55rem] text-muted">{fromLabel}</p>
         <p className="mt-1 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
-        {colorName && swatches.length > 1 && (
-          <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
-            {colorName}
-          </p>
-        )}
+        {/* Color name slot — always rendered (nbsp when empty) so the
+            row spacing matches across cards with/without swatches. */}
+        <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
+          {colorName && swatches.length > 1 ? colorName : " "}
+        </p>
 
         {/* Add to cart — blue with gold lettering; on PC, hover flips to
             gold with blue lettering. No tap animation on mobile. */}
