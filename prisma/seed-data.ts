@@ -462,10 +462,8 @@ export const products: SeedProduct[] = [
       for (const ty of types) {
         for (const f of finishes) {
           const sku = `${ty.pfx}${f.s}`;
-          // Catalogue photo on disk: /products/classique/<SKU>.jpg.
-          // BP 045079N (Oblique Guilloche) has no shot supplied — falls
-          // back to the on-brand placeholder until one is delivered.
-          const image = sku === "045079N" ? undefined : `/products/classique/${sku}.jpg`;
+          // Catalogue photo on disk: /products/classique/<SKU>.jpg
+          const image = `/products/classique/${sku}.jpg`;
           out.push({
             sku,
             name: { pt: `${ty.t.pt} · ${f.label.pt}`, en: `${ty.t.en} · ${f.label.en}` },
