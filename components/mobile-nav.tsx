@@ -59,11 +59,11 @@ export function MobileNav({
       </button>
 
       {open && (
-        // Full-screen panel. `inset-0` is robust under the body `zoom: 0.9`
-        // (fixed positioning is viewport-relative on every browser, unlike
-        // `vw`/`vh` units which iOS scales differently). `100dvh` keeps it
-        // covering the screen as iOS Safari's URL bar shows/hides.
-        <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream">
+        // Full-screen panel. `inset-0` covers the viewport in CSS pixels;
+        // `[zoom:1.1112]` composes with the body's `zoom: 0.9` to render
+        // at full viewport size (otherwise a ~10% strip is left bare at
+        // the bottom on Chromium). `100dvh` handles iOS' URL-bar dance.
+        <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]">
           <div className="flex items-center justify-end px-6 py-5">
             <button
               type="button"
