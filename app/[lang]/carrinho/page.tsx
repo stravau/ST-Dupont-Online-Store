@@ -5,6 +5,7 @@ import { currentUserId, getCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { updateCartItem, removeCartItem, placeOrder } from "@/lib/actions";
 import { ProductMedia } from "@/components/product-media";
+import { FormPendingOverlay } from "@/components/form-pending-overlay";
 
 export default async function CartPage({
   params,
@@ -88,6 +89,7 @@ export default async function CartPage({
                         >
                           −
                         </button>
+                        <FormPendingOverlay />
                       </form>
                       <span className="min-w-[1.75rem] border-x border-line text-center text-sm tabular-nums text-ink">
                         {l.quantity}
@@ -103,6 +105,7 @@ export default async function CartPage({
                         >
                           +
                         </button>
+                        <FormPendingOverlay />
                       </form>
                     </div>
                     <form action={removeCartItem.bind(null, locale)}>
@@ -113,6 +116,7 @@ export default async function CartPage({
                       >
                         {t.remove}
                       </button>
+                      <FormPendingOverlay />
                     </form>
                   </div>
                 </div>

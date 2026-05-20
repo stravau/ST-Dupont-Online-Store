@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ProductMedia } from "@/components/product-media";
+import { FormPendingOverlay } from "@/components/form-pending-overlay";
 
 export interface CartMenuLine {
   itemId: string;
@@ -143,6 +144,7 @@ export function CartMenu({
                             >
                               −
                             </button>
+                            <FormPendingOverlay />
                           </form>
                           <span className="min-w-[1.5rem] border-x border-line text-center text-xs tabular-nums text-ink">
                             {l.quantity}
@@ -158,6 +160,7 @@ export function CartMenu({
                             >
                               +
                             </button>
+                            <FormPendingOverlay />
                           </form>
                         </div>
                         <p className="whitespace-nowrap text-sm text-ink">{l.linePrice}</p>
@@ -176,6 +179,7 @@ export function CartMenu({
                           <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
                         </svg>
                       </button>
+                      <FormPendingOverlay />
                     </form>
                   </li>
                 ))}
