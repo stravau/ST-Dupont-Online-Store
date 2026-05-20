@@ -142,7 +142,7 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
         <div
           role="dialog"
           aria-label={t.title}
-          className="absolute right-0 top-10 z-50 w-[min(92vw,30rem)] origin-top-right border border-line bg-paper shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out]"
+          className="fixed left-1/2 top-[5.25rem] z-[60] w-[min(92vw,30rem)] -translate-x-1/2 origin-top border border-line bg-paper shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:translate-x-0 sm:origin-top-right"
         >
           {/* Input */}
           <div className="flex items-center gap-3 border-b border-line px-5 py-4">
