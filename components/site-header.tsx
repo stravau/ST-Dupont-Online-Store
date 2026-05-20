@@ -5,12 +5,13 @@ import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { currentUserId, getCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
-import { updateCartItemQty, removeCartItemQuick } from "@/lib/actions";
+import { updateCartItemQty, removeCartItemQuick, signOutAccount } from "@/lib/actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { SearchBar } from "@/components/search-bar";
 import { CartMenu } from "@/components/cart-menu";
+import { AccountMenu } from "@/components/account-menu";
 import { Logo } from "@/components/logo";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
@@ -94,16 +95,31 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               viewAll: dict.search.viewAll,
             }}
           />
-          <Link
-            href={`/${lang}/conta`}
-            aria-label={dict.auth.account}
-            className="text-ink transition-colors hover:text-gold"
-          >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-            </svg>
-          </Link>
+          {userId ? (
+            <AccountMenu
+              ariaLabel={dict.auth.account}
+              title={dict.client.area}
+              items={[
+                { label: dict.client.profile, href: `/${lang}/conta` },
+                { label: dict.client.orders, href: `/${lang}/conta/encomendas` },
+                { label: dict.client.wishlist, href: `/${lang}/conta/favoritos` },
+                { label: dict.client.addresses, href: `/${lang}/conta/moradas` },
+              ]}
+              signOutAction={signOutAccount.bind(null, lang)}
+              signOutLabel={dict.client.signOut}
+            />
+          ) : (
+            <Link
+              href={`/${lang}/entrar`}
+              aria-label={dict.auth.account}
+              className="text-ink transition-colors hover:text-gold"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+              </svg>
+            </Link>
+          )}
           <CartMenu
             count={cartCount}
             cartHref={`/${lang}/carrinho`}

@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
+
+// Used by the header AccountMenu popup so users can sign out without
+// having to navigate into the client area first.
+export async function signOutAccount(lang: string) {
+  await signOut({ redirectTo: `/${lang}` });
+}
 
 async function requireUserId(lang: string): Promise<string> {
   const session = await auth();
