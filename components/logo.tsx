@@ -21,7 +21,7 @@ export function Logo({
       width={width}
       height={Math.round((width * 55) / 225)}
       priority={priority}
-      className={`h-auto w-auto select-none ${
+      className={`h-auto select-none ${
         variant === "light" ? "[filter:invert(1)]" : ""
       } ${className}`}
     />
