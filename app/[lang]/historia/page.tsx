@@ -36,7 +36,7 @@ export default async function HistoryPage({
           fill
           priority
           sizes="100vw"
-          className="absolute inset-0 z-0 object-contain sm:scale-90 sm:object-cover"
+          className="absolute inset-0 z-0 object-cover sm:scale-90"
         />
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/55 to-ink/90" />
         <div className="relative z-20 mx-auto max-w-4xl px-6 py-32 text-center">
@@ -87,14 +87,24 @@ export default async function HistoryPage({
         </div>
       </section>
 
-      {/* Savoir-faire — gold-on-ink */}
-      <section className="monogram-bg text-cream">
-        <div className="mx-auto max-w-3xl px-6 py-28 text-center">
-          <p className="overline text-gold-soft">{history.craftTitle[l]}</p>
-          <div className="gold-rule mx-auto my-6" />
+      {/* Savoir-faire — full-bleed factory photo + ink scrim + reveal */}
+      <section className="monogram-bg relative isolate overflow-hidden text-cream">
+        <Image
+          src="/heritage/factory.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 z-0 object-cover sm:scale-90"
+        />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/55 to-ink/90" />
+        <div className="relative z-20 mx-auto max-w-3xl px-6 py-28 text-center">
+          <p className="reveal overline text-gold-soft">{history.craftTitle[l]}</p>
+          <div className="reveal reveal-d1 gold-rule mx-auto my-6" />
           <div className="space-y-6 text-lg font-light leading-relaxed text-cream/80">
             {history.craft.map((p, i) => (
-              <p key={i}>{p[l]}</p>
+              <p key={i} className={`reveal reveal-d${(i % 3) + 1}`}>
+                {p[l]}
+              </p>
             ))}
           </div>
         </div>
