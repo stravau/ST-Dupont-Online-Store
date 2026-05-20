@@ -144,12 +144,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       {/* Heritage — gold-on-black */}
       <section className="monogram-bg text-cream">
         <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 py-28 md:grid-cols-2">
-          <div className="reveal">
+          <div className="reveal text-center">
             <p className="overline text-gold-soft">{dict.sections.heritageEyebrow}</p>
             <h2 className="mt-6 font-serif text-4xl leading-snug md:text-5xl">
               {dict.sections.heritageTitle}
             </h2>
-            <div className="gold-rule my-7" />
+            <div className="gold-rule mx-auto my-7" />
             <p className="text-cream/70">{dict.sections.heritageBody}</p>
             <Link
               href={`/${locale}/historia`}
