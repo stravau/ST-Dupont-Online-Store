@@ -38,7 +38,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             fill
             priority
             sizes="100vw"
-            className="absolute inset-0 z-0 object-cover"
+            className="absolute inset-0 z-0 object-contain sm:object-cover"
           />
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/50 to-ink/85" />
 
