@@ -198,8 +198,19 @@ export function VariantSelector({
         <button
           type="submit"
           disabled={pending}
-          className="w-full bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center gap-3 bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink disabled:opacity-60"
         >
+          {pending && (
+            <svg
+              className="h-4 w-4 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+              <path d="M21 12a9 9 0 0 1-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          )}
           {labels.addToCart} · {active.price}
         </button>
       </form>
