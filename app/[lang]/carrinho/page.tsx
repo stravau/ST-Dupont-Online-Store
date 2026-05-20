@@ -75,24 +75,36 @@ export default async function CartPage({
                   </div>
 
                   <div className="mt-auto flex items-center gap-5 pt-4">
-                    <form action={updateCartItem.bind(null, locale)} className="flex items-center">
-                      <input type="hidden" name="itemId" value={l.itemId} />
-                      <input
-                        type="number"
-                        name="quantity"
-                        defaultValue={l.quantity}
-                        min={0}
-                        max={99}
-                        aria-label={t.qty}
-                        className="w-16 border border-line bg-paper px-3 py-2 text-center text-sm text-ink outline-none focus:border-gold"
-                      />
-                      <button
-                        type="submit"
-                        className="ml-3 text-xs tracking-widest text-muted uppercase hover:text-gold"
-                      >
-                        {dict.client.save}
-                      </button>
-                    </form>
+                    {/* − N + counter (same as cart popup) */}
+                    <div className="inline-flex items-center border border-line">
+                      <form action={updateCartItem.bind(null, locale)}>
+                        <input type="hidden" name="itemId" value={l.itemId} />
+                        <input type="hidden" name="quantity" value={l.quantity - 1} />
+                        <button
+                          type="submit"
+                          aria-label="−"
+                          disabled={l.quantity <= 1}
+                          className="flex h-8 w-8 items-center justify-center text-sm text-ink transition-colors hover:text-gold disabled:cursor-not-allowed disabled:text-muted/60"
+                        >
+                          −
+                        </button>
+                      </form>
+                      <span className="min-w-[1.75rem] border-x border-line text-center text-sm tabular-nums text-ink">
+                        {l.quantity}
+                      </span>
+                      <form action={updateCartItem.bind(null, locale)}>
+                        <input type="hidden" name="itemId" value={l.itemId} />
+                        <input type="hidden" name="quantity" value={l.quantity + 1} />
+                        <button
+                          type="submit"
+                          aria-label="+"
+                          disabled={l.quantity >= 99}
+                          className="flex h-8 w-8 items-center justify-center text-sm text-ink transition-colors hover:text-gold disabled:cursor-not-allowed disabled:text-muted/60"
+                        >
+                          +
+                        </button>
+                      </form>
+                    </div>
                     <form action={removeCartItem.bind(null, locale)}>
                       <input type="hidden" name="itemId" value={l.itemId} />
                       <button

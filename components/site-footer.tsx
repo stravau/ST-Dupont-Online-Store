@@ -14,8 +14,8 @@ export function SiteFooter({ lang }: { lang: Locale }) {
       {/* Gold rule draws across as the footer scrolls into view */}
       <div className="reveal gold-rule-anim mx-auto h-px max-w-[64rem] bg-gradient-to-r from-transparent via-gold-soft to-transparent" />
 
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-3">
-        <div className="reveal">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 text-center md:grid-cols-3 md:text-left">
+        <div className="reveal flex flex-col items-center md:items-start">
           <Logo variant="light" width={244} className="w-[244px]" />
           <p className="overline mt-4">{dict.footer.tagline}</p>
         </div>
@@ -37,7 +37,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
               </a>
             </p>
           </address>
-          <div className="mt-5 flex flex-col gap-2 text-sm text-cream/70">
+          <div className="mt-5 flex flex-col items-center gap-2 text-sm text-cream/70 md:items-start">
             <Link href={`/${lang}/loja`} className="link-grow transition-colors hover:text-gold">
               {dict.footer.viewStore} →
             </Link>
@@ -60,7 +60,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
             <li><Link href={`/${lang}/legal/devolucoes`} className="link-grow transition-colors hover:text-gold">{dict.footer.returns}</Link></li>
           </ul>
           <p className="overline mb-3 mt-8">{dict.footer.follow}</p>
-          <div className="flex gap-4 text-sm text-cream/70">
+          <div className="flex justify-center gap-4 text-sm text-cream/70 md:justify-start">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Instagram</a>
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Facebook</a>
           </div>
