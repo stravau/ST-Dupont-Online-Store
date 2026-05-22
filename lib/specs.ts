@@ -1,10 +1,11 @@
-// Builds a factual, per-item specification list from the catalogue data we
-// actually hold (collection, pen/lighter type, colourways, finishes) plus
+// Builds a factual specification list for ONE variant (the selected
+// colourway) of a product, from the catalogue data we actually hold
+// (collection, pen/lighter type, this variant's colourway + finish) plus
 // well-documented S.T. Dupont facts (founded 1872 Paris; lighters & writing
 // instruments manufactured at Faverges, Haute-Savoie, France; signature
 // Chinese natural lacquer; refillable mechanisms; international guarantee).
 // No invented dimensions or weights — only what can be stated truthfully.
-import type { Product, Category, Localized } from "@/lib/catalog";
+import type { Product, Category, Variant, Localized } from "@/lib/catalog";
 import type { Locale } from "@/lib/i18n";
 
 export interface Spec {
@@ -31,29 +32,20 @@ function uniq(arr: string[]): string[] {
   return Array.from(new Set(arr.filter(Boolean)));
 }
 
-export function buildSpecs(product: Product, category: Category, locale: Locale): Spec[] {
+export function buildSpecs(
+  product: Product,
+  category: Category,
+  variant: Variant,
+  locale: Locale,
+): Spec[] {
   const t = (l: Localized) => l[locale];
-  const v = product.variants;
+  const a = variant.attributes;
+  const type = a.type ? t(a.type) : "";
+  const colour = a.color ? t(a.color.label) : a.finish ? t(a.finish) : "";
 
-  // Distinct pen/lighter types and colour/finish labels present.
-  const types = uniq(v.map((x) => (x.attributes.type ? t(x.attributes.type) : "")));
-  const finishes = uniq(
-    v.map((x) =>
-      x.attributes.color ? t(x.attributes.color.label) : x.attributes.finish ? t(x.attributes.finish) : "",
-    ),
-  );
-
-  // Materials inferred from every colour + finish + type label on the product.
-  const haystack = v
-    .flatMap((x) => [
-      x.attributes.color ? x.attributes.color.label.en : "",
-      x.attributes.finish?.en ?? "",
-      x.attributes.type?.en ?? "",
-    ])
-    .join(" ");
-  const materials = uniq(
-    MATERIALS.filter((m) => m.test.test(haystack)).map((m) => t(m.name)),
-  );
+  // Materials inferred from THIS variant's colour + finish + type labels.
+  const haystack = [a.color?.label.en ?? "", a.finish?.en ?? "", a.type?.en ?? ""].join(" ");
+  const materials = uniq(MATERIALS.filter((m) => m.test.test(haystack)).map((m) => t(m.name)));
 
   const specs: Spec[] = [];
   const push = (label: Localized, value: string) => {
@@ -65,13 +57,11 @@ export function buildSpecs(product: Product, category: Category, locale: Locale)
   push(L("Categoria", "Category"), t(category.name));
 
   if (category.slug === "escrita") {
-    push(L("Instrumento", "Instrument"), types.join(" · "));
-    push(L("Recarga", "Refill"), t(L("Recarregável (recargas S.T. Dupont)", "Refillable (S.T. Dupont refills)")));
-    if (types.some((x) => /permanente|fountain/i.test(x))) {
-      push(
-        L("Caneta de tinta permanente", "Fountain pen"),
-        t(L("Cartucho ou conversor", "Cartridge or converter")),
-      );
+    push(L("Instrumento", "Instrument"), type);
+    if (/permanente|fountain/i.test(type)) {
+      push(L("Sistema", "Filling system"), t(L("Cartucho ou conversor", "Cartridge or converter")));
+    } else {
+      push(L("Recarga", "Refill"), t(L("Recarregável (recargas S.T. Dupont)", "Refillable (S.T. Dupont refills)")));
     }
     push(L("Fabrico", "Crafted"), t(L("Faverges, França", "Faverges, France")));
   } else if (category.slug === "isqueiros") {
@@ -85,12 +75,9 @@ export function buildSpecs(product: Product, category: Category, locale: Locale)
     push(L("Tipo", "Type"), t(L("Acessório", "Accessory")));
   }
 
+  push(L("Cor / Acabamento", "Colour / Finish"), colour);
   push(L("Materiais", "Materials"), materials.join(" · "));
-  push(L("Acabamentos", "Finishes"), finishes.join(" · "));
-  push(
-    L("Referências", "References"),
-    `${v.length} ${t(L(v.length === 1 ? "referência" : "referências", v.length === 1 ? "reference" : "references"))}`,
-  );
+  push(L("Referência", "Reference"), variant.sku);
   push(L("Conservação", "Care"), t(L("Limpar com pano macio e seco", "Wipe with a soft, dry cloth")));
   push(L("Garantia", "Guarantee"), t(L("Garantia internacional S.T. Dupont", "S.T. Dupont international guarantee")));
 

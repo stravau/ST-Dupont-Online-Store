@@ -4,8 +4,10 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { ProductImage } from "@/components/product-image";
 import { VariantSelector, type VariantOption, type SelectorLabels } from "@/components/variant-selector";
+import { SpecDetails } from "@/components/spec-details";
 import { imgSrc } from "@/lib/img";
 import type { AddResult } from "@/lib/actions";
+import type { Spec } from "@/lib/specs";
 
 // Two-column product top: the left image swaps to the selected colourway's
 // photo, the right column carries the (server-rendered) header + selector.
@@ -20,6 +22,8 @@ export function ProductDetail({
   addAction,
   header,
   extras,
+  specsByVariant,
+  specsTitle,
 }: {
   fallbackImage: string | null;
   seed: string;
@@ -31,6 +35,8 @@ export function ProductDetail({
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
   header: React.ReactNode;
   extras: React.ReactNode;
+  specsByVariant: Record<string, Spec[]>;
+  specsTitle: string;
 }) {
   const startSku =
     (initialSku && variants.find((v) => v.sku === initialSku)?.sku) ||
@@ -38,16 +44,19 @@ export function ProductDetail({
     variants[0].sku;
   const initialImage = variants.find((v) => v.sku === startSku)?.image ?? fallbackImage;
   const [image, setImage] = useState<string | null>(imgSrc(initialImage));
+  const [activeSku, setActiveSku] = useState<string>(startSku);
 
   const handleActiveSku = useCallback(
     (sku: string) => {
       const v = variants.find((x) => x.sku === sku);
       setImage(imgSrc(v?.image ?? fallbackImage));
+      setActiveSku(sku);
     },
     [variants, fallbackImage],
   );
 
   return (
+    <>
     <div className="mt-10 grid gap-14 md:grid-cols-2">
       <div className="relative aspect-[5/6] border border-line bg-white">
         {image ? (
@@ -80,5 +89,8 @@ export function ProductDetail({
         {extras}
       </div>
     </div>
+
+      <SpecDetails title={specsTitle} specs={specsByVariant[activeSku] ?? []} />
+    </>
   );
 }
