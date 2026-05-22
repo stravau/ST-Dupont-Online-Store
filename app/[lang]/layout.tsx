@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -9,12 +9,13 @@ import { NavBack } from "@/components/nav-back";
 import { PageTransition } from "@/components/page-transition";
 import { RevealRoot } from "@/components/reveal-root";
 
-// Fuller, more present yet still premium: Playfair Display (high-contrast
-// luxury serif) for headings, Inter (clean, highly legible) for body/UI.
-const displaySerif = Playfair_Display({
+// Fuller, more present yet still premium: Fraunces (a characterful
+// old-style display serif with substantial strokes) for headings,
+// Inter (clean, highly legible) for body/UI.
+const displaySerif = Fraunces({
   variable: "--font-display-serif",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
