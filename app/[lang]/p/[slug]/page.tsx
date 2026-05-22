@@ -9,7 +9,9 @@ import { estimatedDeliveryDate } from "@/lib/delivery";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductDetail } from "@/components/product-detail";
+import { SpecDetails } from "@/components/spec-details";
 import { WishlistButton } from "@/components/wishlist-button";
+import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR } from "@/lib/store-info";
 
 export async function generateMetadata({
@@ -52,6 +54,7 @@ export default async function ProductPage({
 
   const wl = await myWishlistIds();
   const addAction = addToCart.bind(null, locale);
+  const specs = buildSpecs(product, cat, locale);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
@@ -131,6 +134,8 @@ export default async function ProductPage({
           </>
         }
       />
+
+      <SpecDetails title={dict.product.specs} specs={specs} />
 
       {product.history && (
         <section className="mx-auto mt-24 max-w-3xl border-t border-line pt-16 text-center">

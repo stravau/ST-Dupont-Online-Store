@@ -162,6 +162,7 @@ const dictionaries = {
       lifetime: "Serviço e manutenção vitalícios",
       needHelp: "Precisa de ajuda?",
       findStore: "Encontrar loja",
+      specs: "Detalhes & Especificações",
     },
     footer: {
       tagline: "Maison de luxe française · desde 1872",
@@ -364,6 +365,7 @@ const dictionaries = {
       lifetime: "Lifetime service & maintenance",
       needHelp: "Need help?",
       findStore: "Find a store",
+      specs: "Details & Specifications",
     },
     footer: {
       tagline: "Maison de luxe française · since 1872",
