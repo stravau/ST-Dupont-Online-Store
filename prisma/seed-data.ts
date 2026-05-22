@@ -98,6 +98,11 @@ const COLOR = {
   blueGold: col("Azul & Ouro", "Blue & Gold", "#1f3c66", "#c8a24a"),
   blueLacqPall: col("Laca Azul & Paládio", "Blue Lacquer & Palladium", "#1f3c66", "#b9bcc2"),
   blackPall: col("Preto & Paládio", "Black & Palladium", "#15171c", "#b9bcc2"),
+  // Initial colourways
+  blueChrome: col("Laca Azul & Crómio", "Blue Lacquer & Chrome", "#1f3c66", "#c9ccd1"),
+  blackMatt: col("Preto & Preto Mate", "Black & Matt Black", "#15171c", "#3a3d44"),
+  chrome: col("Crómio", "Chrome", "#c9ccd1"),
+  blackChromeStriped: col("Preto Estriado & Crómio", "Black Striped & Chrome", "#15171c", "#c9ccd1"),
   // Classique colourways (ballpoint line)
   blackLacqGold: col("Laca Preta & Ouro", "Black Lacquer & Gold", "#15171c", "#c8a24a"),
   blueLacqGold: col("Laca Azul & Ouro", "Blue Lacquer & Gold", "#1f3c66", "#c8a24a"),
@@ -416,19 +421,42 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "escrita",
     image: null,
-    variants: penMatrix(
-      "INI",
-      [
-        { key: "BP", price: 23000 },
-        { key: "RB", price: 25000 },
-        { key: "FP", price: 32500 },
-      ],
-      [
-        { code: "BG", c: COLOR.blackGold },
-        { code: "WG", c: COLOR.whiteGold },
-        { code: "BC", c: COLOR.blackChrome },
-      ],
-    ),
+    // Real catalogue lineup — each pen type carries its own colourway set
+    // (cross-checked against the supplied photos). SKU = INI-<type>-<code>,
+    // photo on disk = /products/initial/<SKU>.jpg.
+    variants: (() => {
+      const C = {
+        BG: COLOR.blackGold,
+        NC: COLOR.blackChrome, // "Noir & Chrome"
+        BCS: COLOR.blackChromeStriped,
+        BMB: COLOR.blackMatt,
+        BluC: COLOR.blueChrome,
+        CHR: COLOR.chrome,
+        WG: COLOR.whiteGold,
+      } as const;
+      const types = [
+        { key: "BP" as const, price: 23000, codes: ["BG", "NC", "BMB", "BluC", "CHR", "WG"] },
+        { key: "RB" as const, price: 25000, codes: ["BG", "NC", "BCS", "BMB", "BluC", "WG"] },
+        { key: "FP" as const, price: 32500, codes: ["BG", "NC", "BCS", "BMB", "WG"] },
+      ];
+      const out: SeedVariant[] = [];
+      for (const t of types) {
+        const ty = TYPE[t.key];
+        for (const code of t.codes) {
+          const c = C[code as keyof typeof C];
+          const sku = `INI-${t.key}-${code}`;
+          out.push({
+            sku,
+            name: { pt: `${ty.pt} · ${c.label.pt}`, en: `${ty.en} · ${c.label.en}` },
+            priceCents: t.price,
+            currency: "EUR" as const,
+            attributes: { type: ty, color: c },
+            image: `/products/initial/${sku}.jpg`,
+          });
+        }
+      }
+      return out;
+    })(),
   },
   {
     slug: "classique",
