@@ -59,6 +59,7 @@ export function buildSpecs(
   if (category.slug === "escrita") {
     push(L("Instrumento", "Instrument"), type);
     if (/permanente|fountain/i.test(type)) {
+      push(L("Aparo", "Nib"), t(L("Aço inoxidável", "Stainless steel")));
       push(L("Sistema", "Filling system"), t(L("Cartucho ou conversor", "Cartridge or converter")));
     } else {
       push(L("Recarga", "Refill"), t(L("Recarregável (recargas S.T. Dupont)", "Refillable (S.T. Dupont refills)")));

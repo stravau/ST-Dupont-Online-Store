@@ -516,20 +516,38 @@ export const products: SeedProduct[] = [
     categorySlug: "escrita",
     image: null,
     novelty: true,
-    variants: penMatrix(
-      "DM",
-      [
-        { key: "BP", price: 38500 },
-        { key: "RB", price: 38500 },
-        { key: "FP", price: 43500 },
-      ],
-      [
-        { code: "PBC", c: COLOR.polBlackChrome },
-        { code: "NVC", c: COLOR.navyChrome },
-        { code: "MRC", c: COLOR.matteRedChrome },
-        { code: "MBG", c: COLOR.matteBlackGun },
-      ],
-    ),
+    // Real catalogue: 3 pen types × 3 colourways (cross-checked against the
+    // supplied photos). SKU = DM-<type>-<code>, photo = /products/defi-millenium/<SKU>.jpg.
+    variants: (() => {
+      const C = {
+        NVC: col("Laca Azul Marinho Brilhante & Crómio", "Shiny Navy Lacquer & Chrome", "#1b2a44", "#c9ccd1"),
+        SBC: col("Laca Preta Brilhante & Crómio", "Shiny Black Lacquer & Chrome", "#15171c", "#c9ccd1"),
+        SBG: col("Laca Preta Brilhante & Gunmetal", "Shiny Black Lacquer & Gunmetal", "#15171c", "#4b4f55"),
+      } as const;
+      const types = [
+        { key: "BP" as const, price: 38500 },
+        { key: "RB" as const, price: 38500 },
+        { key: "FP" as const, price: 43500 },
+      ];
+      const codes: (keyof typeof C)[] = ["NVC", "SBC", "SBG"];
+      const out: SeedVariant[] = [];
+      for (const t of types) {
+        const ty = TYPE[t.key];
+        for (const code of codes) {
+          const c = C[code];
+          const sku = `DM-${t.key}-${code}`;
+          out.push({
+            sku,
+            name: { pt: `${ty.pt} · ${c.label.pt}`, en: `${ty.en} · ${c.label.en}` },
+            priceCents: t.price,
+            currency: "EUR" as const,
+            attributes: { type: ty, color: c },
+            image: `/products/defi-millenium/${sku}.jpg`,
+          });
+        }
+      }
+      return out;
+    })(),
   },
   {
     slug: "liberte",
