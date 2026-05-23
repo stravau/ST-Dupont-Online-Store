@@ -428,33 +428,36 @@ export const products: SeedProduct[] = [
     // (cross-checked against the supplied photos). SKU = INI-<type>-<code>,
     // photo on disk = /products/initial/<SKU>.jpg.
     variants: (() => {
+      // Full matrix: 6 colourways × 3 pen types, each with a 4-photo gallery
+      // [front, back, close-up, close-up 2] at /products/initial/<sku>/.
       const C = {
         BG: COLOR.blackGold,
         NC: COLOR.blackChrome, // "Noir & Chrome"
-        BCS: COLOR.blackChromeStriped,
         BMB: COLOR.blackMatt,
         BluC: COLOR.blueChrome,
         CHR: COLOR.chrome,
         WG: COLOR.whiteGold,
       } as const;
+      const codes = ["BG", "NC", "BMB", "BluC", "CHR", "WG"] as const;
       const types = [
-        { key: "BP" as const, price: 23000, codes: ["BG", "NC", "BMB", "BluC", "CHR", "WG"] },
-        { key: "RB" as const, price: 25000, codes: ["BG", "NC", "BCS", "BMB", "BluC", "WG"] },
-        { key: "FP" as const, price: 32500, codes: ["BG", "NC", "BCS", "BMB", "WG"] },
+        { key: "BP" as const, price: 23000 },
+        { key: "RB" as const, price: 25000 },
+        { key: "FP" as const, price: 32500 },
       ];
       const out: SeedVariant[] = [];
       for (const t of types) {
         const ty = TYPE[t.key];
-        for (const code of t.codes) {
-          const c = C[code as keyof typeof C];
+        for (const code of codes) {
+          const c = C[code];
           const sku = `INI-${t.key}-${code}`;
+          const dir = `/products/initial/${sku}`;
           out.push({
             sku,
             name: { pt: `${ty.pt} · ${c.label.pt}`, en: `${ty.en} · ${c.label.en}` },
             priceCents: t.price,
             currency: "EUR" as const,
             attributes: { type: ty, color: c },
-            image: `/products/initial/${sku}.jpg`,
+            images: [`${dir}/front.jpg`, `${dir}/back.jpg`, `${dir}/closeup.jpg`, `${dir}/closeup2.jpg`],
           });
         }
       }
