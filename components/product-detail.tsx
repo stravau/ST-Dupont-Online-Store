@@ -142,6 +142,7 @@ export function ProductDetail({
 
       <div className="flex flex-col justify-center">
         {header}
+        <p className="mt-3 text-xs tracking-[0.2em] text-muted uppercase">REF · {activeSku}</p>
         <div className="mt-10">
           <VariantSelector
             variants={variants}

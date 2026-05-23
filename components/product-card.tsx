@@ -48,6 +48,14 @@ export function ProductCard({
   }
   swatches.sort(compareSwatch);
 
+  // Show a different colourway per card by default (deterministic per item).
+  const initialSwatch = swatches.length
+    ? [...`${product.slug}${variantType ?? ""}`].reduce(
+        (h, c) => (h * 31 + c.charCodeAt(0)) >>> 0,
+        7,
+      ) % swatches.length
+    : 0;
+
   const href = `/${lang}/p/${product.slug}${
     variantType ? `?t=${encodeURIComponent(variantType)}` : ""
   }`;
@@ -66,6 +74,7 @@ export function ProductCard({
       swatches={swatches}
       basePrice={formatPrice(base.priceCents, base.currency, lang)}
       baseSku={base.sku}
+      initialSwatch={initialSwatch}
       addAction={addToCart.bind(null, lang)}
       addToCartLabel={dict.cart.addToCart}
       addedLabel={dict.cart.added}

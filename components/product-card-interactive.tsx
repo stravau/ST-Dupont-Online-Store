@@ -34,6 +34,7 @@ export function ProductCardInteractive({
   swatches,
   basePrice,
   baseSku,
+  initialSwatch = 0,
   addAction,
   addToCartLabel,
   addedLabel,
@@ -51,13 +52,14 @@ export function ProductCardInteractive({
   swatches: CardSwatch[];
   basePrice: string;
   baseSku: string;
+  initialSwatch?: number;
   addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
   addToCartLabel: string;
   addedLabel: string;
   viewCartLabel: string;
   wishlist: React.ReactNode;
 }) {
-  const [sel, setSel] = useState(0);
+  const [sel, setSel] = useState(initialSwatch);
   const [idx, setIdx] = useState(0); // image index within the active gallery
   const [hover, setHover] = useState(false);
   // Hover preview is desktop-only — on touch it would stick on the close-up.
@@ -113,7 +115,7 @@ export function ProductCardInteractive({
     <article
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="lux-hover reveal group relative flex flex-col overflow-hidden border border-line bg-paper"
+      className="lux-hover reveal group relative flex h-full flex-col overflow-hidden border border-line bg-paper"
     >
       {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
