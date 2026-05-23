@@ -61,7 +61,6 @@ export function ProductDetail({
           : []
   ).map((s) => imgSrc(s)!);
   const safeIdx = gallery.length ? ((idx % gallery.length) + gallery.length) % gallery.length : 0;
-  const image = gallery[safeIdx] ?? null;
   const hasMany = gallery.length > 1;
   const go = (d: number) => setIdx((i) => i + d);
 
@@ -69,16 +68,35 @@ export function ProductDetail({
     <>
     <div className="mt-10 grid gap-14 md:grid-cols-2">
       <div className="group relative aspect-[5/6] overflow-hidden border border-line bg-white">
-        {image ? (
-          <Image
-            key={image}
-            src={image}
-            alt={label}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority
-            className="object-contain motion-safe:transition-opacity motion-safe:duration-300"
-          />
+        {gallery.length > 0 ? (
+          // Sliding track: all of the colourway's photos laid side by side,
+          // translated by the active index. Remounts per colourway (key) so
+          // switching colour snaps to the front photo instead of sliding.
+          <div
+            key={activeSku}
+            className="flex h-full ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:transition-transform motion-safe:duration-500 motion-reduce:transition-none"
+            style={{
+              width: `${gallery.length * 100}%`,
+              transform: `translateX(-${safeIdx * (100 / gallery.length)}%)`,
+            }}
+          >
+            {gallery.map((src, i) => (
+              <div
+                key={src}
+                className="relative h-full"
+                style={{ width: `${100 / gallery.length}%` }}
+              >
+                <Image
+                  src={src}
+                  alt={label}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={i === 0}
+                  className="object-contain"
+                />
+              </div>
+            ))}
+          </div>
         ) : (
           <ProductImage seed={seed} label={label} className="h-full w-full" />
         )}
