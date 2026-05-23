@@ -17,7 +17,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const dict = getDictionary(locale);
   const [categories, novelties, wl] = await Promise.all([
     getCategories(),
-    getNovelties(6),
+    getNovelties(8),
     myWishlistIds(),
   ]);
 
@@ -138,7 +138,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
         <div className="product-grid mt-14 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {novelties.map((p, i) => (
-            <div key={p.slug} className={`reveal reveal-d${i % 4}`}>
+            <div
+              key={p.slug}
+              className={`reveal reveal-d${i % 4} ${i >= 6 ? "hidden lg:block" : ""}`}
+            >
               <ProductCard product={p} lang={locale} wishlisted={wl.has(p.id)} />
             </div>
           ))}

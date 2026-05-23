@@ -173,7 +173,7 @@ export default async function CategoryPage({
             {groups.map((g) => (
               <section key={g.line} className="mt-16 first:mt-0">
                 <div className="mb-6 flex items-center gap-4">
-                  <h2 className="whitespace-nowrap font-serif text-2xl text-ink md:text-3xl">
+                  <h2 className="min-w-0 font-serif text-2xl break-words text-ink md:text-3xl">
                     {g.line}
                   </h2>
                   <span className="h-px flex-1 bg-line" />

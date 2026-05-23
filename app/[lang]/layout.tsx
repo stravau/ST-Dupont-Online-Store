@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Spectral, IBM_Plex_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -9,20 +9,20 @@ import { NavBack } from "@/components/nav-back";
 import { PageTransition } from "@/components/page-transition";
 import { RevealRoot } from "@/components/reveal-root";
 
-// Fuller, more present yet still premium: Fraunces (a characterful
-// old-style display serif with substantial strokes) for headings,
-// Inter (clean, highly legible) for body/UI.
-const displaySerif = Fraunces({
+// Closest free matches to st-dupont.com's (licensed) typography:
+// Spectral — an elegant high-contrast serif ≈ SangBleu OG Sans (headings);
+// IBM Plex Mono — a light, refined monospace ≈ Simplon Mono (body/labels).
+const displaySerif = Spectral({
   variable: "--font-display-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600"],
   display: "swap",
 });
 
-const bodySans = Inter({
+const bodySans = IBM_Plex_Mono({
   variable: "--font-body-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500"],
   display: "swap",
 });
 

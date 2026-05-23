@@ -50,6 +50,9 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   /* Overall UI scaled to 90% */
   zoom: 0.9;
+  /* Long tokens (esp. in the wider monospace body) wrap instead of
+     overflowing or crowding neighbouring text. */
+  overflow-wrap: break-word;
 }
 
 /* Product grids only slightly denser than the page, so card lettering

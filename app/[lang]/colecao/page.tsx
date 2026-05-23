@@ -122,7 +122,7 @@ export default async function CollectionPage({
                 return groups.map((g) => (
                   <div key={g.line} className="mt-12 first:mt-0">
                     <div className="mb-5 flex items-center gap-4">
-                      <h3 className="whitespace-nowrap font-serif text-xl text-ink md:text-2xl">
+                      <h3 className="min-w-0 font-serif text-xl break-words text-ink md:text-2xl">
                         {g.line}
                       </h3>
                       <span className="h-px flex-1 bg-line" />
