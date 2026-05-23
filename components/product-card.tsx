@@ -4,6 +4,7 @@ import { type Product, formatPrice } from "@/lib/catalog";
 import { addToCart } from "@/lib/actions";
 import { WishlistButton } from "@/components/wishlist-button";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
+import { compareSwatch } from "@/lib/swatch-order";
 
 export function ProductCard({
   product,
@@ -45,6 +46,7 @@ export function ProductCard({
       });
     }
   }
+  swatches.sort(compareSwatch);
 
   const href = `/${lang}/p/${product.slug}${
     variantType ? `?t=${encodeURIComponent(variantType)}` : ""

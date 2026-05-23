@@ -3,6 +3,7 @@
 import { useState, useEffect, useActionState } from "react";
 import type { AddResult } from "@/lib/actions";
 import { LoadingOverlay } from "@/components/loading-overlay";
+import { compareSwatch } from "@/lib/swatch-order";
 
 export interface VariantOption {
   sku: string;
@@ -58,6 +59,7 @@ export function VariantSelector({
   for (const v of variants) {
     if (v.color && !colorList.some((c) => c.label === v.color!.label)) colorList.push(v.color);
   }
+  colorList.sort(compareSwatch);
 
   const initialSku =
     (initialSkuProp && variants.find((v) => v.sku === initialSkuProp)?.sku) ||
