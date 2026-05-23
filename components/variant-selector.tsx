@@ -11,6 +11,7 @@ export interface VariantOption {
   finish?: string;
   color?: { label: string; hex: string[] };
   image?: string | null;
+  images?: string[]; // full gallery for the slideshow
 }
 
 export interface SelectorLabels {

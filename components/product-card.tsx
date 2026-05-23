@@ -37,6 +37,8 @@ export function ProductCard({
         label: c.label[lang],
         hex: c.hex,
         image: v.image ?? product.image,
+        // Close-up (3rd gallery photo) shown on card hover, when supplied.
+        hoverImage: v.images?.[2] ?? null,
         price: formatPrice(v.priceCents, v.currency, lang),
       });
     }

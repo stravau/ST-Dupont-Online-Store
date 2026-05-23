@@ -21,7 +21,10 @@ export interface SeedVariant {
   priceCents: number;
   currency: "EUR";
   attributes: { type?: L; finish?: L; color?: SeedColor };
-  image?: string; // per-colourway photo (/products/<slug>/<ref>.jpg)
+  image?: string; // single per-colourway photo (/products/<slug>/<ref>.jpg)
+  // Ordered gallery: [front, back, close-up, close-up 2]. When present it
+  // takes precedence over `image`. front = default/card, close-up = card hover.
+  images?: string[];
 }
 
 export interface SeedProduct {
@@ -468,41 +471,30 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "escrita",
     image: null,
-    // Real 2026/2027 catalogue: 3 pen types × 5 finishes (REF codes = SKUs).
-    // Colours / photos cross-checked against the supplied catalogue photos.
+    // Ballpoint only (rollerball & fountain pen retired). 5 colourways, each
+    // with a 4-photo gallery [front, back, close-up, close-up 2]. Names match
+    // the supplied photo folders. SKU = 045<finish>N.
     variants: (() => {
-      const FP = { pt: "Caneta de Tinta Permanente", en: "Fountain Pen" };
-      const RB = { pt: "Rollerball", en: "Convertible Roller" };
       const BP = { pt: "Esferográfica", en: "Ballpoint" };
       const finishes = [
         { s: "075N", label: { pt: "Paládio Escovado", en: "Brushed Palladium" }, hex: ["#b9bcc2"] },
-        { s: "076N", label: { pt: "Laca Preta & Ouro Amarelo", en: "Shiny Black Lacquer & Yellow Gold" }, hex: ["#15171c", "#c8a24a"] },
-        { s: "077N", label: { pt: "Laca Azul & Ouro Amarelo", en: "Shiny Blue Lacquer & Yellow Gold" }, hex: ["#1f3c66", "#c8a24a"] },
+        { s: "076N", label: { pt: "Laca Preta Brilhante & Ouro", en: "Shiny Black Lacquer & Gold" }, hex: ["#15171c", "#c8a24a"] },
+        { s: "077N", label: { pt: "Laca Azul Brilhante & Crómio", en: "Shiny Blue Lacquer & Chrome" }, hex: ["#1f3c66", "#c9ccd1"] },
         { s: "078N", label: { pt: "Ouro Amarelo", en: "Yellow Gold" }, hex: ["#c8a24a"] },
-        { s: "079N", label: { pt: "Guilhoché Oblíquo & Paládio", en: "Oblique Guilloche & Palladium" }, hex: ["#b9bcc2"] },
+        { s: "079N", label: { pt: "Guilhoché Oblíquo Prateado", en: "Silver Oblique Guilloche" }, hex: ["#b9bcc2"] },
       ];
-      const types = [
-        { pfx: "040", t: FP, price: 49000 },
-        { pfx: "042", t: RB, price: 39000 },
-        { pfx: "045", t: BP, price: 33000 },
-      ];
-      const out = [];
-      for (const ty of types) {
-        for (const f of finishes) {
-          const sku = `${ty.pfx}${f.s}`;
-          // Catalogue photo on disk: /products/classique/<SKU>.jpg
-          const image = `/products/classique/${sku}.jpg`;
-          out.push({
-            sku,
-            name: { pt: `${ty.t.pt} · ${f.label.pt}`, en: `${ty.t.en} · ${f.label.en}` },
-            priceCents: ty.price,
-            currency: "EUR" as const,
-            attributes: { type: ty.t, color: { label: f.label, hex: f.hex } },
-            image,
-          });
-        }
-      }
-      return out;
+      return finishes.map((f) => {
+        const sku = `045${f.s}`;
+        const dir = `/products/classique/${sku}`;
+        return {
+          sku,
+          name: { pt: `${BP.pt} · ${f.label.pt}`, en: `${BP.en} · ${f.label.en}` },
+          priceCents: 33000,
+          currency: "EUR" as const,
+          attributes: { type: BP, color: { label: f.label, hex: f.hex } },
+          images: [`${dir}/front.jpg`, `${dir}/back.jpg`, `${dir}/closeup.jpg`, `${dir}/closeup2.jpg`],
+        };
+      });
     })(),
   },
   {

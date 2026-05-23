@@ -49,6 +49,7 @@ export default async function ProductPage({
       ? { label: v.attributes.color.label[locale], hex: v.attributes.color.hex }
       : undefined,
     image: v.image,
+    images: v.images,
   }));
 
   const wl = await myWishlistIds();

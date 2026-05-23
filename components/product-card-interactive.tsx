@@ -14,6 +14,7 @@ export interface CardSwatch {
   label: string;
   hex: string[];
   image: string | null;
+  hoverImage?: string | null; // close-up, shown on card hover
   price: string;
 }
 
@@ -56,8 +57,11 @@ export function ProductCardInteractive({
   wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(0);
+  const [hover, setHover] = useState(false);
   const active = swatches[sel];
-  const image = imgSrc(active?.image ?? fallbackImage);
+  const image = imgSrc(
+    hover && active?.hoverImage ? active.hoverImage : active?.image ?? fallbackImage,
+  );
   const price = active?.price ?? basePrice;
   const colorName = active?.label;
   const activeSku = active?.sku ?? baseSku;
@@ -84,7 +88,11 @@ export function ProductCardInteractive({
   const extra = swatches.length - showCount;
 
   return (
-    <article className="lux-hover reveal group relative flex flex-col overflow-hidden border border-line bg-paper">
+    <article
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="lux-hover reveal group relative flex flex-col overflow-hidden border border-line bg-paper"
+    >
       {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
