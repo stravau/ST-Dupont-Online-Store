@@ -444,10 +444,13 @@ export const products: SeedProduct[] = [
         { key: "RB" as const, price: 25000 },
         { key: "FP" as const, price: 32500 },
       ];
+      // Combinations that don't exist / were withdrawn.
+      const skip = new Set(["FP-BluC"]);
       const out: SeedVariant[] = [];
       for (const t of types) {
         const ty = TYPE[t.key];
         for (const code of codes) {
+          if (skip.has(`${t.key}-${code}`)) continue;
           const c = C[code];
           const sku = `INI-${t.key}-${code}`;
           const dir = `/products/initial/${sku}`;
