@@ -564,47 +564,34 @@ export const products: SeedProduct[] = [
     },
     categorySlug: "escrita",
     image: null,
-    // Real 2026/2027 catalogue lineup (REF codes = SKUs).
+    // Colourways from the supplied photos; each colour×type has a 4-photo
+    // gallery at /products/liberte/LIB-<type>-<code>/. Only photographed
+    // combinations are listed (some colours are ballpoint-only). No sizes.
     variants: (() => {
-      const FP = { pt: "Caneta de Tinta Permanente", en: "Fountain Pen" };
-      const RB = { pt: "Rollerball", en: "Convertible Roller" };
-      const BP = { pt: "Esferográfica", en: "Ballpoint" };
-      const blackPall = {
-        label: { pt: "Laca Preta & Paládio", en: "Shiny Black Lacquer & Palladium" },
-        hex: ["#15171c", "#b9bcc2"],
-      };
-      const blackGold = {
-        label: { pt: "Laca Preta & Ouro Amarelo", en: "Shiny Black Lacquer & Yellow Gold" },
-        hex: ["#15171c", "#c8a24a"],
-      };
-      const blueGold = {
-        label: { pt: "Laca Azul & Ouro Amarelo", en: "Shiny Blue Lacquer & Yellow Gold" },
-        hex: ["#1f3c66", "#c8a24a"],
-      };
-      const mk = (
-        sku: string,
-        type: { pt: string; en: string },
-        c: { label: { pt: string; en: string }; hex: string[] },
-        priceCents: number,
-      ) => ({
-        sku,
-        name: {
-          pt: `${type.pt} · ${c.label.pt}`,
-          en: `${type.en} · ${c.label.en}`,
-        },
-        priceCents,
-        currency: "EUR" as const,
-        attributes: { type, color: c },
-      });
-      return [
-        mk("460220G", FP, blackPall, 45000),
-        mk("462220G", RB, blackPall, 39000),
-        mk("465220G", BP, blackPall, 33000),
-        mk("460221F", FP, blackGold, 45000),
-        mk("462221F", RB, blackGold, 39000),
-        mk("465221F", BP, blackGold, 33000),
-        mk("465222G", BP, blueGold, 33000),
+      const cols = [
+        { code: "IBG", c: col("Laca Azul Índigo & Ouro", "Indigo Blue Lacquer & Gold", "#1f3c66", "#c8a24a"), types: ["BP"] },
+        { code: "SBG", c: col("Laca Preta Brilhante & Ouro", "Shiny Black Lacquer & Gold", "#15171c", "#c8a24a"), types: ["BP", "RB", "FP"] },
+        { code: "SBP", c: col("Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", "#15171c", "#b9bcc2"), types: ["BP", "RB", "FP"] },
+        { code: "WG", c: col("Laca Branca & Ouro", "White Lacquer & Gold", "#f3efe6", "#c8a24a"), types: ["BP"] },
+        { code: "WRG", c: col("Laca Branca & Ouro Rosa", "White Lacquer & Rose Gold", "#f3efe6", "#d6a191"), types: ["BP", "RB", "FP"] },
       ];
+      const price: Record<string, number> = { BP: 78000, RB: 92000, FP: 138000 };
+      const out: SeedVariant[] = [];
+      for (const cc of cols) {
+        for (const tk of cc.types) {
+          const ty = TYPE[tk as keyof typeof TYPE];
+          const dir = `/products/liberte/LIB-${tk}-${cc.code}`;
+          out.push({
+            sku: `LIB-${tk}-${cc.code}`,
+            name: { pt: `${ty.pt} · ${cc.c.label.pt}`, en: `${ty.en} · ${cc.c.label.en}` },
+            priceCents: price[tk],
+            currency: "EUR" as const,
+            attributes: { type: ty, color: cc.c },
+            images: [`${dir}/front.jpg`, `${dir}/back.jpg`, `${dir}/closeup.jpg`, `${dir}/closeup2.jpg`],
+          });
+        }
+      }
+      return out;
     })(),
   },
 
