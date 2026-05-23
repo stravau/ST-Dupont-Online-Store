@@ -521,37 +521,47 @@ export const products: SeedProduct[] = [
     categorySlug: "escrita",
     image: null,
     novelty: true,
-    // Real catalogue: 3 pen types × 3 colourways (cross-checked against the
-    // supplied photos). SKU = DM-<type>-<code>, photo = /products/defi-millenium/<SKU>.jpg.
+    // Colourway photos: folder galleries take priority; where a colour×type
+    // has no folder photo we fall back to the existing flat site image; with
+    // neither, the combination is dropped. Folder gallery =
+    // /products/defi-millenium/<SKU>/{front,back,closeup,closeup2}.jpg ;
+    // site image = /products/defi-millenium/<SKU>.jpg.
     variants: (() => {
       const C = {
         NVC: col("Laca Azul Marinho Brilhante & Crómio", "Shiny Navy Lacquer & Chrome", "#1b2a44", "#c9ccd1"),
         SBC: col("Laca Preta Brilhante & Crómio", "Shiny Black Lacquer & Chrome", "#15171c", "#c9ccd1"),
         SBG: col("Laca Preta Brilhante & Gunmetal", "Shiny Black Lacquer & Gunmetal", "#15171c", "#4b4f55"),
+        BMB: col("Preto & Preto Mate", "Black & Matt Black", "#15171c", "#2a2c30"),
+        MRC: col("Vermelho Mate & Crómio", "Matt Red & Chrome", "#7d2b27", "#c9ccd1"),
+        MBBC: col("Preto Mate & Crómio Escovado", "Matt Black & Brushed Chrome", "#1c1e22", "#b9bcc2"),
       } as const;
-      const types = [
-        { key: "BP" as const, price: 38500 },
-        { key: "RB" as const, price: 38500 },
-        { key: "FP" as const, price: 43500 },
+      const price: Record<string, number> = { BP: 38500, RB: 38500, FP: 43500 };
+      // [code, type, source]; "f" = folder gallery, "w" = flat site image.
+      const plan: [keyof typeof C, "BP" | "RB" | "FP", "f" | "w"][] = [
+        ["NVC", "BP", "w"], ["NVC", "FP", "f"], ["NVC", "RB", "f"],
+        ["SBC", "BP", "w"], ["SBC", "FP", "w"], ["SBC", "RB", "w"],
+        ["SBG", "BP", "w"], ["SBG", "FP", "w"], ["SBG", "RB", "w"],
+        ["BMB", "BP", "f"], ["BMB", "RB", "f"],
+        ["MRC", "FP", "f"], ["MRC", "RB", "f"],
+        ["MBBC", "BP", "f"], ["MBBC", "FP", "f"], ["MBBC", "RB", "f"],
       ];
-      const codes: (keyof typeof C)[] = ["NVC", "SBC", "SBG"];
-      const out: SeedVariant[] = [];
-      for (const t of types) {
-        const ty = TYPE[t.key];
-        for (const code of codes) {
-          const c = C[code];
-          const sku = `DM-${t.key}-${code}`;
-          out.push({
-            sku,
-            name: { pt: `${ty.pt} · ${c.label.pt}`, en: `${ty.en} · ${c.label.en}` },
-            priceCents: t.price,
-            currency: "EUR" as const,
-            attributes: { type: ty, color: c },
-            image: `/products/defi-millenium/${sku}.jpg`,
-          });
-        }
-      }
-      return out;
+      return plan.map(([code, key, src]) => {
+        const ty = TYPE[key];
+        const c = C[code];
+        const sku = `DM-${key}-${code}`;
+        const dir = `/products/defi-millenium/${sku}`;
+        return {
+          sku,
+          name: { pt: `${ty.pt} · ${c.label.pt}`, en: `${ty.en} · ${c.label.en}` },
+          priceCents: price[key],
+          currency: "EUR" as const,
+          attributes: { type: ty, color: c },
+          images:
+            src === "f"
+              ? [`${dir}/front.jpg`, `${dir}/back.jpg`, `${dir}/closeup.jpg`, `${dir}/closeup2.jpg`]
+              : [`${dir}.jpg`],
+        };
+      });
     })(),
   },
   {

@@ -168,7 +168,6 @@ export default async function CategoryPage({
           }
           groups[at.get(p.collection)!].cards.push(...cards);
         }
-        const grid = "product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4";
         return (
           <div className="mt-12">
             {groups.map((g) => (
@@ -179,7 +178,15 @@ export default async function CategoryPage({
                   </h2>
                   <span className="h-px flex-1 bg-line" />
                 </div>
-                <div className={grid}>{g.cards}</div>
+                {/* Flex + justify-center so a line that doesn't fill the row
+                    of 4 stays centred. Widths match a 2-up / 4-up grid. */}
+                <div className="product-grid flex flex-wrap justify-center gap-4">
+                  {g.cards.map((card, i) => (
+                    <div key={i} className="w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                      {card}
+                    </div>
+                  ))}
+                </div>
               </section>
             ))}
           </div>

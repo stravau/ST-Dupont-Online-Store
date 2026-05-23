@@ -127,9 +127,11 @@ export default async function CollectionPage({
                       </h3>
                       <span className="h-px flex-1 bg-line" />
                     </div>
-                    <div className="product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+                    <div className="product-grid flex flex-wrap justify-center gap-4">
                       {g.items.map((p) => (
-                        <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
+                        <div key={p.slug} className="w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                          <ProductCard product={p} lang={locale} wishlisted={wl.has(p.id)} />
+                        </div>
                       ))}
                     </div>
                   </div>
