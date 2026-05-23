@@ -10,6 +10,7 @@ export interface VariantOption {
   type?: string;
   finish?: string;
   color?: { label: string; hex: string[] };
+  size?: string;
   image?: string | null;
   images?: string[]; // full gallery for the slideshow
 }
@@ -21,6 +22,8 @@ export interface SelectorLabels {
   selectFinish: string;
   colorLabel: string;
   selectColor: string;
+  sizeLabel: string;
+  selectSize: string;
   addToCart: string;
   added: string;
   viewCart: string;
@@ -50,6 +53,7 @@ export function VariantSelector({
   const showToast = !!state?.ok && state.id !== undefined && state.id !== closedId;
   const types = uniq(variants.map((v) => v.type).filter(Boolean) as string[]);
   const finishes = uniq(variants.map((v) => v.finish).filter(Boolean) as string[]);
+  const sizes = uniq(variants.map((v) => v.size).filter(Boolean) as string[]);
   const colorList: { label: string; hex: string[] }[] = [];
   for (const v of variants) {
     if (v.color && !colorList.some((c) => c.label === v.color!.label)) colorList.push(v.color);
@@ -69,25 +73,30 @@ export function VariantSelector({
 
   // Pick the best variant when an axis changes: keep the other axes if a
   // matching combination exists, otherwise fall back to the first match.
-  function choose(next: Partial<Pick<VariantOption, "type" | "finish">> & { color?: string }) {
+  function choose(next: { type?: string; finish?: string; color?: string; size?: string }) {
     const want = {
       type: next.type ?? active.type,
       finish: next.finish ?? active.finish,
       color: next.color ?? active.color?.label,
+      size: next.size ?? active.size,
     };
     const exact = variants.find(
       (v) =>
         (types.length === 0 || v.type === want.type) &&
         (finishes.length === 0 || v.finish === want.finish) &&
-        (colorList.length === 0 || v.color?.label === want.color),
+        (colorList.length === 0 || v.color?.label === want.color) &&
+        (sizes.length === 0 || v.size === want.size),
     );
     if (exact) return setSku(exact.sku);
     // No exact combo: snap to the first variant that honours the changed axis.
-    const changedKey = next.type ? "type" : next.finish ? "finish" : "color";
     const fallback = variants.find((v) =>
-      changedKey === "color"
-        ? v.color?.label === next.color
-        : v[changedKey as "type" | "finish"] === next[changedKey as "type" | "finish"],
+      next.type !== undefined
+        ? v.type === next.type
+        : next.finish !== undefined
+          ? v.finish === next.finish
+          : next.size !== undefined
+            ? v.size === next.size
+            : v.color?.label === next.color,
     );
     setSku((fallback ?? variants[0]).sku);
   }
@@ -186,6 +195,36 @@ export function VariantSelector({
             </div>
           ) : (
             <p className="mt-3 text-sm tracking-wide text-ink">{finishes[0]}</p>
+          )}
+        </fieldset>
+      )}
+
+      {/* Size (e.g. Line D: Medium / Large / XL) */}
+      {sizes.length > 0 && (
+        <fieldset>
+          <legend className="overline">{labels.sizeLabel}</legend>
+          {sizes.length > 1 ? (
+            <div className="mt-4 flex flex-wrap gap-3" role="radiogroup" aria-label={labels.selectSize}>
+              {sizes.map((s) => {
+                const on = active.size === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => choose({ size: s })}
+                    className={`border px-4 py-3 text-xs tracking-[0.12em] uppercase transition-all duration-300 ${
+                      on ? "border-gold bg-paper text-ink" : "border-line text-muted hover:border-gold/60 hover:text-ink"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm tracking-wide text-ink">{sizes[0]}</p>
           )}
         </fieldset>
       )}

@@ -164,7 +164,7 @@ export default async function CategoryPage({
           }
         }
         const grid =
-          "product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3";
+          "product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4";
         return (
           <>
             {multi.length > 0 && <div className={`mt-14 ${grid}`}>{multi}</div>}

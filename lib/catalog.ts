@@ -19,6 +19,7 @@ export interface VariantAttributes {
   type?: Localized; // pen type (writing) — text chip
   finish?: Localized; // metal/lacquer finish — text chip
   color?: VariantColor; // colour — swatch circle
+  size?: Localized; // size option (e.g. Line D: Medium/Large/XL) — text chip
 }
 
 export interface Variant {

@@ -136,7 +136,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <h2 className="mt-4 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>
           <div className="gold-rule mx-auto mt-6" />
         </div>
-        <div className="product-grid mt-14 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+        <div className="product-grid mt-14 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {novelties.map((p, i) => (
             <div key={p.slug} className={`reveal reveal-d${i % 4}`}>
               <ProductCard product={p} lang={locale} wishlisted={wl.has(p.id)} />

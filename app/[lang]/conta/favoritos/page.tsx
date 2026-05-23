@@ -28,7 +28,7 @@ export default async function WishlistPage({
       {items.length === 0 ? (
         <p className="mt-10 text-muted">{c.noWishlist}</p>
       ) : (
-        <div className="product-grid mt-10 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+        <div className="product-grid mt-10 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {items.map((p) => (
             <article
               key={p.slug}

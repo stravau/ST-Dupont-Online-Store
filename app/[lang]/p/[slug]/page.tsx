@@ -48,6 +48,7 @@ export default async function ProductPage({
     color: v.attributes.color
       ? { label: v.attributes.color.label[locale], hex: v.attributes.color.hex }
       : undefined,
+    size: v.attributes.size?.[locale],
     image: v.image,
     images: v.images,
   }));
@@ -85,6 +86,8 @@ export default async function ProductPage({
           selectFinish: dict.product.selectFinish,
           colorLabel: dict.product.colorLabel,
           selectColor: dict.product.selectColor,
+          sizeLabel: dict.product.sizeLabel,
+          selectSize: dict.product.selectSize,
           addToCart: dict.product.addToCart,
           added: dict.cart.added,
           viewCart: dict.cart.viewCart,

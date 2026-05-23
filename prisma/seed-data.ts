@@ -20,7 +20,7 @@ export interface SeedVariant {
   name: L; // composed human label (used for cart/order snapshots)
   priceCents: number;
   currency: "EUR";
-  attributes: { type?: L; finish?: L; color?: SeedColor };
+  attributes: { type?: L; finish?: L; color?: SeedColor; size?: L };
   image?: string; // single per-colourway photo (/products/<slug>/<ref>.jpg)
   // Ordered gallery: [front, back, close-up, close-up 2]. When present it
   // takes precedence over `image`. front = default/card, close-up = card hover.
@@ -141,28 +141,6 @@ const COLOR = {
   flintBlack: col("Preto · Ligne 1 / Ligne 2 / Gatsby / Mesa Longa", "Black · Ligne 1 / Ligne 2 / Gatsby / Long Table", "#1a1c20"),
   flintRed: col("Vermelho · Liberté / Ligne 8 / Ligne D", "Red · Liberté / Ligne 8 / Ligne D", "#9e2b27"),
 };
-
-// type × colour matrix for writing instruments
-function penMatrix(
-  prefix: string,
-  types: { key: keyof typeof TYPE; price: number }[],
-  colours: { code: string; c: SeedColor }[],
-): SeedVariant[] {
-  const out: SeedVariant[] = [];
-  for (const t of types) {
-    const ty = TYPE[t.key];
-    for (const cc of colours) {
-      out.push({
-        sku: `${prefix}-${t.key}-${cc.code}`,
-        name: { pt: `${ty.pt} · ${cc.c.label.pt}`, en: `${ty.en} · ${cc.c.label.en}` },
-        priceCents: t.price,
-        currency: "EUR",
-        attributes: { type: ty, color: cc.c },
-      });
-    }
-  }
-  return out;
-}
 
 const fin = (sku: string, pt: string, en: string, priceCents: number): SeedVariant => ({
   sku,
@@ -401,18 +379,47 @@ export const products: SeedProduct[] = [
     categorySlug: "escrita",
     image: null,
     novelty: true,
-    variants: penMatrix(
-      "LDE",
-      [
-        { key: "FP", price: 138000 },
-        { key: "RB", price: 92000 },
-        { key: "BP", price: 78000 },
-      ],
-      [
-        { code: "BG", c: COLOR.blackGold },
-        { code: "BLP", c: COLOR.blueLacqPall },
-      ],
-    ),
+    // 2 colourways × 3 pen types × 3 sizes (Medium/Large/XL). Photos are per
+    // colour×type (size doesn't change the photo) at
+    // /products/line-d-eternity/LDE-<type>-<code>/.
+    variants: (() => {
+      const cols = [
+        { code: "BC", c: col("Preto & Crómio", "Black & Chrome", "#15171c", "#c9ccd1") },
+        { code: "BLC", c: col("Azul & Crómio", "Blue & Chrome", "#1f3c66", "#c9ccd1") },
+      ];
+      const types = [
+        { key: "FP" as const, price: 138000 },
+        { key: "RB" as const, price: 92000 },
+        { key: "BP" as const, price: 78000 },
+      ];
+      const sizes = [
+        { code: "M", label: { pt: "Médio", en: "Medium" }, mult: 1 },
+        { code: "L", label: { pt: "Grande", en: "Large" }, mult: 1.15 },
+        { code: "XL", label: { pt: "XL", en: "XL" }, mult: 1.3 },
+      ];
+      const out: SeedVariant[] = [];
+      for (const t of types) {
+        const ty = TYPE[t.key];
+        for (const cc of cols) {
+          const dir = `/products/line-d-eternity/LDE-${t.key}-${cc.code}`;
+          const images = [`${dir}/front.jpg`, `${dir}/back.jpg`, `${dir}/closeup.jpg`, `${dir}/closeup2.jpg`];
+          for (const s of sizes) {
+            out.push({
+              sku: `LDE-${t.key}-${cc.code}-${s.code}`,
+              name: {
+                pt: `${ty.pt} · ${cc.c.label.pt} · ${s.label.pt}`,
+                en: `${ty.en} · ${cc.c.label.en} · ${s.label.en}`,
+              },
+              priceCents: Math.round((t.price * s.mult) / 1000) * 1000,
+              currency: "EUR" as const,
+              attributes: { type: ty, color: cc.c, size: s.label },
+              images,
+            });
+          }
+        }
+      }
+      return out;
+    })(),
   },
   {
     slug: "initial",
