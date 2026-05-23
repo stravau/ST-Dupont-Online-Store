@@ -39,6 +39,8 @@ export function ProductCard({
         image: v.image ?? product.image,
         // Close-up (3rd gallery photo) shown on card hover, when supplied.
         hoverImage: v.images?.[2] ?? null,
+        // Full gallery to slide through on the card.
+        images: v.images && v.images.length ? v.images : v.image ? [v.image] : [],
         price: formatPrice(v.priceCents, v.currency, lang),
       });
     }

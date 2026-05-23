@@ -134,12 +134,12 @@ export default async function CategoryPage({
       </div>
 
       {(() => {
-        // Split: lines with several pen types become one card per type;
-        // single-type / colour-only items are isolated in their own row
-        // so they don't get confused with the multi-type lineups.
-        const multi: ReactNode[] = [];
-        const single: ReactNode[] = [];
+        // Group the catalogue by model line (collection); a title precedes
+        // each line. Multi-pen-type lines expand to one card per type.
+        const groups: { line: string; cards: ReactNode[] }[] = [];
+        const at = new Map<string, number>();
         for (const p of items) {
+          const cards: ReactNode[] = [];
           const types: string[] = [];
           for (const v of p.variants) {
             const t = v.attributes.type?.[locale];
@@ -147,7 +147,7 @@ export default async function CategoryPage({
           }
           if (types.length > 1) {
             for (const t of types) {
-              multi.push(
+              cards.push(
                 <ProductCard
                   key={`${p.slug}-${t}`}
                   product={p}
@@ -158,25 +158,31 @@ export default async function CategoryPage({
               );
             }
           } else {
-            single.push(
+            cards.push(
               <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />,
             );
           }
+          if (!at.has(p.collection)) {
+            at.set(p.collection, groups.length);
+            groups.push({ line: p.collection, cards: [] });
+          }
+          groups[at.get(p.collection)!].cards.push(...cards);
         }
-        const grid =
-          "product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4";
+        const grid = "product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4";
         return (
-          <>
-            {multi.length > 0 && <div className={`mt-14 ${grid}`}>{multi}</div>}
-            {multi.length > 0 && single.length > 0 && (
-              <div className="mx-auto mt-20 max-w-xs">
-                <div className="gold-rule mx-auto" />
-              </div>
-            )}
-            {single.length > 0 && (
-              <div className={`${multi.length > 0 ? "mt-20" : "mt-14"} ${grid}`}>{single}</div>
-            )}
-          </>
+          <div className="mt-12">
+            {groups.map((g) => (
+              <section key={g.line} className="mt-16 first:mt-0">
+                <div className="mb-6 flex items-center gap-4">
+                  <h2 className="whitespace-nowrap font-serif text-2xl text-ink md:text-3xl">
+                    {g.line}
+                  </h2>
+                  <span className="h-px flex-1 bg-line" />
+                </div>
+                <div className={grid}>{g.cards}</div>
+              </section>
+            ))}
+          </div>
         );
       })()}
       </div>

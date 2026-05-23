@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +14,8 @@ export interface CardSwatch {
   label: string;
   hex: string[];
   image: string | null;
-  hoverImage?: string | null; // close-up, shown on card hover
+  hoverImage?: string | null; // close-up, shown on card hover (desktop only)
+  images?: string[]; // full gallery — slide through with the card arrows
   price: string;
 }
 
@@ -57,11 +58,32 @@ export function ProductCardInteractive({
   wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(0);
+  const [idx, setIdx] = useState(0); // image index within the active gallery
   const [hover, setHover] = useState(false);
+  // Hover preview is desktop-only — on touch it would stick on the close-up.
+  const hoverable = useRef(false);
+  useEffect(() => {
+    hoverable.current =
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  }, []);
+
   const active = swatches[sel];
-  const image = imgSrc(
-    hover && active?.hoverImage ? active.hoverImage : active?.image ?? fallbackImage,
-  );
+  const gallery =
+    active?.images && active.images.length
+      ? active.images
+      : active?.image
+        ? [active.image]
+        : fallbackImage
+          ? [fallbackImage]
+          : [];
+  const len = gallery.length;
+  const safeIdx = len ? ((idx % len) + len) % len : 0;
+  // Desktop hover shows the close-up (3rd photo) only while at the front.
+  const shownIdx =
+    hover && hoverable.current && safeIdx === 0 && len > 2 ? 2 : safeIdx;
+  const image = imgSrc(gallery[shownIdx] ?? fallbackImage);
+  const slide = (d: number) => setIdx((i) => i + d);
   const price = active?.price ?? basePrice;
   const colorName = active?.label;
   const activeSku = active?.sku ?? baseSku;
@@ -105,8 +127,8 @@ export function ProductCardInteractive({
         {wishlist}
       </div>
 
-      {/* Image — portrait, dominates the card */}
-      <div className="relative aspect-[3/4] overflow-hidden">
+      {/* Image — portrait. aspect-[4/5] keeps it shorter than 3/4. */}
+      <div className="relative aspect-[4/5] overflow-hidden">
         <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]">
           {image ? (
             <Image
@@ -126,12 +148,49 @@ export function ProductCardInteractive({
             {noveltyLabel}
           </span>
         )}
+
+        {/* Slide through this colourway's photos without entering the item */}
+        {len > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous image"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(-1); }}
+              className="absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label="Next image"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(1); }}
+              className="absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <div className="absolute inset-x-0 bottom-2 z-20 flex items-center justify-center gap-1.5">
+              {gallery.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Image ${i + 1}`}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIdx(i); }}
+                  className={`h-1.5 rounded-full transition-all ${i === safeIdx ? "w-4 bg-gold" : "w-1.5 bg-line"}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Colour swatches — always rendered (even when there's just one
           variant) so every card reserves the same vertical slot and the
           text below lines up across the row. */}
-      <div className="relative z-20 flex min-h-[2.5rem] flex-wrap items-center justify-center gap-2 px-3 pt-4 sm:min-h-[3rem] sm:gap-2.5">
+      <div className="relative z-20 flex min-h-[2rem] flex-wrap items-center justify-center gap-2 px-3 pt-3 sm:min-h-[2.5rem] sm:gap-2.5">
         {swatches.length > 1 &&
           swatches.slice(0, showCount).map((c, i) => (
             <button
@@ -143,6 +202,7 @@ export function ProductCardInteractive({
                 e.preventDefault();
                 e.stopPropagation();
                 setSel(i);
+                setIdx(0);
               }}
               className={`h-6 w-6 rounded-full ring-offset-2 ring-offset-paper transition-all sm:h-7 sm:w-7 ${
                 sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
@@ -158,16 +218,16 @@ export function ProductCardInteractive({
       {/* Text — price given the strongest weight. Each element reserves a
           consistent line/min-height so the colour name, price and CTA
           line up across every card in the row. */}
-      <div className="flex flex-1 flex-col px-5 pb-6 pt-4 text-center">
+      <div className="flex flex-1 flex-col px-5 pb-4 pt-3 text-center">
         <p className="overline text-[0.7rem]">{collection}</p>
-        <h3 className="mt-2 line-clamp-2 min-h-[3rem] font-serif text-xl leading-snug text-ink sm:min-h-[3.5rem] sm:text-2xl">
+        <h3 className="mt-1.5 line-clamp-2 min-h-[2.5rem] font-serif text-lg leading-snug text-ink sm:min-h-[3rem] sm:text-2xl">
           {title}
         </h3>
-        <p className="overline mt-3 text-[0.55rem] text-muted">{fromLabel}</p>
-        <p className="mt-1 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
+        <p className="overline mt-2 text-[0.55rem] text-muted">{fromLabel}</p>
+        <p className="mt-0.5 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
         {/* Color name slot — always rendered (nbsp when empty) so the
             row spacing matches across cards with/without swatches. */}
-        <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
+        <p className="mt-2 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
           {colorName && swatches.length > 1 ? colorName : " "}
         </p>
 
@@ -176,14 +236,14 @@ export function ProductCardInteractive({
         <form
           action={formAction}
           onClick={(e) => e.stopPropagation()}
-          className="relative z-20 mt-auto pt-5"
+          className="relative z-20 mt-auto pt-3.5"
         >
           <input type="hidden" name="sku" value={activeSku} />
           <input type="hidden" name="quantity" value="1" />
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-3 text-[0.65rem] tracking-[0.22em] text-gold uppercase disabled:opacity-80 sm:py-3.5 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
+            className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-2.5 text-[0.65rem] tracking-[0.22em] text-gold uppercase disabled:opacity-80 sm:py-3 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
           >
             <span>+</span>
             {addToCartLabel}

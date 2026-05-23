@@ -107,10 +107,34 @@ export default async function CollectionPage({
               <div className="gold-rule mx-auto mt-6" />
             </div>
 
-            <div className="product-grid mt-14 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
-              {products.slice(0, 6).map((p) => (
-                <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
-              ))}
+            <div className="mt-14">
+              {(() => {
+                // Group this category's products by model line, title each.
+                const groups: { line: string; items: Product[] }[] = [];
+                const at = new Map<string, number>();
+                for (const p of products) {
+                  if (!at.has(p.collection)) {
+                    at.set(p.collection, groups.length);
+                    groups.push({ line: p.collection, items: [] });
+                  }
+                  groups[at.get(p.collection)!].items.push(p);
+                }
+                return groups.map((g) => (
+                  <div key={g.line} className="mt-12 first:mt-0">
+                    <div className="mb-5 flex items-center gap-4">
+                      <h3 className="whitespace-nowrap font-serif text-xl text-ink md:text-2xl">
+                        {g.line}
+                      </h3>
+                      <span className="h-px flex-1 bg-line" />
+                    </div>
+                    <div className="product-grid grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+                      {g.items.map((p) => (
+                        <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
 
             <div className="mt-12 text-center">
