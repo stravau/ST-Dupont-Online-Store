@@ -85,6 +85,7 @@ export const categoryArt: Record<string, CategoryArt> = {
         title: t("Novidades", "New Products"),
         items: [
           NEW_RELEASES,
+          { label: t("Monograma 1872", "Monogram 1872"), href: "/c/acessorios?col=Monogram%201872" },
           { label: t("Montecristo", "Montecristo"), href: "/c/acessorios?col=Montecristo" },
           { label: t("Fire X", "Fire X"), href: "/c/acessorios?col=Fire%20X" },
         ],

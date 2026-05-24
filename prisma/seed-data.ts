@@ -176,6 +176,67 @@ const cw = (
   image,
 });
 
+// Colourway with no photo yet (placeholder card).
+const cn = (
+  sku: string,
+  pt: string,
+  en: string,
+  hex: string[],
+  priceCents: number,
+): SeedVariant => ({
+  sku,
+  name: { pt, en },
+  priceCents,
+  currency: "EUR",
+  attributes: { color: { label: { pt, en }, hex } },
+});
+
+// Twiggy's nine colourways (reused for the Biggy & Slimmy lines).
+const TWIGGY_COLOURS: { c: string; pt: string; en: string; hex: string[] }[] = [
+  { c: "BLK", pt: "Laca Preta Brilhante & Crómio", en: "Shiny Black Lacquer & Chrome", hex: ["#15171c", "#c9ccd1"] },
+  { c: "BLU", pt: "Laca Azul Brilhante & Crómio", en: "Shiny Blue Lacquer & Chrome", hex: ["#2f5c9e", "#c9ccd1"] },
+  { c: "FRX", pt: "Fire X · Laca Preta & Crómio", en: "Fire X · Black Lacquer & Chrome", hex: ["#15171c", "#c9ccd1"] },
+  { c: "RAS", pt: "Laca Framboesa & Dourado", en: "Raspberry Lacquer & Golden", hex: ["#8e2f4a", "#c8a24a"] },
+  { c: "WHT", pt: "Laca Branca & Dourado", en: "White Lacquer & Golden", hex: ["#f3efe6", "#c8a24a"] },
+  { c: "BGD", pt: "Laca Preta & Dourado", en: "Black Lacquer & Golden", hex: ["#15171c", "#c8a24a"] },
+  { c: "MON", pt: "Monograma 1872 & Dourado", en: "Monogram 1872 & Golden", hex: ["#9a6b2f", "#c8a24a"] },
+  { c: "MOC", pt: "Monograma 1872 & Crómio", en: "Monogram 1872 & Chrome", hex: ["#c9ccd1"] },
+  { c: "MOB", pt: "Monograma 1872 Preto & Dourado", en: "Black Monogram 1872 & Golden", hex: ["#15171c", "#c8a24a"] },
+];
+
+// Monogram 1872 colourways. Most products: 3 colours. LGD: silver/gold/
+// black&gold (no red). Cufflinks/money-clip/key-ring: gold & silver only.
+const MONO3: { code: string; pt: string; en: string; hex: string[] }[] = [
+  { code: "BG", pt: "Preto & Ouro", en: "Black & Gold", hex: ["#15171c", "#c8a24a"] },
+  { code: "GC", pt: "Cinza Claro & Crómio", en: "Light Grey & Chrome", hex: ["#b9bcc2", "#c9ccd1"] },
+  { code: "RG", pt: "Vermelho & Ouro", en: "Red & Gold", hex: ["#7d2b27", "#c8a24a"] },
+];
+const MONO_GS: { code: string; pt: string; en: string; hex: string[] }[] = [
+  { code: "GLD", pt: "Ouro", en: "Gold", hex: ["#c8a24a"] },
+  { code: "SLV", pt: "Prata", en: "Silver", hex: ["#b9bcc2"] },
+];
+const MONO_DESC = {
+  pt: "Edição Monograma 1872 — o motivo emblemático da maison, gravado em toda a peça.",
+  en: "Monogram 1872 edition — the maison's emblematic motif, engraved across the piece.",
+};
+
+// Colourway with a full photo gallery (front/back/close-ups/open).
+const cwg = (
+  sku: string,
+  pt: string,
+  en: string,
+  hex: string[],
+  priceCents: number,
+  images: string[],
+): SeedVariant => ({
+  sku,
+  name: { pt, en },
+  priceCents,
+  currency: "EUR",
+  attributes: { color: { label: { pt, en }, hex } },
+  images,
+});
+
 // Brief heritage per line — factual, sourced from st-dupont.com and
 // specialist references. Products inherit the story of their collection.
 export const historyByCollection: Record<string, L> = {
@@ -309,7 +370,13 @@ export const products: SeedProduct[] = [
       cw("C23780CL", "Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23780CL.jpg"),
       cw("C23790CL", "Laca Preta Brilhante & Ouro", "Shiny Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 189000, "/products/le-grand-dupont/C23790CL.jpg"),
       cw("C23010N", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23010N.jpg"),
-      cw("C23013N", "Laca Azul Sunburst & Paládio", "Sunburst Blue Lacquer & Palladium", ["#1f3c66", "#b9bcc2"], 175000, "/products/le-grand-dupont/C23013N.jpg"),
+      cwg("C23013N", "Laca Azul Sunburst & Paládio", "Sunburst Blue Lacquer & Palladium", ["#1f3c66", "#b9bcc2"], 175000, [
+        "/products/le-grand-dupont/C23013N/front.jpg",
+        "/products/le-grand-dupont/C23013N/back.jpg",
+        "/products/le-grand-dupont/C23013N/closeup.jpg",
+        "/products/le-grand-dupont/C23013N/closeup2.jpg",
+        "/products/le-grand-dupont/C23013N/open.jpg",
+      ]),
       cw("C23009N", "Ponta de Diamante Ouro", "Diamond Head Yellow Gold", ["#c8a24a"], 198000, "/products/le-grand-dupont/C23009N.jpg"),
       cw("C23011N", "Ponta de Diamante Paládio", "Diamond Head Palladium", ["#b9bcc2"], 178000, "/products/le-grand-dupont/C23011N.jpg"),
     ],
@@ -1008,4 +1075,116 @@ export const products: SeedProduct[] = [
     image: null,
     variants: [fin("TCC-PALL", "Paládio", "Palladium", 15000)],
   },
+
+  // === New lighter lines: Biggy & Slimmy (Twiggy colourways, no photos yet) ===
+  {
+    slug: "biggy",
+    name: { pt: "Isqueiro Biggy", en: "Biggy Lighter" },
+    collection: "Biggy",
+    description: {
+      pt: "Formato de maior porte na família de isqueiros a jato, nas cores do Twiggy.",
+      en: "A larger-format jet lighter in the Twiggy family, in the same colour palette.",
+    },
+    categorySlug: "isqueiros",
+    image: null,
+    variants: TWIGGY_COLOURS.map((x) => cn(`BIG-${x.c}`, x.pt, x.en, x.hex, 34000)),
+  },
+  {
+    slug: "slimmy",
+    name: { pt: "Isqueiro Slimmy", en: "Slimmy Lighter" },
+    collection: "Slimmy",
+    description: {
+      pt: "Silhueta ultrafina na família de isqueiros a jato, nas cores do Twiggy.",
+      en: "An ultra-slim jet lighter in the Twiggy family, in the same colour palette.",
+    },
+    categorySlug: "isqueiros",
+    image: null,
+    variants: TWIGGY_COLOURS.map((x) => cn(`SLI-${x.c}`, x.pt, x.en, x.hex, 30000)),
+  },
+
+  // === Monogram 1872 — cross-category line (lighters · writing · accessories).
+  // Only LGD has photos for now; everything else is a placeholder card. ===
+  {
+    slug: "le-grand-dupont-monogram",
+    name: { pt: "Le Grand Dupont · Monograma 1872", en: "Le Grand Dupont · Monogram 1872" },
+    collection: "Monogram 1872",
+    description: MONO_DESC,
+    categorySlug: "isqueiros",
+    image: "/products/le-grand-dupont-monogram/LGDM-BLK/front.jpg",
+    novelty: true,
+    variants: [
+      cwg("LGDM-BLK", "Preto & Ouro", "Black & Gold", ["#15171c", "#c8a24a"], 198000, [
+        "/products/le-grand-dupont-monogram/LGDM-BLK/front.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-BLK/back.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-BLK/closeup.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-BLK/open.jpg",
+      ]),
+      cwg("LGDM-SLV", "Prata", "Silver", ["#b9bcc2"], 188000, [
+        "/products/le-grand-dupont-monogram/LGDM-SLV/front.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-SLV/back.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-SLV/closeup.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-SLV/open.jpg",
+      ]),
+      cwg("LGDM-GLD", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 208000, [
+        "/products/le-grand-dupont-monogram/LGDM-GLD/front.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-GLD/back.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-GLD/closeup.jpg",
+        "/products/le-grand-dupont-monogram/LGDM-GLD/open.jpg",
+      ]),
+    ],
+  },
+  {
+    slug: "twiggy-monogram",
+    name: { pt: "Twiggy · Monograma 1872", en: "Twiggy · Monogram 1872" },
+    collection: "Monogram 1872", description: MONO_DESC, categorySlug: "isqueiros", image: null,
+    variants: MONO3.map((c) => cn(`TWM-${c.code}`, c.pt, c.en, c.hex, 36000)),
+  },
+  {
+    slug: "slimmy-monogram",
+    name: { pt: "Slimmy · Monograma 1872", en: "Slimmy · Monogram 1872" },
+    collection: "Monogram 1872", description: MONO_DESC, categorySlug: "isqueiros", image: null,
+    variants: MONO3.map((c) => cn(`SLIM-${c.code}`, c.pt, c.en, c.hex, 34000)),
+  },
+  {
+    slug: "biggy-monogram",
+    name: { pt: "Biggy · Monograma 1872", en: "Biggy · Monogram 1872" },
+    collection: "Monogram 1872", description: MONO_DESC, categorySlug: "isqueiros", image: null,
+    variants: MONO3.map((c) => cn(`BIGM-${c.code}`, c.pt, c.en, c.hex, 38000)),
+  },
+  {
+    slug: "line-d-eternity-monogram",
+    name: { pt: "Line D Eternity · Monograma 1872", en: "Line D Eternity · Monogram 1872" },
+    collection: "Monogram 1872", description: MONO_DESC, categorySlug: "escrita", image: null,
+    variants: (() => {
+      const types = [
+        { k: "FP", pt: "Caneta de Tinta Permanente", en: "Fountain Pen", price: 165000 },
+        { k: "RB", pt: "Rollerball", en: "Rollerball", price: 110000 },
+        { k: "BP", pt: "Esferográfica", en: "Ballpoint", price: 95000 },
+      ];
+      const cols = [
+        { code: "SLV", pt: "Prata", en: "Silver", hex: ["#b9bcc2"] },
+        { code: "GLD", pt: "Ouro", en: "Gold", hex: ["#c8a24a"] },
+        { code: "BG", pt: "Preto & Ouro", en: "Black & Gold", hex: ["#15171c", "#c8a24a"] },
+      ];
+      const out: SeedVariant[] = [];
+      for (const t of types)
+        for (const c of cols)
+          out.push({
+            sku: `LDEM-${t.k}-${c.code}`,
+            name: { pt: `${t.pt} · ${c.pt}`, en: `${t.en} · ${c.en}` },
+            priceCents: t.price,
+            currency: "EUR" as const,
+            attributes: { type: { pt: t.pt, en: t.en }, color: { label: { pt: c.pt, en: c.en }, hex: c.hex } },
+          });
+      return out;
+    })(),
+  },
+  { slug: "cigar-case-monogram", name: { pt: "Estojo de Charuto · Monograma 1872", en: "Cigar Case · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CCM-${c.code}`, c.pt, c.en, c.hex, 52000)) },
+  { slug: "cigar-case-double-monogram", name: { pt: "Estojo de Charuto Duplo · Monograma 1872", en: "Double Cigar Case · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CCDM-${c.code}`, c.pt, c.en, c.hex, 62000)) },
+  { slug: "cigarette-case-monogram", name: { pt: "Cigarreira · Monograma 1872", en: "Cigarette Case · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CIGM-${c.code}`, c.pt, c.en, c.hex, 48000)) },
+  { slug: "cigar-cutter-monogram", name: { pt: "Cortador de Charuto · Monograma 1872", en: "Cigar Cutter · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CUTM-${c.code}`, c.pt, c.en, c.hex, 42000)) },
+  { slug: "ashtray-monogram", name: { pt: "Cinzeiro · Monograma 1872", en: "Ashtray · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`ASHM-${c.code}`, c.pt, c.en, c.hex, 58000)) },
+  { slug: "cufflinks-monogram", name: { pt: "Botões de Punho · Monograma 1872", en: "Cufflinks · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`CFM-${c.code}`, c.pt, c.en, c.hex, 29000)) },
+  { slug: "money-clip-monogram", name: { pt: "Clip de Notas · Monograma 1872", en: "Money Clip · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`MCM-${c.code}`, c.pt, c.en, c.hex, 22000)) },
+  { slug: "key-ring-monogram", name: { pt: "Porta-Chaves · Monograma 1872", en: "Key Ring · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`KRM-${c.code}`, c.pt, c.en, c.hex, 18000)) },
 ];
