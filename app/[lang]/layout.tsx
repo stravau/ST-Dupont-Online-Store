@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Assistant } from "next/font/google";
+import { Cormorant_Garamond, EB_Garamond } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -9,22 +9,21 @@ import { NavBack } from "@/components/nav-back";
 import { PageTransition } from "@/components/page-transition";
 import { RevealRoot } from "@/components/reveal-root";
 
-// st-dupont.com's signature fonts (SangBleu OG Sans, Simplon Mono) are
-// licensed Swiss Typefaces — can't be embedded freely. Closest free pairing:
-// Fraunces — elegant high-contrast display serif for headings;
-// Assistant — clean humanist sans for body/UI (it's st-dupont's own free
-// fallback font, so the body text matches closely).
-const displaySerif = Fraunces({
+// st-dupont.com uses an elegant serif throughout (their licensed SangBleu).
+// Closest free match is the Garamond family — used for BOTH headings and
+// body so the whole site reads as one refined serif, like Dupont:
+// Cormorant Garamond (display) for headings, EB Garamond for body/UI.
+const displaySerif = Cormorant_Garamond({
   variable: "--font-display-serif",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const bodySans = Assistant({
+const bodySans = EB_Garamond({
   variable: "--font-body-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
