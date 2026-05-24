@@ -20,6 +20,14 @@ export function ProductCard({
   variantType?: string;
 }) {
   const dict = getDictionary(lang);
+  // Overline above the card name = the category (Lighters / Writing / …).
+  const categoryLabel =
+    ({
+      isqueiros: dict.nav.lighters,
+      escrita: dict.nav.writing,
+      pele: dict.nav.leather,
+      acessorios: dict.nav.accessories,
+    } as Record<string, string>)[product.categorySlug] ?? product.collection;
 
   const scoped = variantType
     ? product.variants.filter((v) => v.attributes.type?.[lang] === variantType)
@@ -66,7 +74,7 @@ export function ProductCard({
       href={href}
       seed={product.slug}
       title={title}
-      collection={product.collection}
+      collection={categoryLabel}
       noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
       fromLabel={dict.product.from}
       colorWord={dict.product.colorLabel.toLowerCase()}
