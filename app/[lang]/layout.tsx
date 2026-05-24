@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Spectral, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Assistant } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { locales, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -9,20 +9,22 @@ import { NavBack } from "@/components/nav-back";
 import { PageTransition } from "@/components/page-transition";
 import { RevealRoot } from "@/components/reveal-root";
 
-// Closest free matches to st-dupont.com's (licensed) typography:
-// Spectral — an elegant high-contrast serif ≈ SangBleu OG Sans (headings);
-// IBM Plex Mono — a light, refined monospace ≈ Simplon Mono (body/labels).
-const displaySerif = Spectral({
+// st-dupont.com's signature fonts (SangBleu OG Sans, Simplon Mono) are
+// licensed Swiss Typefaces — can't be embedded freely. Closest free pairing:
+// Fraunces — elegant high-contrast display serif for headings;
+// Assistant — clean humanist sans for body/UI (it's st-dupont's own free
+// fallback font, so the body text matches closely).
+const displaySerif = Fraunces({
   variable: "--font-display-serif",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const bodySans = IBM_Plex_Mono({
+const bodySans = Assistant({
   variable: "--font-body-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600"],
   display: "swap",
 });
 
