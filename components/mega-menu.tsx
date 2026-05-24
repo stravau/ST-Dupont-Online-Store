@@ -10,6 +10,10 @@ export interface MenuCategory {
   tagline: string;
   groups: { label: string; href: string }[];
   collections: string[];
+  // Titled columns (e.g. Accessories: New Products / Collections / Smoking /
+  // Writing). When present, the panel renders these instead of the generic
+  // groups + collections layout.
+  sections?: { title: string; items: { label: string; href: string }[] }[];
 }
 
 export function MegaMenu({
@@ -73,7 +77,8 @@ export function MegaMenu({
               />
             </Link>
 
-            {open === c.slug && (c.groups.length > 0 || c.collections.length > 0) && (
+            {open === c.slug &&
+              (c.groups.length > 0 || c.collections.length > 0 || (c.sections?.length ?? 0) > 0) && (
               <div
                 onMouseEnter={() => show(c.slug)}
                 onMouseLeave={scheduleClose}
@@ -98,6 +103,32 @@ export function MegaMenu({
                     </Link>
                   </div>
 
+                  {/* Titled sections (Accessories): one column per section. */}
+                  {c.sections && c.sections.length > 0 ? (
+                    c.sections.map((sec, si) => (
+                      <div
+                        key={sec.title}
+                        className="menu-item min-w-[11rem]"
+                        style={{ animationDelay: `${0.08 + si * 0.05}s` }}
+                      >
+                        <p className="overline mb-4 text-[0.6rem]">{sec.title}</p>
+                        <ul className="space-y-2.5">
+                          {sec.items.map((it, i) => (
+                            <li
+                              key={`${it.href}${it.label}`}
+                              className="menu-item"
+                              style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
+                            >
+                              <Link href={it.href} className="menu-item-hover text-sm text-ink">
+                                {it.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))
+                  ) : (
+                    <>
                   {/* Item types — labelled "Collections" (inverted). Long
                       lists (e.g. Accessories) flow into two columns. */}
                   {c.groups.length > 0 && (
@@ -159,6 +190,8 @@ export function MegaMenu({
                         ))}
                       </ul>
                     </div>
+                  )}
+                    </>
                   )}
                 </div>
               </div>

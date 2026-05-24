@@ -40,6 +40,11 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         label: g.label[lang],
         href: `/${lang}${g.href}`,
       })),
+      // Titled columns for the desktop mega-menu (Accessories).
+      sections: (categoryArt[c.slug]?.menuSections ?? []).map((s) => ({
+        title: s.title[lang],
+        items: s.items.map((it) => ({ label: it.label[lang], href: `/${lang}${it.href}` })),
+      })),
       // "Accessories" is its own category/menu entry — don't repeat it as a
       // product line under Writing/Accessories.
       collections: (await getCollections(c.slug)).filter((x) => x !== "Accessories"),
