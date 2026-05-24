@@ -26,7 +26,7 @@ export interface CategoryArt {
 }
 
 const t = (pt: string, en: string): L => ({ pt, en });
-const NEW_RELEASES: ArtGroup = { label: t("Novidades", "New"), href: "/novidades" };
+const NEW_RELEASES: ArtGroup = { label: t("Novidades", "New Releases"), href: "/novidades" };
 
 // Accessory type buttons (reused in the flat list + the menu sections).
 const A = {

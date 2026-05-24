@@ -67,7 +67,7 @@ export function ProductCard({
       seed={product.slug}
       title={title}
       collection={product.collection}
-      noveltyLabel={product.novelty ? dict.sections.novelties : null}
+      noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
       fromLabel={dict.product.from}
       colorWord={dict.product.colorLabel.toLowerCase()}
       fallbackImage={product.image}

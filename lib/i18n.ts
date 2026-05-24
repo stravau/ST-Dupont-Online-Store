@@ -135,6 +135,7 @@ const dictionaries = {
     sections: {
       categories: "As Nossas Casas",
       novelties: "Novidades",
+      noveltyTag: "Novo",
       noveltiesSub: "As mais recentes criações da maison",
       heritageEyebrow: "A Maison",
       heritageTitle: "A marca por trás de reis, rainhas e estadistas",
@@ -340,6 +341,7 @@ const dictionaries = {
     sections: {
       categories: "Our Maisons",
       novelties: "New Arrivals",
+      noveltyTag: "New",
       noveltiesSub: "The latest creations from the maison",
       heritageEyebrow: "The Maison",
       heritageTitle: "The brand behind kings, queens and statesmen",
