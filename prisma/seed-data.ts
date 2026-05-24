@@ -369,7 +369,12 @@ export const products: SeedProduct[] = [
     variants: [
       cw("C23780CL", "Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23780CL.jpg"),
       cw("C23790CL", "Laca Preta Brilhante & Ouro", "Shiny Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 189000, "/products/le-grand-dupont/C23790CL.jpg"),
-      cw("C23010N", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23010N.jpg"),
+      cwg("C23010N", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, [
+        "/products/le-grand-dupont/C23010N/front.jpg",
+        "/products/le-grand-dupont/C23010N/back.jpg",
+        "/products/le-grand-dupont/C23010N/closeup.jpg",
+        "/products/le-grand-dupont/C23010N/open.jpg",
+      ]),
       cwg("C23013N", "Laca Azul Sunburst & Paládio", "Sunburst Blue Lacquer & Palladium", ["#1f3c66", "#b9bcc2"], 175000, [
         "/products/le-grand-dupont/C23013N/front.jpg",
         "/products/le-grand-dupont/C23013N/back.jpg",
@@ -377,8 +382,18 @@ export const products: SeedProduct[] = [
         "/products/le-grand-dupont/C23013N/closeup2.jpg",
         "/products/le-grand-dupont/C23013N/open.jpg",
       ]),
-      cw("C23009N", "Ponta de Diamante Ouro", "Diamond Head Yellow Gold", ["#c8a24a"], 198000, "/products/le-grand-dupont/C23009N.jpg"),
-      cw("C23011N", "Ponta de Diamante Paládio", "Diamond Head Palladium", ["#b9bcc2"], 178000, "/products/le-grand-dupont/C23011N.jpg"),
+      cwg("C23009N", "Ponta de Diamante Ouro", "Diamond Head Yellow Gold", ["#c8a24a"], 198000, [
+        "/products/le-grand-dupont/C23009N/front.jpg",
+        "/products/le-grand-dupont/C23009N/back.jpg",
+        "/products/le-grand-dupont/C23009N/closeup.jpg",
+        "/products/le-grand-dupont/C23009N/open.jpg",
+      ]),
+      cwg("C23011N", "Ponta de Diamante Paládio", "Diamond Head Palladium", ["#b9bcc2"], 178000, [
+        "/products/le-grand-dupont/C23011N/front.jpg",
+        "/products/le-grand-dupont/C23011N/back.jpg",
+        "/products/le-grand-dupont/C23011N/closeup.jpg",
+        "/products/le-grand-dupont/C23011N/open.jpg",
+      ]),
     ],
   },
   {
@@ -1166,16 +1181,26 @@ export const products: SeedProduct[] = [
         { code: "GLD", pt: "Ouro", en: "Gold", hex: ["#c8a24a"] },
         { code: "BG", pt: "Preto & Ouro", en: "Black & Gold", hex: ["#15171c", "#c8a24a"] },
       ];
+      const sizes = [
+        { code: "M", pt: "Médio", en: "Medium", mult: 1 },
+        { code: "L", pt: "Grande", en: "Large", mult: 1.15 },
+        { code: "XL", pt: "XL", en: "XL", mult: 1.3 },
+      ];
       const out: SeedVariant[] = [];
       for (const t of types)
         for (const c of cols)
-          out.push({
-            sku: `LDEM-${t.k}-${c.code}`,
-            name: { pt: `${t.pt} · ${c.pt}`, en: `${t.en} · ${c.en}` },
-            priceCents: t.price,
-            currency: "EUR" as const,
-            attributes: { type: { pt: t.pt, en: t.en }, color: { label: { pt: c.pt, en: c.en }, hex: c.hex } },
-          });
+          for (const s of sizes)
+            out.push({
+              sku: `LDEM-${t.k}-${c.code}-${s.code}`,
+              name: { pt: `${t.pt} · ${c.pt} · ${s.pt}`, en: `${t.en} · ${c.en} · ${s.en}` },
+              priceCents: Math.round((t.price * s.mult) / 1000) * 1000,
+              currency: "EUR" as const,
+              attributes: {
+                type: { pt: t.pt, en: t.en },
+                color: { label: { pt: c.pt, en: c.en }, hex: c.hex },
+                size: { pt: s.pt, en: s.en },
+              },
+            });
       return out;
     })(),
   },
