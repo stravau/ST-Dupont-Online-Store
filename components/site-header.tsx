@@ -45,9 +45,12 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         title: s.title[lang],
         items: s.items.map((it) => ({ label: it.label[lang], href: `/${lang}${it.href}` })),
       })),
-      // "Accessories" is its own category/menu entry — don't repeat it as a
-      // product line under Writing/Accessories.
-      collections: (await getCollections(c.slug)).filter((x) => x !== "Accessories"),
+      // "Accessories" is its own category/menu entry; "Monogram 1872" is
+      // shown under Collections (groups), so keep both out of the product-
+      // line (Products) column.
+      collections: (await getCollections(c.slug)).filter(
+        (x) => x !== "Accessories" && x !== "Monogram 1872",
+      ),
     })),
   );
 

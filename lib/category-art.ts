@@ -46,12 +46,18 @@ export const categoryArt: Record<string, CategoryArt> = {
   isqueiros: {
     art: "L'Art du Feu",
     hero: "/headers/isqueiros.jpg",
-    groups: [NEW_RELEASES],
+    groups: [
+      NEW_RELEASES,
+      { label: t("Monograma 1872", "Monogram 1872"), href: "/c/isqueiros?col=Monogram%201872" },
+    ],
   },
   escrita: {
     art: "L'Art de l'Écriture",
     hero: "/headers/escrita.jpg",
-    groups: [NEW_RELEASES],
+    groups: [
+      NEW_RELEASES,
+      { label: t("Monograma 1872", "Monogram 1872"), href: "/c/escrita?col=Monogram%201872" },
+    ],
   },
   pele: {
     art: "L'Art du Voyage",
