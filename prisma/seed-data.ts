@@ -314,7 +314,7 @@ export const products: SeedProduct[] = [
   // --- Isqueiros / Lighters — FINISH only ---
   {
     slug: "ligne-2",
-    name: { pt: "Isqueiro Ligne 2", en: "Ligne 2 Lighter" },
+    name: { pt: "Ligne 2", en: "Ligne 2" },
     collection: "Ligne 2",
     description: {
       pt: "O isqueiro emblemático da maison, desenhado com o joalheiro Jean Dinh Van — silhueta retangular intemporal e o inconfundível som cristalino de abertura.",
@@ -340,7 +340,7 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "ligne-1",
-    name: { pt: "Isqueiro Ligne 1", en: "Ligne 1 Lighter" },
+    name: { pt: "Ligne 1", en: "Ligne 1" },
     collection: "Ligne 1",
     description: {
       pt: "O desenho clássico da casa, esguio e elegante, fiel às origens da assinatura Dupont.",
@@ -357,14 +357,14 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "le-grand-dupont",
-    name: { pt: "Isqueiro Le Grand Dupont", en: "Le Grand Dupont Lighter" },
+    name: { pt: "Le Grand Dupont", en: "Le Grand Dupont" },
     collection: "Le Grand",
     description: {
       pt: "Formato premium de maior porte, com chama dupla regulável — presença e desempenho.",
       en: "Premium larger format with an adjustable double flame — presence and performance.",
     },
     categorySlug: "isqueiros",
-    image: "/products/le-grand-dupont/C23780CL.jpg",
+    image: "/products/le-grand-dupont/C23010N/front.jpg",
     novelty: true,
     variants: [
       cw("C23780CL", "Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23780CL.jpg"),
@@ -398,7 +398,7 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "defi-extreme",
-    name: { pt: "Isqueiro Défi Extreme", en: "Défi Extreme Lighter" },
+    name: { pt: "Défi Extreme", en: "Défi Extreme" },
     collection: "Défi Extreme",
     description: {
       pt: "Chama tempestade de duplo maçarico, resistente ao vento. Robustez e atitude.",
@@ -410,7 +410,7 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "twiggy",
-    name: { pt: "Isqueiro Twiggy", en: "Twiggy Lighter" },
+    name: { pt: "Twiggy", en: "Twiggy" },
     collection: "Twiggy",
     description: {
       pt: "Silhueta ultrafina inspirada na moda mod dos anos 60 — o Ligne 2 reinventado para o bolso moderno. Mesmo corpo lacado, várias cores.",
@@ -433,7 +433,7 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "slim-7",
-    name: { pt: "Isqueiro Slim 7", en: "Slim 7 Lighter" },
+    name: { pt: "Slim 7", en: "Slim 7" },
     collection: "Slim 7",
     description: {
       pt: "Maçarico esguio de chama jato. Várias cores e acabamentos — laca brilhante, mate, metal escovado ou polido.",
@@ -1094,7 +1094,7 @@ export const products: SeedProduct[] = [
   // === New lighter lines: Biggy & Slimmy (Twiggy colourways, no photos yet) ===
   {
     slug: "biggy",
-    name: { pt: "Isqueiro Biggy", en: "Biggy Lighter" },
+    name: { pt: "Biggy", en: "Biggy" },
     collection: "Biggy",
     description: {
       pt: "Formato de maior porte na família de isqueiros a jato, nas cores do Twiggy.",
@@ -1106,7 +1106,7 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "slimmy",
-    name: { pt: "Isqueiro Slimmy", en: "Slimmy Lighter" },
+    name: { pt: "Slimmy", en: "Slimmy" },
     collection: "Slimmy",
     description: {
       pt: "Silhueta ultrafina na família de isqueiros a jato, nas cores do Twiggy.",
@@ -1121,7 +1121,7 @@ export const products: SeedProduct[] = [
   // Only LGD has photos for now; everything else is a placeholder card. ===
   {
     slug: "le-grand-dupont-monogram",
-    name: { pt: "Le Grand Dupont · Monograma 1872", en: "Le Grand Dupont · Monogram 1872" },
+    name: { pt: "Le Grand Dupont", en: "Le Grand Dupont" },
     collection: "Monogram 1872",
     description: MONO_DESC,
     categorySlug: "isqueiros",
@@ -1150,25 +1150,25 @@ export const products: SeedProduct[] = [
   },
   {
     slug: "twiggy-monogram",
-    name: { pt: "Twiggy · Monograma 1872", en: "Twiggy · Monogram 1872" },
+    name: { pt: "Twiggy", en: "Twiggy" },
     collection: "Monogram 1872", description: MONO_DESC, categorySlug: "isqueiros", image: null,
     variants: MONO3.map((c) => cn(`TWM-${c.code}`, c.pt, c.en, c.hex, 36000)),
   },
   {
     slug: "slimmy-monogram",
-    name: { pt: "Slimmy · Monograma 1872", en: "Slimmy · Monogram 1872" },
+    name: { pt: "Slimmy", en: "Slimmy" },
     collection: "Monogram 1872", description: MONO_DESC, categorySlug: "isqueiros", image: null,
     variants: MONO3.map((c) => cn(`SLIM-${c.code}`, c.pt, c.en, c.hex, 34000)),
   },
   {
     slug: "biggy-monogram",
-    name: { pt: "Biggy · Monograma 1872", en: "Biggy · Monogram 1872" },
+    name: { pt: "Biggy", en: "Biggy" },
     collection: "Monogram 1872", description: MONO_DESC, categorySlug: "isqueiros", image: null,
     variants: MONO3.map((c) => cn(`BIGM-${c.code}`, c.pt, c.en, c.hex, 38000)),
   },
   {
     slug: "line-d-eternity-monogram",
-    name: { pt: "Line D Eternity · Monograma 1872", en: "Line D Eternity · Monogram 1872" },
+    name: { pt: "Line D Eternity", en: "Line D Eternity" },
     collection: "Monogram 1872", description: MONO_DESC, categorySlug: "escrita", image: null,
     variants: (() => {
       const types = [
@@ -1204,12 +1204,12 @@ export const products: SeedProduct[] = [
       return out;
     })(),
   },
-  { slug: "cigar-case-monogram", name: { pt: "Estojo de Charuto · Monograma 1872", en: "Cigar Case · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CCM-${c.code}`, c.pt, c.en, c.hex, 52000)) },
-  { slug: "cigar-case-double-monogram", name: { pt: "Estojo de Charuto Duplo · Monograma 1872", en: "Double Cigar Case · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CCDM-${c.code}`, c.pt, c.en, c.hex, 62000)) },
-  { slug: "cigarette-case-monogram", name: { pt: "Cigarreira · Monograma 1872", en: "Cigarette Case · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CIGM-${c.code}`, c.pt, c.en, c.hex, 48000)) },
-  { slug: "cigar-cutter-monogram", name: { pt: "Cortador de Charuto · Monograma 1872", en: "Cigar Cutter · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CUTM-${c.code}`, c.pt, c.en, c.hex, 42000)) },
-  { slug: "ashtray-monogram", name: { pt: "Cinzeiro · Monograma 1872", en: "Ashtray · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`ASHM-${c.code}`, c.pt, c.en, c.hex, 58000)) },
-  { slug: "cufflinks-monogram", name: { pt: "Botões de Punho · Monograma 1872", en: "Cufflinks · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`CFM-${c.code}`, c.pt, c.en, c.hex, 29000)) },
-  { slug: "money-clip-monogram", name: { pt: "Clip de Notas · Monograma 1872", en: "Money Clip · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`MCM-${c.code}`, c.pt, c.en, c.hex, 22000)) },
-  { slug: "key-ring-monogram", name: { pt: "Porta-Chaves · Monograma 1872", en: "Key Ring · Monogram 1872" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`KRM-${c.code}`, c.pt, c.en, c.hex, 18000)) },
+  { slug: "cigar-case-monogram", name: { pt: "Estojo de Charuto", en: "Cigar Case" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CCM-${c.code}`, c.pt, c.en, c.hex, 52000)) },
+  { slug: "cigar-case-double-monogram", name: { pt: "Estojo de Charuto Duplo", en: "Double Cigar Case" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CCDM-${c.code}`, c.pt, c.en, c.hex, 62000)) },
+  { slug: "cigarette-case-monogram", name: { pt: "Cigarreira", en: "Cigarette Case" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CIGM-${c.code}`, c.pt, c.en, c.hex, 48000)) },
+  { slug: "cigar-cutter-monogram", name: { pt: "Cortador de Charuto", en: "Cigar Cutter" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`CUTM-${c.code}`, c.pt, c.en, c.hex, 42000)) },
+  { slug: "ashtray-monogram", name: { pt: "Cinzeiro", en: "Ashtray" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO3.map((c) => cn(`ASHM-${c.code}`, c.pt, c.en, c.hex, 58000)) },
+  { slug: "cufflinks-monogram", name: { pt: "Botões de Punho", en: "Cufflinks" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`CFM-${c.code}`, c.pt, c.en, c.hex, 29000)) },
+  { slug: "money-clip-monogram", name: { pt: "Clip de Notas", en: "Money Clip" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`MCM-${c.code}`, c.pt, c.en, c.hex, 22000)) },
+  { slug: "key-ring-monogram", name: { pt: "Porta-Chaves", en: "Key Ring" }, collection: "Monogram 1872", description: MONO_DESC, categorySlug: "acessorios", image: null, variants: MONO_GS.map((c) => cn(`KRM-${c.code}`, c.pt, c.en, c.hex, 18000)) },
 ];

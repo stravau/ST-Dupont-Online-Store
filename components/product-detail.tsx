@@ -41,6 +41,8 @@ export function ProductDetail({
   const startSku =
     (initialSku && variants.find((v) => v.sku === initialSku)?.sku) ||
     (initialType && variants.find((v) => v.type === initialType)?.sku) ||
+    // default to the colourway whose photo is the product's main image
+    (fallbackImage && variants.find((v) => v.image === fallbackImage)?.sku) ||
     variants[0].sku;
   const [activeSku, setActiveSku] = useState<string>(startSku);
   const [idx, setIdx] = useState(0); // index within the active colourway's gallery
