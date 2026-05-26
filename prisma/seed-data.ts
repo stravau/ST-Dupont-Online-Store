@@ -1128,7 +1128,7 @@ export const products: SeedProduct[] = [
     image: "/products/le-grand-dupont-monogram/LGDM-BLK/front.jpg",
     novelty: true,
     variants: [
-      cwg("LGDM-BLK", "Preto & Ouro", "Black & Gold", ["#15171c", "#c8a24a"], 198000, [
+      cwg("LGDM-BLK", "Preto", "Black", ["#15171c"], 198000, [
         "/products/le-grand-dupont-monogram/LGDM-BLK/front.jpg",
         "/products/le-grand-dupont-monogram/LGDM-BLK/back.jpg",
         "/products/le-grand-dupont-monogram/LGDM-BLK/closeup.jpg",
