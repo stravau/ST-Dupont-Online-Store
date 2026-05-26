@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,11 +63,13 @@ export function ProductCardInteractive({
   const [idx, setIdx] = useState(0); // image index within the active gallery
   const [hover, setHover] = useState(false);
   // Hover preview is desktop-only — on touch it would stick on the close-up.
-  const hoverable = useRef(false);
+  // Kept in state (not a ref) so it's safe to read during render.
+  const [hoverable, setHoverable] = useState(false);
   useEffect(() => {
-    hoverable.current =
+    const canHover =
       typeof window !== "undefined" &&
       window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    queueMicrotask(() => setHoverable(canHover));
   }, []);
 
   const active = swatches[sel];
@@ -83,7 +85,7 @@ export function ProductCardInteractive({
   const safeIdx = len ? ((idx % len) + len) % len : 0;
   // Desktop hover shows the close-up (3rd photo) only while at the front.
   const shownIdx =
-    hover && hoverable.current && safeIdx === 0 && len > 2 ? 2 : safeIdx;
+    hover && hoverable && safeIdx === 0 && len > 2 ? 2 : safeIdx;
   const image = imgSrc(gallery[shownIdx] ?? fallbackImage);
   const slide = (d: number) => setIdx((i) => i + d);
   const price = active?.price ?? basePrice;
