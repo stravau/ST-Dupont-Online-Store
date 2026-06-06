@@ -89,7 +89,9 @@ const DROP_SLUGS = new Set<string>([
 const RENAME_SLUG: Record<string, string> = {
   "biggy-2": "biggy",
   "slimmy-2": "slimmy",
-  "cigar-cutter-2": "cigar-cutter",
+  // cigar-cutter (existing curated) is kept — the new pipeline batch goes
+  // alongside it as -extra so the slug collision doesn't bounce the seed.
+  "cigar-cutter-2": "cigar-cutter-extra",
   // initial-2 is the Initial *Cinatic* lighter, NOT the writing Initial.
   "initial-2": "initial-cinatic",
   // popote-2 is the writing Popote (FP + roller); popote (lighters) keeps
@@ -113,6 +115,7 @@ const RENAME_SLUG: Record<string, string> = {
 // US site cross-lists them under that collection.
 const RECATEGORIZE: Record<string, "isqueiros" | "escrita" | "pele" | "acessorios"> = {
   "cigar-cutter": "acessorios",
+  "cigar-cutter-extra": "acessorios",
   "cigar-cutter-monogram-1872": "acessorios",
   "ligne-2-lighter-case": "pele",
 };
@@ -153,6 +156,7 @@ const RENAME_NAME: Record<string, { pt: string; en: string }> = {
   "atelier-2": { pt: "Atelier", en: "Atelier" },
   "firehead-2": { pt: "Firehead", en: "Firehead" },
   "accessories": { pt: "Acessórios", en: "Accessories" },
+  "cigar-cutter-extra": { pt: "Cortador de Charuto", en: "Cigar Cutter" },
 };
 
 // Walk variant labels too and rewrite "20.000 Léguas" / "20000 Lieues" →
