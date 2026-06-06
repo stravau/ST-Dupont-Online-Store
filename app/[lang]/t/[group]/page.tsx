@@ -73,7 +73,7 @@ export default async function GroupPage({
         <SortSelect value={sort} labels={dict.sort} />
       </div>
 
-      <div className="product-grid mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+      <div className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} lang={locale} />
         ))}

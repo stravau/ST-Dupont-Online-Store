@@ -75,7 +75,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         />
 
         {/* Utilities */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-6">
           <LanguageSwitcher current={lang} />
           <SearchBar
             lang={lang}

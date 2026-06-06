@@ -56,27 +56,27 @@ export default async function StorePage({
       </section>
 
       {/* Details + map */}
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <div className="grid gap-14 md:grid-cols-2">
+      <section className="mx-auto max-w-6xl px-6 py-28">
+        <div className="grid gap-16 md:grid-cols-2">
           {/* Left: details */}
-          <div className="space-y-12">
+          <div className="space-y-14">
             <div>
               <p className="overline">{s.addressTitle}</p>
-              <div className="gold-rule mt-4" />
-              <address className="mt-5 space-y-1 text-base not-italic text-ink">
+              <div className="gold-rule mt-5" />
+              <address className="mt-6 space-y-1.5 text-base not-italic text-ink">
                 <p className="font-serif text-2xl">{STORE.venue}</p>
                 <p className="text-muted">{STORE.street}</p>
                 <p className="text-muted">{STORE.postcode}</p>
-                <p className="mt-2 text-sm tracking-[0.16em] text-gold uppercase">{floor}</p>
+                <p className="mt-3 text-sm tracking-[0.16em] text-gold uppercase">{floor}</p>
               </address>
             </div>
 
             <div>
               <p className="overline">{s.hoursTitle}</p>
-              <div className="gold-rule mt-4" />
-              <ul className="mt-5 space-y-2 text-sm">
+              <div className="gold-rule mt-5" />
+              <ul className="mt-6 space-y-1 text-sm">
                 {s.hours.map((row) => (
-                  <li key={row.d} className="flex justify-between gap-6 border-b border-line py-2">
+                  <li key={row.d} className="flex justify-between gap-6 border-b border-line py-3">
                     <span className="text-muted">{row.d}</span>
                     <span className="text-ink">{row.h}</span>
                   </li>
@@ -86,9 +86,9 @@ export default async function StorePage({
 
             <div>
               <p className="overline">{s.contactTitle}</p>
-              <div className="gold-rule mt-4" />
-              <dl className="mt-5 space-y-3 text-sm">
-                <div className="flex gap-3">
+              <div className="gold-rule mt-5" />
+              <dl className="mt-6 space-y-4 text-sm">
+                <div className="flex gap-4">
                   <dt className="w-20 shrink-0 text-muted">{s.phoneLabel}</dt>
                   <dd>
                     <a href={STORE.phoneHref} className="text-ink transition-colors hover:text-gold">
@@ -96,7 +96,7 @@ export default async function StorePage({
                     </a>
                   </dd>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <dt className="w-20 shrink-0 text-muted">{s.emailLabel}</dt>
                   <dd>
                     <a
@@ -107,7 +107,7 @@ export default async function StorePage({
                     </a>
                   </dd>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <dt className="w-20 shrink-0 text-muted">Web</dt>
                   <dd>
                     <a
@@ -125,11 +125,11 @@ export default async function StorePage({
 
             <div>
               <p className="overline">{s.servicesTitle}</p>
-              <div className="gold-rule mt-4" />
-              <ul className="mt-5 space-y-2 text-sm text-muted">
+              <div className="gold-rule mt-5" />
+              <ul className="mt-6 space-y-3 text-sm text-muted">
                 {s.services.map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <span className="text-gold">—</span> {item}
+                  <li key={item} className="flex items-start gap-3">
+                    <span className="mt-0.5 text-gold">—</span> {item}
                   </li>
                 ))}
               </ul>
@@ -139,8 +139,8 @@ export default async function StorePage({
           {/* Right: map */}
           <div className="flex flex-col">
             <p className="overline">{s.mapTitle}</p>
-            <div className="gold-rule mt-4" />
-            <div className="mt-5 flex md:flex-1">
+            <div className="gold-rule mt-5" />
+            <div className="mt-6 flex md:flex-1">
               <StoreMap
                 src={mapsEmbedSrc}
                 title={STORE.venue}
@@ -152,7 +152,7 @@ export default async function StorePage({
               href={mapsDirectionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center justify-center gap-3 bg-ink py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+              className="mt-6 inline-flex items-center justify-center gap-3 bg-ink py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                 <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" strokeLinejoin="round" />

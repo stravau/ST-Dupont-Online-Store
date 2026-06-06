@@ -71,7 +71,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <p className="reveal reveal-d2 mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
               {dict.hero.subtitle}
             </p>
-            <div className="reveal reveal-d3 mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <div className="reveal reveal-d3 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
               <Link
                 href={`/${locale}/colecao`}
                 className="inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
@@ -103,7 +103,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         className="text-cream flex scroll-mt-20 flex-col lg:min-h-[calc((100svh-5rem)/0.9)] lg:justify-center"
       >
         <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:py-16 lg:py-24">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-2">
               {categories.map((c, i) => (
                 <Link
                   key={c.slug}
@@ -136,13 +136,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       </div>
 
       {/* Novidades grid */}
-      <section className="mx-auto max-w-7xl px-6 pb-24 pt-24">
+      <section className="mx-auto max-w-7xl px-6 pb-28 pt-28">
         <div className="reveal text-center">
           <p className="overline">{dict.sections.novelties}</p>
-          <h2 className="mt-4 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>
-          <div className="gold-rule mx-auto mt-6" />
+          <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>
+          <div className="gold-rule mx-auto mt-7" />
         </div>
-        <div className="product-grid mt-14 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+        <div className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
           {novelties.map((p, i) => (
             <div
               key={p.slug}
@@ -184,15 +184,15 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       </section>
 
       {/* Boutique */}
-      <section className="reveal mx-auto max-w-3xl px-6 py-28 text-center">
+      <section className="reveal mx-auto max-w-3xl px-6 py-32 text-center">
         <p className="overline">{dict.sections.boutiqueEyebrow}</p>
-        <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
-        <div className="gold-rule mx-auto my-7" />
+        <h2 className="mt-6 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
+        <div className="gold-rule mx-auto my-8" />
         <p className="text-muted">{dict.sections.boutiqueBody}</p>
-        <p className="mt-6 text-sm tracking-widest text-ink uppercase">
+        <p className="mt-8 text-sm tracking-widest text-ink uppercase">
           {STORE.venue} · {STORE.street} · {locale === "pt" ? "Piso 0" : "Floor 0"}
         </p>
-        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
           <Link
             href={`/${locale}/consulta`}
             className="inline-block bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"

@@ -118,16 +118,19 @@ export default async function CollectionPage({
                   groups[at.get(p.collection)!].items.push(p);
                 }
                 return groups.map((g) => (
-                  <div key={g.line} className="mt-12 first:mt-0">
-                    <div className="mb-5 flex items-center gap-4">
+                  <div key={g.line} className="mt-16 first:mt-0">
+                    <div className="mb-7 flex items-center gap-5">
                       <h3 className="min-w-0 font-serif text-xl break-words text-ink md:text-2xl">
                         {g.line}
                       </h3>
                       <span className="h-px flex-1 bg-line" />
                     </div>
-                    <div className="product-grid flex flex-wrap justify-center gap-4">
+                    <div className="product-grid flex flex-wrap justify-center gap-5 sm:gap-7 lg:gap-8">
                       {g.items.map((p) => (
-                        <div key={p.slug} className="w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                        <div
+                          key={p.slug}
+                          className="w-[calc(50%-0.625rem)] sm:w-[calc(50%-0.875rem)] lg:w-[calc(25%-1.5rem)]"
+                        >
                           <ProductCard product={p} lang={locale} />
                         </div>
                       ))}

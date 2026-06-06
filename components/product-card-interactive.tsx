@@ -194,7 +194,7 @@ export function ProductCardInteractive({
       {/* Colour swatches — always rendered (even when there's just one
           variant) so every card reserves the same vertical slot and the
           text below lines up across the row. */}
-      <div className="relative z-20 flex min-h-[2rem] flex-wrap items-center justify-center gap-2 px-3 pt-3 sm:min-h-[2.5rem] sm:gap-2.5">
+      <div className="relative z-20 flex min-h-[2.25rem] flex-wrap items-center justify-center gap-2.5 px-4 pt-5 sm:min-h-[2.75rem] sm:gap-3">
         {swatches.length > 1 &&
           swatches.slice(0, showCount).map((c, i) => (
             <button
@@ -222,28 +222,32 @@ export function ProductCardInteractive({
       {/* Text — price given the strongest weight. Each element reserves a
           consistent line/min-height so the colour name, price and CTA
           line up across every card in the row. */}
-      <div className="flex flex-1 flex-col px-5 pb-4 pt-3 text-center">
+      <div className="flex flex-1 flex-col px-6 pb-6 pt-5 text-center sm:px-6 sm:pb-7 sm:pt-6">
         <p className="overline text-[0.7rem]">{collection}</p>
-        <h3 className="mt-1.5 line-clamp-2 min-h-[2.5rem] font-serif text-lg leading-snug text-ink sm:min-h-[3rem] sm:text-2xl">
+        <h3 className="mt-3 line-clamp-2 min-h-[2.5rem] font-serif text-lg leading-snug text-ink sm:min-h-[3rem] sm:text-2xl">
           {title}
         </h3>
-        <p className="overline mt-2 text-[0.55rem] text-muted">{fromLabel}</p>
-        <p className="mt-0.5 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
+        <p className="overline mt-4 text-[0.55rem] text-muted">{fromLabel}</p>
+        <p className="mt-1.5 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
         {/* Color name slot — always rendered (nbsp when empty) so the
             row spacing matches across cards with/without swatches. */}
-        <p className="mt-2 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
+        <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
           {colorName && swatches.length > 1 ? colorName : " "}
         </p>
 
         {/* Inquire — opens a prefilled email to the boutique with the
-            product reference, colourway and any other selected attributes. */}
-        <a
-          href={mailHref}
-          onClick={(e) => e.stopPropagation()}
-          className="relative z-20 mt-auto inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-2.5 text-[0.65rem] tracking-[0.22em] text-gold uppercase sm:py-3 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
-        >
-          {inquireLabel}
-        </a>
+            product reference, colourway and any other selected attributes.
+            mt-auto pushes the CTA to the card's foot; pt-6 keeps a minimum
+            gap between the text block above and the button. */}
+        <div className="relative z-20 mt-auto pt-6 sm:pt-7">
+          <a
+            href={mailHref}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-3 text-[0.65rem] tracking-[0.22em] text-gold uppercase sm:py-3.5 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
+          >
+            {inquireLabel}
+          </a>
+        </div>
       </div>
     </article>
   );

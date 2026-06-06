@@ -168,18 +168,22 @@ export default async function CategoryPage({
         return (
           <div className="mt-12">
             {groups.map((g) => (
-              <section key={g.line} className="mt-16 first:mt-0">
-                <div className="mb-6 flex items-center gap-4">
+              <section key={g.line} className="mt-20 first:mt-0">
+                <div className="mb-8 flex items-center gap-5">
                   <h2 className="min-w-0 font-serif text-2xl break-words text-ink md:text-3xl">
                     {g.line}
                   </h2>
                   <span className="h-px flex-1 bg-line" />
                 </div>
                 {/* Flex + justify-center so a line that doesn't fill the row
-                    of 4 stays centred. Widths match a 2-up / 4-up grid. */}
-                <div className="product-grid flex flex-wrap justify-center gap-4">
+                    of 4 stays centred. Widths match the chosen gap so
+                    rows align edge-to-edge on a 2-up / 4-up grid. */}
+                <div className="product-grid flex flex-wrap justify-center gap-5 sm:gap-7 lg:gap-8">
                   {g.cards.map((card, i) => (
-                    <div key={i} className="w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                    <div
+                      key={i}
+                      className="w-[calc(50%-0.625rem)] sm:w-[calc(50%-0.875rem)] lg:w-[calc(25%-1.5rem)]"
+                    >
                       {card}
                     </div>
                   ))}

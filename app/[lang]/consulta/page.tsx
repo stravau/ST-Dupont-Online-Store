@@ -46,7 +46,7 @@ export default async function ConsultationPage({
           <p className="mx-auto max-w-2xl text-base font-light text-cream/75 md:text-lg">
             {c.lede}
           </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
             <a
               href={bookMail}
               className="inline-flex items-center justify-center gap-3 bg-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-cream"
@@ -71,14 +71,14 @@ export default async function ConsultationPage({
       </section>
 
       {/* Three pillars — what to expect */}
-      <section className="mx-auto max-w-6xl px-6 py-24">
+      <section className="mx-auto max-w-6xl px-6 py-28">
         <p className="overline text-center">{c.pillarsTitle}</p>
-        <div className="gold-rule mx-auto mt-4" />
-        <div className="mt-14 grid gap-12 md:grid-cols-3">
+        <div className="gold-rule mx-auto mt-5" />
+        <div className="mt-16 grid gap-14 md:grid-cols-3 md:gap-12">
           {c.pillars.map((p) => (
             <article key={p.title} className="text-center">
               <h3 className="font-serif text-2xl text-ink">{p.title}</h3>
-              <div className="gold-rule mx-auto my-5" />
+              <div className="gold-rule mx-auto my-6" />
               <p className="text-sm leading-relaxed text-muted">{p.body}</p>
             </article>
           ))}
@@ -87,20 +87,20 @@ export default async function ConsultationPage({
 
       {/* How it works — three numbered steps */}
       <section className="border-y border-line bg-paper">
-        <div className="mx-auto max-w-4xl px-6 py-24 text-center">
+        <div className="mx-auto max-w-4xl px-6 py-28 text-center">
           <p className="overline">{c.howTitle}</p>
-          <div className="gold-rule mx-auto mt-4" />
-          <ol className="mt-12 grid gap-10 md:grid-cols-3">
+          <div className="gold-rule mx-auto mt-5" />
+          <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10">
             {c.steps.map((s, i) => (
               <li key={s} className="flex flex-col items-center">
                 <span className="font-serif text-3xl text-gold">{String(i + 1).padStart(2, "0")}</span>
-                <p className="mt-4 text-sm leading-relaxed text-ink">{s}</p>
+                <p className="mt-5 text-sm leading-relaxed text-ink">{s}</p>
               </li>
             ))}
           </ol>
           <a
             href={bookMail}
-            className="mt-14 inline-flex items-center justify-center gap-3 bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+            className="mt-16 inline-flex items-center justify-center gap-3 bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
           >
             {c.bookCta}
           </a>
@@ -108,21 +108,21 @@ export default async function ConsultationPage({
       </section>
 
       {/* Visit the boutique — cross-link to /loja */}
-      <section className="mx-auto max-w-4xl px-6 py-24 text-center">
+      <section className="mx-auto max-w-4xl px-6 py-28 text-center">
         <p className="overline">{c.visitTitle}</p>
-        <div className="gold-rule mx-auto mt-4" />
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted">
+        <div className="gold-rule mx-auto mt-5" />
+        <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-muted">
           {c.visitBody}
         </p>
-        <address className="mt-6 not-italic">
+        <address className="mt-8 space-y-1 not-italic">
           <p className="font-serif text-xl text-ink">{STORE.venue}</p>
           <p className="text-muted">{STORE.street}</p>
           <p className="text-muted">{STORE.postcode}</p>
         </address>
-        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
           <Link
             href={`/${locale}/loja`}
-            className="inline-flex items-center justify-center gap-3 border border-ink px-8 py-3 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:text-gold"
+            className="inline-flex items-center justify-center gap-3 border border-ink px-8 py-3.5 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:text-gold"
           >
             {c.visitCta}
           </Link>
@@ -130,7 +130,7 @@ export default async function ConsultationPage({
             href={mapsDirectionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 bg-ink px-8 py-3 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+            className="inline-flex items-center justify-center gap-3 bg-ink px-8 py-3.5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
               <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" strokeLinejoin="round" />
