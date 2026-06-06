@@ -36,7 +36,6 @@ export function ProductCardInteractive({
   inquireLabel,
   inquireSubject,
   inquireBody,
-  wishlist,
 }: {
   href: string;
   seed: string;
@@ -53,7 +52,6 @@ export function ProductCardInteractive({
   inquireLabel: string;
   inquireSubject: string;
   inquireBody: string;
-  wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(initialSwatch);
   const [idx, setIdx] = useState(0); // image index within the active gallery
@@ -123,9 +121,7 @@ export function ProductCardInteractive({
       {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
-      {/* Top bar — novelty badge (left) + in-stock dot & wishlist (right).
-          A single justify-between flex row so they never overlap, even on
-          narrow iOS cards. */}
+      {/* Top bar — novelty badge (left) + in-stock dot (right). */}
       <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2.5">
         {noveltyLabel ? (
           <span className="overline min-w-0 truncate bg-ink/85 px-2.5 py-1 text-[0.6rem] text-paper">
@@ -134,13 +130,10 @@ export function ProductCardInteractive({
         ) : (
           <span aria-hidden />
         )}
-        <div className="flex shrink-0 items-center gap-2">
-          <span
-            aria-hidden
-            className="h-2.5 w-2.5 rounded-full bg-[#2bb673] shadow-[0_0_0_3px_rgba(255,255,255,0.7)] sm:h-3 sm:w-3"
-          />
-          {wishlist}
-        </div>
+        <span
+          aria-hidden
+          className="h-2.5 w-2.5 rounded-full bg-[#2bb673] shadow-[0_0_0_3px_rgba(255,255,255,0.7)] sm:h-3 sm:w-3"
+        />
       </div>
 
       {/* Image — portrait. shrink-0 + w-full so the equal-height flex column

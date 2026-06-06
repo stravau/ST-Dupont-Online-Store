@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { searchProducts, sortProducts } from "@/lib/catalog";
-import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
@@ -34,10 +33,7 @@ export default async function SearchPage({
   const query = (q ?? "").trim();
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
 
-  const [raw, wl] = await Promise.all([
-    query ? searchProducts(query) : Promise.resolve([]),
-    myWishlistIds(),
-  ]);
+  const raw = query ? await searchProducts(query) : [];
   const results = sortProducts(raw, sort, locale);
 
   return (
@@ -83,7 +79,7 @@ export default async function SearchPage({
       ) : (
         <div className="product-grid mt-12 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {results.map((p) => (
-            <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
+            <ProductCard key={p.slug} product={p} lang={locale} />
           ))}
         </div>
       )}

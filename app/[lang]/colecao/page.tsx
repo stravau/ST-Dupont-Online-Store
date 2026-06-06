@@ -9,7 +9,6 @@ import {
   type Category,
   type Product,
 } from "@/lib/catalog";
-import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
@@ -41,7 +40,6 @@ export default async function CollectionPage({
   const locale = lang as Locale;
   const dict = getDictionary(locale);
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
-  const wl = await myWishlistIds();
 
   const sections = (
     await Promise.all(
@@ -130,7 +128,7 @@ export default async function CollectionPage({
                     <div className="product-grid flex flex-wrap justify-center gap-4">
                       {g.items.map((p) => (
                         <div key={p.slug} className="w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                          <ProductCard product={p} lang={locale} wishlisted={wl.has(p.id)} />
+                          <ProductCard product={p} lang={locale} />
                         </div>
                       ))}
                     </div>

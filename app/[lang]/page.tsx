@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getCategories, getNovelties } from "@/lib/catalog";
-import { myWishlistIds } from "@/lib/cart";
 import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
@@ -15,10 +14,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
-  const [categories, novelties, wl] = await Promise.all([
+  const [categories, novelties] = await Promise.all([
     getCategories(),
     getNovelties(8),
-    myWishlistIds(),
   ]);
 
   return (
@@ -150,7 +148,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               key={p.slug}
               className={`reveal reveal-d${i % 4} ${i >= 6 ? "hidden lg:block" : ""}`}
             >
-              <ProductCard product={p} lang={locale} wishlisted={wl.has(p.id)} />
+              <ProductCard product={p} lang={locale} />
             </div>
           ))}
         </div>

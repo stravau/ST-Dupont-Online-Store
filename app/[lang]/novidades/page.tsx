@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getNovelties, sortProducts } from "@/lib/catalog";
-import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
@@ -32,8 +31,7 @@ export default async function NewReleasesPage({
   const dict = getDictionary(locale);
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
 
-  const [raw, wl] = await Promise.all([getNovelties(99), myWishlistIds()]);
-  const items = sortProducts(raw, sort, locale);
+  const items = sortProducts(await getNovelties(99), sort, locale);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-16">
@@ -52,7 +50,7 @@ export default async function NewReleasesPage({
 
       <div className="product-grid mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
         {items.map((p) => (
-          <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
+          <ProductCard key={p.slug} product={p} lang={locale} />
         ))}
       </div>
     </div>

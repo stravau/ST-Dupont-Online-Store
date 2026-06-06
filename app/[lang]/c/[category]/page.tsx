@@ -11,7 +11,6 @@ import {
   sortProducts,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
-import { myWishlistIds } from "@/lib/cart";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
@@ -52,7 +51,6 @@ export default async function CategoryPage({
     sort,
     locale,
   );
-  const wl = await myWishlistIds();
   const base = `/${locale}/c/${category}`;
 
   return (
@@ -152,14 +150,13 @@ export default async function CategoryPage({
                   key={`${p.slug}-${t}`}
                   product={p}
                   lang={locale}
-                  wishlisted={wl.has(p.id)}
                   variantType={t}
                 />,
               );
             }
           } else {
             cards.push(
-              <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />,
+              <ProductCard key={p.slug} product={p} lang={locale} />,
             );
           }
           if (!at.has(p.collection)) {

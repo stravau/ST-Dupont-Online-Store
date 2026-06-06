@@ -3,11 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProduct, getCategory, formatPrice } from "@/lib/catalog";
-import { myWishlistIds } from "@/lib/cart";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductDetail } from "@/components/product-detail";
-import { WishlistButton } from "@/components/wishlist-button";
 import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR } from "@/lib/store-info";
 
@@ -51,7 +49,6 @@ export default async function ProductPage({
     images: v.images,
   }));
 
-  const wl = await myWishlistIds();
   const specsByVariant = Object.fromEntries(
     product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale)]),
   );
@@ -97,16 +94,7 @@ export default async function ProductPage({
               </p>
               <StatusPill lang={locale} />
             </div>
-            <div className="mt-4 flex items-start justify-between gap-4">
-              <h1 className="font-serif text-4xl text-ink md:text-5xl">{product.name[locale]}</h1>
-              <WishlistButton
-                productId={product.id}
-                lang={locale}
-                initialActive={wl.has(product.id)}
-                label={dict.client.addToWishlist}
-                className="mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line"
-              />
-            </div>
+            <h1 className="mt-4 font-serif text-4xl text-ink md:text-5xl">{product.name[locale]}</h1>
             <div className="gold-rule my-7" />
             <p className="text-muted">{product.description[locale]}</p>
           </>

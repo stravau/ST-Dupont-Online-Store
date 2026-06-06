@@ -40,14 +40,8 @@ export function routeLabel(pathname: string, lang: Locale): string {
       return (a && legalDocs[a]?.title[lang]) || dict.footer.legal;
     case "pesquisa":
       return dict.search.title;
-    case "carrinho":
-      return dict.cart.title;
-    case "conta":
-      return dict.client.area;
-    case "entrar":
-      return dict.auth.signIn;
-    case "registar":
-      return dict.auth.register;
+    case "consulta":
+      return dict.product.bookConsultation;
     default:
       return dict.nav.backHome;
   }

@@ -1,19 +1,16 @@
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { type Product, formatPrice } from "@/lib/catalog";
-import { WishlistButton } from "@/components/wishlist-button";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 import { compareSwatch } from "@/lib/swatch-order";
 
 export function ProductCard({
   product,
   lang,
-  wishlisted = false,
   variantType,
 }: {
   product: Product;
   lang: Locale;
-  wishlisted?: boolean;
   // When set, this card represents one pen type of the product (e.g. the
   // "Ballpoint" of the Initial line) — title, price and colours scope to it.
   variantType?: string;
@@ -85,15 +82,6 @@ export function ProductCard({
       inquireLabel={dict.product.inquire}
       inquireSubject={dict.product.inquireSubject}
       inquireBody={dict.product.inquireBody}
-      wishlist={
-        <WishlistButton
-          productId={product.id}
-          lang={lang}
-          initialActive={wishlisted}
-          label={dict.client.addToWishlist}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-cream/80 backdrop-blur"
-        />
-      }
     />
   );
 }

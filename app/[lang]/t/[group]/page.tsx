@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProduct, sortProducts, type Product } from "@/lib/catalog";
-import { myWishlistIds } from "@/lib/cart";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
@@ -40,10 +39,7 @@ export default async function GroupPage({
   const activeType = g.types?.find((x) => x.key === type) ?? g.types?.[0];
   const slugs = g.types ? (activeType?.slugs ?? []) : (g.slugs ?? []);
 
-  const [products, wl] = await Promise.all([
-    Promise.all(slugs.map((s) => getProduct(s))),
-    myWishlistIds(),
-  ]);
+  const products = await Promise.all(slugs.map((s) => getProduct(s)));
   const items = sortProducts(products.filter(Boolean) as Product[], sort, locale);
 
   return (
@@ -79,7 +75,7 @@ export default async function GroupPage({
 
       <div className="product-grid mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
         {items.map((p) => (
-          <ProductCard key={p.slug} product={p} lang={locale} wishlisted={wl.has(p.id)} />
+          <ProductCard key={p.slug} product={p} lang={locale} />
         ))}
       </div>
     </div>
