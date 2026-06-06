@@ -3,33 +3,18 @@ import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
-import { currentUserId, getCart } from "@/lib/cart";
-import { formatPrice } from "@/lib/catalog";
-import { updateCartItemQty, removeCartItemQuick, signOutAccount } from "@/lib/actions";
+import { currentUserId } from "@/lib/cart";
+import { signOutAccount } from "@/lib/actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { SearchBar } from "@/components/search-bar";
-import { CartMenu } from "@/components/cart-menu";
 import { AccountMenu } from "@/components/account-menu";
 import { Logo } from "@/components/logo";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
   const userId = await currentUserId();
-  const cart = userId
-    ? await getCart(userId, lang)
-    : { lines: [], subtotalCents: 0, count: 0, currency: "EUR" };
-  const cartCount = cart.count;
-  const cartLines = cart.lines.map((l) => ({
-    itemId: l.itemId,
-    productSlug: l.productSlug,
-    productName: l.productName,
-    variantName: l.variantName,
-    quantity: l.quantity,
-    linePrice: formatPrice(l.lineCents, l.currency, lang),
-    image: l.image,
-  }));
   const categories = await getCategories();
   const menuItems = await Promise.all(
     categories.map(async (c) => ({
@@ -62,6 +47,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           lang={lang}
           items={menuItems}
           links={[
+            { label: dict.product.bookConsultation, href: `/${lang}/consulta` },
             { label: dict.nav.store, href: `/${lang}/loja` },
             { label: dict.nav.about, href: `/${lang}/historia` },
           ]}
@@ -81,7 +67,10 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         <MegaMenu
           lang={lang}
           items={menuItems}
-          links={[{ label: dict.nav.about, href: `/${lang}/historia` }]}
+          links={[
+            { label: dict.product.bookConsultation, href: `/${lang}/consulta` },
+            { label: dict.nav.about, href: `/${lang}/historia` },
+          ]}
           labels={{
             viewAll: dict.nav.viewAll,
             collections: dict.nav.collections,
@@ -109,7 +98,6 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               title={dict.client.area}
               items={[
                 { label: dict.client.profile, href: `/${lang}/conta` },
-                { label: dict.client.orders, href: `/${lang}/conta/encomendas` },
                 { label: dict.client.wishlist, href: `/${lang}/conta/favoritos` },
                 { label: dict.client.addresses, href: `/${lang}/conta/moradas` },
               ]}
@@ -128,22 +116,18 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               </svg>
             </Link>
           )}
-          <CartMenu
-            count={cartCount}
-            cartHref={`/${lang}/carrinho`}
-            lines={cartLines}
-            subtotal={formatPrice(cart.subtotalCents, cart.currency, lang)}
-            updateAction={updateCartItemQty.bind(null, lang)}
-            removeAction={removeCartItemQuick.bind(null, lang)}
-            labels={{
-              title: dict.cart.title,
-              empty: dict.cart.empty,
-              subtotal: dict.cart.subtotal,
-              finalize: dict.cart.finalize,
-              qty: dict.cart.qty,
-              remove: dict.cart.remove,
-            }}
-          />
+          {/* Book consultation — calendar icon, opens the consulta page */}
+          <Link
+            href={`/${lang}/consulta`}
+            aria-label={dict.product.bookConsultation}
+            title={dict.product.bookConsultation}
+            className="text-ink transition-colors hover:text-gold"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+              <path d="M8 3.5v3M16 3.5v3M3.5 10h17" strokeLinecap="round" />
+            </svg>
+          </Link>
         </div>
       </div>
 

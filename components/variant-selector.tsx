@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useActionState } from "react";
-import type { AddResult } from "@/lib/actions";
-import { LoadingOverlay } from "@/components/loading-overlay";
+import { useState, useEffect } from "react";
 import { compareSwatch } from "@/lib/swatch-order";
+import { inquiryMailto } from "@/lib/inquiry";
 
 export interface VariantOption {
   sku: string;
@@ -25,9 +24,10 @@ export interface SelectorLabels {
   selectColor: string;
   sizeLabel: string;
   selectSize: string;
-  addToCart: string;
-  added: string;
-  viewCart: string;
+  inquire: string;
+  inquireSubject: string;
+  inquireBody: string;
+  priceNote: string;
 }
 
 function uniq<T>(arr: T[]): T[] {
@@ -39,19 +39,16 @@ export function VariantSelector({
   labels,
   initialType,
   initialSku: initialSkuProp,
-  addAction,
+  productTitle,
   onActiveSkuChange,
 }: {
   variants: VariantOption[];
   labels: SelectorLabels;
   initialType?: string;
   initialSku?: string;
-  addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
+  productTitle: string;
   onActiveSkuChange?: (sku: string) => void;
 }) {
-  const [state, formAction, pending] = useActionState(addAction, null);
-  const [closedId, setClosedId] = useState<number | null>(null);
-  const showToast = !!state?.ok && state.id !== undefined && state.id !== closedId;
   const types = uniq(variants.map((v) => v.type).filter(Boolean) as string[]);
   const finishes = uniq(variants.map((v) => v.finish).filter(Boolean) as string[]);
   const sizes = uniq(variants.map((v) => v.size).filter(Boolean) as string[]);
@@ -107,6 +104,18 @@ export function VariantSelector({
     hex.length > 1
       ? { background: `linear-gradient(135deg, ${hex[0]} 0 50%, ${hex[1]} 50% 100%)` }
       : { background: hex[0] };
+
+  const mailHref = inquiryMailto({
+    subject: labels.inquireSubject,
+    body: labels.inquireBody,
+    data: {
+      title: productTitle,
+      ref: active.sku,
+      sku: active.sku,
+      color: active.color?.label ?? "",
+      size: active.size ?? "",
+    },
+  });
 
   return (
     <div className="space-y-8">
@@ -231,66 +240,19 @@ export function VariantSelector({
         </fieldset>
       )}
 
-      <p key={active.sku} className="font-serif text-3xl text-ink">
-        {active.price}
-      </p>
+      <div>
+        <p key={active.sku} className="font-serif text-3xl text-ink">
+          {active.price}
+        </p>
+        <p className="mt-2 text-xs tracking-[0.14em] text-muted uppercase">{labels.priceNote}</p>
+      </div>
 
-      <form action={formAction}>
-        <input type="hidden" name="sku" value={active.sku} />
-        <input type="hidden" name="quantity" value="1" />
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full bg-ink py-5 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink disabled:opacity-60"
-        >
-          {labels.addToCart} · {active.price}
-        </button>
-      </form>
-
-      {/* Centred spinner while the add-to-cart request is in flight */}
-      <LoadingOverlay show={pending} />
-
-      {showToast && (
-        <div
-          key={state!.id}
-          role="status"
-          aria-live="polite"
-          className="fixed right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] top-[5.25rem] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
-        >
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-paper">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="overline text-[0.6rem]">{labels.added}</p>
-              <p className="mt-1 truncate font-serif text-base text-ink">{state!.name}</p>
-              <p className="mt-0.5 text-sm text-muted">{state!.price}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setClosedId(state!.id ?? null);
-                  window.dispatchEvent(new CustomEvent("stdupont:open-cart"));
-                }}
-                className="mt-3 inline-block text-xs tracking-[0.18em] text-gold uppercase transition-colors hover:text-ink"
-              >
-                {labels.viewCart} →
-              </button>
-            </div>
-            <button
-              type="button"
-              aria-label="×"
-              onClick={() => setClosedId(state!.id ?? null)}
-              className="shrink-0 text-muted transition-colors hover:text-ink"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+      <a
+        href={mailHref}
+        className="block w-full bg-ink py-5 text-center text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+      >
+        {labels.inquire}
+      </a>
     </div>
   );
 }

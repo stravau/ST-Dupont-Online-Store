@@ -1,13 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { AddResult } from "@/lib/actions";
 import { ProductImage } from "@/components/product-image";
-import { LoadingOverlay } from "@/components/loading-overlay";
 import { imgSrc } from "@/lib/img";
+import { inquiryMailto } from "@/lib/inquiry";
 
 export interface CardSwatch {
   sku: string;
@@ -35,10 +33,9 @@ export function ProductCardInteractive({
   basePrice,
   baseSku,
   initialSwatch = 0,
-  addAction,
-  addToCartLabel,
-  addedLabel,
-  viewCartLabel,
+  inquireLabel,
+  inquireSubject,
+  inquireBody,
   wishlist,
 }: {
   href: string;
@@ -53,10 +50,9 @@ export function ProductCardInteractive({
   basePrice: string;
   baseSku: string;
   initialSwatch?: number;
-  addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
-  addToCartLabel: string;
-  addedLabel: string;
-  viewCartLabel: string;
+  inquireLabel: string;
+  inquireSubject: string;
+  inquireBody: string;
   wishlist: React.ReactNode;
 }) {
   const [sel, setSel] = useState(initialSwatch);
@@ -92,16 +88,21 @@ export function ProductCardInteractive({
   const colorName = active?.label;
   const activeSku = active?.sku ?? baseSku;
 
-  // Add-to-cart action; confirmation is shown via a top-right toast popup
-  // (same one used by the product-detail page) rather than animating the
-  // button itself — works the same on PC and mobile.
-  const [addState, formAction, pending] = useActionState(addAction, null);
-  const [closedId, setClosedId] = useState<number | null>(null);
-  const showToast =
-    !!addState?.ok && addState.id !== undefined && addState.id !== closedId;
   const linkHref = active
     ? `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`
     : href;
+
+  const mailHref = inquiryMailto({
+    subject: inquireSubject,
+    body: inquireBody,
+    data: {
+      title,
+      ref: activeSku,
+      sku: activeSku,
+      color: colorName ?? "",
+      size: "",
+    },
+  });
 
   const swatchStyle = (hex: string[]) =>
     hex.length > 1
@@ -238,79 +239,19 @@ export function ProductCardInteractive({
         {/* Color name slot — always rendered (nbsp when empty) so the
             row spacing matches across cards with/without swatches. */}
         <p className="mt-2 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
-          {colorName && swatches.length > 1 ? colorName : " "}
+          {colorName && swatches.length > 1 ? colorName : " "}
         </p>
 
-        {/* Add to cart — blue with gold lettering; on PC, hover flips to
-            gold with blue lettering. No tap animation on mobile. */}
-        <form
-          action={formAction}
+        {/* Inquire — opens a prefilled email to the boutique with the
+            product reference, colourway and any other selected attributes. */}
+        <a
+          href={mailHref}
           onClick={(e) => e.stopPropagation()}
-          className="relative z-20 mt-auto pt-3.5"
+          className="relative z-20 mt-auto inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-2.5 text-[0.65rem] tracking-[0.22em] text-gold uppercase sm:py-3 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
         >
-          <input type="hidden" name="sku" value={activeSku} />
-          <input type="hidden" name="quantity" value="1" />
-          <button
-            type="submit"
-            disabled={pending}
-            className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-2.5 text-[0.65rem] tracking-[0.22em] text-gold uppercase disabled:opacity-80 sm:py-3 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
-          >
-            <span>+</span>
-            {addToCartLabel}
-          </button>
-        </form>
+          {inquireLabel}
+        </a>
       </div>
-
-      {/* Centred loading spinner while the add-to-cart request is in flight */}
-      <LoadingOverlay show={pending} />
-
-      {/* "Added to cart" toast — portalled to document.body so the card's
-          hover transform can't capture its fixed positioning (was making
-          the toast render inside the card on mobile). */}
-      {showToast && createPortal(
-        <div
-          key={addState!.id}
-          role="status"
-          aria-live="polite"
-          className="fixed right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] top-[5.25rem] z-[60] w-[min(92vw,22rem)] rounded-2xl border border-line bg-paper p-5 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[toastInOut_4500ms_ease-in-out_forwards]"
-        >
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-paper">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="overline text-[0.6rem]">{addedLabel}</p>
-              <p className="mt-1 truncate font-serif text-base text-ink">
-                {addState!.name ?? title}
-              </p>
-              <p className="mt-0.5 text-sm text-muted">{addState!.price ?? price}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setClosedId(addState!.id ?? null);
-                  window.dispatchEvent(new CustomEvent("stdupont:open-cart"));
-                }}
-                className="mt-3 inline-block text-xs tracking-[0.18em] text-gold uppercase transition-colors hover:text-ink"
-              >
-                {viewCartLabel} →
-              </button>
-            </div>
-            <button
-              type="button"
-              aria-label="×"
-              onClick={() => setClosedId(addState!.id ?? null)}
-              className="shrink-0 text-muted transition-colors hover:text-ink"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-        </div>,
-        document.body,
-      )}
     </article>
   );
 }

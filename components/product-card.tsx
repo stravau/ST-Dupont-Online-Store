@@ -1,7 +1,6 @@
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { type Product, formatPrice } from "@/lib/catalog";
-import { addToCart } from "@/lib/actions";
 import { WishlistButton } from "@/components/wishlist-button";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 import { compareSwatch } from "@/lib/swatch-order";
@@ -83,10 +82,9 @@ export function ProductCard({
       basePrice={formatPrice(base.priceCents, base.currency, lang)}
       baseSku={base.sku}
       initialSwatch={initialSwatch}
-      addAction={addToCart.bind(null, lang)}
-      addToCartLabel={dict.cart.addToCart}
-      addedLabel={dict.cart.added}
-      viewCartLabel={dict.cart.viewCart}
+      inquireLabel={dict.product.inquire}
+      inquireSubject={dict.product.inquireSubject}
+      inquireBody={dict.product.inquireBody}
       wishlist={
         <WishlistButton
           productId={product.id}

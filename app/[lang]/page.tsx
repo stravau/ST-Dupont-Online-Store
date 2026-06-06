@@ -73,12 +73,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <p className="reveal reveal-d2 mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
               {dict.hero.subtitle}
             </p>
-            <Link
-              href={`/${locale}/colecao`}
-              className="reveal reveal-d3 mt-7 inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
-            >
-              {dict.hero.cta}
-            </Link>
+            <div className="reveal reveal-d3 mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+              <Link
+                href={`/${locale}/colecao`}
+                className="inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
+              >
+                {dict.hero.cta}
+              </Link>
+              <Link
+                href={`/${locale}/consulta`}
+                className="inline-block bg-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-cream"
+              >
+                {dict.product.bookConsultation}
+              </Link>
+            </div>
           </div>
 
           {/* Cue pinned near the bottom so the lettering stays centred */}
@@ -186,12 +194,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <p className="mt-6 text-sm tracking-widest text-ink uppercase">
           {STORE.venue} · {STORE.street} · {locale === "pt" ? "Piso 0" : "Floor 0"}
         </p>
-        <Link
-          href={`/${locale}/loja`}
-          className="mt-9 inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
-        >
-          {dict.footer.viewStore}
-        </Link>
+        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+          <Link
+            href={`/${locale}/consulta`}
+            className="inline-block bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+          >
+            {dict.product.bookConsultation}
+          </Link>
+          <Link
+            href={`/${locale}/loja`}
+            className="inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
+          >
+            {dict.footer.viewStore}
+          </Link>
+        </div>
       </section>
     </>
   );

@@ -4,8 +4,6 @@ import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProduct, getCategory, formatPrice } from "@/lib/catalog";
 import { myWishlistIds } from "@/lib/cart";
-import { addToCart } from "@/lib/actions";
-import { estimatedDeliveryDate } from "@/lib/delivery";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductDetail } from "@/components/product-detail";
@@ -54,7 +52,6 @@ export default async function ProductPage({
   }));
 
   const wl = await myWishlistIds();
-  const addAction = addToCart.bind(null, locale);
   const specsByVariant = Object.fromEntries(
     product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale)]),
   );
@@ -76,7 +73,6 @@ export default async function ProductPage({
         variants={variantOptions}
         initialType={typeParam}
         initialSku={skuParam}
-        addAction={addAction}
         specsByVariant={specsByVariant}
         specsTitle={dict.product.specs}
         labels={{
@@ -88,9 +84,10 @@ export default async function ProductPage({
           selectColor: dict.product.selectColor,
           sizeLabel: dict.product.sizeLabel,
           selectSize: dict.product.selectSize,
-          addToCart: dict.product.addToCart,
-          added: dict.cart.added,
-          viewCart: dict.cart.viewCart,
+          inquire: dict.product.inquire,
+          inquireSubject: dict.product.inquireSubject,
+          inquireBody: dict.product.inquireBody,
+          priceNote: dict.product.priceNote,
         }}
         header={
           <>
@@ -117,20 +114,23 @@ export default async function ProductPage({
         extras={
           <>
             <p className="mt-4 text-center text-xs tracking-widest text-muted uppercase">
-              {dict.product.deliveryBy} {estimatedDeliveryDate(locale)}
+              {dict.product.byAppointment}
             </p>
 
             {/* Lifetime-service reassurance — a luxury cue st-dupont.com buries */}
             <div className="mt-8 grid gap-3 border-t border-line pt-6 text-sm text-muted sm:grid-cols-2">
               <p className="flex items-center gap-2">
-                <span className="text-gold">—</span> {dict.product.returns}
+                <span className="text-gold">—</span> {dict.product.lifetime}
               </p>
               <p className="flex items-center gap-2">
-                <span className="text-gold">—</span> {dict.product.lifetime}
+                <span className="text-gold">—</span> {dict.product.personalisation}
               </p>
             </div>
 
             <div className="mt-6 flex gap-6 text-xs tracking-[0.16em] uppercase">
+              <Link href={`/${locale}/consulta`} className="text-muted transition-colors hover:text-gold">
+                {dict.product.bookConsultation}
+              </Link>
               <a href={`#${CONTACT_ANCHOR}`} className="text-muted transition-colors hover:text-gold">
                 {dict.product.needHelp}
               </a>

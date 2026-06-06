@@ -6,7 +6,6 @@ import { ProductImage } from "@/components/product-image";
 import { VariantSelector, type VariantOption, type SelectorLabels } from "@/components/variant-selector";
 import { SpecDetails } from "@/components/spec-details";
 import { imgSrc } from "@/lib/img";
-import type { AddResult } from "@/lib/actions";
 import type { Spec } from "@/lib/specs";
 
 // Two-column product top: the left image swaps to the selected colourway's
@@ -19,7 +18,6 @@ export function ProductDetail({
   labels,
   initialType,
   initialSku,
-  addAction,
   header,
   extras,
   specsByVariant,
@@ -32,7 +30,6 @@ export function ProductDetail({
   labels: SelectorLabels;
   initialType?: string;
   initialSku?: string;
-  addAction: (prev: AddResult | null, formData: FormData) => Promise<AddResult>;
   header: React.ReactNode;
   extras: React.ReactNode;
   specsByVariant: Record<string, Spec[]>;
@@ -150,7 +147,7 @@ export function ProductDetail({
             variants={variants}
             initialType={initialType}
             initialSku={initialSku}
-            addAction={addAction}
+            productTitle={label}
             labels={labels}
             onActiveSkuChange={handleActiveSku}
           />
