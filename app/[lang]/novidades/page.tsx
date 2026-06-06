@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getNovelties, sortProducts } from "@/lib/catalog";
+import { getNovelties, sortProducts, expandProductCards } from "@/lib/catalog";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
@@ -49,8 +49,8 @@ export default async function NewReleasesPage({
       </div>
 
       <div className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-        {items.map((p) => (
-          <ProductCard key={p.slug} product={p} lang={locale} />
+        {items.flatMap(expandProductCards).map(({ product, sku }) => (
+          <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
         ))}
       </div>
     </div>

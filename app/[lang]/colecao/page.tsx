@@ -6,6 +6,7 @@ import {
   getCategory,
   getProductsByCategory,
   sortProducts,
+  expandProductCards,
   type Category,
   type Product,
 } from "@/lib/catalog";
@@ -126,12 +127,12 @@ export default async function CollectionPage({
                       <span className="h-px flex-1 bg-line" />
                     </div>
                     <div className="product-grid flex flex-wrap justify-center gap-5 sm:gap-7 lg:gap-8">
-                      {g.items.map((p) => (
+                      {g.items.flatMap(expandProductCards).map(({ product, sku }) => (
                         <div
-                          key={p.slug}
+                          key={`${product.slug}-${sku}`}
                           className="w-[calc(50%-0.625rem)] sm:w-[calc(50%-0.875rem)] lg:w-[calc(25%-1.5rem)]"
                         >
-                          <ProductCard product={p} lang={locale} />
+                          <ProductCard product={product} lang={locale} variantSku={sku} />
                         </div>
                       ))}
                     </div>

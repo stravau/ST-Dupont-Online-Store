@@ -229,10 +229,11 @@ export function ProductCardInteractive({
         </h3>
         <p className="overline mt-4 text-[0.55rem] text-muted">{fromLabel}</p>
         <p className="mt-1.5 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
-        {/* Color name slot — always rendered (nbsp when empty) so the
-            row spacing matches across cards with/without swatches. */}
+        {/* Color name slot — always rendered (nbsp when empty) so row
+            spacing matches across cards. In per-colour mode (one swatch
+            per tile) this becomes the differentiator beneath the price. */}
         <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
-          {colorName && swatches.length > 1 ? colorName : " "}
+          {colorName ? colorName : " "}
         </p>
 
         {/* Inquire — opens a prefilled email to the boutique with the

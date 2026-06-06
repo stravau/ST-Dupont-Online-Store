@@ -9,6 +9,7 @@ import {
   getProductsByCategory,
   getCollections,
   sortProducts,
+  expandProductCards,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { isSortKey, type SortKey } from "@/lib/sort";
@@ -133,32 +134,23 @@ export default async function CategoryPage({
 
       {(() => {
         // Group the catalogue by model line (collection); a title precedes
-        // each line. Multi-pen-type lines expand to one card per type.
+        // each line. Each (product, colourway) is one tile, so multi-colour
+        // products flat-map into one card per colour rather than swatches.
         const groups: { line: string; cards: ReactNode[] }[] = [];
         const at = new Map<string, number>();
         for (const p of items) {
           const cards: ReactNode[] = [];
-          const types: string[] = [];
-          for (const v of p.variants) {
-            const t = v.attributes.type?.[locale];
-            if (t && !types.includes(t)) types.push(t);
-          }
-          if (types.length > 1) {
-            for (const t of types) {
-              cards.push(
-                <ProductCard
-                  key={`${p.slug}-${t}`}
-                  product={p}
-                  lang={locale}
-                  variantType={t}
-                />,
-              );
-            }
-          } else {
+          for (const { sku } of expandProductCards(p)) {
             cards.push(
-              <ProductCard key={p.slug} product={p} lang={locale} />,
+              <ProductCard
+                key={`${p.slug}-${sku}`}
+                product={p}
+                lang={locale}
+                variantSku={sku}
+              />,
             );
           }
+          if (cards.length === 0) continue;
           if (!at.has(p.collection)) {
             at.set(p.collection, groups.length);
             groups.push({ line: p.collection, cards: [] });

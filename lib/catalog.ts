@@ -52,6 +52,25 @@ export interface Category {
   history: Localized | null;
 }
 
+// Expand a product into one card descriptor per colourway. Catalogue grids
+// render a tile per (product, colourway) instead of a single tile with
+// swatches — the swatch UI is reserved for the product detail page.
+// Drops variants/products with no usable photo and dedups by colour label
+// so two SKUs of the same colourway don't render as identical tiles.
+export function expandProductCards(p: Product): { product: Product; sku: string }[] {
+  const out: { product: Product; sku: string }[] = [];
+  const seen = new Set<string>();
+  for (const v of p.variants) {
+    const hasImage = !!(v.image || v.images.length || p.image);
+    if (!hasImage) continue;
+    const key = (v.attributes.color?.label.en ?? v.sku).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ product: p, sku: v.sku });
+  }
+  return out;
+}
+
 const loc = (j: unknown): Localized => j as Localized;
 
 type VariantRow = {

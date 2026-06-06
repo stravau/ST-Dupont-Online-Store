@@ -347,12 +347,31 @@ export const products: SeedProduct[] = [
       en: "The house's classic, slender and elegant design, faithful to the origins of the Dupont signature.",
     },
     categorySlug: "isqueiros",
-    image: "/products/ligne-1/C14120.jpg",
+    image: "/products/ligne-1/C14120.webp",
     variants: [
-      cw("C14120", "Laca Preta & Ouro", "Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 109000, "/products/ligne-1/C14120.jpg"),
-      cw("C14121", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 99000, "/products/ligne-1/C14121.jpg"),
-      cw("C14020", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 119000, "/products/ligne-1/C14020.jpg"),
-      cw("C14021", "Paládio", "Palladium", ["#b9bcc2"], 99000, "/products/ligne-1/C14021.jpg"),
+      cwg("C14120", "Laca Preta & Ouro", "Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 109000, [
+        "/products/ligne-1/C14120.webp",
+        "/products/ligne-1/C14120-2.webp",
+        "/products/ligne-1/C14120-3.webp",
+      ]),
+      cwg("C14121", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 99000, [
+        "/products/ligne-1/C14121.webp",
+        "/products/ligne-1/C14121-2.webp",
+        "/products/ligne-1/C14121-3.webp",
+        "/products/ligne-1/C14121-4.webp",
+      ]),
+      cwg("C14020", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 119000, [
+        "/products/ligne-1/C14020.webp",
+        "/products/ligne-1/C14020-2.webp",
+        "/products/ligne-1/C14020-3.webp",
+        "/products/ligne-1/C14020-4.webp",
+      ]),
+      cwg("C14021", "Paládio", "Palladium", ["#b9bcc2"], 99000, [
+        "/products/ligne-1/C14021.webp",
+        "/products/ligne-1/C14021-2.webp",
+        "/products/ligne-1/C14021-3.webp",
+        "/products/ligne-1/C14021-4.webp",
+      ]),
     ],
   },
   {

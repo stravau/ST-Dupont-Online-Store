@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getProduct, sortProducts, type Product } from "@/lib/catalog";
+import { getProduct, sortProducts, expandProductCards, type Product } from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
@@ -74,8 +74,8 @@ export default async function GroupPage({
       </div>
 
       <div className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-        {items.map((p) => (
-          <ProductCard key={p.slug} product={p} lang={locale} />
+        {items.flatMap(expandProductCards).map(({ product, sku }) => (
+          <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
         ))}
       </div>
     </div>

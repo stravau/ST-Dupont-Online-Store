@@ -59,7 +59,7 @@ export function MegaMenu({
 
   return (
     <nav className="hidden lg:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
-      <ul className="flex items-center gap-9">
+      <ul className="flex items-center gap-10 xl:gap-12">
         {items.map((c) => (
           <li key={c.slug} className="static">
             <Link
@@ -85,7 +85,7 @@ export function MegaMenu({
                 className="menu-panel absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur"
               >
                 <span aria-hidden className="absolute -top-4 left-0 right-0 h-4" />
-                <div className="mx-auto flex max-w-7xl items-start gap-14 px-6 py-7">
+                <div className="mx-auto flex max-w-7xl items-start gap-16 px-6 py-9">
                   {/* Intro */}
                   <div
                     className="menu-item w-52 shrink-0 border-r border-line pr-10"
@@ -112,7 +112,7 @@ export function MegaMenu({
                         style={{ animationDelay: `${0.08 + si * 0.05}s` }}
                       >
                         <p className="overline mb-4 text-[0.6rem]">{sec.title}</p>
-                        <ul className="space-y-2.5">
+                        <ul className="space-y-3">
                           {sec.items.map((it, i) => (
                             <li
                               key={`${it.href}${it.label}`}
@@ -142,8 +142,8 @@ export function MegaMenu({
                       <ul
                         className={
                           c.groups.length > 4
-                            ? "grid grid-cols-2 gap-x-10 gap-y-2.5"
-                            : "space-y-2.5"
+                            ? "grid grid-cols-2 gap-x-10 gap-y-3"
+                            : "space-y-3"
                         }
                       >
                         {c.groups.map((g, i) => (
@@ -173,7 +173,7 @@ export function MegaMenu({
                       >
                         {labels.products}
                       </p>
-                      <ul className="grid grid-cols-2 gap-x-12 gap-y-2.5 xl:grid-cols-3">
+                      <ul className="grid grid-cols-2 gap-x-12 gap-y-3 xl:grid-cols-3">
                         {c.collections.map((col, i) => (
                           <li
                             key={col}

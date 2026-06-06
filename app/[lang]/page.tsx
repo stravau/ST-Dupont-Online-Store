@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getCategories, getNovelties } from "@/lib/catalog";
+import { getCategories, getNovelties, expandProductCards } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
@@ -143,12 +143,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <div className="gold-rule mx-auto mt-7" />
         </div>
         <div className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-          {novelties.map((p, i) => (
+          {novelties.flatMap(expandProductCards).slice(0, 8).map(({ product, sku }, i) => (
             <div
-              key={p.slug}
+              key={`${product.slug}-${sku}`}
               className={`reveal reveal-d${i % 4} ${i >= 6 ? "hidden lg:block" : ""}`}
             >
-              <ProductCard product={p} lang={locale} />
+              <ProductCard product={product} lang={locale} variantSku={sku} />
             </div>
           ))}
         </div>

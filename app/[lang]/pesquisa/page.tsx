@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { searchProducts, sortProducts } from "@/lib/catalog";
+import { searchProducts, sortProducts, expandProductCards } from "@/lib/catalog";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { ProductCard } from "@/components/product-card";
 import { SortSelect } from "@/components/sort-select";
@@ -78,8 +78,8 @@ export default async function SearchPage({
         <p className="mt-10 text-center text-muted">{s.noResults}</p>
       ) : (
         <div className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-          {results.map((p) => (
-            <ProductCard key={p.slug} product={p} lang={locale} />
+          {results.flatMap(expandProductCards).map(({ product, sku }) => (
+            <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
           ))}
         </div>
       )}
