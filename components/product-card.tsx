@@ -53,12 +53,20 @@ export function ProductCard({
   swatches.sort(compareSwatch);
 
   // Show a different colourway per card by default (deterministic per item).
-  const initialSwatch = swatches.length
-    ? [...`${product.slug}${variantType ?? ""}`].reduce(
-        (h, c) => (h * 31 + c.charCodeAt(0)) >>> 0,
-        7,
-      ) % swatches.length
-    : 0;
+  // Prefer a colourway that has a real slideshow (≥2 photos) so cards never
+  // open on a flat single-image variant when a multi-photo one is available.
+  const initialSwatch = (() => {
+    if (!swatches.length) return 0;
+    const hash = [...`${product.slug}${variantType ?? ""}`].reduce(
+      (h, c) => (h * 31 + c.charCodeAt(0)) >>> 0,
+      7,
+    );
+    const slideshowIdx = swatches
+      .map((s, i) => ((s.images?.length ?? 0) > 1 ? i : -1))
+      .filter((i) => i >= 0);
+    const pool = slideshowIdx.length ? slideshowIdx : swatches.map((_, i) => i);
+    return pool[hash % pool.length];
+  })();
 
   const href = `/${lang}/p/${product.slug}${
     variantType ? `?t=${encodeURIComponent(variantType)}` : ""
