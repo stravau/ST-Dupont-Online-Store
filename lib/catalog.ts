@@ -272,7 +272,16 @@ export function sortProducts(
       return arr.sort((a, b) => a.name[locale].localeCompare(b.name[locale]));
     case "featured":
     default:
-      return arr.sort((a, b) => Number(b.novelty) - Number(a.novelty));
+      // The default order is the editorial catalogue order: themed
+      // sub-collections first (Géode/Popote/Maki-e/…), then base lines in
+      // the explicit COLLECTION_ORDER sequence. Novelty pieces only float
+      // *within* their own collection — they no longer jump the entire
+      // grid to the top, which would scramble the section ordering.
+      return arr.sort(
+        (a, b) =>
+          collectionRank(a.collection) - collectionRank(b.collection) ||
+          Number(b.novelty) - Number(a.novelty),
+      );
   }
 }
 
