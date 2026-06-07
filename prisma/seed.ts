@@ -5,6 +5,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "../app/generated/prisma/client";
 import { categories, products, historyByCollection } from "./seed-data";
 import type { SeedProduct } from "./seed-data";
+import { collectionRank } from "../lib/collection-order";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -255,13 +256,10 @@ function rewriteDefi(s: string): string {
     .replace(/D[eé]fi Xtreme/g, "Défi Extreme");
 }
 
-// Display order — collections higher in the list render earlier. Anything
-// not listed sorts after, preserving original seed insertion order.
-//
-// Editorial: themed sub-collections render FIRST so a visitor lands on
-// Géode/Popote/Maki-e/etc immediately — the base lines (Ligne 1, Ligne 2,
-// Le Grand Dupont …) follow afterwards.
-const COLLECTION_ORDER = [
+// Legacy local copy kept for reference; the live order is the imported
+// `collectionRank` from lib/collection-order so the navbar (getCollections)
+// and the catalogue grid share one source of truth.
+const _LEGACY_COLLECTION_ORDER_UNUSED = [
   // Themed lighter sub-lines (collected via RECOLLECTION above).
   "Géode",
   "Popote",
@@ -280,26 +278,25 @@ const COLLECTION_ORDER = [
   "Snake Skin",
   "Camo",
   "Dragon",
-  "Lighter Necklace",
   "Architecture",
-  // Lighter base lines.
-  "Ligne 1",
-  "Ligne 2",
+  // Lighter base lines — explicit order per editorial brief.
   "Le Grand Dupont",
-  "Slim 7",
+  "Ligne 2",
+  "Ligne 1",
+  "Initial",
+  "Initial Cinatic",
+  "Biggy",
   "Twiggy",
   "Slimmy",
-  "Biggy",
-  // Minijet *before* Maxijet (editorial brief).
+  "Slim 7",
+  "Défi Extreme",
+  "Windproof",
   "Minijet",
   "Maxijet",
   "Megajet",
-  "Windproof",
-  "Défi Extreme",
-  "Initial",
-  "Initial Cinatic",
   "Table lighter",
   "Torch",
+  "Lighter Necklace",
   // Writing
   "Line D Eternity",
   "Classique",
@@ -325,10 +322,6 @@ const COLLECTION_ORDER = [
   "Acessórios",
 ];
 
-function collectionRank(c: string): number {
-  const i = COLLECTION_ORDER.indexOf(c);
-  return i === -1 ? COLLECTION_ORDER.length : i;
-}
 
 function transform(list: readonly SeedProduct[]): SeedProduct[] {
   const out: SeedProduct[] = [];

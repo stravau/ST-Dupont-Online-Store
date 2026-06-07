@@ -6,6 +6,7 @@
 import type { Locale } from "@/lib/i18n";
 import type { SortKey } from "@/lib/sort";
 import { prisma } from "@/lib/prisma";
+import { collectionRank } from "@/lib/collection-order";
 
 export type Localized = Record<Locale, string>;
 export type CategorySlug = "isqueiros" | "escrita" | "pele" | "acessorios";
@@ -161,9 +162,13 @@ export async function getCollections(categorySlug: string): Promise<string[]> {
     where: { active: true, category: { slug: categorySlug } },
     select: { collection: true },
     distinct: ["collection"],
-    orderBy: { collection: "asc" },
   });
-  return rows.map((r) => r.collection);
+  // Mirror the catalogue grid order (and the editorial intent) — themed
+  // sub-lines first, then base lines in the user-specified sequence.
+  return rows
+    .map((r) => r.collection)
+    .filter((c) => c.length > 0)
+    .sort((a, b) => collectionRank(a) - collectionRank(b) || a.localeCompare(b));
 }
 
 export async function getProduct(slug: string): Promise<Product | undefined> {
@@ -172,13 +177,24 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
 }
 
 export async function getNovelties(limit = 6): Promise<Product[]> {
+  // "New Releases by the Maison" — bias toward exclusive, higher-end
+  // lighters so the home grid leads with the maison's signature pieces
+  // (Maki-e, Architecture, Fuente, Orlinski, Le Grand Dupont, …) rather
+  // than entry-level SKUs. Pulls a slightly wider pool, sorts each
+  // product by its priciest variant, takes the top `limit`.
   const rows = await prisma.product.findMany({
-    where: { active: true, featured: true },
+    where: {
+      active: true,
+      category: { slug: "isqueiros" },
+    },
     include: productInclude,
-    orderBy: { createdAt: "asc" },
-    take: limit,
+    take: limit * 4,
   });
-  return rows.map(mapProduct);
+  const items = rows.map(mapProduct);
+  const ceiling = (p: Product) =>
+    p.variants.reduce((m, v) => Math.max(m, v.priceCents), 0);
+  items.sort((a, b) => ceiling(b) - ceiling(a));
+  return items.slice(0, limit);
 }
 
 function normalize(s: string): string {

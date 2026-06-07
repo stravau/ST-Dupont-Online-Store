@@ -50,24 +50,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           />
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/50 to-ink/85" />
 
-          {/* Logo — absolutely positioned at the top of the hero so the
-              rest of the lettering stays vertically centred on the screen
-              underneath, with a comfortable gap (not touching). */}
-          <Logo
-            variant="light"
-            width={780}
-            priority
-            className="reveal absolute left-1/2 top-[12vh] z-20 w-[66vw] -translate-x-1/2 sm:top-[14vh] sm:w-[300px]"
-          />
-
           {/* Lettering — vertically centred on the hero by the parent flex.
-              Each piece fades in with a slight stagger as the page lands. */}
+              The est.1872 eyebrow sits ABOVE the wordmark so the logo lands
+              between the navbar and the rest of the lettering. The h1
+              (L'Art du Briquet) is intentionally dropped — the wordmark
+              carries the maison's name on its own. */}
           <div className="relative z-20 flex flex-col items-center">
             <p className="reveal overline text-gold-soft">{dict.hero.eyebrow}</p>
-            <h1 className="reveal reveal-d1 mt-3 font-serif text-5xl font-light leading-tight md:text-7xl">
-              {dict.hero.title}
-            </h1>
-            <div className="reveal reveal-d2 gold-rule mx-auto my-5" />
+            <Logo
+              variant="light"
+              width={780}
+              priority
+              className="reveal reveal-d1 mt-6 w-[66vw] sm:mt-8 sm:w-[300px]"
+            />
+            <div className="reveal reveal-d2 gold-rule mx-auto my-7" />
             <p className="reveal reveal-d2 mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
               {dict.hero.subtitle}
             </p>
