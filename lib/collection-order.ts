@@ -63,6 +63,14 @@ export const COLLECTION_ORDER = [
   "3 Cigar Case · Fluo",
   "2 Cigar Case · Koi",
   "Double Cigar Case",
+  "Humidors",
+  "Ashtrays",
+  "Cufflinks",
+  "Money Clips",
+  "Tie Clips",
+  "Key Holders",
+  "Pen Cases",
+  "Gas Refills",
   "Acessórios",
 ] as const;
 

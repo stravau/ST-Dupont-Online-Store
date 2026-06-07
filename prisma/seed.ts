@@ -92,6 +92,11 @@ const DROP_SLUGS = new Set<string>([
   "le-grand-dupont-monogram-1872",
   "biggy-monogram-1872",
   "ligne-2-monogram-1872",
+  // 2026-06 — EN-store import scrap that can't be salvaged into a sensible
+  // collection (no Title-Collection tag, no theme tag, no Shopify category
+  // mapping).
+  "misc-2",
+  "x",
 ]);
 
 const RENAME_SLUG: Record<string, string> = {
@@ -193,6 +198,48 @@ const RECOLLECTION: Record<string, string> = {
   "atelier-2": "Atelier",
   "firehead-2": "Firehead",
   "accessories": "Acessórios",
+  // EN store import — normalize Shopify's kebab-case collection labels
+  // into the catalogue's canonical display strings.
+  "box-10-refills": "Gas Refills",
+  "box-12-refills": "Gas Refills",
+  "box-5-refills": "Gas Refills",
+  "box-7-refills": "Gas Refills",
+  "gas-refill-2": "Gas Refills",
+  "cigar-humidor-2": "Humidors",
+  "keyring": "Key Holders",
+  "keyrings": "Key Holders",
+  "keyring-monogram-1872": "Monogram 1872",
+  "keyrings-monogram-1872": "Monogram 1872",
+  "pen-case-2": "Pen Cases",
+  "tie-clip-2": "Tie Clips",
+  "money-clip-2": "Money Clips",
+  "money-clip-monogram-1872-2": "Monogram 1872",
+  "cufflink-monogram-1872": "Monogram 1872",
+  "ashtray-2": "Ashtrays",
+  "ashtray-monogram-1872-2": "Monogram 1872",
+  "ashtray-fire-x-2": "Fire X",
+  "cigar-cutter-fire-x-2": "Fire X",
+  "cigar-cutter-fender": "Fender",
+  "cigar-cutter-monogram-1872-2": "Monogram 1872",
+  "2-cigar-case-monogram-1872-2": "Monogram 1872",
+  "cigarette-case-monogram-1872": "Monogram 1872",
+  // Dragon themed pieces in the EN store.
+  "eternity-dragon": "Dragon",
+  "d-initial-dragon": "Dragon",
+  "2-cigar-case-dragon": "Dragon",
+  // Initial / D-Initial — collapse the writing variants under the Initial
+  // collection so they don't form a parallel "D-Initial" sub-line.
+  "d-initial-2": "Initial",
+  "eternity-2": "Eternity",
+  "eternity-monogram-1872-2": "Monogram 1872",
+  "eternity-fire-x": "Fire X",
+  // Singletons across base lines that fall under their themed collection.
+  "twiggy-fire-x": "Fire X",
+  "ligne-2-6": "Ligne 2",
+  "maxijet-2": "Maxijet",
+  "ligne-2-fender-2": "Fender",
+  "crossbody-fender": "Fender",
+  "document-holders-fender": "Fender",
 };
 
 const RENAME_NAME: Record<string, { pt: string; en: string }> = {
