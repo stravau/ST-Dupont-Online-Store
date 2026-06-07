@@ -6,6 +6,12 @@ import { PrismaClient, type Prisma } from "../app/generated/prisma/client";
 import { categories, products, historyByCollection } from "./seed-data";
 import type { SeedProduct } from "./seed-data";
 import { collectionRank } from "../lib/collection-order";
+import descriptionOverrides from "./description-overrides.json";
+
+// Slug → description rewrite, scraped from the body_html on www.st-dupont.com.
+// Applied per-product so the catalogue copy reads exactly the way the maison
+// describes each piece, not the generic placeholder strings.
+const DESC_OVERRIDES: Record<string, string> = descriptionOverrides as Record<string, string>;
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -97,12 +103,27 @@ const DROP_SLUGS = new Set<string>([
   // mapping).
   "misc-2",
   "x",
-  // Drop the curated "Défi Millenium" (typo collection) — the EN-imported
-  // `defi-milenium` (correct "Défi Millennium" spelling) owns this line.
-  // The 3 keeper Rollerball colourways (DM-RB-NVC / DM-RB-BMB / DM-RB-MRC)
-  // are added to the EN product's variant list in seed-data.ts so they're
-  // not lost.
   "defi-millenium",
+  // 2026-06 — Cigar cutter swap (per editorial brief). Drop every existing
+  // cutter slug; the www.st-dupont.com cutters take over the entire
+  // Cortador de Charuto section.
+  "cigar-cutter",
+  "cigar-cutter-2",
+  "cigar-cutter-extra",
+  "cigar-cutter-fender",
+  "cigar-cutter-fire-x-2",
+  "cigar-cutter-monogram-1872",
+  "cigar-cutter-monogram-1872-2",
+  "cigar-cutter-monogram",
+  // 20,000 Leagues — www imports carry the richer multi-variant set per
+  // base line; drop the pipeline single-variant entries.
+  "ligne-2-20000-lieues-sous-les-mers",
+  "twiggy-20000-lieues-sous-les-mers",
+  "slimmy-20000-lieues-sous-les-mers",
+  // www import scrap — placeholder collections with no salvage path.
+  "misc",
+  "x-2",
+  "misc-xl",
 ]);
 
 const RENAME_SLUG: Record<string, string> = {
@@ -246,6 +267,28 @@ const RECOLLECTION: Record<string, string> = {
   "ligne-2-fender-2": "Fender",
   "crossbody-fender": "Fender",
   "document-holders-fender": "Fender",
+  // www store collection-string normalizations.
+  "tie-clip-3": "Tie Clips",
+  "cigar-case-3": "Cigar case",
+  "lighter-case-2": "Lighter Cases",
+  "neo-capsule-3": "Neo Capsule",
+  // Themed lighter sub-lines (capitalize / clean shopify-style stubs).
+  "ligne-2-joker": "Joker",
+  "eternity-joker": "Joker",
+  "ligne-2-harley-quinn": "Harley Quinn",
+  "eternity-harley-quinn": "Harley Quinn",
+  "ligne-2-cohiba-behike": "Cohiba Behike",
+  "le-grand-dupont-cohiba-behike": "Cohiba Behike",
+  "camera-bag-cohiba-behike": "Cohiba Behike",
+  "ligne-1-romeo-y-julieta": "Romeo y Julieta",
+  "twiggy-romeo-y-julieta": "Romeo y Julieta",
+  "le-grand-dupont-romeo-y-julieta": "Romeo y Julieta",
+  "biggy-romeo-y-julieta": "Romeo y Julieta",
+  "3-cigar-case-romeo-y-julieta": "Romeo y Julieta",
+  "ashtray-romeo-y-julieta": "Romeo y Julieta",
+  "liberte-presidence-de-la-republique": "Présidence de la République",
+  "eternity-presidence-de-la-republique": "Présidence de la République",
+  "d-logo": "D Logo",
 };
 
 const RENAME_NAME: Record<string, { pt: string; en: string }> = {
@@ -448,11 +491,13 @@ async function main() {
   for (const p of finalProducts) {
     const categoryId = categoryIdBySlug.get(p.categorySlug);
     if (!categoryId) throw new Error(`Unknown category for product ${p.slug}`);
+    const wwwBody = DESC_OVERRIDES[p.slug];
+    const description = wwwBody ? { pt: wwwBody, en: wwwBody } : p.description;
     await prisma.product.create({
       data: {
         slug: p.slug,
         name: p.name,
-        description: p.description,
+        description,
         history: historyByCollection[p.collection] ?? undefined,
         collection: p.collection,
         image: p.image,
