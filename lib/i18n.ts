@@ -12,7 +12,15 @@ export function isLocale(value: string): value is Locale {
 const dictionaries = {
   pt: {
     nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", collections: "Coleções", viewAll: "Ver tudo", about: "Sobre Nós", backHome: "Início", store: "Loja", products: "Produtos" },
-    common: { home: "Início", available: "Disponível", back: "Voltar" },
+    common: {
+      home: "Início",
+      available: "Disponível",
+      back: "Voltar",
+      prev: "Anterior",
+      next: "Seguinte",
+      showAllOnPage: "Mostrar todos nesta página",
+      collapsePage: "Mostrar menos",
+    },
     notFound: {
       title: "Página não encontrada",
       body: "A página que procura já não existe ou foi movida. Explore as nossas coleções.",
@@ -143,7 +151,15 @@ const dictionaries = {
   },
   en: {
     nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", collections: "Collections", viewAll: "View all", about: "About Us", backHome: "Home", store: "Store", products: "Products" },
-    common: { home: "Home", available: "Available", back: "Back" },
+    common: {
+      home: "Home",
+      available: "Available",
+      back: "Back",
+      prev: "Previous",
+      next: "Next",
+      showAllOnPage: "Show all on this page",
+      collapsePage: "Show fewer",
+    },
     notFound: {
       title: "Page not found",
       body: "The page you are looking for no longer exists or has moved. Explore our collections.",

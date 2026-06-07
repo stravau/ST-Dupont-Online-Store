@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { searchProducts, sortProducts, expandProductCards } from "@/lib/catalog";
 import { isSortKey, type SortKey } from "@/lib/sort";
+import { paginate, readPage } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
+import { PagedGrid } from "@/components/paged-grid";
+import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Crest } from "@/components/crest";
 
@@ -22,10 +25,10 @@ export default async function SearchPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
   const { lang } = await params;
-  const { q, sort: sortParam } = await searchParams;
+  const { q, sort: sortParam, page: pageParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -35,6 +38,11 @@ export default async function SearchPage({
 
   const raw = query ? await searchProducts(query) : [];
   const results = sortProducts(raw, sort, locale);
+  const cards = results.flatMap(expandProductCards);
+  const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
+  const nodes = slice.map(({ product, sku }) => (
+    <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
+  ));
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
@@ -76,13 +84,24 @@ export default async function SearchPage({
 
       {query && results.length === 0 ? (
         <p className="mt-10 text-center text-muted">{s.noResults}</p>
-      ) : (
-        <div className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-          {results.flatMap(expandProductCards).map(({ product, sku }) => (
-            <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
-          ))}
-        </div>
-      )}
+      ) : query ? (
+        <>
+          <PagedGrid
+            items={nodes}
+            className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8"
+            showMoreLabel={dict.common.showAllOnPage}
+            collapseLabel={dict.common.collapsePage}
+          />
+          <Paginator
+            pathname={`/${locale}/pesquisa`}
+            query={{ q: query, sort: sort !== "featured" ? sort : undefined }}
+            page={page}
+            totalPages={totalPages}
+            prevLabel={dict.common.prev}
+            nextLabel={dict.common.next}
+          />
+        </>
+      ) : null}
     </section>
   );
 }

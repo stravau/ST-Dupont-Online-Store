@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,7 +12,10 @@ import {
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { isSortKey, type SortKey } from "@/lib/sort";
+import { paginate, readPage } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
+import { CategoryPaged } from "@/components/category-paged";
+import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Crest } from "@/components/crest";
@@ -34,10 +36,10 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; category: string }>;
-  searchParams: Promise<{ col?: string; sort?: string }>;
+  searchParams: Promise<{ col?: string; sort?: string; page?: string }>;
 }) {
   const { lang, category } = await params;
-  const { col, sort: sortParam } = await searchParams;
+  const { col, sort: sortParam, page: pageParam } = await searchParams;
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
@@ -53,6 +55,19 @@ export default async function CategoryPage({
     locale,
   );
   const base = `/${locale}/c/${category}`;
+
+  // Flatten every (product, sku) for pagination, then hand the slice to the
+  // grouped renderer which re-groups by collection within the visible page.
+  const allCards = items.flatMap((p) =>
+    expandProductCards(p).map(({ sku }) => ({
+      key: `${p.slug}-${sku}`,
+      line: p.collection,
+      node: (
+        <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />
+      ),
+    })),
+  );
+  const { slice: pageCards, page, totalPages } = paginate(allCards, readPage(pageParam));
 
   return (
     <div>
@@ -132,59 +147,23 @@ export default async function CategoryPage({
         <SortSelect value={sort} labels={dict.sort} />
       </div>
 
-      {(() => {
-        // Group the catalogue by model line (collection); a title precedes
-        // each line. Each (product, colourway) is one tile, so multi-colour
-        // products flat-map into one card per colour rather than swatches.
-        const groups: { line: string; cards: ReactNode[] }[] = [];
-        const at = new Map<string, number>();
-        for (const p of items) {
-          const cards: ReactNode[] = [];
-          for (const { sku } of expandProductCards(p)) {
-            cards.push(
-              <ProductCard
-                key={`${p.slug}-${sku}`}
-                product={p}
-                lang={locale}
-                variantSku={sku}
-              />,
-            );
-          }
-          if (cards.length === 0) continue;
-          if (!at.has(p.collection)) {
-            at.set(p.collection, groups.length);
-            groups.push({ line: p.collection, cards: [] });
-          }
-          groups[at.get(p.collection)!].cards.push(...cards);
-        }
-        return (
-          <div className="mt-12">
-            {groups.map((g) => (
-              <section key={g.line} className="mt-20 first:mt-0">
-                <div className="mb-8 flex items-center gap-5">
-                  <h2 className="min-w-0 font-serif text-2xl break-words text-ink md:text-3xl">
-                    {g.line}
-                  </h2>
-                  <span className="h-px flex-1 bg-line" />
-                </div>
-                {/* Flex + justify-center so a line that doesn't fill the row
-                    of 4 stays centred. Widths match the chosen gap so
-                    rows align edge-to-edge on a 2-up / 4-up grid. */}
-                <div className="product-grid flex flex-wrap justify-center gap-5 sm:gap-7 lg:gap-8">
-                  {g.cards.map((card, i) => (
-                    <div
-                      key={i}
-                      className="w-[calc(50%-0.625rem)] sm:w-[calc(50%-0.875rem)] lg:w-[calc(25%-1.5rem)]"
-                    >
-                      {card}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        );
-      })()}
+      <CategoryPaged
+        cards={pageCards}
+        showMoreLabel={dict.common.showAllOnPage}
+        collapseLabel={dict.common.collapsePage}
+      />
+
+      <Paginator
+        pathname={base}
+        query={{
+          col: activeCol,
+          sort: sort !== "featured" ? sort : undefined,
+        }}
+        page={page}
+        totalPages={totalPages}
+        prevLabel={dict.common.prev}
+        nextLabel={dict.common.next}
+      />
       </div>
     </div>
   );

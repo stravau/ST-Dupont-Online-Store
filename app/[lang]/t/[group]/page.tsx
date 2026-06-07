@@ -5,7 +5,10 @@ import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProduct, sortProducts, expandProductCards, type Product } from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
+import { paginate, readPage } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
+import { PagedGrid } from "@/components/paged-grid";
+import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Crest } from "@/components/crest";
 
@@ -25,10 +28,10 @@ export default async function GroupPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; group: string }>;
-  searchParams: Promise<{ type?: string; sort?: string }>;
+  searchParams: Promise<{ type?: string; sort?: string; page?: string }>;
 }) {
   const { lang, group } = await params;
-  const { type, sort: sortParam } = await searchParams;
+  const { type, sort: sortParam, page: pageParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -41,6 +44,11 @@ export default async function GroupPage({
 
   const products = await Promise.all(slugs.map((s) => getProduct(s)));
   const items = sortProducts(products.filter(Boolean) as Product[], sort, locale);
+  const cards = items.flatMap(expandProductCards);
+  const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
+  const nodes = slice.map(({ product, sku }) => (
+    <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
+  ));
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-16">
@@ -73,11 +81,24 @@ export default async function GroupPage({
         <SortSelect value={sort} labels={dict.sort} />
       </div>
 
-      <div className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-        {items.flatMap(expandProductCards).map(({ product, sku }) => (
-          <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
-        ))}
-      </div>
+      <PagedGrid
+        items={nodes}
+        className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8"
+        showMoreLabel={dict.common.showAllOnPage}
+        collapseLabel={dict.common.collapsePage}
+      />
+
+      <Paginator
+        pathname={`/${locale}/t/${g.id}`}
+        query={{
+          type: g.types ? activeType?.key : undefined,
+          sort: sort !== "featured" ? sort : undefined,
+        }}
+        page={page}
+        totalPages={totalPages}
+        prevLabel={dict.common.prev}
+        nextLabel={dict.common.next}
+      />
     </div>
   );
 }
