@@ -97,6 +97,12 @@ const DROP_SLUGS = new Set<string>([
   // mapping).
   "misc-2",
   "x",
+  // Drop the curated "Défi Millenium" (typo collection) — the EN-imported
+  // `defi-milenium` (correct "Défi Millennium" spelling) owns this line.
+  // The 3 keeper Rollerball colourways (DM-RB-NVC / DM-RB-BMB / DM-RB-MRC)
+  // are added to the EN product's variant list in seed-data.ts so they're
+  // not lost.
+  "defi-millenium",
 ]);
 
 const RENAME_SLUG: Record<string, string> = {
