@@ -26,11 +26,23 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         title: s.title[lang],
         items: s.items.map((it) => ({ label: it.label[lang], href: `/${lang}${it.href}` })),
       })),
-      // "Accessories" is its own category/menu entry; "Monogram 1872" is
-      // shown under Collections (groups), so keep both out of the product-
-      // line (Products) column.
+      // The "Products" column lists base lines only. Themed sub-collections
+      // (Géode, Popote, DC Comics, …) already live in the "Collections"
+      // column on the left as `groups`, so keep them out of Products.
       collections: (await getCollections(c.slug)).filter(
-        (x) => x !== "Accessories" && x !== "Monogram 1872",
+        (x) =>
+          x !== "Accessories" &&
+          x !== "Monogram 1872" &&
+          x !== "DC Comics" &&
+          x !== "20,000 Leagues Under The Sea" &&
+          x !== "Géode" &&
+          x !== "Popote" &&
+          x !== "Maki-e" &&
+          x !== "Orlinski" &&
+          x !== "Horse Mane" &&
+          x !== "Fender" &&
+          x !== "Fuente" &&
+          x !== "Fire X",
       ),
     })),
   );

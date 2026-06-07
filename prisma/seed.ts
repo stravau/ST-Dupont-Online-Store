@@ -81,10 +81,16 @@ const DROP_SLUGS = new Set<string>([
   // Drop the curated Ligne 2 (12 variants) — pipeline-imported `ligne-2-extra`
   // takes over the Ligne 2 collection with its 15 colourways.
   "ligne-2",
-  // Drop the second Twiggy entry (pipeline). Drops here run on the
-  // *pre-rename* slug, so this catches `twiggy-2` before the rename can
-  // alias it to `twiggy-extra`.
-  "twiggy-2",
+  // Drop the CURATED Twiggy — keep the pipeline twiggy-2 instead, since it
+  // carries the colourway the user wanted back (blue). The `twiggy-2` slug
+  // renames to `twiggy` below so the URL stays clean.
+  "twiggy",
+  // Monogram 1872 pruning — keep the 1st curated tile (le-grand-dupont-
+  // monogram), drop the next three (the pipeline-imported 1872 products
+  // that read as duplicates of the same theme).
+  "le-grand-dupont-monogram-1872",
+  "biggy-monogram-1872",
+  "ligne-2-monogram-1872",
 ]);
 
 const RENAME_SLUG: Record<string, string> = {
@@ -97,6 +103,9 @@ const RENAME_SLUG: Record<string, string> = {
   // 12-variant entry is gone.
   "ligne-2-2": "ligne-2",
   "ligne-2-3": "ligne-2-lighter-case",
+  // The pipeline Twiggy claims the canonical `twiggy` slug now that the
+  // curated entry is gone.
+  "twiggy-2": "twiggy",
   // 20,000 Leagues — keep the original literary title; Vanikoro is part of
   // the theme (the lost expedition ship) but the user prefers the headline.
   "slimmy-20000-lieues-sous-les-mers": "slimmy-20000-leagues",
@@ -123,12 +132,20 @@ const RECOLLECTION: Record<string, string> = {
   "ligne-2-lighter-case": "Ligne 2",
   "ligne-2-perfect-cling": "Ligne 2",
   "ligne-2-camo": "Ligne 2",
-  "ligne-2-fire-x": "Ligne 2",
   "ligne-2-padron": "Ligne 2",
-  "ligne-2-fender": "Ligne 2",
-  "ligne-2-horse-mane": "Ligne 2",
-  "ligne-2-orlinski": "Ligne 2",
+  // Themed lighter sub-lines — each lives only in its own collection so the
+  // navbar columns and the catalogue page don't double-list them under the
+  // base line they happen to be based on.
+  "ligne-2-horse-mane": "Horse Mane",
+  "ligne-2-orlinski": "Orlinski",
   "ligne-2-maki-e": "Maki-e",
+  "ligne-2-fender": "Fender",
+  "twiggy-fender": "Fender",
+  "ligne-2-fuente": "Fuente",
+  "le-grand-dupont-fuente": "Fuente",
+  "fuente": "Fuente",
+  "camera-bag-fuente": "Fuente",
+  "ligne-2-fire-x": "Fire X",
   // Géode — dedicated collection across all base lines (Slim 7, Twiggy,
   // Slimmy, Minijet, Ligne 2).
   "slim-7-geode": "Géode",
@@ -152,6 +169,7 @@ const RECOLLECTION: Record<string, string> = {
   // DC Comics — gathered into its own collection.
   "dc-comics-necklace": "DC Comics",
   "ligne-2-dc-comics": "DC Comics",
+  "ligne-2-catwoman": "DC Comics",
   // 20,000 Leagues — the cleaner headline replacing "Vanikoro".
   "slimmy-20000-leagues": "20,000 Leagues Under The Sea",
   "twiggy-20000-leagues": "20,000 Leagues Under The Sea",
@@ -196,6 +214,9 @@ const RENAME_NAME: Record<string, { pt: string; en: string }> = {
   "defi-xtreme": { pt: "Défi Extreme", en: "Défi Extreme" },
   "defi-xxtreme": { pt: "Défi Extreme", en: "Défi Extreme" },
   "defi-extreme-2": { pt: "Défi Extreme", en: "Défi Extreme" },
+  // The bare-"Popote" SKUs (C16016/17/18 — Ligne 2 family) read as a Ligne
+  // 2 Popote on the catalogue card.
+  "popote": { pt: "Ligne 2 · Popote", en: "Ligne 2 · Popote" },
 };
 
 // Variant filter — when present, only the listed SKUs of that product
@@ -236,8 +257,32 @@ function rewriteDefi(s: string): string {
 
 // Display order — collections higher in the list render earlier. Anything
 // not listed sorts after, preserving original seed insertion order.
+//
+// Editorial: themed sub-collections render FIRST so a visitor lands on
+// Géode/Popote/Maki-e/etc immediately — the base lines (Ligne 1, Ligne 2,
+// Le Grand Dupont …) follow afterwards.
 const COLLECTION_ORDER = [
-  // Lighters — core lines first
+  // Themed lighter sub-lines (collected via RECOLLECTION above).
+  "Géode",
+  "Popote",
+  "Maki-e",
+  "Orlinski",
+  "Horse Mane",
+  "Fender",
+  "Fuente",
+  "Fire X",
+  "Monogram 1872",
+  "DC Comics",
+  "20,000 Leagues Under The Sea",
+  "Casablanca",
+  "Game of Thrones",
+  "Padrón",
+  "Snake Skin",
+  "Camo",
+  "Dragon",
+  "Lighter Necklace",
+  "Architecture",
+  // Lighter base lines.
   "Ligne 1",
   "Ligne 2",
   "Le Grand Dupont",
@@ -253,28 +298,8 @@ const COLLECTION_ORDER = [
   "Défi Extreme",
   "Initial",
   "Initial Cinatic",
-  // Themed lighter sub-lines (collected via RECOLLECTION above).
-  "Géode",
-  "Popote",
-  "Maki-e",
-  "Orlinski",
-  "Horse Mane",
-  "Monogram 1872",
-  "DC Comics",
-  "20,000 Leagues Under The Sea",
-  "Fuente",
-  "Fender",
-  "Casablanca",
-  "Game of Thrones",
-  "Padrón",
-  "Snake Skin",
-  "Camo",
-  "Fire X",
-  "Dragon",
-  "Lighter Necklace",
   "Table lighter",
   "Torch",
-  "Architecture",
   // Writing
   "Line D Eternity",
   "Classique",

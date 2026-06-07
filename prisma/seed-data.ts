@@ -1386,16 +1386,31 @@ export const products: SeedProduct[] = [
     ],
   },
   {
+    // The headline DC Comics tile — a Lighter Necklace (the K27 series is
+    // pendant / mini-jet hardware, not a full lighter).
     slug: `dc-comics`,
-    name: { pt: `DC Comics`, en: `DC Comics` },
+    name: { pt: `Lighter Necklace · DC Comics`, en: `Lighter Necklace · DC Comics` },
     description: { pt: `Isqueiro S.T. Dupont — laca lapidada à mão, mecanismo de chama assinada e o icónico som cling® da casa de Faverges.`, en: `S.T. Dupont lighter — hand-polished lacquer, signature flame mechanism and the iconic cling® of the Faverges manufacture.` },
     collection: ``,
     categorySlug: "isqueiros",
     image: `/products/dc-comics/K27221CH.webp`,
     variants: [
-      { sku: `K27221CH`, name: { pt: `DC Comics — Vermelho`, en: `DC Comics — Red` }, priceCents: 45540, currency: "EUR", attributes: { color: { label: { pt: `Vermelho`, en: `Red` }, hex: ["#7d2b27"] } }, image: `/products/dc-comics/K27221CH.webp`, images: [`/products/dc-comics/K27221CH.webp`, `/products/dc-comics/K27221CH-2.webp`, `/products/dc-comics/K27221CH-3.webp`, `/products/dc-comics/K27221CH-4.webp`] },
-      { sku: `C16180CL`, name: { pt: `DC Comics — Preto`, en: `DC Comics — Black` }, priceCents: 183540, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/dc-comics/C16180CL.webp`, images: [`/products/dc-comics/C16180CL.webp`, `/products/dc-comics/C16180CL-2.webp`, `/products/dc-comics/C16180CL-3.webp`, `/products/dc-comics/C16180CL-4.webp`] },
-      { sku: `C16220CL`, name: { pt: `DC Comics — Preto`, en: `DC Comics — Black` }, priceCents: 183540, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/dc-comics/C16220CL.webp`, images: [`/products/dc-comics/C16220CL.webp`, `/products/dc-comics/C16220CL-2.webp`, `/products/dc-comics/C16220CL-3.webp`, `/products/dc-comics/C16220CL-4.webp`] }
+      { sku: `K27221CH`, name: { pt: `Lighter Necklace · DC Comics — Vermelho`, en: `Lighter Necklace · DC Comics — Red` }, priceCents: 45540, currency: "EUR", attributes: { color: { label: { pt: `Vermelho`, en: `Red` }, hex: ["#7d2b27"] } }, image: `/products/dc-comics/K27221CH.webp`, images: [`/products/dc-comics/K27221CH.webp`, `/products/dc-comics/K27221CH-2.webp`, `/products/dc-comics/K27221CH-3.webp`, `/products/dc-comics/K27221CH-4.webp`] }
+    ],
+  },
+  {
+    // The C16 SKUs (Ligne 2 family) under the DC Comics theme are the
+    // Catwoman colourway — split out so the catalogue tile reads as a
+    // Ligne 2 lighter rather than a pendant.
+    slug: `ligne-2-catwoman`,
+    name: { pt: `Ligne 2 · Catwoman`, en: `Ligne 2 · Catwoman` },
+    description: { pt: `Isqueiro S.T. Dupont — laca lapidada à mão, mecanismo de chama assinada e o icónico som cling® da casa de Faverges.`, en: `S.T. Dupont lighter — hand-polished lacquer, signature flame mechanism and the iconic cling® of the Faverges manufacture.` },
+    collection: `DC Comics`,
+    categorySlug: "isqueiros",
+    image: `/products/dc-comics/C16180CL.webp`,
+    variants: [
+      { sku: `C16180CL`, name: { pt: `Ligne 2 · Catwoman — Preto`, en: `Ligne 2 · Catwoman — Black` }, priceCents: 183540, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/dc-comics/C16180CL.webp`, images: [`/products/dc-comics/C16180CL.webp`, `/products/dc-comics/C16180CL-2.webp`, `/products/dc-comics/C16180CL-3.webp`, `/products/dc-comics/C16180CL-4.webp`] },
+      { sku: `C16220CL`, name: { pt: `Ligne 2 · Catwoman — Preto`, en: `Ligne 2 · Catwoman — Black` }, priceCents: 183540, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/dc-comics/C16220CL.webp`, images: [`/products/dc-comics/C16220CL.webp`, `/products/dc-comics/C16220CL-2.webp`, `/products/dc-comics/C16220CL-3.webp`, `/products/dc-comics/C16220CL-4.webp`] }
     ],
   },
   {
