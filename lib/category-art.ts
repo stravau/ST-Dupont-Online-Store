@@ -48,7 +48,14 @@ export const categoryArt: Record<string, CategoryArt> = {
     hero: "/headers/isqueiros.jpg",
     groups: [
       NEW_RELEASES,
+      { label: t("Géode", "Géode"), href: "/c/isqueiros?col=G%C3%A9ode" },
+      { label: t("Popote", "Popote"), href: "/c/isqueiros?col=Popote" },
+      { label: t("DC Comics", "DC Comics"), href: "/c/isqueiros?col=DC%20Comics" },
+      { label: t("Maki-e", "Maki-e"), href: "/c/isqueiros?col=Maki-e" },
+      { label: t("Orlinski", "Orlinski"), href: "/c/isqueiros?col=Orlinski" },
+      { label: t("Horse Mane", "Horse Mane"), href: "/c/isqueiros?col=Horse%20Mane" },
       { label: t("Monograma 1872", "Monogram 1872"), href: "/c/isqueiros?col=Monogram%201872" },
+      { label: t("20.000 Léguas", "20,000 Leagues"), href: "/c/isqueiros?col=20%2C000%20Leagues%20Under%20The%20Sea" },
     ],
   },
   escrita: {
@@ -56,6 +63,7 @@ export const categoryArt: Record<string, CategoryArt> = {
     hero: "/headers/escrita.jpg",
     groups: [
       NEW_RELEASES,
+      { label: t("Popote", "Popote"), href: "/c/escrita?col=Popote" },
       { label: t("Monograma 1872", "Monogram 1872"), href: "/c/escrita?col=Monogram%201872" },
     ],
   },

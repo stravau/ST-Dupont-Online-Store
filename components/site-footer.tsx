@@ -38,9 +38,6 @@ export function SiteFooter({ lang }: { lang: Locale }) {
             </p>
           </address>
           <div className="mt-7 flex flex-col items-center gap-3 text-sm text-cream/70 md:items-start">
-            <Link href={`/${lang}/consulta`} className="link-grow transition-colors hover:text-gold">
-              {dict.product.bookConsultation} →
-            </Link>
             <Link href={`/${lang}/loja`} className="link-grow transition-colors hover:text-gold">
               {dict.footer.viewStore} →
             </Link>

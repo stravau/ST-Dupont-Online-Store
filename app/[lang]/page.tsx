@@ -79,10 +79,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 {dict.hero.cta}
               </Link>
               <Link
-                href={`/${locale}/consulta`}
+                href={`/${locale}/loja`}
                 className="inline-block bg-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-cream"
               >
-                {dict.product.bookConsultation}
+                {dict.footer.viewStore}
               </Link>
             </div>
           </div>
@@ -192,16 +192,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <p className="mt-8 text-sm tracking-widest text-ink uppercase">
           {STORE.venue} · {STORE.street} · {locale === "pt" ? "Piso 0" : "Floor 0"}
         </p>
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-          <Link
-            href={`/${locale}/consulta`}
-            className="inline-block bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
-          >
-            {dict.product.bookConsultation}
-          </Link>
+        <div className="mt-10 flex justify-center">
           <Link
             href={`/${locale}/loja`}
-            className="inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
+            className="inline-block bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
           >
             {dict.footer.viewStore}
           </Link>

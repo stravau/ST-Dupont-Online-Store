@@ -43,7 +43,6 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           lang={lang}
           items={menuItems}
           links={[
-            { label: dict.product.bookConsultation, href: `/${lang}/consulta` },
             { label: dict.nav.store, href: `/${lang}/loja` },
             { label: dict.nav.about, href: `/${lang}/historia` },
           ]}
@@ -64,7 +63,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           lang={lang}
           items={menuItems}
           links={[
-            { label: dict.product.bookConsultation, href: `/${lang}/consulta` },
+            { label: dict.nav.store, href: `/${lang}/loja` },
             { label: dict.nav.about, href: `/${lang}/historia` },
           ]}
           labels={{
@@ -88,16 +87,16 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               viewAll: dict.search.viewAll,
             }}
           />
-          {/* Book consultation — calendar icon, opens the consulta page */}
+          {/* Visit the boutique — map-pin icon, opens the store page */}
           <Link
-            href={`/${lang}/consulta`}
-            aria-label={dict.product.bookConsultation}
-            title={dict.product.bookConsultation}
+            href={`/${lang}/loja`}
+            aria-label={dict.nav.store}
+            title={dict.nav.store}
             className="text-ink transition-colors hover:text-gold"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
-              <path d="M8 3.5v3M16 3.5v3M3.5 10h17" strokeLinecap="round" />
+              <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" strokeLinejoin="round" />
+              <circle cx="12" cy="10" r="2.5" />
             </svg>
           </Link>
         </div>

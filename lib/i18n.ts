@@ -82,54 +82,15 @@ const dictionaries = {
       personalisation: "Personalização e gravação na boutique",
       needHelp: "Precisa de ajuda?",
       findStore: "Encontrar loja",
-      // Consultation / inquiry
+      // Inquiry — single mailto to the boutique. We invite the customer to
+      // visit; we don't book appointments / consultations any more.
       inquire: "Pedir Informação",
-      bookConsultation: "Marcar Consulta",
-      byAppointment: "Atendimento por marcação · consulta presencial na boutique",
-      priceNote: "Preço indicativo · confirmado em consulta",
+      visitBoutique: "Visite-nos na boutique · atendimento personalizado em Lisboa",
+      priceNote: "Preço indicativo · confirmado na boutique",
       inquireSubject: "Pedido de informação · {title}",
       inquireBody:
-        "Bom dia,\n\nGostaria de receber mais informações sobre o seguinte artigo:\n\n— Artigo: {title}\n— Referência: {ref}\n— Colorway: {color}\n— Tamanho: {size}\n\nPretendo também marcar uma consulta presencial, se possível.\n\nObrigado(a),\n",
+        "Bom dia,\n\nGostaria de receber mais informações sobre o seguinte artigo:\n\n— Artigo: {title}\n— Referência: {ref}\n— Colorway: {color}\n— Tamanho: {size}\n\nGostaria também de visitar a boutique para ver a peça presencialmente. Que disponibilidade têm?\n\nObrigado(a),\n",
       specs: "Detalhes & Especificações",
-    },
-    consultation: {
-      eyebrow: "Atendimento por marcação",
-      title: "Uma consulta presencial na boutique",
-      lede:
-        "A maison S.T. Dupont apresenta-se em consulta privada — uma conversa com um conselheiro da casa, em torno das peças, dos acabamentos e dos serviços de personalização exclusivos. Cada consulta é única, pensada para o seu projeto.",
-      bookCta: "Marcar Consulta",
-      callCta: "Falar com a boutique",
-      pillarsTitle: "O que esperar",
-      pillars: [
-        {
-          title: "Conselho de especialista",
-          body:
-            "Apresentação aprofundada da coleção, das matérias e dos savoir-faire da Maison, com tempo para experimentar.",
-        },
-        {
-          title: "Personalização e gravação",
-          body:
-            "Gravação fina, escolha de acabamentos e serviços de personalização — tudo coordenado pela boutique.",
-        },
-        {
-          title: "Serviço vitalício",
-          body:
-            "Revisão, manutenção e reparação dos seus objetos S.T. Dupont na boutique, durante toda a sua vida.",
-        },
-      ],
-      howTitle: "Como funciona",
-      steps: [
-        "Envie-nos um email com o seu interesse — peça, ocasião, data preferida.",
-        "Um conselheiro da boutique confirma o horário e prepara a apresentação.",
-        "É recebido na boutique, em Lisboa, para uma consulta privada de cerca de 45 minutos.",
-      ],
-      bookSubject: "Pedido de consulta presencial",
-      bookBody:
-        "Bom dia,\n\nGostaria de marcar uma consulta presencial na boutique S.T. Dupont em Lisboa.\n\n— Data/hora preferida:\n— Interesse principal (isqueiros, escrita, pele, …):\n— Ocasião (oferta, projeto pessoal, gravação, …):\n— Outras notas:\n\nObrigado(a),\n",
-      visitTitle: "Visitar a boutique",
-      visitBody:
-        "Encontra-nos no El Corte Inglés de Lisboa, Av. António Augusto de Aguiar 31, Piso 0.",
-      visitCta: "Ver morada e direções",
     },
     footer: {
       tagline: "Maison de luxe française · desde 1872",
@@ -252,54 +213,15 @@ const dictionaries = {
       personalisation: "Personalisation & engraving at the boutique",
       needHelp: "Need help?",
       findStore: "Find a store",
-      // Consultation / inquiry
+      // Inquiry — single mailto to the boutique. We invite the customer to
+      // visit; we don't book appointments / consultations any more.
       inquire: "Inquire",
-      bookConsultation: "Book a Consultation",
-      byAppointment: "By appointment · personal consultation at the boutique",
-      priceNote: "Indicative price · confirmed at consultation",
+      visitBoutique: "Visit us at the boutique · personal advice in Lisbon",
+      priceNote: "Indicative price · confirmed at the boutique",
       inquireSubject: "Information request · {title}",
       inquireBody:
-        "Hello,\n\nI would like more information about the following item:\n\n— Item: {title}\n— Reference: {ref}\n— Colourway: {color}\n— Size: {size}\n\nI would also like to arrange a personal consultation at the boutique if possible.\n\nThank you,\n",
+        "Hello,\n\nI would like more information about the following item:\n\n— Item: {title}\n— Reference: {ref}\n— Colourway: {color}\n— Size: {size}\n\nI would also like to visit the boutique to see the piece in person. What's your availability?\n\nThank you,\n",
       specs: "Details & Specifications",
-    },
-    consultation: {
-      eyebrow: "By appointment",
-      title: "A private consultation at the boutique",
-      lede:
-        "S.T. Dupont presents itself by private appointment — a conversation with a Maison adviser around the pieces, the finishes and the exclusive personalisation services. Every consultation is unique, shaped around your project.",
-      bookCta: "Book a Consultation",
-      callCta: "Talk to the boutique",
-      pillarsTitle: "What to expect",
-      pillars: [
-        {
-          title: "Expert advice",
-          body:
-            "An in-depth presentation of the collection, materials and savoir-faire of the Maison — with time to try each piece.",
-        },
-        {
-          title: "Personalisation & engraving",
-          body:
-            "Fine engraving, choice of finishes and exclusive personalisation services — all coordinated by the boutique.",
-        },
-        {
-          title: "Lifetime service",
-          body:
-            "Maintenance, servicing and repair of your S.T. Dupont objects at the boutique, for as long as you own them.",
-        },
-      ],
-      howTitle: "How it works",
-      steps: [
-        "Send us an email with your interest — piece, occasion, preferred date.",
-        "A boutique adviser confirms the slot and prepares the presentation.",
-        "You are received at the boutique in Lisbon for a private 45-minute consultation.",
-      ],
-      bookSubject: "Consultation request",
-      bookBody:
-        "Hello,\n\nI would like to arrange a private consultation at the S.T. Dupont boutique in Lisbon.\n\n— Preferred date/time:\n— Main interest (lighters, writing, leather, …):\n— Occasion (gift, personal project, engraving, …):\n— Other notes:\n\nThank you,\n",
-      visitTitle: "Visit the boutique",
-      visitBody:
-        "Find us at El Corte Inglés Lisbon, Av. António Augusto de Aguiar 31, Ground floor.",
-      visitCta: "View address & directions",
     },
     footer: {
       tagline: "Maison de luxe française · since 1872",

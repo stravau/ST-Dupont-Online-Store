@@ -40,8 +40,6 @@ export function routeLabel(pathname: string, lang: Locale): string {
       return (a && legalDocs[a]?.title[lang]) || dict.footer.legal;
     case "pesquisa":
       return dict.search.title;
-    case "consulta":
-      return dict.product.bookConsultation;
     default:
       return dict.nav.backHome;
   }

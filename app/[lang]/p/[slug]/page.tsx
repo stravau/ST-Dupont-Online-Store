@@ -102,7 +102,7 @@ export default async function ProductPage({
         extras={
           <>
             <p className="mt-6 text-center text-xs tracking-widest text-muted uppercase">
-              {dict.product.byAppointment}
+              {dict.product.visitBoutique}
             </p>
 
             {/* Lifetime-service reassurance — a luxury cue st-dupont.com buries */}
@@ -116,15 +116,12 @@ export default async function ProductPage({
             </div>
 
             <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-xs tracking-[0.16em] uppercase">
-              <Link href={`/${locale}/consulta`} className="text-muted transition-colors hover:text-gold">
-                {dict.product.bookConsultation}
+              <Link href={`/${locale}/loja`} className="text-muted transition-colors hover:text-gold">
+                {dict.product.findStore}
               </Link>
               <a href={`#${CONTACT_ANCHOR}`} className="text-muted transition-colors hover:text-gold">
                 {dict.product.needHelp}
               </a>
-              <Link href={`/${locale}/loja`} className="text-muted transition-colors hover:text-gold">
-                {dict.product.findStore}
-              </Link>
             </div>
           </>
         }

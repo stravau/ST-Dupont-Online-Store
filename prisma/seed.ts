@@ -14,8 +14,6 @@ const prisma = new PrismaClient({ adapter });
 // what was imported from us.st-dupont.com — these maps capture the
 // editorial overrides (dropouts, renames, category fixes, ordering).
 
-// Products with no usable photo on disk (audit run 2026-06-06): drop so
-// catalogue grids never render an empty-tile placeholder.
 const DROP_SLUGS = new Set<string>([
   // Lighters with no images
   "defi-extreme",
@@ -77,42 +75,38 @@ const DROP_SLUGS = new Set<string>([
   "cufflinks-monogram",
   "money-clip-monogram",
   "key-ring-monogram",
-  // Generic "writing-instruments-*" tiles that don't have a real model line
   "writing-instrument",
   "writing-instruments",
+  // 2026-06 editorial pass:
+  // Drop the curated Ligne 2 (12 variants) — pipeline-imported `ligne-2-extra`
+  // takes over the Ligne 2 collection with its 15 colourways.
+  "ligne-2",
+  // Drop the second Twiggy entry — keep the curated one.
+  "twiggy-extra",
 ]);
 
-// Slug renames — applied AFTER the drop pass. The "-2" / "-3" suffixes were
-// the pipeline's collision-avoidance against existing curated slugs; once
-// the placeholder originals are dropped, the suffixed product can claim
-// the original slug.
 const RENAME_SLUG: Record<string, string> = {
   "biggy-2": "biggy",
   "slimmy-2": "slimmy",
-  // cigar-cutter (existing curated) is kept — the new pipeline batch goes
-  // alongside it as -extra so the slug collision doesn't bounce the seed.
   "cigar-cutter-2": "cigar-cutter-extra",
-  // initial-2 is the Initial *Cinatic* lighter, NOT the writing Initial.
   "initial-2": "initial-cinatic",
-  // popote-2 is the writing Popote (FP + roller); popote (lighters) keeps
-  // its slug so its URL stays stable.
   "popote-2": "popote-writing",
-  // The Ligne 2 SKUs my pipeline added under -2/-3 are legitimately Ligne 2
-  // — but with my own colourways. Keep them as siblings of the curated
-  // ligne-2 entry; the catalogue page groups by `collection` so both
-  // render in the same Ligne 2 section.
-  "ligne-2-2": "ligne-2-extra",
+  // ligne-2-extra inherits the canonical ligne-2 slug now that the curated
+  // 12-variant entry is gone.
+  "ligne-2-2": "ligne-2",
   "ligne-2-3": "ligne-2-lighter-case",
   "twiggy-2": "twiggy-extra",
-  // Vanikoro is the lost expedition ship in 20,000 Leagues — a cleaner
-  // brand-name for the collection than the verbatim French title.
-  "slimmy-20000-lieues-sous-les-mers": "slimmy-vanikoro",
-  "twiggy-20000-lieues-sous-les-mers": "twiggy-vanikoro",
-  "ligne-2-20000-lieues-sous-les-mers": "ligne-2-vanikoro",
+  // 20,000 Leagues — keep the original literary title; Vanikoro is part of
+  // the theme (the lost expedition ship) but the user prefers the headline.
+  "slimmy-20000-lieues-sous-les-mers": "slimmy-20000-leagues",
+  "twiggy-20000-lieues-sous-les-mers": "twiggy-20000-leagues",
+  "ligne-2-20000-lieues-sous-les-mers": "ligne-2-20000-leagues",
+  // Cleaner "Perfect Cling" slug (the original had a "ping" typo).
+  "line-2-perfect-ping": "ligne-2-perfect-cling",
+  // DC Comics → split the headline product (Lighter Necklace) cleanly.
+  "dc-comics": "dc-comics-necklace",
 };
 
-// Category corrections — cigar accessories are not "Lighters" even when the
-// US site cross-lists them under that collection.
 const RECATEGORIZE: Record<string, "isqueiros" | "escrita" | "pele" | "acessorios"> = {
   "cigar-cutter": "acessorios",
   "cigar-cutter-extra": "acessorios",
@@ -120,19 +114,56 @@ const RECATEGORIZE: Record<string, "isqueiros" | "escrita" | "pele" | "acessorio
   "ligne-2-lighter-case": "pele",
 };
 
-// Collection rewrites — normalise to canonical line names so the catalogue
-// page's collection-grouping puts every Ligne 2 (and Vanikoro, Géode, etc.)
-// in one section instead of splitting on tiny string differences.
 const RECOLLECTION: Record<string, string> = {
-  "ligne-2-extra": "Ligne 2",
+  // Ligne 2 ecosystem — only the *canonical* Ligne 2 stays under "Ligne 2".
+  // Themed sub-lines move to their own collections so the Lighter grid
+  // groups them in dedicated sections.
+  "ligne-2": "Ligne 2",
   "ligne-2-lighter-case": "Ligne 2",
-  "slimmy-vanikoro": "Vanikoro",
-  "twiggy-vanikoro": "Vanikoro",
-  "ligne-2-vanikoro": "Vanikoro",
-  "twiggy-extra": "Twiggy",
+  "ligne-2-perfect-cling": "Ligne 2",
+  "ligne-2-camo": "Ligne 2",
+  "ligne-2-fire-x": "Ligne 2",
+  "ligne-2-padron": "Ligne 2",
+  "ligne-2-fender": "Ligne 2",
+  "ligne-2-horse-mane": "Ligne 2",
+  "ligne-2-orlinski": "Ligne 2",
+  "ligne-2-maki-e": "Maki-e",
+  // Géode — dedicated collection across all base lines (Slim 7, Twiggy,
+  // Slimmy, Minijet, Ligne 2).
+  "slim-7-geode": "Géode",
+  "twiggy-geode": "Géode",
+  "slimmy-geode": "Géode",
+  "minijet-geode": "Géode",
+  "ligne-2-geode": "Géode",
+  // Monogram 1872 — every "monogram 1872" item lives here, regardless of
+  // the base line.
+  "le-grand-dupont-monogram-1872": "Monogram 1872",
+  "biggy-monogram-1872": "Monogram 1872",
+  "ligne-2-monogram-1872": "Monogram 1872",
+  "cigar-cutter-monogram-1872": "Monogram 1872",
+  "eternity-monogram-1872": "Monogram 1872",
+  "2-cigar-case-monogram-1872": "Monogram 1872",
+  "le-grand-dupont-monogram": "Monogram 1872",
+  // Popote — gathered into its own collection across lines + categories.
+  "popote": "Popote",
   "popote-writing": "Popote",
-  "initial-cinatic": "Initial Cinatic",
-  // Accessory tail-singletons: normalise the noisy Shopify-derived names.
+  "le-grand-dupont-popote": "Popote",
+  // DC Comics — gathered into its own collection.
+  "dc-comics-necklace": "DC Comics",
+  "ligne-2-dc-comics": "DC Comics",
+  // 20,000 Leagues — the cleaner headline replacing "Vanikoro".
+  "slimmy-20000-leagues": "20,000 Leagues Under The Sea",
+  "twiggy-20000-leagues": "20,000 Leagues Under The Sea",
+  "ligne-2-20000-leagues": "20,000 Leagues Under The Sea",
+  // Le Grand cleanup — the curated Le Grand survives (filtered down to two
+  // colourways below) under the canonical Le Grand Dupont collection so the
+  // legacy "Le Grand" section disappears from the grid.
+  "le-grand-dupont": "Le Grand Dupont",
+  // Défi family — consolidate XX/X extreme branches into one Défi Extreme.
+  "defi-extreme-2": "Défi Extreme",
+  "defi-xtreme": "Défi Extreme",
+  "defi-xxtreme": "Défi Extreme",
+  // Tail-singletons.
   "3-cigar-case-fluo": "3 Cigar Case · Fluo",
   "2-cigar-case-koi-fish": "2 Cigar Case · Koi",
   "atelier-2": "Atelier",
@@ -140,60 +171,80 @@ const RECOLLECTION: Record<string, string> = {
   "accessories": "Acessórios",
 };
 
-// Product display-name rewrites for Vanikoro (the slugs alone don't carry
-// the surface label — the card title comes from `name.{pt|en}`).
 const RENAME_NAME: Record<string, { pt: string; en: string }> = {
-  "slimmy-vanikoro": { pt: "Slimmy · Vanikoro", en: "Slimmy · Vanikoro" },
-  "twiggy-vanikoro": { pt: "Twiggy · Vanikoro", en: "Twiggy · Vanikoro" },
-  "ligne-2-vanikoro": { pt: "Ligne 2 · Vanikoro", en: "Ligne 2 · Vanikoro" },
+  "slimmy-20000-leagues": { pt: "Slimmy · 20.000 Léguas Submarinas", en: "Slimmy · 20,000 Leagues Under The Sea" },
+  "twiggy-20000-leagues": { pt: "Twiggy · 20.000 Léguas Submarinas", en: "Twiggy · 20,000 Leagues Under The Sea" },
+  "ligne-2-20000-leagues": { pt: "Ligne 2 · 20.000 Léguas Submarinas", en: "Ligne 2 · 20,000 Leagues Under The Sea" },
   "initial-cinatic": { pt: "Initial Cinatic", en: "Initial Cinatic" },
   "popote-writing": { pt: "Popote · Escrita", en: "Popote · Writing" },
-  "ligne-2-extra": { pt: "Ligne 2", en: "Ligne 2" },
   "ligne-2-lighter-case": { pt: "Ligne 2 · Estojo", en: "Ligne 2 · Lighter Case" },
-  "twiggy-extra": { pt: "Twiggy", en: "Twiggy" },
+  "ligne-2-perfect-cling": { pt: "Ligne 2 · Perfect Cling", en: "Ligne 2 · Perfect Cling" },
   "3-cigar-case-fluo": { pt: "Estojo Triplo · Fluo", en: "3 Cigar Case · Fluo" },
   "2-cigar-case-koi-fish": { pt: "Estojo Duplo · Koi", en: "2 Cigar Case · Koi" },
   "atelier-2": { pt: "Atelier", en: "Atelier" },
   "firehead-2": { pt: "Firehead", en: "Firehead" },
   "accessories": { pt: "Acessórios", en: "Accessories" },
   "cigar-cutter-extra": { pt: "Cortador de Charuto", en: "Cigar Cutter" },
+  "dc-comics-necklace": {
+    pt: "Lighter Necklace · DC Comics",
+    en: "Lighter Necklace · DC Comics",
+  },
 };
 
-// Walk variant labels too and rewrite "20.000 Léguas" / "20000 Lieues" →
-// "Vanikoro" so the per-card SKU title reads cleanly.
-function rewriteVanikoroText(s: string): string {
+// Variant filter — when present, only the listed SKUs of that product
+// survive. Used for the Le Grand → Le Grand Dupont consolidation where the
+// curated `le-grand-dupont` keeps just two colourways (Shiny Black Lacquer
+// & Palladium + Sunburst Blue Lacquer & Palladium) per the editorial brief.
+const KEEP_VARIANTS: Record<string, Set<string>> = {
+  "le-grand-dupont": new Set(["C23780CL", "C23013N"]),
+};
+
+// Vanikoro → 20,000 Leagues text rewrite — sweep label strings too, since
+// names like "Slimmy · 20000 Lieues sous les mers — Royal Blue" reach the
+// cards via variant.name not just product.name.
+function rewriteLeaguesText(s: string): string {
   return s
-    .replace(/20\.000 L[ée]guas Submarinas/gi, "Vanikoro")
-    .replace(/20000 Lieues sous les mers/gi, "Vanikoro");
+    .replace(/20\.000 L[ée]guas Submarinas/gi, "20.000 Léguas Submarinas")
+    .replace(/20000 Lieues sous les mers/gi, "20,000 Leagues Under The Sea")
+    .replace(/20\s?000 Lieues sous les mers/gi, "20,000 Leagues Under The Sea")
+    .replace(/Vanikoro/gi, "20,000 Leagues Under The Sea");
 }
 
-// Collection display order. Anything not listed sorts after, preserving
-// original seed order. Lighters first, then writing, then leather goods,
-// then accessories. Within lighters, Windproof + Défi Extreme adjacent
-// per the editorial brief.
+// "Line" → "Ligne" sweep for the Perfect Cling product whose Shopify-
+// imported labels still read "Line 2 Perfect Ping".
+function rewriteLignePerfectCling(s: string): string {
+  return s.replace(/Line 2 Perfect Ping/g, "Ligne 2 · Perfect Cling")
+    .replace(/Perfect Ping/g, "Perfect Cling");
+}
+
+// Display order — collections higher in the list render earlier. Anything
+// not listed sorts after, preserving original seed insertion order.
 const COLLECTION_ORDER = [
   // Lighters — core lines first
+  "Ligne 1",
   "Ligne 2",
   "Le Grand Dupont",
   "Slim 7",
   "Twiggy",
   "Slimmy",
   "Biggy",
-  "Maxijet",
+  // Minijet *before* Maxijet (editorial brief).
   "Minijet",
+  "Maxijet",
   "Megajet",
   "Windproof",
   "Défi Extreme",
-  "Défi XXtreme",
-  "Défi Xtreme",
-  // Themed lighter sub-lines
-  "Popote",
+  "Initial",
+  "Initial Cinatic",
+  // Themed lighter sub-lines (collected via RECOLLECTION above).
   "Géode",
-  "Orlinski",
+  "Popote",
   "Maki-e",
+  "Orlinski",
   "Horse Mane",
+  "Monogram 1872",
   "DC Comics",
-  "Vanikoro",
+  "20,000 Leagues Under The Sea",
   "Fuente",
   "Fender",
   "Casablanca",
@@ -203,13 +254,10 @@ const COLLECTION_ORDER = [
   "Camo",
   "Fire X",
   "Dragon",
-  "Monogram 1872",
-  "Initial",
-  "Initial Cinatic",
   "Lighter Necklace",
+  "Table lighter",
   "Torch",
   "Architecture",
-  "Line 2 Perfect Cling",
   // Writing
   "Line D Eternity",
   "Classique",
@@ -217,14 +265,14 @@ const COLLECTION_ORDER = [
   "Liberté",
   "Eternity",
   "Marker Necklace",
-  // Leather goods (grouped by line)
+  // Leather goods
   "Lighter Accessories",
   "Atelier",
   "Firehead",
   "Neo Capsule",
   "Camera Bag · Fuente",
   "Pen case",
-  // Accessories (cigar core lines first, themed last)
+  // Accessories
   "Cigar cutter",
   "Cigar case",
   "2 cigar case",
@@ -248,30 +296,41 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
     const newCategory = RECATEGORIZE[newSlug] ?? p.categorySlug;
     const newCollection = RECOLLECTION[newSlug] ?? p.collection;
     const newName = RENAME_NAME[newSlug] ?? p.name;
+    const keep = KEEP_VARIANTS[p.slug];
+    const variants = (keep ? p.variants.filter((v) => keep.has(v.sku)) : p.variants).map((v) => ({
+      ...v,
+      name: {
+        pt: rewriteLignePerfectCling(rewriteLeaguesText(v.name.pt)),
+        en: rewriteLignePerfectCling(rewriteLeaguesText(v.name.en)),
+      },
+    }));
+    // After variant filter the product may have no variants — drop it.
+    if (variants.length === 0) continue;
     out.push({
       ...p,
       slug: newSlug,
       name: {
-        pt: rewriteVanikoroText(newName.pt),
-        en: rewriteVanikoroText(newName.en),
+        pt: rewriteLignePerfectCling(rewriteLeaguesText(newName.pt)),
+        en: rewriteLignePerfectCling(rewriteLeaguesText(newName.en)),
       },
       categorySlug: newCategory,
-      collection: newCollection,
-      variants: p.variants.map((v) => ({
-        ...v,
-        name: {
-          pt: rewriteVanikoroText(v.name.pt),
-          en: rewriteVanikoroText(v.name.en),
-        },
-      })),
+      collection: rewriteLignePerfectCling(newCollection),
+      variants,
     });
   }
-  // Stable sort by collection rank — products with the same rank keep their
-  // original relative order so curated entries stay above pipeline-added
-  // ones within a line.
+  // Sort by collection rank, then by cheapest variant inside the Géode
+  // section so "cheapest → most expensive" is the default browsing order
+  // for that themed group.
+  const cheapest = (p: SeedProduct) =>
+    p.variants.reduce((m, v) => Math.min(m, v.priceCents), Number.MAX_SAFE_INTEGER);
   return out
-    .map((p, i) => ({ p, i, rank: collectionRank(p.collection) }))
-    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map((p, i) => ({ p, i, rank: collectionRank(p.collection), price: cheapest(p) }))
+    .sort((a, b) => {
+      if (a.rank !== b.rank) return a.rank - b.rank;
+      // Inside the Géode section, sort by cheapest variant ascending.
+      if (a.p.collection === "Géode") return a.price - b.price;
+      return a.i - b.i;
+    })
     .map((x) => x.p);
 }
 

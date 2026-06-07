@@ -347,30 +347,33 @@ export const products: SeedProduct[] = [
       en: "The house's classic, slender and elegant design, faithful to the origins of the Dupont signature.",
     },
     categorySlug: "isqueiros",
-    image: "/products/ligne-1/C14120.webp",
+    // Card defaults to the LAST shot per colourway (the lifestyle/close-up
+    // angle) — reversed image arrays make `images[0]` the previously-final
+    // photo, which reads as a richer hero on the catalogue grid.
+    image: "/products/ligne-1/C14120-3.webp",
     variants: [
       cwg("C14120", "Laca Preta & Ouro", "Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 109000, [
-        "/products/ligne-1/C14120.webp",
-        "/products/ligne-1/C14120-2.webp",
         "/products/ligne-1/C14120-3.webp",
+        "/products/ligne-1/C14120-2.webp",
+        "/products/ligne-1/C14120.webp",
       ]),
       cwg("C14121", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 99000, [
-        "/products/ligne-1/C14121.webp",
-        "/products/ligne-1/C14121-2.webp",
-        "/products/ligne-1/C14121-3.webp",
         "/products/ligne-1/C14121-4.webp",
+        "/products/ligne-1/C14121-3.webp",
+        "/products/ligne-1/C14121-2.webp",
+        "/products/ligne-1/C14121.webp",
       ]),
       cwg("C14020", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 119000, [
-        "/products/ligne-1/C14020.webp",
-        "/products/ligne-1/C14020-2.webp",
-        "/products/ligne-1/C14020-3.webp",
         "/products/ligne-1/C14020-4.webp",
+        "/products/ligne-1/C14020-3.webp",
+        "/products/ligne-1/C14020-2.webp",
+        "/products/ligne-1/C14020.webp",
       ]),
       cwg("C14021", "Paládio", "Palladium", ["#b9bcc2"], 99000, [
-        "/products/ligne-1/C14021.webp",
-        "/products/ligne-1/C14021-2.webp",
-        "/products/ligne-1/C14021-3.webp",
         "/products/ligne-1/C14021-4.webp",
+        "/products/ligne-1/C14021-3.webp",
+        "/products/ligne-1/C14021-2.webp",
+        "/products/ligne-1/C14021.webp",
       ]),
     ],
   },
@@ -386,7 +389,12 @@ export const products: SeedProduct[] = [
     image: "/products/le-grand-dupont/C23010N/front.jpg",
     novelty: true,
     variants: [
-      cw("C23780CL", "Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, "/products/le-grand-dupont/C23780CL.jpg"),
+      cwg("C23780CL", "Laca Preta Brilhante & Paládio", "Shiny Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, [
+        "/products/le-grand-dupont/C23780CL.webp",
+        "/products/le-grand-dupont/C23780CL-2.webp",
+        "/products/le-grand-dupont/C23780CL-3.webp",
+        "/products/le-grand-dupont/C23780CL-4.webp",
+      ]),
       cw("C23790CL", "Laca Preta Brilhante & Ouro", "Shiny Black Lacquer & Yellow Gold", ["#15171c", "#c8a24a"], 189000, "/products/le-grand-dupont/C23790CL.jpg"),
       cwg("C23010N", "Laca Preta & Paládio", "Black Lacquer & Palladium", ["#15171c", "#b9bcc2"], 169000, [
         "/products/le-grand-dupont/C23010N/front.jpg",
