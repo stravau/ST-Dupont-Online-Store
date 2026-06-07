@@ -81,8 +81,10 @@ const DROP_SLUGS = new Set<string>([
   // Drop the curated Ligne 2 (12 variants) — pipeline-imported `ligne-2-extra`
   // takes over the Ligne 2 collection with its 15 colourways.
   "ligne-2",
-  // Drop the second Twiggy entry — keep the curated one.
-  "twiggy-extra",
+  // Drop the second Twiggy entry (pipeline). Drops here run on the
+  // *pre-rename* slug, so this catches `twiggy-2` before the rename can
+  // alias it to `twiggy-extra`.
+  "twiggy-2",
 ]);
 
 const RENAME_SLUG: Record<string, string> = {
@@ -95,7 +97,6 @@ const RENAME_SLUG: Record<string, string> = {
   // 12-variant entry is gone.
   "ligne-2-2": "ligne-2",
   "ligne-2-3": "ligne-2-lighter-case",
-  "twiggy-2": "twiggy-extra",
   // 20,000 Leagues — keep the original literary title; Vanikoro is part of
   // the theme (the lost expedition ship) but the user prefers the headline.
   "slimmy-20000-lieues-sous-les-mers": "slimmy-20000-leagues",
@@ -189,6 +190,12 @@ const RENAME_NAME: Record<string, { pt: string; en: string }> = {
     pt: "Lighter Necklace · DC Comics",
     en: "Lighter Necklace · DC Comics",
   },
+  // Variant labels still say "Defi XXtreme" / "Defi Xtreme" inside these
+  // products' descriptors; merge them under the canonical brand spelling so
+  // every Défi Extreme card reads consistently.
+  "defi-xtreme": { pt: "Défi Extreme", en: "Défi Extreme" },
+  "defi-xxtreme": { pt: "Défi Extreme", en: "Défi Extreme" },
+  "defi-extreme-2": { pt: "Défi Extreme", en: "Défi Extreme" },
 };
 
 // Variant filter — when present, only the listed SKUs of that product
@@ -215,6 +222,16 @@ function rewriteLeaguesText(s: string): string {
 function rewriteLignePerfectCling(s: string): string {
   return s.replace(/Line 2 Perfect Ping/g, "Ligne 2 · Perfect Cling")
     .replace(/Perfect Ping/g, "Perfect Cling");
+}
+
+// Défi family unification — variant labels still read "Defi XXtreme" /
+// "Defi Xtreme" inside the consolidated Défi Extreme collection.
+function rewriteDefi(s: string): string {
+  return s
+    .replace(/Defi XXtreme/gi, "Défi Extreme")
+    .replace(/D[eé]fi XXtreme/g, "Défi Extreme")
+    .replace(/Defi Xtreme/gi, "Défi Extreme")
+    .replace(/D[eé]fi Xtreme/g, "Défi Extreme");
 }
 
 // Display order — collections higher in the list render earlier. Anything
@@ -300,8 +317,8 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
     const variants = (keep ? p.variants.filter((v) => keep.has(v.sku)) : p.variants).map((v) => ({
       ...v,
       name: {
-        pt: rewriteLignePerfectCling(rewriteLeaguesText(v.name.pt)),
-        en: rewriteLignePerfectCling(rewriteLeaguesText(v.name.en)),
+        pt: rewriteDefi(rewriteLignePerfectCling(rewriteLeaguesText(v.name.pt))),
+        en: rewriteDefi(rewriteLignePerfectCling(rewriteLeaguesText(v.name.en))),
       },
     }));
     // After variant filter the product may have no variants — drop it.
@@ -310,11 +327,11 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
       ...p,
       slug: newSlug,
       name: {
-        pt: rewriteLignePerfectCling(rewriteLeaguesText(newName.pt)),
-        en: rewriteLignePerfectCling(rewriteLeaguesText(newName.en)),
+        pt: rewriteDefi(rewriteLignePerfectCling(rewriteLeaguesText(newName.pt))),
+        en: rewriteDefi(rewriteLignePerfectCling(rewriteLeaguesText(newName.en))),
       },
       categorySlug: newCategory,
-      collection: rewriteLignePerfectCling(newCollection),
+      collection: rewriteDefi(rewriteLignePerfectCling(newCollection)),
       variants,
     });
   }
