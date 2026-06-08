@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getProductsByCategory, sortProducts, expandProductCards } from "@/lib/catalog";
+import { getProductsByCategory, sortProducts, expandProductCards, inferGender, type Gender } from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, readPage } from "@/lib/paginate";
@@ -28,10 +28,10 @@ export default async function GroupPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; group: string }>;
-  searchParams: Promise<{ type?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{ type?: string; sort?: string; page?: string; g?: string }>;
 }) {
   const { lang, group } = await params;
-  const { type, sort: sortParam, page: pageParam } = await searchParams;
+  const { type, sort: sortParam, page: pageParam, g: gParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -44,7 +44,15 @@ export default async function GroupPage({
   // active type's matcher accepts. Flat groups apply the group's own matcher.
   const all = await getProductsByCategory(g.categorySlug);
   const matcher = g.types ? activeType?.match : g.match;
-  const filtered = matcher ? all.filter(matcher) : [];
+  const filteredByType = matcher ? all.filter(matcher) : [];
+  // Optional gender filter — composes with the type matcher so the navbar's
+  // MEN > Travel bags / WOMEN > Cross body bag entries resolve as a single
+  // URL: /t/bags?type=travel&g=men. Only meaningful on the leather groups.
+  const activeGender: Gender | undefined =
+    gParam === "men" || gParam === "women" || gParam === "unisex" ? gParam : undefined;
+  const filtered = activeGender
+    ? filteredByType.filter((p) => inferGender(p) === activeGender)
+    : filteredByType;
   const items = sortProducts(filtered, sort, locale);
   const cards = items.flatMap(expandProductCards);
   const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
@@ -63,19 +71,24 @@ export default async function GroupPage({
 
       {g.types && (
         <nav className="mt-12 flex flex-wrap justify-center gap-3">
-          {g.types.map((s) => (
-            <Link
-              key={s.key}
-              href={`/${locale}/t/${g.id}?type=${s.key}`}
-              className={`rounded-full border px-6 py-3 text-xs tracking-[0.18em] uppercase transition-colors duration-300 ${
-                s.key === activeType?.key
-                  ? "border-gold bg-ink text-cream"
-                  : "border-line text-muted hover:border-gold hover:text-ink"
-              }`}
-            >
-              {s.label[locale]}
-            </Link>
-          ))}
+          {g.types.map((s) => {
+            const qs = new URLSearchParams();
+            qs.set("type", s.key);
+            if (activeGender) qs.set("g", activeGender);
+            return (
+              <Link
+                key={s.key}
+                href={`/${locale}/t/${g.id}?${qs.toString()}`}
+                className={`rounded-full border px-6 py-3 text-xs tracking-[0.18em] uppercase transition-colors duration-300 ${
+                  s.key === activeType?.key
+                    ? "border-gold bg-ink text-cream"
+                    : "border-line text-muted hover:border-gold hover:text-ink"
+                }`}
+              >
+                {s.label[locale]}
+              </Link>
+            );
+          })}
         </nav>
       )}
 
@@ -95,6 +108,7 @@ export default async function GroupPage({
         query={{
           type: g.types ? activeType?.key : undefined,
           sort: sort !== "featured" ? sort : undefined,
+          g: activeGender,
         }}
         page={page}
         totalPages={totalPages}

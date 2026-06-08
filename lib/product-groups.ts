@@ -53,10 +53,19 @@ const isMoneyClip = re(/money-clip/);
 const isKeyHolder = re(/^(?:key-ring|keyring|leather-key-holder)|^keyrings/);
 const isTieClip = re(/tie-clip/);
 
-const isTravelBag = re(/^(?:travel-bag|travel-bags|weekend-bag|cabas)/);
+const isTravelBag = re(/^(?:travel-bag|travel-bags|weekend-bag)/);
 const isBusinessBag = re(/^(?:briefcase|defi-explorer-document-holder|document-holders)/);
 const isBackpack = re(/backpack/);
 const isCrossbody = re(/crossbody|camera-bag/);
+// New bag types added to mirror the official navbar's MEN / WOMEN columns.
+// Some won't match anything in the current catalogue — that's intentional
+// per user direction ("leave names that don't match"). Pages render empty
+// gracefully until the catalogue expands to cover these.
+const isToteBag = re(/^cabas|tote/);
+const isPouch = re(/pouch/);
+const isHandBag = re(/handbag|hand-bag/);
+const isShoulderBag = re(/shoulder/);
+const isBaguetteBag = re(/baguette/);
 
 const isWallet = re(/wallet/);
 const isCardHolder = re(/card-holder/);
@@ -115,6 +124,11 @@ export const productGroups: Record<string, ProductGroup> = {
       { key: "business", label: t("Trabalho", "Business"), match: isBusinessBag },
       { key: "backpacks", label: t("Mochilas", "Backpacks"), match: isBackpack },
       { key: "crossbody", label: t("Tiracolo", "Crossbody"), match: isCrossbody },
+      { key: "tote", label: t("Tote", "Tote"), match: isToteBag },
+      { key: "pouches", label: t("Bolsas", "Pouches"), match: isPouch },
+      { key: "hand-bag", label: t("Mala de Mão", "Hand Bag"), match: isHandBag },
+      { key: "shoulder-bag", label: t("Mala de Ombro", "Shoulder Bag"), match: isShoulderBag },
+      { key: "baguette", label: t("Baguette", "Baguette"), match: isBaguetteBag },
     ],
   },
   "small-leather": {

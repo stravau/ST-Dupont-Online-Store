@@ -351,6 +351,22 @@ export function inferGender(p: Product): Gender {
   return "unisex";
 }
 
+// Pen "usage" — drives the writing category's filter chip row. Matched against
+// variant.attributes.type, which is a Localized label populated by the seed's
+// TYPE preset (BP=Ballpoint / RB=Rollerball / FP=Fountain Pen). EN check only
+// because the seed always sets a clean English value even on PT-only stores.
+export type Usage = "ballpoint" | "rollerball" | "fountain";
+
+export function isUsage(value: unknown): value is Usage {
+  return value === "ballpoint" || value === "rollerball" || value === "fountain";
+}
+
+export function hasUsage(p: Product, usage: Usage): boolean {
+  const re =
+    usage === "ballpoint" ? /^ballpoint/i : usage === "rollerball" ? /^rollerball/i : /^fountain/i;
+  return p.variants.some((v) => !!v.attributes.type && re.test(v.attributes.type.en));
+}
+
 export function fromPrice(product: Product): Variant {
   return product.variants.reduce(
     (min, cur) => (cur.priceCents < min.priceCents ? cur : min),

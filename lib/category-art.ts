@@ -1,8 +1,15 @@
 // S.T. Dupont's four "universes" (the brand's own naming) and the product
-// types within each. Accessories is the home for ALL accessory types — the
-// smoking/refill items (formerly under Lighters) and the writing-accessory/
-// refill items (formerly under Writing) now live only here, grouped into
-// titled menu sections. Lighters & Writing keep only their own lines.
+// types within each. Two consumers:
+//   - `groups` is a flat list shown as buttons on the category page itself
+//     (under the hero) and is the source for what the mobile menu's primary
+//     pages link to.
+//   - `menuSections` drives the desktop mega-menu (titled columns per the
+//     official st-dupont.com layout). All four categories now use sections.
+//
+// Naming aliases applied where the official menu uses a brand-friendly name
+// the catalogue stores under a slightly different collection (Behike →
+// Cohiba-Behike; 1872 → Monogram 1872; Le Grand Atelier → Atelier; Jules
+// Verne → 20,000 Leagues Under The Sea).
 import type { Locale } from "@/lib/i18n";
 
 type L = Record<Locale, string>;
@@ -28,7 +35,24 @@ export interface CategoryArt {
 const t = (pt: string, en: string): L => ({ pt, en });
 const NEW_RELEASES: ArtGroup = { label: t("Novidades", "New Releases"), href: "/novidades" };
 
-// Accessory type buttons (reused in the flat list + the menu sections).
+// --- href helpers — keep URL encoding consistent and obvious. ---
+
+// /c/<cat>?col=<exact collection name as stored>
+const col = (cat: string, name: string): string =>
+  `/c/${cat}?col=${encodeURIComponent(name)}`;
+
+// /t/<group>?type=<key>[&g=<gender>]
+const typeHref = (group: string, type: string, g?: "men" | "women"): string => {
+  const params = new URLSearchParams({ type });
+  if (g) params.set("g", g);
+  return `/t/${group}?${params.toString()}`;
+};
+
+// /c/escrita?usage=<usage>
+const usageHref = (usage: "ballpoint" | "rollerball" | "fountain"): string =>
+  `/c/escrita?usage=${usage}`;
+
+// Accessory type buttons (reused across categories' menus).
 const A = {
   cufflinks: { label: t("Botões de Punho", "Cufflinks"), href: "/t/cufflinks" },
   belts: { label: t("Cintos", "Belts"), href: "/t/belts" },
@@ -41,77 +65,309 @@ const A = {
   refillsInks: { label: t("Recargas & Tintas", "Refills & Inks"), href: "/t/refills-inks" },
 };
 
+// Smoking accessory sub-types (reused under Lighters and Accessories menus).
+const SMOKING_ITEMS: ArtGroup[] = [
+  { label: t("Estojos de Charuto e Cigarro", "Cigar & Cigarette Cases"), href: typeHref("smoking", "cases") },
+  { label: t("Estojos para Isqueiros", "Lighter Cases"), href: "/t/smoking" },
+  { label: t("Cortadores de Charuto", "Cigar Cutters"), href: typeHref("smoking", "cutters") },
+  { label: t("Cinzeiros", "Ashtrays"), href: typeHref("smoking", "ashtrays") },
+  { label: t("Humidores", "Humidors"), href: typeHref("smoking", "humidors") },
+  { label: t("Ver tudo", "View all"), href: "/t/smoking" },
+];
+
+// Writing accessory sub-types (reused under Writing and Accessories menus).
+const WRITING_ITEMS: ArtGroup[] = [
+  { label: t("Estojos para Canetas", "Pen Cases"), href: typeHref("writing-accessories", "pen-cases") },
+  { label: t("Secretária", "Office Accessories"), href: typeHref("writing-accessories", "office") },
+  { label: t("Cadernos", "Notebooks"), href: typeHref("writing-accessories", "notebooks") },
+];
+
 export const categoryArt: Record<string, CategoryArt> = {
-  // Lighters & Writing now show only New Releases + their own product lines.
+  // ----------------------------- LIGHTERS -----------------------------------
   isqueiros: {
     art: "L'Art du Feu",
     hero: "/headers/isqueiros.jpg",
     groups: [
       NEW_RELEASES,
-      { label: t("Géode", "Géode"), href: "/c/isqueiros?col=G%C3%A9ode" },
-      { label: t("Popote", "Popote"), href: "/c/isqueiros?col=Popote" },
-      { label: t("Maki-e", "Maki-e"), href: "/c/isqueiros?col=Maki-e" },
-      { label: t("Orlinski", "Orlinski"), href: "/c/isqueiros?col=Orlinski" },
-      { label: t("Horse Mane", "Horse Mane"), href: "/c/isqueiros?col=Horse%20Mane" },
-      { label: t("Fender", "Fender"), href: "/c/isqueiros?col=Fender" },
-      { label: t("Fuente", "Fuente"), href: "/c/isqueiros?col=Fuente" },
-      { label: t("Fire X", "Fire X"), href: "/c/isqueiros?col=Fire%20X" },
-      { label: t("Cohiba Behike", "Cohiba Behike"), href: "/c/isqueiros?col=Cohiba%20Behike" },
-      { label: t("Stones of Fortune", "Stones of Fortune"), href: "/c/isqueiros?col=Stones%20of%20Fortune" },
-      { label: t("Romeo y Julieta", "Romeo y Julieta"), href: "/c/isqueiros?col=Romeo%20y%20Julieta" },
-      { label: t("Haute Création", "Haute Création"), href: "/c/isqueiros?col=Haute%20Cr%C3%A9ation" },
-      { label: t("Joker", "Joker"), href: "/c/isqueiros?col=Joker" },
-      { label: t("Harley Quinn", "Harley Quinn"), href: "/c/isqueiros?col=Harley%20Quinn" },
-      { label: t("Monograma 1872", "Monogram 1872"), href: "/c/isqueiros?col=Monogram%201872" },
-      { label: t("DC Comics", "DC Comics"), href: "/c/isqueiros?col=DC%20Comics" },
-      { label: t("20.000 Léguas", "20,000 Leagues"), href: "/c/isqueiros?col=20%2C000%20Leagues%20Under%20The%20Sea" },
+      { label: t("Géode", "Géode"), href: col("isqueiros", "Géode") },
+      { label: t("Popote", "Popote"), href: col("isqueiros", "Popote") },
+      { label: t("Maki-e", "Maki-e"), href: col("isqueiros", "Maki-e") },
+      { label: t("Orlinski", "Orlinski"), href: col("isqueiros", "Orlinski") },
+      { label: t("Horse Mane", "Horse Mane"), href: col("isqueiros", "Horse Mane") },
+      { label: t("Fender", "Fender"), href: col("isqueiros", "Fender") },
+      { label: t("Fuente", "Fuente"), href: col("isqueiros", "Fuente") },
+      { label: t("Fire X", "Fire X"), href: col("isqueiros", "Fire X") },
+      { label: t("Cohiba Behike", "Cohiba Behike"), href: col("isqueiros", "Cohiba-Behike") },
+      { label: t("Stones of Fortune", "Stones of Fortune"), href: col("isqueiros", "Stones of Fortune") },
+      { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("isqueiros", "Romeo-y-Julieta") },
+      { label: t("Haute Création", "Haute Création"), href: col("isqueiros", "Haute Création") },
+      { label: t("Monograma 1872", "Monogram 1872"), href: col("isqueiros", "Monogram 1872") },
+      { label: t("DC Comics", "DC Comics"), href: col("isqueiros", "DC Comics") },
+      { label: t("20.000 Léguas", "20,000 Leagues"), href: col("isqueiros", "20,000 Leagues Under The Sea") },
+    ],
+    menuSections: [
+      {
+        title: t("Novidades", "New Products"),
+        items: [
+          { label: t("Géode", "Géode"), href: col("isqueiros", "Géode") },
+          { label: t("Popote", "Popote"), href: col("isqueiros", "Popote") },
+          { label: t("DC Comics", "DC Comics"), href: col("isqueiros", "DC Comics") },
+          { label: t("Orlinski", "Orlinski"), href: col("isqueiros", "Orlinski") },
+          { label: t("Horse Mane", "Horse Mane"), href: col("isqueiros", "Horse Mane") },
+          { label: t("Maki-e", "Maki-e"), href: col("isqueiros", "Maki-e") },
+          { label: t("Table Lighter & Torch", "Table Lighter & Torch"), href: col("isqueiros", "Table lighter") },
+          { label: t("Ligne 1", "Ligne 1"), href: col("isqueiros", "Ligne 1") },
+        ],
+      },
+      {
+        title: t("Coleções", "Collections"),
+        items: [
+          { label: t("Ligne 2", "Ligne 2"), href: col("isqueiros", "Ligne 2") },
+          { label: t("Le Grand Dupont", "Le Grand Dupont"), href: col("isqueiros", "Le Grand Dupont") },
+          { label: t("Biggy", "Biggy"), href: col("isqueiros", "Biggy") },
+          { label: t("Slimmy", "Slimmy"), href: col("isqueiros", "Slimmy") },
+          { label: t("Initial", "Initial"), href: col("isqueiros", "Initial") },
+          { label: t("Ligne 1", "Ligne 1"), href: col("isqueiros", "Ligne 1") },
+          { label: t("Twiggy", "Twiggy"), href: col("isqueiros", "Twiggy") },
+          { label: t("Colar Isqueiro", "Lighter Necklace"), href: col("isqueiros", "Colar Isqueiro") },
+          { label: t("Maxijet, Minijet & Slim 7", "Maxijet, Minijet & Slim 7"), href: col("isqueiros", "Maxijet") },
+          { label: t("Windproof & Défi Extrême", "Windproof & Défi Extrême"), href: col("isqueiros", "Défi Extreme") },
+          { label: t("Table Lighter & Torch", "Table Lighter & Torch"), href: col("isqueiros", "Table lighter") },
+        ],
+      },
+      {
+        title: t("Colaboração", "Collaboration"),
+        items: [
+          { label: t("Orlinski", "Orlinski"), href: col("isqueiros", "Orlinski") },
+          { label: t("Fuente", "Fuente"), href: col("isqueiros", "Fuente") },
+          { label: t("20.000 Léguas", "20,000 Leagues"), href: col("isqueiros", "20,000 Leagues Under The Sea") },
+          { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("isqueiros", "Romeo-y-Julieta") },
+          { label: t("Behike", "Behike"), href: col("isqueiros", "Cohiba-Behike") },
+          { label: t("Montecristo", "Montecristo"), href: col("isqueiros", "Montecristo") },
+          { label: t("Fender", "Fender"), href: col("isqueiros", "Fender") },
+          { label: t("DC Comics", "DC Comics"), href: col("isqueiros", "DC Comics") },
+        ],
+      },
+      {
+        title: t("Tema", "Theme"),
+        items: [
+          { label: t("Géode", "Géode"), href: col("isqueiros", "Géode") },
+          { label: t("Popote", "Popote"), href: col("isqueiros", "Popote") },
+          { label: t("Maki-e", "Maki-e"), href: col("isqueiros", "Maki-e") },
+          { label: t("Horse Mane", "Horse Mane"), href: col("isqueiros", "Horse Mane") },
+          { label: t("Camo", "Camo"), href: col("isqueiros", "Camo") },
+          { label: t("Monogram 1872", "Monogram 1872"), href: col("isqueiros", "Monogram 1872") },
+          { label: t("Fire X", "Fire X"), href: col("isqueiros", "Fire X") },
+          { label: t("Snake Skin", "Snake Skin"), href: col("isqueiros", "Snake Skin") },
+        ],
+      },
+      { title: t("Acessórios para Fumadores", "Smoking Accessories"), items: SMOKING_ITEMS },
+      {
+        title: t("Haute Création", "Haute Création"),
+        // The Haute Création sub-lines below mostly don't yet exist in our
+        // catalogue — kept here per the user's "leave it" directive so the
+        // structure mirrors the official menu when the data is added later.
+        items: [
+          { label: t("Zodíaco", "Zodiac"), href: col("isqueiros", "Zodiac") },
+          { label: t("Diamonds Fire-X", "Diamonds Fire-X"), href: col("isqueiros", "Diamonds Fire-X") },
+          { label: t("Maharaja & Maharani", "Maharaja & Maharani"), href: col("isqueiros", "Maharaja") },
+          { label: t("Stones of Fortune", "Stones of Fortune"), href: col("isqueiros", "Stones of Fortune") },
+          { label: t("Notre Dame de Paris", "Notre Dame de Paris"), href: col("isqueiros", "Notre Dame de Paris") },
+          { label: t("Casino Complication", "Casino Complication"), href: col("isqueiros", "Casino Complication") },
+          { label: t("Lucky Skull", "Lucky Skull"), href: col("isqueiros", "Lucky Skull") },
+        ],
+      },
+      {
+        title: t("Recargas & Pedras", "Refill & Stones"),
+        items: [{ label: t("Ver tudo", "View all"), href: "/t/refill-stones" }],
+      },
     ],
   },
+
+  // ----------------------------- WRITING ------------------------------------
   escrita: {
     art: "L'Art de l'Écriture",
     hero: "/headers/escrita.jpg",
     groups: [
       NEW_RELEASES,
-      { label: t("Popote", "Popote"), href: "/c/escrita?col=Popote" },
-      { label: t("Géode", "Géode"), href: "/c/escrita?col=G%C3%A9ode" },
-      { label: t("Orlinski", "Orlinski"), href: "/c/escrita?col=Orlinski" },
-      { label: t("Snake Skin", "Snake Skin"), href: "/c/escrita?col=Snake%20Skin" },
-      { label: t("Horse Mane", "Horse Mane"), href: "/c/escrita?col=Horse%20Mane" },
-      { label: t("Joker", "Joker"), href: "/c/escrita?col=Joker" },
-      { label: t("Harley Quinn", "Harley Quinn"), href: "/c/escrita?col=Harley%20Quinn" },
-      { label: t("Montecristo", "Montecristo"), href: "/c/escrita?col=Montecristo" },
-      { label: t("Monograma 1872", "Monogram 1872"), href: "/c/escrita?col=Monogram%201872" },
-      { label: t("20.000 Léguas", "20,000 Leagues"), href: "/c/escrita?col=20%2C000%20Leagues%20Under%20The%20Sea" },
+      { label: t("Popote", "Popote"), href: col("escrita", "Popote") },
+      { label: t("Géode", "Géode"), href: col("escrita", "Géode") },
+      { label: t("Orlinski", "Orlinski"), href: col("escrita", "Orlinski") },
+      { label: t("Snake Skin", "Snake Skin"), href: col("escrita", "Snake Skin") },
+      { label: t("Horse Mane", "Horse Mane"), href: col("escrita", "Horse Mane") },
+      { label: t("Montecristo", "Montecristo"), href: col("escrita", "Montecristo") },
+      { label: t("Monograma 1872", "Monogram 1872"), href: col("escrita", "Monogram 1872") },
+      { label: t("20.000 Léguas", "20,000 Leagues"), href: col("escrita", "20,000 Leagues Under The Sea") },
+    ],
+    menuSections: [
+      {
+        title: t("Novidades", "New Products"),
+        items: [
+          { label: t("Géode", "Géode"), href: col("escrita", "Géode") },
+          { label: t("Popote", "Popote"), href: col("escrita", "Popote") },
+          { label: t("DC Comics", "DC Comics"), href: col("escrita", "DC Comics") },
+          { label: t("Orlinski", "Orlinski"), href: col("escrita", "Orlinski") },
+          { label: t("Horse Mane", "Horse Mane"), href: col("escrita", "Horse Mane") },
+          { label: t("Maki-e", "Maki-e"), href: col("escrita", "Maki-e") },
+          { label: t("Classique", "Classique"), href: col("escrita", "Classique") },
+          { label: t("Colar Marker", "Marker Necklace"), href: col("escrita", "Colar Marker") },
+        ],
+      },
+      {
+        title: t("Coleções", "Collections"),
+        items: [
+          { label: t("Initial", "Initial"), href: col("escrita", "Initial") },
+          { label: t("Line D Eternity", "Line D Eternity"), href: col("escrita", "Line D Eternity") },
+          { label: t("Classique", "Classique"), href: col("escrita", "Classique") },
+          { label: t("Liberté", "Liberté"), href: col("escrita", "Liberté") },
+          { label: t("Défi Millenium", "Défi Millenium"), href: col("escrita", "Défi Millenium") },
+          { label: t("Colar Caneta", "Pen Necklace"), href: col("escrita", "Pen Necklace") },
+        ],
+      },
+      {
+        title: t("Colaboração", "Collaboration"),
+        items: [
+          { label: t("Orlinski", "Orlinski"), href: col("escrita", "Orlinski") },
+          { label: t("Fuente", "Fuente"), href: col("escrita", "Fuente") },
+          { label: t("20.000 Léguas", "20,000 Leagues"), href: col("escrita", "20,000 Leagues Under The Sea") },
+          { label: t("Fender", "Fender"), href: col("escrita", "Fender") },
+          { label: t("Elysee", "Elysee"), href: col("escrita", "Elysee") },
+          { label: t("DC Comics", "DC Comics"), href: col("escrita", "DC Comics") },
+          { label: t("Montecristo", "Montecristo"), href: col("escrita", "Montecristo") },
+        ],
+      },
+      {
+        title: t("Personalização", "Personalization"),
+        items: [
+          { label: t("Canetas Personalizáveis", "Customisable Pens"), href: "/c/escrita" },
+        ],
+      },
+      {
+        title: t("Tema", "Theme"),
+        items: [
+          { label: t("Géode", "Géode"), href: col("escrita", "Géode") },
+          { label: t("Popote", "Popote"), href: col("escrita", "Popote") },
+          { label: t("Monogram 1872", "Monogram 1872"), href: col("escrita", "Monogram 1872") },
+          { label: t("Maki-e", "Maki-e"), href: col("escrita", "Maki-e") },
+          { label: t("Camo", "Camo"), href: col("escrita", "Camo") },
+          { label: t("Dragon", "Dragon"), href: col("escrita", "Dragon") },
+          { label: t("Fire X", "Fire X"), href: col("escrita", "Fire X") },
+          { label: t("Snake Skin", "Snake Skin"), href: col("escrita", "Snake Skin") },
+        ],
+      },
+      { title: t("Acessórios de Escrita", "Writing Accessories"), items: WRITING_ITEMS },
+      {
+        title: t("Tipo", "Usage"),
+        items: [
+          { label: t("Rollerball", "Rollerball"), href: usageHref("rollerball") },
+          { label: t("Tinta Permanente", "Fountain"), href: usageHref("fountain") },
+          { label: t("Esferográfica", "Ballpoint"), href: usageHref("ballpoint") },
+        ],
+      },
+      {
+        title: t("Recargas & Tintas", "Refills & Inks"),
+        items: [{ label: t("Ver tudo", "View all"), href: "/t/refills-inks" }],
+      },
     ],
   },
+
+  // ----------------------------- LEATHER ------------------------------------
   pele: {
     art: "L'Art du Voyage",
     hero: "/headers/pele.jpg",
     groups: [
       NEW_RELEASES,
-      { label: t("Apex", "Apex"), href: "/c/pele?col=Apex" },
-      { label: t("X-bag", "X-bag"), href: "/c/pele?col=X-bag" },
-      { label: t("Riviera", "Riviera"), href: "/c/pele?col=Riviera" },
-      { label: t("Victoria", "Victoria"), href: "/c/pele?col=Victoria" },
-      { label: t("Atelier", "Atelier"), href: "/c/pele?col=Atelier" },
-      { label: t("Firehead", "Firehead"), href: "/c/pele?col=Firehead" },
-      { label: t("Neo Capsule", "Neo Capsule"), href: "/c/pele?col=Neo%20Capsule" },
-      { label: t("Défi Explorer", "Défi Explorer"), href: "/c/pele?col=D%C3%A9fi%20Explorer" },
-      { label: t("Classic", "Classic"), href: "/c/pele?col=Classic" },
-      { label: t("Monograma 1872", "Monogram 1872"), href: "/c/pele?col=Monogram%201872" },
-      { label: t("Fender", "Fender"), href: "/c/pele?col=Fender" },
-      { label: t("Fuente", "Fuente"), href: "/c/pele?col=Fuente" },
+      { label: t("Apex", "Apex"), href: col("pele", "Apex") },
+      { label: t("X-bag", "X-bag"), href: col("pele", "X-bag") },
+      { label: t("Riviera", "Riviera"), href: col("pele", "Riviera") },
+      { label: t("Victoria", "Victoria"), href: col("pele", "Victoria") },
+      { label: t("Atelier", "Atelier"), href: col("pele", "Atelier") },
+      { label: t("Firehead", "Firehead"), href: col("pele", "Firehead") },
+      { label: t("Neo Capsule", "Neo Capsule"), href: col("pele", "Neo Capsule") },
+      { label: t("Défi Explorer", "Défi Explorer"), href: col("pele", "Défi Explorer") },
+      { label: t("Classic", "Classic"), href: col("pele", "Classic") },
+      { label: t("Monograma 1872", "Monogram 1872"), href: col("pele", "Monogram 1872") },
+      { label: t("Fender", "Fender"), href: col("pele", "Fender") },
+      { label: t("Fuente", "Fuente"), href: col("pele", "Fuente") },
       { label: t("Senhora", "Women"), href: "/c/pele?g=women" },
       { label: t("Homem", "Men"), href: "/c/pele?g=men" },
       { label: t("Malas", "Bags"), href: "/t/bags" },
       { label: t("Pequena Marroquinaria", "Small Leather Goods"), href: "/t/small-leather" },
     ],
+    menuSections: [
+      {
+        title: t("Novidades", "New"),
+        items: [
+          { label: t("Défi Explorer", "Defi Explorer"), href: col("pele", "Défi Explorer") },
+          { label: t("Victoria", "Victoria"), href: col("pele", "Victoria") },
+          { label: t("Apex", "Apex"), href: col("pele", "Apex") },
+          { label: t("X-bag", "X-bag"), href: col("pele", "X-bag") },
+          { label: t("Riviera", "Riviera"), href: col("pele", "Riviera") },
+          { label: t("Classic", "Classic"), href: col("pele", "Classic") },
+          { label: t("1872", "1872"), href: col("pele", "Monogram 1872") },
+        ],
+      },
+      {
+        title: t("Coleções", "Collections"),
+        items: [
+          { label: t("Défi Explorer", "Defi Explorer"), href: col("pele", "Défi Explorer") },
+          { label: t("Victoria", "Victoria"), href: col("pele", "Victoria") },
+          { label: t("Apex", "Apex"), href: col("pele", "Apex") },
+          { label: t("X-bag", "X-bag"), href: col("pele", "X-bag") },
+          { label: t("Riviera", "Riviera"), href: col("pele", "Riviera") },
+          { label: t("Classic", "Classic"), href: col("pele", "Classic") },
+          { label: t("1872", "1872"), href: col("pele", "Monogram 1872") },
+          { label: t("Le Grand Atelier", "Le Grand Atelier"), href: col("pele", "Atelier") },
+          { label: t("Neo Capsule", "Neo Capsule"), href: col("pele", "Neo Capsule") },
+          { label: t("Firehead", "Firehead"), href: col("pele", "Firehead") },
+        ],
+      },
+      {
+        title: t("Homem", "Men"),
+        items: [
+          { label: t("Ver tudo", "View all"), href: "/c/pele?g=men" },
+          { label: t("Malas de Viagem", "Travel bags"), href: typeHref("bags", "travel", "men") },
+          { label: t("Trabalho", "Business"), href: typeHref("bags", "business", "men") },
+          { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "men") },
+          { label: t("Tiracolo", "Crossbody"), href: typeHref("bags", "crossbody", "men") },
+          { label: t("Bolsas", "Pouches"), href: typeHref("bags", "pouches", "men") },
+          { label: t("Tote Bag", "Tote bag"), href: typeHref("bags", "tote", "men") },
+        ],
+      },
+      {
+        title: t("Senhora", "Women"),
+        items: [
+          { label: t("Ver tudo", "View all"), href: "/c/pele?g=women" },
+          { label: t("Mala de Mão", "Hand bag"), href: typeHref("bags", "hand-bag", "women") },
+          { label: t("Mala de Ombro", "Shoulder bag"), href: typeHref("bags", "shoulder-bag", "women") },
+          { label: t("Tiracolo", "Cross body bag"), href: typeHref("bags", "crossbody", "women") },
+          { label: t("Tote Bag", "Tote Bag"), href: typeHref("bags", "tote", "women") },
+          { label: t("Baguette", "Baguette bag"), href: typeHref("bags", "baguette", "women") },
+        ],
+      },
+      {
+        title: t("Pequena Marroquinaria", "Small Leather Goods"),
+        items: [
+          { label: t("Ver tudo", "View all"), href: "/t/small-leather" },
+          { label: t("Porta-Cartões", "Card Holders"), href: typeHref("small-leather", "card-holders") },
+          { label: t("Carteiras", "Wallets"), href: typeHref("small-leather", "wallets") },
+          { label: t("Porta-Chaves", "Key Holders"), href: typeHref("small-leather", "key-holders") },
+        ],
+      },
+      {
+        title: t("Personalização", "Personalization"),
+        items: [
+          { label: t("Pele Personalizável", "Customisable small leather goods"), href: "/c/pele" },
+        ],
+      },
+    ],
   },
+
+  // --------------------------- ACCESSORIES ----------------------------------
   acessorios: {
     art: "L'Art de la Séduction",
     hero: "/headers/acessorios.jpg",
     heroPos: "object-center md:object-[center_75%]",
-    // Flat list — used by the category-page buttons and the mobile menu.
     groups: [
       NEW_RELEASES,
       A.cufflinks,
@@ -124,37 +380,53 @@ export const categoryArt: Record<string, CategoryArt> = {
       A.writingAcc,
       A.refillsInks,
     ],
-    // Titled columns for the desktop mega-menu (matches st-dupont's layout).
     menuSections: [
       {
-        title: t("Novidades", "New Products"),
+        title: t("Novidades", "New Product"),
         items: [
-          NEW_RELEASES,
-          { label: t("Monograma 1872", "Monogram 1872"), href: "/c/acessorios?col=Monogram%201872" },
-          { label: t("Montecristo", "Montecristo"), href: "/c/acessorios?col=Montecristo" },
-          { label: t("Fire X", "Fire X"), href: "/c/acessorios?col=Fire%20X" },
+          { label: t("Horse Mane", "Horse"), href: col("acessorios", "Horse Mane") },
+          { label: t("Fuente", "Fuente"), href: col("acessorios", "Fuente") },
+          { label: t("Jules Verne", "Jules Verne"), href: col("acessorios", "20,000 Leagues Under The Sea") },
+          { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("acessorios", "Romeo-y-Julieta") },
+          { label: t("Behike", "Behike"), href: col("acessorios", "Cohiba-Behike") },
+          { label: t("Fender", "Fender"), href: col("acessorios", "Fender") },
+          { label: t("Camo", "Camo"), href: col("acessorios", "Camo") },
+          { label: t("Monogram 1872", "Monogram 1872"), href: col("acessorios", "Monogram 1872") },
+          { label: t("Snake Skin", "Snake"), href: col("acessorios", "Snake Skin") },
         ],
       },
       {
         title: t("Coleções", "Collections"),
-        items: [A.cufflinks, A.belts, A.moneyClips, A.keyHolders, A.tieClips],
-      },
-      {
-        title: t("Acessórios para Fumadores", "Smoking Accessories"),
         items: [
-          { label: t("Estojos de Charuto e Cigarro", "Cigar & Cigarette Cases"), href: "/t/smoking" },
-          { label: t("Cortadores de Charuto", "Cigar Cutters"), href: "/t/smoking" },
-          { label: t("Humidores", "Humidors"), href: "/t/smoking" },
-          { label: t("Cinzeiros", "Ashtrays"), href: "/t/smoking" },
-          A.refillStones,
+          A.cufflinks,
+          A.belts,
+          A.keyHolders,
+          A.moneyClips,
+          A.tieClips,
+          { label: t("Necklace", "Necklace"), href: "/c/acessorios?col=Necklace" },
+          { label: t("Ver tudo", "View all"), href: "/c/acessorios" },
+        ],
+      },
+      { title: t("Acessórios para Fumadores", "Smoking Accessories"), items: SMOKING_ITEMS },
+      { title: t("Acessórios de Escrita", "Writing Accessories"), items: WRITING_ITEMS },
+      {
+        title: t("Colaboração", "Collaboration"),
+        items: [
+          { label: t("Fuente", "Fuente"), href: col("acessorios", "Fuente") },
+          { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("acessorios", "Romeo-y-Julieta") },
+          { label: t("Behike", "Behike"), href: col("acessorios", "Cohiba-Behike") },
+          { label: t("Fender", "Fender"), href: col("acessorios", "Fender") },
+          { label: t("Montecristo", "Montecristo"), href: col("acessorios", "Montecristo") },
         ],
       },
       {
-        title: t("Acessórios de Escrita", "Writing Accessories"),
+        title: t("Tema", "Theme"),
         items: [
-          A.refillsInks,
-          { label: t("Estojos para Canetas", "Pen Cases"), href: "/t/writing-accessories" },
-          { label: t("Secretária", "Office"), href: "/t/writing-accessories" },
+          { label: t("Camo", "Camo"), href: col("acessorios", "Camo") },
+          { label: t("Monogram 1872", "Monogram 1872"), href: col("acessorios", "Monogram 1872") },
+          { label: t("Snake Skin", "Snake"), href: col("acessorios", "Snake Skin") },
+          { label: t("Fire X", "Fire X"), href: col("acessorios", "Fire X") },
+          { label: t("Dragon", "Dragon"), href: col("acessorios", "Dragon") },
         ],
       },
     ],

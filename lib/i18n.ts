@@ -25,6 +25,10 @@ const dictionaries = {
       forWomen: "Senhora",
       forMen: "Homem",
       forUnisex: "Unissexo",
+      usageLabel: "Tipo",
+      usageBallpoint: "Esferográfica",
+      usageRollerball: "Rollerball",
+      usageFountain: "Tinta Permanente",
     },
     notFound: {
       title: "Página não encontrada",
@@ -173,6 +177,10 @@ const dictionaries = {
       forWomen: "Women",
       forMen: "Men",
       forUnisex: "Unisex",
+      usageLabel: "Type",
+      usageBallpoint: "Ballpoint",
+      usageRollerball: "Rollerball",
+      usageFountain: "Fountain Pen",
     },
     notFound: {
       title: "Page not found",

@@ -10,7 +10,10 @@ import {
   sortProducts,
   expandProductCards,
   inferGender,
+  hasUsage,
+  isUsage,
   type Gender,
+  type Usage,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { isSortKey, type SortKey } from "@/lib/sort";
@@ -38,10 +41,22 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; category: string }>;
-  searchParams: Promise<{ col?: string; sort?: string; page?: string; g?: string }>;
+  searchParams: Promise<{
+    col?: string;
+    sort?: string;
+    page?: string;
+    g?: string;
+    usage?: string;
+  }>;
 }) {
   const { lang, category } = await params;
-  const { col, sort: sortParam, page: pageParam, g: gParam } = await searchParams;
+  const {
+    col,
+    sort: sortParam,
+    page: pageParam,
+    g: gParam,
+    usage: usageParam,
+  } = await searchParams;
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
@@ -57,8 +72,16 @@ export default async function CategoryPage({
     supportsGender && (gParam === "men" || gParam === "women" || gParam === "unisex")
       ? gParam
       : undefined;
+  // Usage filter applies to writing only — pens are Ballpoint / Rollerball /
+  // Fountain Pen, exposed as a chip row on /c/escrita.
+  const supportsUsage = category === "escrita";
+  const activeUsage: Usage | undefined =
+    supportsUsage && isUsage(usageParam) ? usageParam : undefined;
   const fetched = await getProductsByCategory(category, activeCol);
-  const filtered = activeGender ? fetched.filter((p) => inferGender(p) === activeGender) : fetched;
+  const afterGender = activeGender
+    ? fetched.filter((p) => inferGender(p) === activeGender)
+    : fetched;
+  const filtered = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
   const items = sortProducts(filtered, sort, locale);
   const base = `/${locale}/c/${category}`;
 
@@ -75,17 +98,22 @@ export default async function CategoryPage({
   );
   const { slice: pageCards, page, totalPages } = paginate(allCards, readPage(pageParam));
 
-  // Pre-build the gender chip row so the JSX below stays clean. URL preserves
-  // col + sort while changing g; selecting "All" drops g entirely.
-  const genderLink = (g: Gender | undefined) => {
+  // Pre-build the chip rows so the JSX below stays clean. URL preserves
+  // col + sort while toggling g / usage; selecting "All" drops the param.
+  const buildChipLink = (overrides: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
     if (activeCol) params.set("col", activeCol);
     if (sort !== "featured") params.set("sort", sort);
-    if (g) params.set("g", g);
+    if (activeGender && !("g" in overrides)) params.set("g", activeGender);
+    if (activeUsage && !("usage" in overrides)) params.set("usage", activeUsage);
+    for (const [k, v] of Object.entries(overrides)) {
+      if (v) params.set(k, v);
+      else params.delete(k);
+    }
     const qs = params.toString();
     return qs ? `${base}?${qs}` : base;
   };
-  const genderChip = (active: boolean) =>
+  const chipClass = (active: boolean) =>
     `inline-flex items-center rounded-full border px-4 py-2 text-[11px] tracking-[0.18em] uppercase transition-colors duration-300 ${
       active
         ? "border-gold bg-ink text-cream"
@@ -171,17 +199,46 @@ export default async function CategoryPage({
           <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
             {dict.common.forLabel}
           </span>
-          <Link href={genderLink(undefined)} className={genderChip(!activeGender)}>
+          <Link href={buildChipLink({ g: undefined })} className={chipClass(!activeGender)}>
             {dict.common.forAll}
           </Link>
-          <Link href={genderLink("women")} className={genderChip(activeGender === "women")}>
+          <Link href={buildChipLink({ g: "women" })} className={chipClass(activeGender === "women")}>
             {dict.common.forWomen}
           </Link>
-          <Link href={genderLink("men")} className={genderChip(activeGender === "men")}>
+          <Link href={buildChipLink({ g: "men" })} className={chipClass(activeGender === "men")}>
             {dict.common.forMen}
           </Link>
-          <Link href={genderLink("unisex")} className={genderChip(activeGender === "unisex")}>
+          <Link href={buildChipLink({ g: "unisex" })} className={chipClass(activeGender === "unisex")}>
             {dict.common.forUnisex}
+          </Link>
+        </div>
+      )}
+
+      {supportsUsage && (
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+          <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
+            {dict.common.usageLabel}
+          </span>
+          <Link href={buildChipLink({ usage: undefined })} className={chipClass(!activeUsage)}>
+            {dict.common.forAll}
+          </Link>
+          <Link
+            href={buildChipLink({ usage: "ballpoint" })}
+            className={chipClass(activeUsage === "ballpoint")}
+          >
+            {dict.common.usageBallpoint}
+          </Link>
+          <Link
+            href={buildChipLink({ usage: "rollerball" })}
+            className={chipClass(activeUsage === "rollerball")}
+          >
+            {dict.common.usageRollerball}
+          </Link>
+          <Link
+            href={buildChipLink({ usage: "fountain" })}
+            className={chipClass(activeUsage === "fountain")}
+          >
+            {dict.common.usageFountain}
           </Link>
         </div>
       )}
@@ -202,6 +259,7 @@ export default async function CategoryPage({
           col: activeCol,
           sort: sort !== "featured" ? sort : undefined,
           g: activeGender,
+          usage: activeUsage,
         }}
         page={page}
         totalPages={totalPages}
