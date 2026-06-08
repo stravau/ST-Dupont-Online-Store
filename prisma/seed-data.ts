@@ -1722,7 +1722,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Cortador de Charuto · Monogram 1872`, en: `Cigar cutter · monogram 1872` },
     description: { pt: `Isqueiro S.T. Dupont — laca lapidada à mão, mecanismo de chama assinada e o icónico som cling® da casa de Faverges.`, en: `S.T. Dupont lighter — hand-polished lacquer, signature flame mechanism and the iconic cling® of the Faverges manufacture.` },
     collection: `Cortador de Charuto`,
-    categorySlug: "isqueiros",
+    categorySlug: "acessorios",
     image: `/products/cigar-cutter-monogram-1872/003480M.webp`,
     variants: [
       { sku: `003480M`, name: { pt: `Cigar cutter · monogram 1872 — Claro & Cinza`, en: `Cigar cutter · monogram 1872 — Light Gray` }, priceCents: 31740, currency: "EUR", attributes: { color: { label: { pt: `Claro & Cinza`, en: `Light Gray` }, hex: ["#cfd2d8", "#7a7d83"] } }, image: `/products/cigar-cutter-monogram-1872/003480M.webp`, images: [`/products/cigar-cutter-monogram-1872/003480M.webp`, `/products/cigar-cutter-monogram-1872/003480M-2.webp`, `/products/cigar-cutter-monogram-1872/003480M-3.webp`] },
@@ -1950,7 +1950,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Cortador de Charuto`, en: `Cigar cutter` },
     description: { pt: `Isqueiro S.T. Dupont — laca lapidada à mão, mecanismo de chama assinada e o icónico som cling® da casa de Faverges.`, en: `S.T. Dupont lighter — hand-polished lacquer, signature flame mechanism and the iconic cling® of the Faverges manufacture.` },
     collection: `Cortador de Charuto`,
-    categorySlug: "isqueiros",
+    categorySlug: "acessorios",
     image: `/products/cigar-cutter/003394.webp`,
     variants: [
       { sku: `003394`, name: { pt: `Cigar cutter — Preto`, en: `Cigar cutter — Black` }, priceCents: 27140, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/cigar-cutter/003394.webp`, images: [`/products/cigar-cutter/003394.webp`, `/products/cigar-cutter/003394-2.webp`, `/products/cigar-cutter/003394-3.webp`] },
@@ -2504,7 +2504,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Ligne 2`, en: `Ligne 2` },
     description: { pt: `Acessório S.T. Dupont — metal e laca tratados à mão, na tradição da casa francesa fundada em 1872.`, en: `S.T. Dupont accessory — hand-finished metal and lacquer in the tradition of the French house founded in 1872.` },
     collection: `Ligne 2`,
-    categorySlug: "acessorios",
+    categorySlug: "isqueiros",
     image: `/products/ligne-2-3/183070.webp`,
     variants: [
       { sku: `183070`, name: { pt: `Ligne 2 — Preto`, en: `Ligne 2 — Black` }, priceCents: 19780, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/ligne-2-3/183070.webp`, images: [`/products/ligne-2-3/183070.webp`, `/products/ligne-2-3/183070-2.webp`, `/products/ligne-2-3/183070-3.webp`] }
@@ -2515,7 +2515,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Line D`, en: `Line D` },
     description: { pt: `Acessório S.T. Dupont — metal e laca tratados à mão, na tradição da casa francesa fundada em 1872.`, en: `S.T. Dupont accessory — hand-finished metal and lacquer in the tradition of the French house founded in 1872.` },
     collection: `Line D`,
-    categorySlug: "acessorios",
+    categorySlug: "escrita",
     image: `/products/line-d/180024.webp`,
     variants: [
       { sku: `180024`, name: { pt: `Line D — Preto`, en: `Line D — Black` }, priceCents: 20700, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/line-d/180024.webp`, images: [`/products/line-d/180024.webp`] },
@@ -2788,7 +2788,7 @@ export const products: SeedProduct[] = [
     name: { pt: `D-Initial · Dragon`, en: `D-Initial · Dragon` },
     description: { pt: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.`, en: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.` },
     collection: `Dragon`,
-    categorySlug: "acessorios",
+    categorySlug: "escrita",
     image: `/products/d-initial-dragon/265026.webp`,
     variants: [
       { sku: `265026`, name: { pt: `D-Initial · Dragon — Golden`, en: `D-Initial · Dragon — Golden` }, priceCents: 23000, currency: "EUR", attributes: { color: { label: { pt: `Golden`, en: `Golden` }, hex: ["#c8a24a"] } }, image: `/products/d-initial-dragon/265026.webp`, images: [`/products/d-initial-dragon/265026.webp`, `/products/d-initial-dragon/265026-2.webp`, `/products/d-initial-dragon/265026-3.webp`, `/products/d-initial-dragon/265026-4.webp`] },
@@ -2803,7 +2803,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Eternity`, en: `Eternity` },
     description: { pt: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.`, en: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.` },
     collection: `Eternity`,
-    categorySlug: "acessorios",
+    categorySlug: "escrita",
     image: `/products/eternity-2/425015L.webp`,
     variants: [
       { sku: `425015L`, name: { pt: `Eternity — Variante 015L`, en: `Eternity — Variant 015L` }, priceCents: 9900, currency: "EUR", attributes: { color: { label: { pt: `Variante 015L`, en: `Variant 015L` }, hex: ["#7a7d83"] } }, image: `/products/eternity-2/425015L.webp`, images: [`/products/eternity-2/425015L.webp`, `/products/eternity-2/425015L-2.webp`, `/products/eternity-2/425015L-3.webp`, `/products/eternity-2/425015L-4.webp`] },
@@ -2827,7 +2827,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Eternity · Dragon`, en: `Eternity · Dragon` },
     description: { pt: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.`, en: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.` },
     collection: `Dragon`,
-    categorySlug: "acessorios",
+    categorySlug: "escrita",
     image: `/products/eternity-dragon/420028L.webp`,
     variants: [
       { sku: `420028L`, name: { pt: `Eternity · Dragon — Burgundy`, en: `Eternity · Dragon — Burgundy` }, priceCents: 9900, currency: "EUR", attributes: { color: { label: { pt: `Burgundy`, en: `Burgundy` }, hex: ["#7d2b27"] } }, image: `/products/eternity-dragon/420028L.webp`, images: [`/products/eternity-dragon/420028L.webp`, `/products/eternity-dragon/420028L-2.webp`, `/products/eternity-dragon/420028L-3.webp`, `/products/eternity-dragon/420028L-4.webp`] },
@@ -2862,7 +2862,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Initial`, en: `Initial` },
     description: { pt: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.`, en: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.` },
     collection: `Initial`,
-    categorySlug: "acessorios",
+    categorySlug: "escrita",
     image: `/products/initial-3/020840.webp`,
     variants: [
       { sku: `020840`, name: { pt: `Initial — Silver`, en: `Initial — Silver` }, priceCents: 9900, currency: "EUR", attributes: { color: { label: { pt: `Silver`, en: `Silver` }, hex: ["#b9bcc2"] } }, image: `/products/initial-3/020840.webp`, images: [`/products/initial-3/020840.webp`, `/products/initial-3/020840-2.webp`, `/products/initial-3/020840-3.webp`, `/products/initial-3/020840-4.webp`] },
@@ -2910,7 +2910,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Ligne 2`, en: `Ligne 2` },
     description: { pt: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.`, en: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.` },
     collection: `Ligne 2`,
-    categorySlug: "acessorios",
+    categorySlug: "isqueiros",
     image: `/products/ligne-2-6/C16034.webp`,
     variants: [
       { sku: `C16034`, name: { pt: `Ligne 2 — Violet`, en: `Ligne 2 — Violet` }, priceCents: 141000, currency: "EUR", attributes: { color: { label: { pt: `Violet`, en: `Violet` }, hex: ["#6b4a8a"] } }, image: `/products/ligne-2-6/C16034.webp`, images: [`/products/ligne-2-6/C16034.webp`, `/products/ligne-2-6/C16034-2.webp`, `/products/ligne-2-6/C16034-3.webp`, `/products/ligne-2-6/C16034-4.webp`] },
@@ -2921,7 +2921,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Maxijet`, en: `Maxijet` },
     description: { pt: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.`, en: `Acessório S.T. Dupont — feito à mão nas oficinas de Faverges, herdeiro do savoir-faire da Maison desde 1872.` },
     collection: `Maxijet`,
-    categorySlug: "acessorios",
+    categorySlug: "isqueiros",
     image: `/products/maxijet-2/020034.webp`,
     variants: [
       { sku: `020034`, name: { pt: `Maxijet — Violet`, en: `Maxijet — Violet` }, priceCents: 25000, currency: "EUR", attributes: { color: { label: { pt: `Violet`, en: `Violet` }, hex: ["#6b4a8a"] } }, image: `/products/maxijet-2/020034.webp`, images: [`/products/maxijet-2/020034.webp`, `/products/maxijet-2/020034-2.webp`, `/products/maxijet-2/020034-3.webp`, `/products/maxijet-2/020034-4.webp`] },
@@ -3644,7 +3644,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Line D Eternity`, en: `Line D Eternity` },
     description: { pt: `For almost 50 years, S.T. Dupont has offered a wide range of belts combining the House's different expertise to dress men with elegance. These belts are available in a wide choice of leathers, in reversible or non-reversible versions, with 30 or 35 mm wide straps and with different buckles: pin buckles, self-locking buckles or box buckles.`, en: `For almost 50 years, S.T. Dupont has offered a wide range of belts combining the House's different expertise to dress men with elegance. These belts are available in a wide choice of leathers, in reversible or non-reversible versions, with 30 or 35 mm wide straps and with different buckles: pin buckles, self-locking buckles or box buckles.` },
     collection: `Line D Eternity`,
-    categorySlug: "acessorios",
+    categorySlug: "escrita",
     image: `/products/line-d-2/8300000.webp`,
     variants: [
       { sku: `8300000`, name: { pt: `Line D Eternity — Black`, en: `Line D Eternity — Black` }, priceCents: 19000, currency: "EUR", attributes: { color: { label: { pt: `Black`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/line-d-2/8300000.webp`, images: [`/products/line-d-2/8300000.webp`, `/products/line-d-2/8300000-2.webp`] },
@@ -3674,7 +3674,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Apex`, en: `Apex` },
     description: { pt: `For almost 50 years, S.T. Dupont has offered a wide range of belts combining the House's different expertise to dress men with elegance. These belts are available in a wide choice of leathers, in reversible or non-reversible versions, with 30 or 35 mm wide straps and with different buckles: pin buckles or case buckles.`, en: `For almost 50 years, S.T. Dupont has offered a wide range of belts combining the House's different expertise to dress men with elegance. These belts are available in a wide choice of leathers, in reversible or non-reversible versions, with 30 or 35 mm wide straps and with different buckles: pin buckles or case buckles.` },
     collection: `Apex`,
-    categorySlug: "acessorios",
+    categorySlug: "pele",
     image: `/products/apex-2/9301000.webp`,
     variants: [
       { sku: `9301000`, name: { pt: `Apex — Black`, en: `Apex — Black` }, priceCents: 31500, currency: "EUR", attributes: { color: { label: { pt: `Black`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/apex-2/9301000.webp`, images: [`/products/apex-2/9301000.webp`, `/products/apex-2/9301000-2.webp`] },
@@ -3744,7 +3744,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Line D Eternity`, en: `Line D Eternity` },
     description: { pt: `This iconic black leather briefcase exudes modern business sophistication. A palladium push-button closure adds to the refinement of this bag. It features deep compartments and secure zippered pockets, providing ample space for documents and tech devices. As stylish as it is functional, it is perfect for any business trip. - Main compartment with large interior pocket - Compartment with 4 small pockets - Zippered pocket - Exterior pocket on the back`, en: `This iconic black leather briefcase exudes modern business sophistication. A palladium push-button closure adds to the refinement of this bag. It features deep compartments and secure zippered pockets, providing ample space for documents and tech devices. As stylish as it is functional, it is perfect for any business trip. - Main compartment with large interior pocket - Compartment with 4 small pockets - Zippered pocket - Exterior pocket on the back` },
     collection: `Line D Eternity`,
-    categorySlug: "pele",
+    categorySlug: "escrita",
     image: `/products/line-d-3/180008.webp`,
     variants: [
       { sku: `180008`, name: { pt: `Line D Eternity — Black`, en: `Line D Eternity — Black` }, priceCents: 19000, currency: "EUR", attributes: { color: { label: { pt: `Black`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/line-d-3/180008.webp`, images: [`/products/line-d-3/180008.webp`, `/products/line-d-3/180008-2.webp`, `/products/line-d-3/180008-3.webp`] },
@@ -3978,7 +3978,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Firehead`, en: `Firehead` },
     description: { pt: `Elegant keychain, inspired by the Firehead lighter, featuring a palladium plate and embossed leather part. The leather used on all models of the Firehead collection is certified Leather Working Group.`, en: `Elegant keychain, inspired by the Firehead lighter, featuring a palladium plate and embossed leather part. The leather used on all models of the Firehead collection is certified Leather Working Group.` },
     collection: `Firehead`,
-    categorySlug: "acessorios",
+    categorySlug: "pele",
     image: `/products/firehead-3/161110.webp`,
     variants: [
       { sku: `161110`, name: { pt: `Firehead — Black`, en: `Firehead — Black` }, priceCents: 14000, currency: "EUR", attributes: { color: { label: { pt: `Black`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/firehead-3/161110.webp`, images: [`/products/firehead-3/161110.webp`, `/products/firehead-3/161110-2.webp`, `/products/firehead-3/161110-3.webp`] },
@@ -4406,7 +4406,7 @@ export const products: SeedProduct[] = [
     name: { pt: `Ligne 2`, en: `Ligne 2` },
     description: { pt: `Brown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.`, en: `Brown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.` },
     collection: `Ligne 2`,
-    categorySlug: "acessorios",
+    categorySlug: "isqueiros",
     image: `/products/ligne-2-5/183071.webp`,
     variants: [
       { sku: `183071`, name: { pt: `Ligne 2 — Brown`, en: `Ligne 2 — Brown` }, priceCents: 17000, currency: "EUR", attributes: { color: { label: { pt: `Brown`, en: `Brown` }, hex: ["#6b4a2a"] } }, image: `/products/ligne-2-5/183071.webp`, images: [`/products/ligne-2-5/183071.webp`, `/products/ligne-2-5/183071-2.webp`, `/products/ligne-2-5/183071-3.webp`] },

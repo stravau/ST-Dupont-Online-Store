@@ -9,6 +9,8 @@ import {
   getCollections,
   sortProducts,
   expandProductCards,
+  inferGender,
+  type Gender,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { isSortKey, type SortKey } from "@/lib/sort";
@@ -36,10 +38,10 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; category: string }>;
-  searchParams: Promise<{ col?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{ col?: string; sort?: string; page?: string; g?: string }>;
 }) {
   const { lang, category } = await params;
-  const { col, sort: sortParam, page: pageParam } = await searchParams;
+  const { col, sort: sortParam, page: pageParam, g: gParam } = await searchParams;
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
@@ -49,11 +51,15 @@ export default async function CategoryPage({
   const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
   const art = categoryArt[category];
-  const items = sortProducts(
-    await getProductsByCategory(category, activeCol),
-    sort,
-    locale,
-  );
+  // Gender filter only applies to leather goods; ignored on other categories.
+  const supportsGender = category === "pele";
+  const activeGender: Gender | undefined =
+    supportsGender && (gParam === "men" || gParam === "women" || gParam === "unisex")
+      ? gParam
+      : undefined;
+  const fetched = await getProductsByCategory(category, activeCol);
+  const filtered = activeGender ? fetched.filter((p) => inferGender(p) === activeGender) : fetched;
+  const items = sortProducts(filtered, sort, locale);
   const base = `/${locale}/c/${category}`;
 
   // Flatten every (product, sku) for pagination, then hand the slice to the
@@ -68,6 +74,23 @@ export default async function CategoryPage({
     })),
   );
   const { slice: pageCards, page, totalPages } = paginate(allCards, readPage(pageParam));
+
+  // Pre-build the gender chip row so the JSX below stays clean. URL preserves
+  // col + sort while changing g; selecting "All" drops g entirely.
+  const genderLink = (g: Gender | undefined) => {
+    const params = new URLSearchParams();
+    if (activeCol) params.set("col", activeCol);
+    if (sort !== "featured") params.set("sort", sort);
+    if (g) params.set("g", g);
+    const qs = params.toString();
+    return qs ? `${base}?${qs}` : base;
+  };
+  const genderChip = (active: boolean) =>
+    `inline-flex items-center rounded-full border px-4 py-2 text-[11px] tracking-[0.18em] uppercase transition-colors duration-300 ${
+      active
+        ? "border-gold bg-ink text-cream"
+        : "border-line text-muted hover:border-gold hover:text-ink"
+    }`;
 
   return (
     <div>
@@ -143,6 +166,26 @@ export default async function CategoryPage({
         </nav>
       )}
 
+      {supportsGender && (
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+          <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
+            {dict.common.forLabel}
+          </span>
+          <Link href={genderLink(undefined)} className={genderChip(!activeGender)}>
+            {dict.common.forAll}
+          </Link>
+          <Link href={genderLink("women")} className={genderChip(activeGender === "women")}>
+            {dict.common.forWomen}
+          </Link>
+          <Link href={genderLink("men")} className={genderChip(activeGender === "men")}>
+            {dict.common.forMen}
+          </Link>
+          <Link href={genderLink("unisex")} className={genderChip(activeGender === "unisex")}>
+            {dict.common.forUnisex}
+          </Link>
+        </div>
+      )}
+
       <div className="mt-10 flex justify-end">
         <SortSelect value={sort} labels={dict.sort} />
       </div>
@@ -158,6 +201,7 @@ export default async function CategoryPage({
         query={{
           col: activeCol,
           sort: sort !== "featured" ? sort : undefined,
+          g: activeGender,
         }}
         page={page}
         totalPages={totalPages}

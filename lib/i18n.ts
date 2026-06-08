@@ -20,6 +20,11 @@ const dictionaries = {
       next: "Seguinte",
       showAllOnPage: "Mostrar todos nesta página",
       collapsePage: "Mostrar menos",
+      forLabel: "Para",
+      forAll: "Tudo",
+      forWomen: "Senhora",
+      forMen: "Homem",
+      forUnisex: "Unissexo",
     },
     notFound: {
       title: "Página não encontrada",
@@ -163,6 +168,11 @@ const dictionaries = {
       next: "Next",
       showAllOnPage: "Show all on this page",
       collapsePage: "Show fewer",
+      forLabel: "For",
+      forAll: "All",
+      forWomen: "Women",
+      forMen: "Men",
+      forUnisex: "Unisex",
     },
     notFound: {
       title: "Page not found",

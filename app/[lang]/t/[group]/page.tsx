@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getProduct, sortProducts, expandProductCards, type Product } from "@/lib/catalog";
+import { getProductsByCategory, sortProducts, expandProductCards } from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, readPage } from "@/lib/paginate";
@@ -40,10 +40,12 @@ export default async function GroupPage({
   if (!g) notFound();
 
   const activeType = g.types?.find((x) => x.key === type) ?? g.types?.[0];
-  const slugs = g.types ? (activeType?.slugs ?? []) : (g.slugs ?? []);
-
-  const products = await Promise.all(slugs.map((s) => getProduct(s)));
-  const items = sortProducts(products.filter(Boolean) as Product[], sort, locale);
+  // Fetch every product in the group's base category, then keep the ones the
+  // active type's matcher accepts. Flat groups apply the group's own matcher.
+  const all = await getProductsByCategory(g.categorySlug);
+  const matcher = g.types ? activeType?.match : g.match;
+  const filtered = matcher ? all.filter(matcher) : [];
+  const items = sortProducts(filtered, sort, locale);
   const cards = items.flatMap(expandProductCards);
   const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
   const nodes = slice.map(({ product, sku }) => (

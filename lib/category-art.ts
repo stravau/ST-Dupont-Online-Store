@@ -101,6 +101,8 @@ export const categoryArt: Record<string, CategoryArt> = {
       { label: t("Monograma 1872", "Monogram 1872"), href: "/c/pele?col=Monogram%201872" },
       { label: t("Fender", "Fender"), href: "/c/pele?col=Fender" },
       { label: t("Fuente", "Fuente"), href: "/c/pele?col=Fuente" },
+      { label: t("Senhora", "Women"), href: "/c/pele?g=women" },
+      { label: t("Homem", "Men"), href: "/c/pele?g=men" },
       { label: t("Malas", "Bags"), href: "/t/bags" },
       { label: t("Pequena Marroquinaria", "Small Leather Goods"), href: "/t/small-leather" },
     ],

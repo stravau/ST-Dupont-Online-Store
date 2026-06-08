@@ -95,7 +95,35 @@ type ProductRow = {
   variants: VariantRow[];
 };
 
+// Runtime corrections for products whose stored categorySlug is wrong (pens
+// sitting under "acessorios", cigar cutters under "isqueiros", a Line D pen
+// under "pele", etc.). Applied in mapProduct so every read goes through the
+// right category — no reseed required. The same fixes are mirrored into
+// seed-data.ts so a future reseed preserves them.
+const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
+  // accidentally in isqueiros — cigar cutters belong with the smoking accessories
+  "cigar-cutter": "acessorios",
+  "cigar-cutter-monogram-1872": "acessorios",
+  // accidentally in acessorios — these are full lighters / writing instruments
+  "ligne-2-3": "isqueiros",
+  "ligne-2-5": "isqueiros",
+  "ligne-2-6": "isqueiros",
+  "maxijet-2": "isqueiros",
+  "line-d": "escrita",
+  "line-d-2": "escrita",
+  "eternity-2": "escrita",
+  "eternity-dragon": "escrita",
+  "d-initial-dragon": "escrita",
+  "initial-3": "escrita",
+  // belongs to its real métier
+  "apex-2": "pele",
+  "firehead-3": "pele",
+  "line-d-3": "escrita",
+};
+
 function mapProduct(p: ProductRow): Product {
+  const storedCategory = p.category.slug as CategorySlug;
+  const categorySlug = CATEGORY_OVERRIDES[p.slug] ?? storedCategory;
   return {
     id: p.id,
     slug: p.slug,
@@ -103,7 +131,7 @@ function mapProduct(p: ProductRow): Product {
     description: loc(p.description),
     history: p.history ? loc(p.history) : null,
     collection: p.collection,
-    categorySlug: p.category.slug as CategorySlug,
+    categorySlug,
     image: p.image,
     novelty: p.featured,
     variants: p.variants.map((v) => ({
@@ -145,30 +173,45 @@ export async function getCategory(slug: string): Promise<Category | undefined> {
     : undefined;
 }
 
+// Slugs whose runtime override moves them INTO the given category. We widen
+// the Prisma where-clause to include them (otherwise a Ligne 2 lighter that's
+// stored as "acessorios" never surfaces on the lighters page) and then filter
+// by effective category after mapProduct applies the override.
+function widenedCategoryWhere(slug: string, collection?: string) {
+  const movedInto = Object.entries(CATEGORY_OVERRIDES)
+    .filter(([, c]) => c === slug)
+    .map(([s]) => s);
+  return {
+    active: true,
+    OR: [
+      { category: { slug }, ...(collection ? { collection } : {}) },
+      { slug: { in: movedInto }, ...(collection ? { collection } : {}) },
+    ],
+  };
+}
+
 export async function getProductsByCategory(
   slug: string,
   collection?: string,
 ): Promise<Product[]> {
   const rows = await prisma.product.findMany({
-    where: { active: true, category: { slug }, ...(collection ? { collection } : {}) },
+    where: widenedCategoryWhere(slug, collection),
     include: productInclude,
     orderBy: { createdAt: "asc" },
   });
-  return rows.map(mapProduct);
+  return rows.map(mapProduct).filter((p) => p.categorySlug === slug);
 }
 
 export async function getCollections(categorySlug: string): Promise<string[]> {
-  const rows = await prisma.product.findMany({
-    where: { active: true, category: { slug: categorySlug } },
-    select: { collection: true },
-    distinct: ["collection"],
-  });
+  // Derive from the effective category so overridden products contribute their
+  // collection too (and incorrectly-stored ones drop out).
+  const products = await getProductsByCategory(categorySlug);
+  const seen = new Set(products.map((p) => p.collection).filter((c) => c.length > 0));
   // Mirror the catalogue grid order (and the editorial intent) — themed
   // sub-lines first, then base lines in the user-specified sequence.
-  return rows
-    .map((r) => r.collection)
-    .filter((c) => c.length > 0)
-    .sort((a, b) => collectionRank(a) - collectionRank(b) || a.localeCompare(b));
+  return [...seen].sort(
+    (a, b) => collectionRank(a) - collectionRank(b) || a.localeCompare(b),
+  );
 }
 
 export async function getProduct(slug: string): Promise<Product | undefined> {
@@ -181,16 +224,17 @@ export async function getNovelties(limit = 6): Promise<Product[]> {
   // lighters so the home grid leads with the maison's signature pieces
   // (Maki-e, Architecture, Fuente, Orlinski, Le Grand Dupont, …) rather
   // than entry-level SKUs. Pulls a slightly wider pool, sorts each
-  // product by its priciest variant, takes the top `limit`.
+  // product by its priciest variant, takes the top `limit`. Reuses
+  // widenedCategoryWhere so overridden products (cigar cutters move out,
+  // mis-stored Ligne 2s move in) land in the right pool.
   const rows = await prisma.product.findMany({
-    where: {
-      active: true,
-      category: { slug: "isqueiros" },
-    },
+    where: widenedCategoryWhere("isqueiros"),
     include: productInclude,
     take: limit * 4,
   });
-  const items = rows.map(mapProduct);
+  const items = rows
+    .map(mapProduct)
+    .filter((p) => p.categorySlug === "isqueiros");
   const ceiling = (p: Product) =>
     p.variants.reduce((m, v) => Math.max(m, v.priceCents), 0);
   items.sort((a, b) => ceiling(b) - ceiling(a));
@@ -289,6 +333,23 @@ export async function searchProducts(query: string): Promise<Product[]> {
 }
 
 // --- pure helpers (no DB) ---
+
+export type Gender = "men" | "women" | "unisex";
+
+// Heuristic gender tag for leather goods. The Maison's catalogue doesn't carry
+// an explicit gender field, so we infer from the collection (Victoria / Riviera
+// are women's lines; Défi Explorer is a men's business line) and from telltale
+// item types (cabas / crossbody / camera bag skew women; briefcase / document
+// holder skew men). Anything else is treated as unisex. Used by /c/pele filter.
+export function inferGender(p: Product): Gender {
+  const s = p.slug.toLowerCase();
+  const c = p.collection.toLowerCase();
+  if (/victoria|riviera/.test(c)) return "women";
+  if (/cabas|crossbody|camera-bag|compact-crossbody|x-bag|x-2$/.test(s)) return "women";
+  if (/explorer/.test(c)) return "men";
+  if (/briefcase|document-holder|weekend-bag|travel-bag/.test(s)) return "men";
+  return "unisex";
+}
 
 export function fromPrice(product: Product): Variant {
   return product.variants.reduce(
