@@ -109,12 +109,16 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   "ligne-2-5": "isqueiros",
   "ligne-2-6": "isqueiros",
   "maxijet-2": "isqueiros",
+  "haute-creation": "isqueiros", // Haute Création is a high-end lighter line
   "line-d": "escrita",
   "line-d-2": "escrita",
   "eternity-2": "escrita",
   "eternity-dragon": "escrita",
   "d-initial-dragon": "escrita",
   "initial-3": "escrita",
+  // Mis-named by the catalogue scrape — slug says cutter, name says pen
+  "cutter-420024l": "escrita", // "Fountain Pen Large"
+  "cutter-422024l": "escrita", // "Rollerball Pen Large"
   // belongs to its real métier
   "apex-2": "pele",
   "firehead-3": "pele",

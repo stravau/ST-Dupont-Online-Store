@@ -16,6 +16,7 @@ import {
   type Usage,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
+import { ACC_SECTION_ORDER, getProductType } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, readPage } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
@@ -82,15 +83,45 @@ export default async function CategoryPage({
     ? fetched.filter((p) => inferGender(p) === activeGender)
     : fetched;
   const filtered = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
-  const items = sortProducts(filtered, sort, locale);
+  const sortedItems = sortProducts(filtered, sort, locale);
   const base = `/${locale}/c/${category}`;
 
+  // For accessories the natural section is the *item type* (Cigar Cases,
+  // Cigar Cutters, Ashtrays, …) rather than the brand collection — the same
+  // cigar case shouldn't appear under three separate headers just because the
+  // catalogue stores it in three different `collection` strings. For lighters
+  // / writing / leather the collection IS the model line, so we keep that.
+  //
+  // Bucket products by type, order the buckets per ACC_SECTION_ORDER, then
+  // flatten back. Inside each bucket items keep the user-chosen sort order
+  // (so price-asc still works within "Cigar Cases", etc.).
+  const groupByType = category === "acessorios";
+  const otherLabel = locale === "pt" ? "Outros" : "Other";
+  let items = sortedItems;
+  if (groupByType) {
+    const buckets = new Map<string, typeof sortedItems>();
+    for (const p of sortedItems) {
+      const key = getProductType(p, locale)?.key ?? "z-other";
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(p);
+    }
+    const orderedKeys = [...buckets.keys()].sort((a, b) => {
+      const ra = ACC_SECTION_ORDER.indexOf(a);
+      const rb = ACC_SECTION_ORDER.indexOf(b);
+      return (ra === -1 ? 999 : ra) - (rb === -1 ? 999 : rb);
+    });
+    items = orderedKeys.flatMap((k) => buckets.get(k)!);
+  }
+
   // Flatten every (product, sku) for pagination, then hand the slice to the
-  // grouped renderer which re-groups by collection within the visible page.
+  // grouped renderer which re-groups by `line` (consecutive same-line items
+  // form a section). Line = type label for accessories, collection otherwise.
+  const lineOf = (p: (typeof items)[number]): string =>
+    groupByType ? (getProductType(p, locale)?.label ?? otherLabel) : p.collection;
   const allCards = items.flatMap((p) =>
     expandProductCards(p).map(({ sku }) => ({
       key: `${p.slug}-${sku}`,
-      line: p.collection,
+      line: lineOf(p),
       node: (
         <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />
       ),

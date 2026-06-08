@@ -71,6 +71,47 @@ const isWallet = re(/wallet/);
 const isCardHolder = re(/card-holder/);
 const isLeatherKeyHolder = re(/^(?:leather-key-holder|key-ring)$/);
 
+// Display order for accessory-type sections on the /c/acessorios page. The
+// category groups by detected type (so all cigar cases sit together regardless
+// of their `collection`); this list dictates which header comes first.
+export const ACC_SECTION_ORDER: string[] = [
+  "smoking-cutters",
+  "smoking-cases",
+  "smoking-ashtrays",
+  "smoking-humidors",
+  "refill-stones",
+  "writing-accessories-pen-cases",
+  "writing-accessories-office",
+  "writing-accessories-notebooks",
+  "refills-inks",
+  "cufflinks",
+  "belts",
+  "money-clips",
+  "key-holders",
+  "tie-clips",
+];
+
+// Returns the human label of the type a product belongs to, plus a stable
+// section key (used for ordering). Search order: types within each group
+// (first match wins), then flat groups. Returns null if nothing matches —
+// the category page falls back to the product's collection field.
+export function getProductType(
+  p: Product,
+  locale: Locale,
+): { key: string; label: string } | null {
+  for (const g of Object.values(productGroups)) {
+    if (g.categorySlug !== p.categorySlug) continue;
+    if (g.types) {
+      for (const ty of g.types) {
+        if (ty.match(p)) return { key: `${g.id}-${ty.key}`, label: ty.label[locale] };
+      }
+    } else if (g.match?.(p)) {
+      return { key: g.id, label: g.title[locale] };
+    }
+  }
+  return null;
+}
+
 export const productGroups: Record<string, ProductGroup> = {
   // ---- L'Art du Feu ----
   smoking: {
