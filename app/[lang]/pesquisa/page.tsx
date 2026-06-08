@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { searchProducts, sortProducts, expandProductCards } from "@/lib/catalog";
+import { searchProducts, sortProducts, expandProductCards, type Product } from "@/lib/catalog";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, readPage } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { PagedGrid } from "@/components/paged-grid";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
+import { SearchFilters, type FacetOption } from "@/components/search-filters";
 import { Crest } from "@/components/crest";
 
 export async function generateMetadata({
@@ -25,10 +26,22 @@ export default async function SearchPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    sort?: string;
+    page?: string;
+    cat?: string;
+    col?: string;
+  }>;
 }) {
   const { lang } = await params;
-  const { q, sort: sortParam, page: pageParam } = await searchParams;
+  const {
+    q,
+    sort: sortParam,
+    page: pageParam,
+    cat: catParam,
+    col: colParam,
+  } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -37,12 +50,58 @@ export default async function SearchPage({
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
 
   const raw = query ? await searchProducts(query) : [];
-  const results = sortProducts(raw, sort, locale);
+
+  // Bilingual labels for the four category slugs — drives the chip text.
+  const catLabel: Record<string, string> = {
+    isqueiros: dict.nav.lighters,
+    escrita: dict.nav.writing,
+    pele: dict.nav.leather,
+    acessorios: dict.nav.accessories,
+  };
+
+  // Category facets reflect the whole q-only result set so the user always
+  // sees every house their query touches. Collection facets narrow with the
+  // active category — collections rarely span categories, and a global list
+  // would be noisy.
+  const catCounts = new Map<string, number>();
+  for (const p of raw) catCounts.set(p.categorySlug, (catCounts.get(p.categorySlug) ?? 0) + 1);
+  const categoryFacets: FacetOption[] = [...catCounts.entries()]
+    .map(([value, count]) => ({ value, label: catLabel[value] ?? value, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+  const activeCategory = catParam && catCounts.has(catParam) ? catParam : undefined;
+
+  const colSource = activeCategory ? raw.filter((p) => p.categorySlug === activeCategory) : raw;
+  const colCounts = new Map<string, number>();
+  for (const p of colSource) colCounts.set(p.collection, (colCounts.get(p.collection) ?? 0) + 1);
+  const collectionFacets: FacetOption[] = [...colCounts.entries()]
+    .filter(([value]) => value.length > 0)
+    .map(([value, count]) => ({ value, label: value, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+  const activeCollection = colParam && colCounts.has(colParam) ? colParam : undefined;
+
+  const filtered: Product[] = raw.filter(
+    (p) =>
+      (!activeCategory || p.categorySlug === activeCategory) &&
+      (!activeCollection || p.collection === activeCollection),
+  );
+
+  const results = sortProducts(filtered, sort, locale);
   const cards = results.flatMap(expandProductCards);
   const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
   const nodes = slice.map(({ product, sku }) => (
     <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
+
+  const pathname = `/${locale}/pesquisa`;
+  const paginatorQuery = {
+    q: query,
+    sort: sort !== "featured" ? sort : undefined,
+    cat: activeCategory,
+    col: activeCollection,
+  };
+  const showingFiltered = filtered.length !== raw.length;
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
@@ -50,7 +109,7 @@ export default async function SearchPage({
       <h1 className="text-center font-serif text-5xl text-ink">{s.title}</h1>
       <div className="gold-rule mx-auto my-8" />
 
-      <form action={`/${locale}/pesquisa`} method="get" className="mx-auto max-w-xl">
+      <form action={pathname} method="get" className="mx-auto max-w-xl">
         <div className="flex border border-line bg-paper">
           <input
             type="search"
@@ -72,17 +131,45 @@ export default async function SearchPage({
 
       {query && (
         <p className="mt-10 text-center text-sm text-muted">
-          {s.resultsFor} <span className="text-ink">“{query}”</span> · {results.length} {s.count}
+          {s.resultsFor} <span className="text-ink">“{query}”</span> ·{" "}
+          {showingFiltered ? (
+            <>
+              {filtered.length} {s.filteredCount} {raw.length}
+            </>
+          ) : (
+            <>
+              {results.length} {s.count}
+            </>
+          )}
         </p>
       )}
 
-      {query && results.length > 0 && (
+      {query && raw.length > 0 && (
+        <SearchFilters
+          pathname={pathname}
+          query={query}
+          sort={sort}
+          activeCategory={activeCategory}
+          activeCollection={activeCollection}
+          categories={categoryFacets}
+          collections={collectionFacets}
+          labels={{
+            categories: s.categories,
+            collections: s.collections,
+            all: s.allFilter,
+          }}
+        />
+      )}
+
+      {query && filtered.length > 0 && (
         <div className="mt-8 flex justify-end">
           <SortSelect value={sort} labels={dict.sort} />
         </div>
       )}
 
-      {query && results.length === 0 ? (
+      {query && raw.length === 0 ? (
+        <p className="mt-10 text-center text-muted">{s.noResults}</p>
+      ) : query && filtered.length === 0 ? (
         <p className="mt-10 text-center text-muted">{s.noResults}</p>
       ) : query ? (
         <>
@@ -93,8 +180,8 @@ export default async function SearchPage({
             collapseLabel={dict.common.collapsePage}
           />
           <Paginator
-            pathname={`/${locale}/pesquisa`}
-            query={{ q: query, sort: sort !== "featured" ? sort : undefined }}
+            pathname={pathname}
+            query={paginatorQuery}
             page={page}
             totalPages={totalPages}
             prevLabel={dict.common.prev}

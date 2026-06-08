@@ -50,6 +50,10 @@ const dictionaries = {
       start: "Comece a escrever para descobrir a maison.",
       searching: "A pesquisar…",
       viewAll: "Ver todos os resultados",
+      categories: "Casas",
+      collections: "Linhas",
+      allFilter: "Todas",
+      filteredCount: "filtrado(s) de",
     },
     hero: {
       eyebrow: "Est. 1872 · Paris",
@@ -189,6 +193,10 @@ const dictionaries = {
       start: "Start typing to discover the maison.",
       searching: "Searching…",
       viewAll: "View all results",
+      categories: "Houses",
+      collections: "Lines",
+      allFilter: "All",
+      filteredCount: "filtered of",
     },
     hero: {
       eyebrow: "Est. 1872 · Paris",

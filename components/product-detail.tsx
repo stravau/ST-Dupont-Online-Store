@@ -49,6 +49,24 @@ export function ProductDetail({
     setIdx(0); // reset to the front photo when the colourway changes
   }, []);
 
+  // Cursor-tracking hover zoom — desktop only. `zoom` is null when the cursor
+  // is outside the frame; otherwise carries the cursor position as a percent
+  // of the container, which becomes the active image's transform-origin so
+  // the magnified view follows the cursor like a loupe.
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
+  const onZoomMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setZoom({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+  const onZoomLeave = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
+    setZoom(null);
+  }, []);
+
   const activeVariant = variants.find((v) => v.sku === activeSku);
   const gallery = (
     activeVariant?.images?.length
@@ -66,7 +84,12 @@ export function ProductDetail({
   return (
     <>
     <div className="mt-10 grid gap-14 md:grid-cols-2">
-      <div className="group relative aspect-[5/6] overflow-hidden border border-line bg-white">
+      <div
+        className="group relative aspect-[5/6] overflow-hidden border border-line bg-white md:cursor-zoom-in"
+        onPointerEnter={onZoomMove}
+        onPointerMove={onZoomMove}
+        onPointerLeave={onZoomLeave}
+      >
         {gallery.length > 0 ? (
           // Sliding track: all of the colourway's photos laid side by side,
           // translated by the active index. Remounts per colourway (key) so
@@ -79,22 +102,33 @@ export function ProductDetail({
               transform: `translateX(-${safeIdx * (100 / gallery.length)}%)`,
             }}
           >
-            {gallery.map((src, i) => (
-              <div
-                key={src}
-                className="relative h-full"
-                style={{ width: `${100 / gallery.length}%` }}
-              >
-                <Image
-                  src={src}
-                  alt={label}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority={i === 0}
-                  className="object-contain"
-                />
-              </div>
-            ))}
+            {gallery.map((src, i) => {
+              const z = i === safeIdx ? zoom : null;
+              return (
+                <div
+                  key={src}
+                  className="relative h-full"
+                  style={{ width: `${100 / gallery.length}%` }}
+                >
+                  <Image
+                    src={src}
+                    alt={label}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority={i === 0}
+                    className="object-contain will-change-transform"
+                    style={
+                      z
+                        ? {
+                            transform: "scale(2.2)",
+                            transformOrigin: `${z.x}% ${z.y}%`,
+                          }
+                        : undefined
+                    }
+                  />
+                </div>
+              );
+            })}
           </div>
         ) : (
           <ProductImage seed={seed} label={label} className="h-full w-full" />

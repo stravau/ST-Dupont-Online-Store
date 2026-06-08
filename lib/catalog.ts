@@ -205,9 +205,52 @@ function normalize(s: string): string {
     .trim();
 }
 
-// Full-catalogue search. Matches every term (AND) against product name (PT/EN),
-// description, collection, category slug + name, and every variant finish/SKU.
-// Catalogue is small, so in-memory filtering is exact and fast.
+// Levenshtein edit distance with early exit when the bound is exceeded.
+// Used for typo-tolerant matching — see `termMatches`.
+function lev(a: string, b: string, max: number): number {
+  if (a === b) return 0;
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  const m = a.length;
+  const n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = new Array<number>(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++) {
+    const cur = new Array<number>(n + 1);
+    cur[0] = i;
+    let rowMin = cur[0];
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      if (cur[j] < rowMin) rowMin = cur[j];
+    }
+    if (rowMin > max) return max + 1; // every alignment past this row is too far
+    prev = cur;
+  }
+  return prev[n];
+}
+
+// Direct substring is the first chance to match — covers "ligne", "fuente",
+// SKUs, etc. If it misses, treat the term as a possible typo and accept it if
+// any word in the blob is within a small edit distance (1 for short terms, 2
+// for longer ones). Very short terms (≤3) only match exactly to avoid noise.
+function termMatches(term: string, blob: string, words: string[]): boolean {
+  if (blob.includes(term)) return true;
+  const limit = term.length <= 3 ? 0 : term.length <= 6 ? 1 : 2;
+  if (limit === 0) return false;
+  for (const w of words) {
+    if (Math.abs(w.length - term.length) > limit) continue;
+    if (lev(term, w, limit) <= limit) return true;
+  }
+  return false;
+}
+
+// Full-catalogue search. Each term must match (AND) somewhere across product
+// name (PT/EN), description, collection, category slug + name, variant
+// finish/SKU. Substring first; falls back to a small edit-distance check so
+// "dupnt" still finds "dupont". Catalogue is small enough that in-memory
+// filtering is exact and fast.
 export async function searchProducts(query: string): Promise<Product[]> {
   const q = normalize(query);
   if (!q) return [];
@@ -240,7 +283,8 @@ export async function searchProducts(query: string): Promise<Product[]> {
         .filter(Boolean)
         .join(" "),
     );
-    return terms.every((t) => blob.includes(t));
+    const words = blob.split(/\s+/).filter(Boolean);
+    return terms.every((t) => termMatches(t, blob, words));
   });
 }
 
