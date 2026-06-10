@@ -103,30 +103,36 @@ export function MegaMenu({
                     </Link>
                   </div>
 
-                  {/* Titled sections (Accessories): one column per section. */}
+                  {/* Titled sections — laid out as a wrapping 4-column grid so
+                      categories with 6-8 sections (Lighters / Writing) flow
+                      naturally onto a second row instead of overflowing the
+                      panel and clipping the rightmost columns. The intro
+                      stays pinned to the left at full height. */}
                   {c.sections && c.sections.length > 0 ? (
-                    c.sections.map((sec, si) => (
-                      <div
-                        key={sec.title}
-                        className="menu-item min-w-[11rem]"
-                        style={{ animationDelay: `${0.08 + si * 0.05}s` }}
-                      >
-                        <p className="overline mb-4 text-[0.6rem]">{sec.title}</p>
-                        <ul className="space-y-3">
-                          {sec.items.map((it, i) => (
-                            <li
-                              key={`${it.href}${it.label}`}
-                              className="menu-item"
-                              style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
-                            >
-                              <Link href={it.href} className="menu-item-hover text-sm text-ink">
-                                {it.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))
+                    <div className="grid flex-1 grid-cols-2 gap-x-10 gap-y-9 md:grid-cols-3 lg:grid-cols-4">
+                      {c.sections.map((sec, si) => (
+                        <div
+                          key={sec.title}
+                          className="menu-item min-w-0"
+                          style={{ animationDelay: `${0.08 + si * 0.05}s` }}
+                        >
+                          <p className="overline mb-4 text-[0.6rem]">{sec.title}</p>
+                          <ul className="space-y-3">
+                            {sec.items.map((it, i) => (
+                              <li
+                                key={`${it.href}${it.label}`}
+                                className="menu-item"
+                                style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
+                              >
+                                <Link href={it.href} className="menu-item-hover text-sm text-ink">
+                                  {it.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <>
                   {/* Item types — labelled "Collections" (inverted). Long
