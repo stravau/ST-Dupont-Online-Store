@@ -89,7 +89,15 @@ export function ProductCard({
     .filter(Boolean)
     .join("&");
   const href = `/${lang}/p/${product.slug}${qs ? `?${qs}` : ""}`;
-  const title = variantType ? `${product.name[lang]} · ${variantType}` : product.name[lang];
+  // When this card represents one specific colourway (variantSku is set), use
+  // the variant's full name — it already encodes the colour (e.g. "Perfect
+  // Cut — Silver"). Without this, three Perfect Cut cards in a row would all
+  // read identical, just with a different swatch dot.
+  const title = variantSku
+    ? base.name[lang]
+    : variantType
+      ? `${product.name[lang]} · ${variantType}`
+      : product.name[lang];
 
   return (
     <ProductCardInteractive
