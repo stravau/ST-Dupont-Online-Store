@@ -164,17 +164,16 @@ export const categoryArt: Record<string, CategoryArt> = {
       { title: t("Acessórios para Fumadores", "Smoking Accessories"), items: SMOKING_ITEMS },
       {
         title: t("Haute Création", "Haute Création"),
-        // The Haute Création sub-lines below mostly don't yet exist in our
-        // catalogue — kept here per the user's "leave it" directive so the
-        // structure mirrors the official menu when the data is added later.
+        // Discontinued / archive-only sub-lines (Zodiac, Maharaja, Notre Dame,
+        // Lucky Skull) aren't in the live S.T. Dupont catalogue any more, so
+        // they're removed. Diamond Head replaces Diamonds Fire-X (same line,
+        // current branding). The remaining items resolve via the slug-pattern
+        // fallback in lib/catalog.ts.
         items: [
-          { label: t("Zodíaco", "Zodiac"), href: col("isqueiros", "Zodiac") },
-          { label: t("Diamonds Fire-X", "Diamonds Fire-X"), href: col("isqueiros", "Diamonds Fire-X") },
-          { label: t("Maharaja & Maharani", "Maharaja & Maharani"), href: col("isqueiros", "Maharaja") },
+          { label: t("Haute Création", "Haute Création"), href: col("isqueiros", "Haute Création") },
+          { label: t("Diamond Head", "Diamond Head"), href: col("isqueiros", "Diamond Head") },
           { label: t("Stones of Fortune", "Stones of Fortune"), href: col("isqueiros", "Stones of Fortune") },
-          { label: t("Notre Dame de Paris", "Notre Dame de Paris"), href: col("isqueiros", "Notre Dame de Paris") },
-          { label: t("Casino Complication", "Casino Complication"), href: col("isqueiros", "Casino Complication") },
-          { label: t("Lucky Skull", "Lucky Skull"), href: col("isqueiros", "Lucky Skull") },
+          { label: t("Cohiba 60th", "Cohiba 60th"), href: col("isqueiros", "Cohiba") },
         ],
       },
       {
@@ -215,23 +214,25 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Coleções", "Collections"),
+        // "Pen Necklace" link replaced with "Marker Necklace" since only the
+        // latter exists in our catalogue. Défi Millennium typo fixed.
         items: [
           { label: t("Initial", "Initial"), href: col("escrita", "Initial") },
           { label: t("Line D Eternity", "Line D Eternity"), href: col("escrita", "Line D Eternity") },
           { label: t("Classique", "Classique"), href: col("escrita", "Classique") },
           { label: t("Liberté", "Liberté"), href: col("escrita", "Liberté") },
-          { label: t("Défi Millenium", "Défi Millenium"), href: col("escrita", "Défi Millenium") },
-          { label: t("Colar Caneta", "Pen Necklace"), href: col("escrita", "Pen Necklace") },
+          { label: t("Défi Millennium", "Défi Millennium"), href: col("escrita", "Défi Millennium") },
+          { label: t("Colar Marker", "Marker Necklace"), href: col("escrita", "Marker Necklace") },
         ],
       },
       {
         title: t("Colaboração", "Collaboration"),
+        // Elysée line isn't currently listed by the Maison; removed.
         items: [
           { label: t("Orlinski", "Orlinski"), href: col("escrita", "Orlinski") },
           { label: t("Fuente", "Fuente"), href: col("escrita", "Fuente") },
           { label: t("20.000 Léguas", "20,000 Leagues"), href: col("escrita", "20,000 Leagues Under The Sea") },
           { label: t("Fender", "Fender"), href: col("escrita", "Fender") },
-          { label: t("Elysee", "Elysee"), href: col("escrita", "Elysee") },
           { label: t("DC Comics", "DC Comics"), href: col("escrita", "DC Comics") },
           { label: t("Montecristo", "Montecristo"), href: col("escrita", "Montecristo") },
         ],
@@ -383,12 +384,15 @@ export const categoryArt: Record<string, CategoryArt> = {
     menuSections: [
       {
         title: t("Novidades", "New Product"),
+        // Behike under accessories points at the Cohiba 60th-anniversary
+        // collection (where our accessory line actually lives — cufflinks,
+        // 2-cigar case, XL ashtray).
         items: [
           { label: t("Horse Mane", "Horse"), href: col("acessorios", "Horse Mane") },
           { label: t("Fuente", "Fuente"), href: col("acessorios", "Fuente") },
           { label: t("Jules Verne", "Jules Verne"), href: col("acessorios", "20,000 Leagues Under The Sea") },
           { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("acessorios", "Romeo-y-Julieta") },
-          { label: t("Behike", "Behike"), href: col("acessorios", "Cohiba-Behike") },
+          { label: t("Behike", "Behike"), href: col("acessorios", "Cohiba") },
           { label: t("Fender", "Fender"), href: col("acessorios", "Fender") },
           { label: t("Camo", "Camo"), href: col("acessorios", "Camo") },
           { label: t("Monogram 1872", "Monogram 1872"), href: col("acessorios", "Monogram 1872") },
@@ -397,13 +401,13 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Coleções", "Collections"),
+        // "Necklace" removed — no necklace accessories live in this category.
         items: [
           A.cufflinks,
           A.belts,
           A.keyHolders,
           A.moneyClips,
           A.tieClips,
-          { label: t("Necklace", "Necklace"), href: "/c/acessorios?col=Necklace" },
           { label: t("Ver tudo", "View all"), href: "/c/acessorios" },
         ],
       },
@@ -414,7 +418,7 @@ export const categoryArt: Record<string, CategoryArt> = {
         items: [
           { label: t("Fuente", "Fuente"), href: col("acessorios", "Fuente") },
           { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("acessorios", "Romeo-y-Julieta") },
-          { label: t("Behike", "Behike"), href: col("acessorios", "Cohiba-Behike") },
+          { label: t("Behike", "Behike"), href: col("acessorios", "Cohiba") },
           { label: t("Fender", "Fender"), href: col("acessorios", "Fender") },
           { label: t("Montecristo", "Montecristo"), href: col("acessorios", "Montecristo") },
         ],

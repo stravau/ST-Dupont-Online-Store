@@ -177,6 +177,53 @@ export async function getCategory(slug: string): Promise<Category | undefined> {
     : undefined;
 }
 
+// Many "themes" (Géode, Popote, Maki-e, Orlinski, Monogram 1872, DC Comics,
+// Horse Mane, etc.) span multiple model lines on the official site, but our
+// catalogue stores them with the LINE name as `collection` (e.g. ligne-2-geode
+// has collection "Ligne 2"). The theme only lives in the slug. So when the
+// navbar filters by `?col=Géode`, strict-equality on `collection` returns 0.
+//
+// This map gives those theme labels a slug-substring fallback so the query
+// catches every product whose slug contains the theme — exactly what the
+// navbar intends. Keys are the labels the navbar uses (matching what we pass
+// in the URL); values are a lowercase, hyphenated slug fragment.
+const COLLECTION_SLUG_PATTERNS: Record<string, string> = {
+  "Géode": "geode",
+  "Popote": "popote",
+  "Maki-e": "maki-e",
+  "Orlinski": "orlinski",
+  "Monogram 1872": "monogram",
+  "Horse Mane": "horse-mane",
+  "DC Comics": "dc-comics",
+  "Snake Skin": "snake-skin",
+  "Fire X": "fire-x",
+  "Camo": "camo",
+  "Dragon": "dragon",
+  "Fender": "fender",
+  "Fuente": "fuente",
+  "Cohiba-Behike": "cohiba-behike",
+  "Cohiba": "cohiba",
+  "Diamond head": "diamond-head",
+  "Diamond Head": "diamond-head",
+  "Casino": "casino",
+  "Behike": "behike",
+  "Padron": "padron",
+  "Padrón": "padron",
+  "Snake": "snake-skin",
+  "Horse": "horse-mane",
+  "Joker": "joker",
+  "Cohiba 60th": "cohiba",
+  "Marker Necklace": "marker-necklace",
+  "Lighter Necklace": "lighter-necklace",
+  "Romeo-y-Julieta": "romeo-y-julieta",
+  "Montecristo": "montecristo",
+  "20,000 Leagues Under The Sea": "20000",
+  "Harley Quinn": "harley-quinn",
+  "Stones of Fortune": "stones-of-fortune",
+  "Haute Création": "haute-creation",
+  "Cohiba 60th Anniversary": "cohiba",
+};
+
 // Slugs whose runtime override moves them INTO the given category. We widen
 // the Prisma where-clause to include them (otherwise a Ligne 2 lighter that's
 // stored as "acessorios" never surfaces on the lighters page) and then filter
@@ -185,11 +232,23 @@ function widenedCategoryWhere(slug: string, collection?: string) {
   const movedInto = Object.entries(CATEGORY_OVERRIDES)
     .filter(([, c]) => c === slug)
     .map(([s]) => s);
+  // When a collection filter is set AND has a known slug pattern, accept
+  // EITHER literal collection match OR slug-contains. Otherwise stick with
+  // strict equality (so Ligne 2 doesn't accidentally pick up unrelated
+  // ligne-2-monogram if "Monogram 1872" wasn't asked for).
+  const collectionPattern = collection
+    ? COLLECTION_SLUG_PATTERNS[collection]
+    : undefined;
+  const collectionFilter = collection
+    ? collectionPattern
+      ? { OR: [{ collection }, { slug: { contains: collectionPattern } }] }
+      : { collection }
+    : {};
   return {
     active: true,
     OR: [
-      { category: { slug }, ...(collection ? { collection } : {}) },
-      { slug: { in: movedInto }, ...(collection ? { collection } : {}) },
+      { category: { slug }, ...collectionFilter },
+      { slug: { in: movedInto }, ...collectionFilter },
     ],
   };
 }

@@ -79,8 +79,13 @@ export default async function CategoryPage({
   const activeUsage: Usage | undefined =
     supportsUsage && isUsage(usageParam) ? usageParam : undefined;
   const fetched = await getProductsByCategory(category, activeCol);
+  // Men / Women include unisex pieces (the explicit Unisex filter is strict).
   const afterGender = activeGender
-    ? fetched.filter((p) => inferGender(p) === activeGender)
+    ? fetched.filter((p) => {
+        const g = inferGender(p);
+        if (activeGender === "unisex") return g === "unisex";
+        return g === activeGender || g === "unisex";
+      })
     : fetched;
   const filtered = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
   const sortedItems = sortProducts(filtered, sort, locale);
