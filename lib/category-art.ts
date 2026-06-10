@@ -227,10 +227,9 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Colaboração", "Collaboration"),
-        // Elysée line isn't currently listed by the Maison; removed.
+        // Elysée and Fuente writing lines aren't in our catalogue; removed.
         items: [
           { label: t("Orlinski", "Orlinski"), href: col("escrita", "Orlinski") },
-          { label: t("Fuente", "Fuente"), href: col("escrita", "Fuente") },
           { label: t("20.000 Léguas", "20,000 Leagues"), href: col("escrita", "20,000 Leagues Under The Sea") },
           { label: t("Fender", "Fender"), href: col("escrita", "Fender") },
           { label: t("DC Comics", "DC Comics"), href: col("escrita", "DC Comics") },
@@ -325,25 +324,33 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Homem", "Men"),
+        // Pouches / Tote etc. don't have dedicated bag-type slugs in our
+        // catalogue; the Maison stores those variants under model lines
+        // (Neo Capsule, X-bag, Firehead). Point each item at the line where
+        // the variants live so users land on populated pages.
         items: [
           { label: t("Ver tudo", "View all"), href: "/c/pele?g=men" },
           { label: t("Malas de Viagem", "Travel bags"), href: typeHref("bags", "travel", "men") },
           { label: t("Trabalho", "Business"), href: typeHref("bags", "business", "men") },
           { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "men") },
           { label: t("Tiracolo", "Crossbody"), href: typeHref("bags", "crossbody", "men") },
-          { label: t("Bolsas", "Pouches"), href: typeHref("bags", "pouches", "men") },
+          { label: t("Bolsas", "Pouches"), href: col("pele", "Neo Capsule") },
           { label: t("Tote Bag", "Tote bag"), href: typeHref("bags", "tote", "men") },
         ],
       },
       {
         title: t("Senhora", "Women"),
+        // Hand bag / Shoulder bag / Baguette aren't dedicated types in our
+        // data — they live under X-bag (handbags, baguette) and Firehead
+        // (shoulder, pouch). Point at the umbrella collection so each link
+        // lands on relevant products.
         items: [
           { label: t("Ver tudo", "View all"), href: "/c/pele?g=women" },
-          { label: t("Mala de Mão", "Hand bag"), href: typeHref("bags", "hand-bag", "women") },
-          { label: t("Mala de Ombro", "Shoulder bag"), href: typeHref("bags", "shoulder-bag", "women") },
+          { label: t("Mala de Mão", "Hand bag"), href: col("pele", "X-bag") },
+          { label: t("Mala de Ombro", "Shoulder bag"), href: col("pele", "Firehead") },
           { label: t("Tiracolo", "Cross body bag"), href: typeHref("bags", "crossbody", "women") },
           { label: t("Tote Bag", "Tote Bag"), href: typeHref("bags", "tote", "women") },
-          { label: t("Baguette", "Baguette bag"), href: typeHref("bags", "baguette", "women") },
+          { label: t("Baguette", "Baguette bag"), href: col("pele", "X-bag") },
         ],
       },
       {
@@ -386,9 +393,9 @@ export const categoryArt: Record<string, CategoryArt> = {
         title: t("Novidades", "New Product"),
         // Behike under accessories points at the Cohiba 60th-anniversary
         // collection (where our accessory line actually lives — cufflinks,
-        // 2-cigar case, XL ashtray).
+        // 2-cigar case, XL ashtray). Horse Mane and Snake Skin are lighter /
+        // writing themes only; no accessory pieces — dropped.
         items: [
-          { label: t("Horse Mane", "Horse"), href: col("acessorios", "Horse Mane") },
           { label: t("Fuente", "Fuente"), href: col("acessorios", "Fuente") },
           { label: t("Jules Verne", "Jules Verne"), href: col("acessorios", "20,000 Leagues Under The Sea") },
           { label: t("Romeo y Julieta", "Romeo y Julieta"), href: col("acessorios", "Romeo-y-Julieta") },
@@ -396,7 +403,6 @@ export const categoryArt: Record<string, CategoryArt> = {
           { label: t("Fender", "Fender"), href: col("acessorios", "Fender") },
           { label: t("Camo", "Camo"), href: col("acessorios", "Camo") },
           { label: t("Monogram 1872", "Monogram 1872"), href: col("acessorios", "Monogram 1872") },
-          { label: t("Snake Skin", "Snake"), href: col("acessorios", "Snake Skin") },
         ],
       },
       {
@@ -425,10 +431,10 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Tema", "Theme"),
+        // Snake Skin removed — no snake-themed accessories in our catalogue.
         items: [
           { label: t("Camo", "Camo"), href: col("acessorios", "Camo") },
           { label: t("Monogram 1872", "Monogram 1872"), href: col("acessorios", "Monogram 1872") },
-          { label: t("Snake Skin", "Snake"), href: col("acessorios", "Snake Skin") },
           { label: t("Fire X", "Fire X"), href: col("acessorios", "Fire X") },
           { label: t("Dragon", "Dragon"), href: col("acessorios", "Dragon") },
         ],

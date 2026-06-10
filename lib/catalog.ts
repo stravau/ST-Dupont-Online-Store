@@ -222,6 +222,38 @@ const COLLECTION_SLUG_PATTERNS: Record<string, string> = {
   "Stones of Fortune": "stones-of-fortune",
   "Haute Création": "haute-creation",
   "Cohiba 60th Anniversary": "cohiba",
+  // Model-line names — most products carry these via `collection`, but a few
+  // themed variants (e.g. ligne-2-monogram-1872, slim-7-geode) only have the
+  // line in their slug. Adding the lines here lets ?col=Slim%207 etc. catch
+  // EVERY slim-7-* product even when the catalogue stored a different
+  // collection value.
+  "Ligne 2": "ligne-2",
+  "Ligne 1": "ligne-1",
+  "Le Grand Dupont": "le-grand-dupont",
+  "Twiggy": "twiggy",
+  "Slimmy": "slimmy",
+  "Biggy": "biggy",
+  "Slim 7": "slim-7",
+  "Maxijet": "maxijet",
+  "Minijet": "minijet",
+  "Megajet": "megajet",
+  "Initial": "initial",
+  "Classique": "classique",
+  "Liberté": "liberte",
+  "Eternity": "eternity",
+  "Line D Eternity": "line-d-eternity",
+  "Line D": "line-d",
+  "Défi Millennium": "defi-millennium",
+  "Défi Extreme": "defi-extreme",
+  "Apex": "apex",
+  "Atelier": "atelier",
+  "Firehead": "firehead",
+  "Neo Capsule": "neo-capsule",
+  "Victoria": "victoria",
+  "Riviera": "riviera",
+  "Classic": "classic",
+  "X-bag": "x-bag",
+  "Défi Explorer": "defi-explorer",
 };
 
 // Slugs whose runtime override moves them INTO the given category. We widen
@@ -401,14 +433,14 @@ export type Gender = "men" | "women" | "unisex";
 
 // Heuristic gender tag for leather goods. The Maison's catalogue doesn't carry
 // an explicit gender field, so we infer from the collection (Victoria / Riviera
-// are women's lines; Défi Explorer is a men's business line) and from telltale
-// item types (cabas / crossbody / camera bag skew women; briefcase / document
-// holder skew men). Anything else is treated as unisex. Used by /c/pele filter.
+// are women's lines; Défi Explorer is a men's business line) and from explicit
+// men's items (briefcase, document holder, weekend / travel bag). Crossbody,
+// camera bag, cabas, x-bag etc. are unisex — both Men and Women columns now
+// include unisex, so this is the right default.
 export function inferGender(p: Product): Gender {
   const s = p.slug.toLowerCase();
   const c = p.collection.toLowerCase();
   if (/victoria|riviera/.test(c)) return "women";
-  if (/cabas|crossbody|camera-bag|compact-crossbody|x-bag|x-2$/.test(s)) return "women";
   if (/explorer/.test(c)) return "men";
   if (/briefcase|document-holder|weekend-bag|travel-bag/.test(s)) return "men";
   return "unisex";
