@@ -67,7 +67,7 @@ export function MegaMenu({
               onMouseEnter={() => show(c.slug)}
               onFocus={() => show(c.slug)}
               aria-expanded={open === c.slug}
-              className="group relative block py-2 text-sm tracking-[0.14em] text-ink uppercase"
+              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] text-ink uppercase lg:text-base"
             >
               {c.name}
               <span
@@ -210,7 +210,7 @@ export function MegaMenu({
             <Link
               href={l.href}
               onMouseEnter={cancelClose}
-              className="group relative block py-2 text-sm tracking-[0.14em] text-ink uppercase"
+              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] text-ink uppercase lg:text-base"
             >
               {l.label}
               <span className="absolute -bottom-0 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />

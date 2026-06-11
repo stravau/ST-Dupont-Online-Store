@@ -16,10 +16,17 @@ export function useHeaderTransparent() {
 // fully transparent (video hero shows through) and fades to the cream/95
 // backdrop as the user scrolls past the hero. Every other route keeps the
 // solid cream backdrop from the first paint.
+//
+// Hover behaviour: while the header is in its transparent state, hovering
+// anywhere on it temporarily flips it to the opaque cream backdrop (and the
+// text + logo follow, because the React context value flips too). Mouse-leave
+// brings it back. Touch devices don't fire hover so the default transparent
+// look stays on mobile.
 export function HeaderShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/pt" || pathname === "/en";
   const [transparent, setTransparent] = useState(isHome);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     if (!isHome) {
@@ -36,12 +43,19 @@ export function HeaderShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, [isHome]);
 
+  // Effective state — transparency only when the user isn't hovering the
+  // chrome. The context, data attribute, bg class and CSS rules all flow
+  // from this one value, so logo, text and bg flip together.
+  const effective = transparent && !hovered;
+
   return (
-    <HeaderTransparentContext.Provider value={transparent}>
+    <HeaderTransparentContext.Provider value={effective}>
       <header
-        data-transparent={transparent}
-        className={`sticky top-0 z-50 transition-colors duration-500 ${
-          transparent ? "bg-transparent" : "bg-cream/95 backdrop-blur"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        data-transparent={effective}
+        className={`sticky top-0 z-50 transition-colors duration-300 ${
+          effective ? "bg-transparent" : "bg-cream/95 backdrop-blur"
         }`}
       >
         {children}

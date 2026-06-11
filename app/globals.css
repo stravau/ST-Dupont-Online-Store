@@ -44,6 +44,15 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Bump base font-size from the 16px browser default. Every rem-based
+   Tailwind size (text-xs / sm / base / lg / …) scales with this, so
+   headlines, body text, product names and nav labels all read more
+   comfortably without per-class overrides. Note: body still applies
+   zoom: 0.9, so effective size is ~17.1px (19 * 0.9). */
+html {
+  font-size: 19px;
+}
+
 body {
   background: var(--cream);
   color: var(--ink);
