@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MenuCategory } from "@/components/mega-menu";
@@ -20,7 +21,9 @@ export function MobileNav({
   labels: { viewAll: string; collections: string; products: string };
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  useEffect(() => setMounted(true), []);
   // Read the header transparent state directly rather than relying on
   // CSS cascade — picking the colour explicitly here is more robust
   // across browsers (Safari's stroke="currentColor" inheritance behaviour
@@ -73,48 +76,55 @@ export function MobileNav({
         )}
       </button>
 
-      {open && (
-        // Full-screen panel. `inset-0` covers the viewport in CSS pixels;
-        // `[zoom:1.1112]` composes with the body's `zoom: 0.9` to render
-        // at full viewport size (otherwise a ~10% strip is left bare at
-        // the bottom on Chromium). `100dvh` handles iOS' URL-bar dance.
-        <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]">
-          <div className="flex items-center justify-end px-6 py-5">
-            <button
-              type="button"
-              aria-label="Close"
-              onClick={() => setOpen(false)}
-              className="text-ink transition-colors hover:text-gold"
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-
-          <nav className="flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-24">
-            <Link
-              href={`/${lang}`}
-              aria-label="S.T. Dupont"
-              onClick={() => setOpen(false)}
-              className="mb-6"
-            >
-              <Logo width={340} className="w-[340px] max-w-[80vw]" />
-            </Link>
-
-            {entries.map((e) => (
-              <Link
-                key={e.href}
-                href={e.href}
+      {open && mounted &&
+        // Portal the panel to document.body so it lives OUTSIDE the
+        // transparent-header DOM. Otherwise the page-level CSS rule that
+        // forces every .text-ink / svg / img descendant of a transparent
+        // header to cream also makes every link and the logo inside this
+        // overlay cream — invisible against the cream backdrop. The
+        // hamburger pill stays inside the header (it needs the transparent
+        // styling); only the open panel escapes.
+        // [zoom:1.1112] composes with the body's zoom: 0.9 so the panel
+        // still fills the viewport on Chromium; 100dvh handles iOS' URL-bar.
+        createPortal(
+          <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]">
+            <div className="flex items-center justify-end px-6 py-5">
+              <button
+                type="button"
+                aria-label="Close"
                 onClick={() => setOpen(false)}
-                className="font-serif text-2xl tracking-[0.06em] text-ink transition-colors hover:text-gold"
+                className="text-ink transition-colors hover:text-gold"
               >
-                {e.label}
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <nav className="flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-24">
+              <Link
+                href={`/${lang}`}
+                aria-label="S.T. Dupont"
+                onClick={() => setOpen(false)}
+                className="mb-6"
+              >
+                <Logo width={340} className="w-[340px] max-w-[80vw]" />
               </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+
+              {entries.map((e) => (
+                <Link
+                  key={e.href}
+                  href={e.href}
+                  onClick={() => setOpen(false)}
+                  className="font-serif text-2xl tracking-[0.06em] text-ink transition-colors hover:text-gold"
+                >
+                  {e.label}
+                </Link>
+              ))}
+            </nav>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
