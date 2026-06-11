@@ -12,7 +12,7 @@ export function ScrollCue({ label, href = "#maisons" }: { label: string; href?: 
       aria-label={label}
       className="flex flex-col items-center gap-4 text-gold-soft transition-colors hover:text-cream"
     >
-      <span className="cue-glow text-base font-medium uppercase tracking-[0.22em] md:text-[1.35rem]">
+      <span className="cue-glow text-xs font-medium tracking-[0.18em] whitespace-nowrap uppercase sm:text-base sm:tracking-[0.22em] md:text-[1.35rem]">
         {label}
       </span>
       <svg

@@ -35,10 +35,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     <>
       {/* Cinematic hero: full-viewport Maison video. The negative top margin
           slides the section up to the very top of the viewport so the video
-          sits behind the (transparent at first paint) sticky header. bg-ink
-          keeps the dark base showing during the video's initial buffer so a
-          cream/light strip never flashes through. */}
-      <section className="relative -mt-20 h-[100svh] overflow-hidden bg-ink text-cream sm:-mt-24">
+          sits behind the (transparent at first paint) sticky header — and
+          the section height is grown by the same amount so the BOTTOM still
+          reaches the viewport bottom (otherwise the cream of the categories
+          section showed through as a thin strip). bg-ink keeps the dark
+          base showing during the video's initial buffer so a cream/light
+          strip never flashes through. */}
+      <section className="relative -mt-20 h-[calc(100svh+5rem)] overflow-hidden bg-ink text-cream sm:-mt-24 sm:h-[calc(100svh+6rem)]">
         {/* The Maison ships two crops — portrait for mobile, landscape for
             desktop. autoplay / muted / loop / playsInline is the combo
             modern browsers permit; preload='auto' kicks the buffer
@@ -82,30 +85,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </span>
         </Link>
 
-        {/* Scroll cue — bottom centre. Now points to #categories and uses
-            the "Find the perfect gift" label so it matches the section it
+        {/* Mobile-only Cohiba CTA — sits OVER the video, centred, just above
+            the scroll cue, hidden on sm+ (desktop has its own copy pinned
+            bottom-left of the video). */}
+        <Link
+          href={`/${locale}/c/isqueiros?col=Cohiba`}
+          className="absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
+        >
+          <h2 className="font-serif text-2xl uppercase tracking-wide">
+            {dict.hero.cohibaWordmark}
+          </h2>
+          <span className="mt-2 inline-block border-b border-cream/60 pb-1 text-[0.65rem] tracking-[0.22em] uppercase">
+            {dict.hero.discover}
+          </span>
+        </Link>
+
+        {/* Scroll cue — bottom centre. Points to #categories and uses the
+            "Find the perfect gift" label so it matches the section it
             scrolls to. */}
         <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 sm:bottom-6">
           <ScrollCue label={dict.home.findGiftTitle} href="#categories" />
         </div>
-      </section>
-
-      {/* Mobile-only Cohiba block — placed between the video and the 8-tile
-          grid so the CTA sits "right above 'Find the perfect gift'" as the
-          user requested. Matches the desktop styling (white serif wordmark
-          + DISCOVER underline link). */}
-      <section className="bg-ink px-6 py-12 text-cream sm:hidden">
-        <Link
-          href={`/${locale}/c/isqueiros?col=Cohiba`}
-          className="block"
-        >
-          <h2 className="font-serif text-3xl uppercase tracking-wide">
-            {dict.hero.cohibaWordmark}
-          </h2>
-          <span className="mt-3 inline-block border-b border-cream/60 pb-1 text-xs tracking-[0.22em] uppercase">
-            {dict.hero.discover}
-          </span>
-        </Link>
       </section>
 
       {/* 8 category tiles — mirrors the official st-dupont.com homepage grid.
