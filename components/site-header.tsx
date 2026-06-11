@@ -8,6 +8,7 @@ import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { SearchBar } from "@/components/search-bar";
 import { Logo } from "@/components/logo";
+import { HeaderShell } from "@/components/header-shell";
 
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
@@ -48,7 +49,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
   );
 
   return (
-    <header className="sticky top-0 z-50 bg-cream/95 backdrop-blur">
+    <HeaderShell>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
         {/* Mobile menu trigger (top-left on small screens) */}
         <MobileNav
@@ -113,7 +114,6 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           </Link>
         </div>
       </div>
-
-    </header>
+    </HeaderShell>
   );
 }

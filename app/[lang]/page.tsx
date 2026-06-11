@@ -1,32 +1,43 @@
 import Link from "next/link";
 import Image from "next/image";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getCategories, getNovelties, expandProductCards } from "@/lib/catalog";
-import { categoryArt } from "@/lib/category-art";
+import { getNovelties, expandProductCards } from "@/lib/catalog";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ScrollCue } from "@/components/scroll-cue";
-import { Logo } from "@/components/logo";
 import { notFound } from "next/navigation";
+
+// 8 home-page tiles — mirror the official st-dupont.com homepage layout.
+// Each tile carries an image scraped from the live Maison site (in
+// /public/categories-home) and routes to the right place in our catalogue.
+function homeCategories(locale: Locale) {
+  return [
+    { key: "lighters", labelPt: "Isqueiros", labelEn: "Lighters", href: `/${locale}/c/isqueiros`, img: "/categories-home/lighters.jpg" },
+    { key: "writing", labelPt: "Instrumentos de Escrita", labelEn: "Writing Instruments", href: `/${locale}/c/escrita`, img: "/categories-home/writing.jpg" },
+    { key: "cigar-cases", labelPt: "Estojos de Charuto", labelEn: "Cigar Cases", href: `/${locale}/t/smoking?type=cases`, img: "/categories-home/cigar-cases.jpg" },
+    { key: "cigar-accessories", labelPt: "Acessórios de Charuto", labelEn: "Cigar Accessories", href: `/${locale}/t/smoking`, img: "/categories-home/cigar-accessories.jpg" },
+    { key: "small-leather", labelPt: "Pequena Marroquinaria", labelEn: "Small Leather Goods", href: `/${locale}/t/small-leather`, img: "/categories-home/small-leather.jpg" },
+    { key: "leather", labelPt: "Marroquinaria", labelEn: "Leather Goods", href: `/${locale}/c/pele`, img: "/categories-home/leather.jpg" },
+    { key: "cufflinks", labelPt: "Botões de Punho", labelEn: "Cufflinks", href: `/${locale}/t/cufflinks`, img: "/categories-home/cufflinks.jpg" },
+    { key: "belts", labelPt: "Cintos", labelEn: "Belts", href: `/${locale}/t/belts`, img: "/categories-home/belts.jpg" },
+  ];
+}
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
-  const [categories, novelties] = await Promise.all([
-    getCategories(),
-    getNovelties(8),
-  ]);
+  const novelties = await getNovelties(8);
+  const tiles = homeCategories(locale);
 
   return (
     <>
-      {/* Cinematic hero + the four Arts — one continuous midnight backdrop.
-          monogram-bg lives on the wrapper so its top→bottom gradient spans
-          both sections seamlessly (no per-section restart / visible seam). */}
-      <div className="monogram-bg">
+      {/* Cinematic hero: full-bleed Maison video + a single Cohiba CTA. The
+          wordmark / eyebrow / subtitle / dual CTAs of the previous hero are
+          gone — the video does the storytelling. */}
       <section className="text-cream">
-        <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center overflow-hidden px-6 text-center">
+        <div className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center">
           {/* Full-bleed cinematic hero video. The Maison ships two crops —
               portrait for mobile, landscape for desktop. Auto-plays muted on
               load (the only way modern browsers permit autoplay), loops, and
@@ -55,88 +66,55 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           >
             <source src="/videos/hero-desktop.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/50 to-ink/85" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/40 via-ink/20 to-ink/60" />
 
-          {/* Lettering — vertically centred on the hero by the parent flex.
-              The est.1872 eyebrow sits ABOVE the wordmark so the logo lands
-              between the navbar and the rest of the lettering. The h1
-              (L'Art du Briquet) is intentionally dropped — the wordmark
-              carries the maison's name on its own. */}
+          {/* Single Cohiba CTA — discovers the 60th-anniversary collection. */}
           <div className="relative z-20 flex flex-col items-center">
-            <p className="reveal overline text-gold-soft">{dict.hero.eyebrow}</p>
-            <Logo
-              variant="light"
-              width={780}
-              priority
-              className="reveal reveal-d1 mt-6 w-[66vw] sm:mt-8 sm:w-[300px]"
-            />
-            <div className="reveal reveal-d2 gold-rule mx-auto my-7" />
-            <p className="reveal reveal-d2 mx-auto max-w-xl text-base font-light text-cream/70 md:text-lg">
-              {dict.hero.subtitle}
-            </p>
-            <div className="reveal reveal-d3 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-              <Link
-                href={`/${locale}/colecao`}
-                className="inline-block border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
-              >
-                {dict.hero.cta}
-              </Link>
-              <Link
-                href={`/${locale}/loja`}
-                className="inline-block bg-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-cream"
-              >
-                {dict.footer.viewStore}
-              </Link>
-            </div>
+            <Link
+              href={`/${locale}/c/isqueiros?col=Cohiba`}
+              className="reveal inline-block border border-gold-soft bg-ink/40 px-12 py-5 text-xs tracking-[0.22em] text-cream uppercase backdrop-blur-sm transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
+            >
+              {dict.hero.discoverCohiba}
+            </Link>
           </div>
 
-          {/* Cue pinned near the bottom so the lettering stays centred */}
+          {/* Cue pinned near the bottom — invites the user down to the 8 tiles. */}
           <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 sm:bottom-6">
             <ScrollCue label={dict.sections.categories} />
           </div>
         </div>
       </section>
 
-      {/* The four Arts. One continuous blue with the hero (no white gap);
-          the section fills a screen & centres the grid so the arrow lands
-          mid-screen, and the blue ends at the section foot — before the
-          "New Arrivals" title. */}
-      <section
-        id="maisons"
-        className="text-cream flex scroll-mt-20 flex-col lg:min-h-[calc((100svh-5rem)/0.9)] lg:justify-center"
-      >
-        <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:py-16 lg:py-24">
-            <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-2">
-              {categories.map((c, i) => (
-                <Link
-                  key={c.slug}
-                  href={`/${locale}/c/${c.slug}`}
-                  className={`lux-hover reveal reveal-d${i % 4} group relative flex aspect-[16/9] flex-col justify-end overflow-hidden border border-cream/15 text-center lg:aspect-[2/1]`}
-                >
-                  <Image
-                    src={`/maisons/${c.slug}.jpg`}
-                    alt={c.name[locale]}
-                    fill
-                    sizes="(max-width: 1024px) 50vw, 25vw"
-                    className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${
-                      c.slug === "isqueiros" ? "object-[center_25%]" : "object-center"
-                    }`}
-                  />
-                {/* Blend scrim — keeps the lettering legible over the photo */}
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/40 to-ink/10" />
-                <div className="relative z-10 w-full px-5 pb-7">
-                  <p className="overline text-[0.6rem] text-gold-soft">{c.name[locale]}</p>
-                  <h3 className="mt-2 font-serif text-xl text-cream md:text-2xl">
-                    {categoryArt[c.slug]?.art ?? c.name[locale]}
+      {/* 8 category tiles — mirrors the official st-dupont.com homepage grid.
+          Each card opens to its destination in our catalogue. */}
+      <section id="categories" className="bg-cream">
+        <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:py-20 lg:py-24">
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+            {tiles.map((t, i) => (
+              <Link
+                key={t.key}
+                href={t.href}
+                className={`lux-hover reveal reveal-d${i % 4} group relative flex aspect-[4/5] flex-col justify-end overflow-hidden border border-line/40`}
+              >
+                <Image
+                  src={t.img}
+                  alt={locale === "pt" ? t.labelPt : t.labelEn}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
+                <div className="relative z-10 w-full px-4 pb-5 text-center">
+                  <h3 className="font-serif text-base text-cream md:text-lg">
+                    {locale === "pt" ? t.labelPt : t.labelEn}
                   </h3>
-                  <span className="mx-auto mt-3 block h-px w-8 bg-cream/40 transition-all duration-300 group-hover:w-14 group-hover:bg-gold" />
+                  <span className="mx-auto mt-2 block h-px w-6 bg-cream/40 transition-all duration-300 group-hover:w-12 group-hover:bg-gold-soft" />
                 </div>
               </Link>
-              ))}
-            </div>
+            ))}
+          </div>
         </div>
       </section>
-      </div>
 
       {/* Novidades grid */}
       <section className="mx-auto max-w-7xl px-6 pb-28 pt-28">

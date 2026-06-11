@@ -69,6 +69,7 @@ const dictionaries = {
       title: "L’Art du Briquet",
       subtitle: "A arte francesa do luxo, desde o gesto mais íntimo ao detalhe mais raro.",
       cta: "Descobrir a Coleção",
+      discoverCohiba: "Descobrir a Coleção Cohiba",
     },
     sections: {
       categories: "As Nossas Casas",
@@ -221,6 +222,7 @@ const dictionaries = {
       title: "L’Art du Briquet",
       subtitle: "The French art of luxury — from the most intimate gesture to the rarest detail.",
       cta: "Discover the Collection",
+      discoverCohiba: "Discover the Cohiba Collection",
     },
     sections: {
       categories: "Our Maisons",

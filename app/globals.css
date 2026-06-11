@@ -318,3 +318,19 @@ a[href],
 @media (prefers-reduced-motion: reduce) {
   .cue-bounce, .cue-glow { animation: none; }
 }
+
+/* --- Transparent header on the homepage hero -------------------------- */
+/* When the scroll-aware shell flips its `data-transparent` attribute, every
+   text-ink / text-muted child inside the header reads as cream so the nav
+   stays legible over the video. Restored to ink once the user scrolls past
+   the hero (background fades to cream/95 at the same time). */
+header[data-transparent="true"] .text-ink,
+header[data-transparent="true"] .text-muted {
+  color: var(--color-cream);
+}
+header[data-transparent="true"] .hover\:text-gold:hover {
+  color: var(--color-gold-soft);
+}
+header[data-transparent="true"] svg {
+  color: var(--color-cream);
+}
