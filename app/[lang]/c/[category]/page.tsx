@@ -21,6 +21,7 @@ import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { CategoryPaged } from "@/components/category-paged";
+import { CategoryNav } from "@/components/category-nav";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -217,22 +218,16 @@ export default async function CategoryPage({
           </header>
         )}
 
-      {/* The product types of this universe — each a smart button to its page */}
+      {/* Collection switcher — collapsed by default to free up vertical space
+          for the products. Expands on click to reveal every collection
+          (Géode / Popote / Maki-e / Cohiba / Haute Création / …). */}
       {art && (
-        <nav className="mt-12 flex flex-wrap items-center justify-center gap-3 border-y border-line py-8">
-          {art.groups.map((g) => (
-            <Link
-              key={g.label[locale]}
-              href={`/${locale}${g.href}`}
-              className="group inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 text-xs tracking-[0.18em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:bg-ink hover:text-cream"
-            >
-              {g.label[locale]}
-              <span className="text-gold transition-transform duration-300 group-hover:translate-x-0.5">
-                →
-              </span>
-            </Link>
-          ))}
-        </nav>
+        <CategoryNav
+          items={art.groups.map((g) => ({ label: g.label[locale], href: g.href }))}
+          lang={locale}
+          browseLabel={dict.common.browseCollections}
+          closeLabel={dict.common.closeCollections}
+        />
       )}
 
       {supportsGender && (

@@ -324,17 +324,20 @@ a[href],
    text-ink / text-muted child inside the header reads as cream so the nav
    stays legible over the video. Restored to ink once the user scrolls past
    the hero (background fades to cream/95 at the same time). */
+/* !important on the transparent state — Tailwind's .text-ink class would
+   otherwise win the cascade on the mobile-nav hamburger button and the
+   utility icons (the SVGs use stroke="currentColor" so the inherited
+   text colour controls the stroke). Without these, the hamburger ended
+   up dark-ink-on-dark-video and was invisible to the eye. */
 header[data-transparent="true"] .text-ink,
-header[data-transparent="true"] .text-muted {
-  color: var(--color-cream);
+header[data-transparent="true"] .text-muted,
+header[data-transparent="true"] button,
+header[data-transparent="true"] a,
+header[data-transparent="true"] svg {
+  color: var(--color-cream) !important;
 }
 header[data-transparent="true"] .hover\:text-gold:hover {
-  color: var(--color-gold-soft);
-}
-header[data-transparent="true"] svg,
-header[data-transparent="true"] button,
-header[data-transparent="true"] a {
-  color: var(--color-cream);
+  color: var(--color-gold-soft) !important;
 }
 /* The wordmark PNG is white artwork. Over the video (header transparent) we
    want it white, so cancel the default invert filter. Once the header
