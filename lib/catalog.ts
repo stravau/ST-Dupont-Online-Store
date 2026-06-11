@@ -314,6 +314,57 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
   return p ? mapProduct(p) : undefined;
 }
 
+// Related products for the "You may also like" slider at the bottom of every
+// product detail page. Picks a mix of:
+//   - same collection (highest affinity — "another Géode piece")
+//   - same model line (slug shares a recognisable prefix like ligne-2- or
+//     eternity-*)
+//   - same category fallback so the slider is always populated
+// Scores each candidate, sorts by score, returns the top `limit` (default 15).
+export async function getRelatedProducts(
+  current: Product,
+  limit = 15,
+): Promise<Product[]> {
+  const all = await getProductsByCategory(current.categorySlug);
+  // Token set of the current slug minus the trailing variant suffix (-2, -3,
+  // monogram-1872 etc.). Used for prefix-style relatedness — slim-7-geode
+  // and slim-7-dragon should match.
+  const tokens = (s: string) =>
+    new Set(
+      s
+        .split("-")
+        .filter((t) => t.length > 1 && !/^\d+$/.test(t))
+        .map((t) => t.toLowerCase()),
+    );
+  const aTokens = tokens(current.slug);
+
+  const score = (b: Product): number => {
+    if (b.slug === current.slug) return -1; // skip self
+    let s = 1; // base for same category
+    if (b.collection === current.collection) s += 100;
+    const bTokens = tokens(b.slug);
+    let shared = 0;
+    for (const t of aTokens) if (bTokens.has(t)) shared++;
+    s += shared * 20; // each shared slug token is worth a lot
+    // Tiny tiebreaker so the rank stays stable across reloads.
+    s += Math.abs(hashCode(b.slug)) % 7;
+    return s;
+  };
+
+  return all
+    .map((p) => ({ p, s: score(p) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, limit)
+    .map((x) => x.p);
+}
+
+function hashCode(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return h;
+}
+
 export async function getNovelties(limit = 6): Promise<Product[]> {
   // "New Releases by the Maison" — bias toward exclusive, higher-end
   // lighters so the home grid leads with the maison's signature pieces

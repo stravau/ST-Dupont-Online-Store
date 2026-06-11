@@ -378,3 +378,15 @@ header[data-transparent="true"] img[src*="dupont-logo"] {
 header[data-transparent="false"] img[src*="dupont-logo"] {
   filter: invert(1);
 }
+
+/* --- Hidden scrollbar utility ----------------------------------------- */
+/* For horizontal sliders (e.g. SimilarProducts on the product page) — we
+   keep native scroll behaviour but remove the visible scrollbar so the
+   slider reads as a clean carousel. */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

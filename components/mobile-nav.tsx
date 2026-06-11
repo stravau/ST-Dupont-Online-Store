@@ -23,7 +23,9 @@ export function MobileNav({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    queueMicrotask(() => setMounted(true));
+  }, []);
   // Read the header transparent state directly rather than relying on
   // CSS cascade — picking the colour explicitly here is more robust
   // across browsers (Safari's stroke="currentColor" inheritance behaviour

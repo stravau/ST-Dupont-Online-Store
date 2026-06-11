@@ -122,6 +122,8 @@ const dictionaries = {
       inquireBody:
         "Bom dia,\n\nGostaria de receber mais informações sobre o seguinte artigo:\n\n— Artigo: {title}\n— Referência: {ref}\n— Colorway: {color}\n— Tamanho: {size}\n\nGostaria também de visitar a boutique para ver a peça presencialmente. Que disponibilidade têm?\n\nObrigado(a),\n",
       specs: "Detalhes & Especificações",
+      youMayAlsoLike: "Pode também gostar",
+      youMayAlsoLikeSub: "Uma seleção da maison, escolhida a dedo para si",
     },
     footer: {
       tagline: "Maison de luxe française · desde 1872",
@@ -284,6 +286,8 @@ const dictionaries = {
       inquireBody:
         "Hello,\n\nI would like more information about the following item:\n\n— Item: {title}\n— Reference: {ref}\n— Colourway: {color}\n— Size: {size}\n\nI would also like to visit the boutique to see the piece in person. What's your availability?\n\nThank you,\n",
       specs: "Details & Specifications",
+      youMayAlsoLike: "You may also like",
+      youMayAlsoLikeSub: "A selection from the Maison, hand-picked for you",
     },
     footer: {
       tagline: "Maison de luxe française · since 1872",

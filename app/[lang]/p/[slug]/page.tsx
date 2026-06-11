@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getProduct, getCategory, formatPrice } from "@/lib/catalog";
+import { getProduct, getCategory, getRelatedProducts, formatPrice } from "@/lib/catalog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductDetail } from "@/components/product-detail";
+import { SimilarProducts } from "@/components/similar-products";
 import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR } from "@/lib/store-info";
 
@@ -52,6 +53,8 @@ export default async function ProductPage({
   const specsByVariant = Object.fromEntries(
     product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale)]),
   );
+
+  const related = await getRelatedProducts(product, 15);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
@@ -138,6 +141,13 @@ export default async function ProductPage({
           </p>
         </section>
       )}
+
+      <SimilarProducts
+        products={related}
+        lang={locale}
+        title={dict.product.youMayAlsoLike}
+        subtitle={dict.product.youMayAlsoLikeSub}
+      />
     </div>
   );
 }
