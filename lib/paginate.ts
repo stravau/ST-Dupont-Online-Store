@@ -27,6 +27,23 @@ export function paginate<T>(items: T[], page: number, perPage = DESKTOP_PER_PAGE
   };
 }
 
+// "Show all" mode — bypass pagination entirely and return the full list as
+// one slice. Used by the ?all=1 link at the bottom of every listing. Pages
+// hide the Paginator and lean on the browser's scroll.
+export function paginateAll<T>(items: T[]): Paginated<T> {
+  return {
+    slice: items,
+    page: 1,
+    totalPages: 1,
+    total: items.length,
+    perPage: items.length,
+  };
+}
+
+export function isShowAll(raw: string | undefined): boolean {
+  return raw === "1" || raw === "true";
+}
+
 // Parse a ?page= query value into a sensible 1-based int.
 export function readPage(raw: string | undefined): number {
   const n = Number(raw);

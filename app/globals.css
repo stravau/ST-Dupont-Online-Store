@@ -331,7 +331,9 @@ header[data-transparent="true"] .text-muted {
 header[data-transparent="true"] .hover\:text-gold:hover {
   color: var(--color-gold-soft);
 }
-header[data-transparent="true"] svg {
+header[data-transparent="true"] svg,
+header[data-transparent="true"] button,
+header[data-transparent="true"] a {
   color: var(--color-cream);
 }
 /* The wordmark PNG is white artwork. Over the video (header transparent) we

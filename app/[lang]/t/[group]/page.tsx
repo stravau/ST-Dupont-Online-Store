@@ -5,7 +5,7 @@ import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProductsByCategory, sortProducts, expandProductCards, inferGender, type Gender } from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
-import { paginate, readPage } from "@/lib/paginate";
+import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { PagedGrid } from "@/components/paged-grid";
 import { Paginator } from "@/components/paginator";
@@ -28,10 +28,10 @@ export default async function GroupPage({
   searchParams,
 }: {
   params: Promise<{ lang: string; group: string }>;
-  searchParams: Promise<{ type?: string; sort?: string; page?: string; g?: string }>;
+  searchParams: Promise<{ type?: string; sort?: string; page?: string; g?: string; all?: string }>;
 }) {
   const { lang, group } = await params;
-  const { type, sort: sortParam, page: pageParam, g: gParam } = await searchParams;
+  const { type, sort: sortParam, page: pageParam, g: gParam, all: allParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -62,7 +62,10 @@ export default async function GroupPage({
     : filteredByType;
   const items = sortProducts(filtered, sort, locale);
   const cards = items.flatMap(expandProductCards);
-  const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
+  const showAll = isShowAll(allParam);
+  const { slice, page, totalPages } = showAll
+    ? paginateAll(cards)
+    : paginate(cards, readPage(pageParam));
   const nodes = slice.map(({ product, sku }) => (
     <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
@@ -121,6 +124,7 @@ export default async function GroupPage({
         totalPages={totalPages}
         prevLabel={dict.common.prev}
         nextLabel={dict.common.next}
+        showAllLabel={dict.common.showAll}
       />
     </div>
   );

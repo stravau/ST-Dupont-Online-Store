@@ -44,13 +44,17 @@ export function CategoryPaged({
           return (
             <section
               key={g.line}
-              className={`mt-20 first:mt-0 ${hideSection ? "hidden sm:block" : ""}`}
+              className={`mt-10 first:mt-0 sm:mt-12 ${hideSection ? "hidden sm:block" : ""}`}
             >
-              <div className="mb-8 flex items-center gap-5">
-                <h2 className="min-w-0 font-serif text-2xl break-words text-ink md:text-3xl">
+              {/* Discrete inline header — small all-caps overline + thin rule.
+                  Frees the grid up so products sit much closer together,
+                  especially on mobile where the previous serif heading and
+                  generous margins ate ~120px per section. */}
+              <div className="mb-4 flex items-center gap-3 sm:mb-5 sm:gap-4">
+                <p className="min-w-0 text-[0.65rem] font-medium tracking-[0.22em] text-muted break-words uppercase sm:text-[0.7rem]">
                   {g.line}
-                </h2>
-                <span className="h-px flex-1 bg-line" />
+                </p>
+                <span className="h-px flex-1 bg-line/60" />
               </div>
               {/* Flex + justify-center keeps a short row centred. Widths match
                   the chosen gap so rows align edge-to-edge on a 2-up / 4-up

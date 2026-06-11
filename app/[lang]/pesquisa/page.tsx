@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { searchProducts, sortProducts, expandProductCards, type Product } from "@/lib/catalog";
 import { isSortKey, type SortKey } from "@/lib/sort";
-import { paginate, readPage } from "@/lib/paginate";
+import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { PagedGrid } from "@/components/paged-grid";
 import { Paginator } from "@/components/paginator";
@@ -32,6 +32,7 @@ export default async function SearchPage({
     page?: string;
     cat?: string;
     col?: string;
+    all?: string;
   }>;
 }) {
   const { lang } = await params;
@@ -41,6 +42,7 @@ export default async function SearchPage({
     page: pageParam,
     cat: catParam,
     col: colParam,
+    all: allParam,
   } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
@@ -89,7 +91,10 @@ export default async function SearchPage({
 
   const results = sortProducts(filtered, sort, locale);
   const cards = results.flatMap(expandProductCards);
-  const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
+  const showAll = isShowAll(allParam);
+  const { slice, page, totalPages } = showAll
+    ? paginateAll(cards)
+    : paginate(cards, readPage(pageParam));
   const nodes = slice.map(({ product, sku }) => (
     <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
@@ -186,6 +191,7 @@ export default async function SearchPage({
             totalPages={totalPages}
             prevLabel={dict.common.prev}
             nextLabel={dict.common.next}
+            showAllLabel={dict.common.showAll}
           />
         </>
       ) : null}

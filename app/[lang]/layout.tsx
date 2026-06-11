@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { NavBack } from "@/components/nav-back";
 import { PageTransition } from "@/components/page-transition";
 import { RevealRoot } from "@/components/reveal-root";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 // st-dupont.com uses an elegant serif throughout (their licensed SangBleu).
 // Closest free match is the Garamond family — used for BOTH headings and
@@ -61,6 +62,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full scroll-smooth`}>
       <body className="flex min-h-full flex-col">
+        <ScrollToTop />
         <SiteHeader lang={locale} />
         <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
         <main className="flex-1">

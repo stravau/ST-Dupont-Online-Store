@@ -18,7 +18,7 @@ import {
 import { categoryArt } from "@/lib/category-art";
 import { ACC_SECTION_ORDER, getProductType } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
-import { paginate, readPage } from "@/lib/paginate";
+import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { CategoryPaged } from "@/components/category-paged";
 import { Paginator } from "@/components/paginator";
@@ -48,6 +48,7 @@ export default async function CategoryPage({
     page?: string;
     g?: string;
     usage?: string;
+    all?: string;
   }>;
 }) {
   const { lang, category } = await params;
@@ -57,6 +58,7 @@ export default async function CategoryPage({
     page: pageParam,
     g: gParam,
     usage: usageParam,
+    all: allParam,
   } = await searchParams;
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
@@ -132,7 +134,10 @@ export default async function CategoryPage({
       ),
     })),
   );
-  const { slice: pageCards, page, totalPages } = paginate(allCards, readPage(pageParam));
+  const showAll = isShowAll(allParam);
+  const { slice: pageCards, page, totalPages } = showAll
+    ? paginateAll(allCards)
+    : paginate(allCards, readPage(pageParam));
 
   // Pre-build the chip rows so the JSX below stays clean. URL preserves
   // col + sort while toggling g / usage; selecting "All" drops the param.
@@ -301,6 +306,7 @@ export default async function CategoryPage({
         totalPages={totalPages}
         prevLabel={dict.common.prev}
         nextLabel={dict.common.next}
+        showAllLabel={dict.common.showAll}
       />
       </div>
     </div>

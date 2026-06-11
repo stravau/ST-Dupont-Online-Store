@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getNovelties, sortProducts, expandProductCards } from "@/lib/catalog";
 import { isSortKey, type SortKey } from "@/lib/sort";
-import { paginate, readPage } from "@/lib/paginate";
+import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { PagedGrid } from "@/components/paged-grid";
 import { Paginator } from "@/components/paginator";
@@ -25,10 +25,10 @@ export default async function NewReleasesPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ sort?: string; page?: string }>;
+  searchParams: Promise<{ sort?: string; page?: string; all?: string }>;
 }) {
   const { lang } = await params;
-  const { sort: sortParam, page: pageParam } = await searchParams;
+  const { sort: sortParam, page: pageParam, all: allParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -36,7 +36,10 @@ export default async function NewReleasesPage({
 
   const allItems = sortProducts(await getNovelties(999), sort, locale);
   const cards = allItems.flatMap(expandProductCards);
-  const { slice, page, totalPages } = paginate(cards, readPage(pageParam));
+  const showAll = isShowAll(allParam);
+  const { slice, page, totalPages } = showAll
+    ? paginateAll(cards)
+    : paginate(cards, readPage(pageParam));
   const nodes = slice.map(({ product, sku }) => (
     <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
@@ -70,6 +73,7 @@ export default async function NewReleasesPage({
         totalPages={totalPages}
         prevLabel={dict.common.prev}
         nextLabel={dict.common.next}
+        showAllLabel={dict.common.showAll}
       />
     </div>
   );
