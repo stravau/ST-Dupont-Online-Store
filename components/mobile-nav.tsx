@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MenuCategory } from "@/components/mega-menu";
 import { Logo } from "@/components/logo";
+import { useHeaderTransparent } from "@/components/header-shell";
 
 // Mobile menu: a full-screen panel with the logo and the primary
 // destinations stacked, centred in a single column.
@@ -20,6 +21,14 @@ export function MobileNav({
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  // Read the header transparent state directly rather than relying on
+  // CSS cascade — picking the colour explicitly here is more robust
+  // across browsers (Safari's stroke="currentColor" inheritance behaviour
+  // in particular kept letting Tailwind's text-ink win).
+  const transparent = useHeaderTransparent();
+  const triggerColour = transparent
+    ? "text-cream drop-shadow-[0_1px_2px_rgb(0_0_0/0.6)]"
+    : "text-ink";
 
   useEffect(() => {
     queueMicrotask(() => setOpen(false));
@@ -45,14 +54,14 @@ export function MobileNav({
         aria-label="Menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="text-ink transition-colors hover:text-gold"
+        className={`${triggerColour} transition-colors hover:text-gold`}
       >
         {open ? (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
           </svg>
         ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
           </svg>
         )}
