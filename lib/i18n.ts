@@ -70,6 +70,12 @@ const dictionaries = {
       subtitle: "A arte francesa do luxo, desde o gesto mais íntimo ao detalhe mais raro.",
       cta: "Descobrir a Coleção",
       discoverCohiba: "Descobrir a Coleção Cohiba",
+      cohibaWordmark: "ST DUPONT X COHIBA",
+      discover: "Descobrir",
+    },
+    home: {
+      findGiftTitle: "Encontre o presente perfeito",
+      findGiftSub: "Descubra uma seleção de criações da Casa",
     },
     sections: {
       categories: "As Nossas Casas",
@@ -223,6 +229,12 @@ const dictionaries = {
       subtitle: "The French art of luxury — from the most intimate gesture to the rarest detail.",
       cta: "Discover the Collection",
       discoverCohiba: "Discover the Cohiba Collection",
+      cohibaWordmark: "ST DUPONT X COHIBA",
+      discover: "Discover",
+    },
+    home: {
+      findGiftTitle: "Find the perfect gift",
+      findGiftSub: "Discover a selection of creations from the House",
     },
     sections: {
       categories: "Our Maisons",

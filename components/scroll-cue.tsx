@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-// Plain in-page anchor to #maisons. No custom JS scrolling — the browser
-// computes the correct target (and honours the section's scroll-margin),
-// which the hand-rolled rAF tween could not do under the global CSS `zoom`.
-// The label pulses (letter-spacing / opacity) and the chevron gently
-// bounces to draw the eye to the cue.
-export function ScrollCue({ label }: { label: string }) {
+// Plain in-page anchor. No custom JS scrolling — the browser computes the
+// correct target (and honours the section's scroll-margin), which the
+// hand-rolled rAF tween could not do under the global CSS `zoom`. The label
+// pulses (letter-spacing / opacity) and the chevron gently bounces to draw
+// the eye to the cue.
+export function ScrollCue({ label, href = "#maisons" }: { label: string; href?: string }) {
   return (
     <Link
-      href="#maisons"
+      href={href}
       aria-label={label}
       className="flex flex-col items-center gap-4 text-gold-soft transition-colors hover:text-cream"
     >

@@ -33,65 +33,91 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   return (
     <>
-      {/* Cinematic hero: full-bleed Maison video + a single Cohiba CTA. The
-          wordmark / eyebrow / subtitle / dual CTAs of the previous hero are
-          gone — the video does the storytelling. The negative top margin
-          slides the section up so the video reaches the very top of the
-          viewport, sitting behind the (transparent on first paint) header
-          instead of starting below a visible cream strip. */}
-      <section className="-mt-20 text-cream sm:-mt-24">
-        <div className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center">
-          {/* Full-bleed cinematic hero video. The Maison ships two crops —
-              portrait for mobile, landscape for desktop. Auto-plays muted on
-              load (the only way modern browsers permit autoplay), loops, and
-              falls back to the previous still images as posters while the
-              MP4 is buffering. The ink gradient sits on top so the cream
-              lettering stays legible against the footage. */}
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster="/hero/homepage-bg-mobile.png"
-            className="absolute inset-0 z-0 h-full w-full object-cover object-center sm:hidden"
-          >
-            <source src="/videos/hero-mobile.mp4" type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster="/hero/homepage-bg.jpg"
-            className="absolute inset-0 z-0 hidden h-full w-full object-cover sm:block"
-          >
-            <source src="/videos/hero-desktop.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/40 via-ink/20 to-ink/60" />
+      {/* Cinematic hero: full-viewport Maison video. The negative top margin
+          slides the section up to the very top of the viewport so the video
+          sits behind the (transparent at first paint) sticky header. bg-ink
+          keeps the dark base showing during the video's initial buffer so a
+          cream/light strip never flashes through. */}
+      <section className="relative -mt-20 h-[100svh] overflow-hidden bg-ink text-cream sm:-mt-24">
+        {/* The Maison ships two crops — portrait for mobile, landscape for
+            desktop. autoplay / muted / loop / playsInline is the combo
+            modern browsers permit; preload='auto' kicks the buffer
+            immediately. Poster attribute intentionally omitted — the
+            previous fallback flashed the old hero PNG for a split second
+            on every page refresh. */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute inset-0 z-0 h-full w-full object-cover object-center sm:hidden"
+        >
+          <source src="/videos/hero-mobile.mp4" type="video/mp4" />
+        </video>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute inset-0 z-0 hidden h-full w-full object-cover sm:block"
+        >
+          <source src="/videos/hero-desktop.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/40 via-ink/10 to-ink/60" />
 
-          {/* Single Cohiba CTA — discovers the 60th-anniversary collection. */}
-          <div className="relative z-20 flex flex-col items-center">
-            <Link
-              href={`/${locale}/c/isqueiros?col=Cohiba`}
-              className="reveal inline-block border border-gold-soft bg-ink/40 px-12 py-5 text-xs tracking-[0.22em] text-cream uppercase backdrop-blur-sm transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
-            >
-              {dict.hero.discoverCohiba}
-            </Link>
-          </div>
+        {/* Cohiba CTA — desktop only. Pinned to the bottom-left corner of
+            the video with the Maison-style minimal cue: the wordmark in
+            the display serif, an understated DISCOVER link below. */}
+        <Link
+          href={`/${locale}/c/isqueiros?col=Cohiba`}
+          className="absolute bottom-12 left-12 z-20 hidden text-cream sm:block lg:bottom-16 lg:left-16"
+        >
+          <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
+            {dict.hero.cohibaWordmark}
+          </h1>
+          <span className="mt-3 inline-block border-b border-cream/60 pb-1 text-xs tracking-[0.22em] uppercase transition-colors hover:border-gold-soft hover:text-gold-soft">
+            {dict.hero.discover}
+          </span>
+        </Link>
 
-          {/* Cue pinned near the bottom — invites the user down to the 8 tiles. */}
-          <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 sm:bottom-6">
-            <ScrollCue label={dict.sections.categories} />
-          </div>
+        {/* Scroll cue — bottom centre. Now points to #categories and uses
+            the "Find the perfect gift" label so it matches the section it
+            scrolls to. */}
+        <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 sm:bottom-6">
+          <ScrollCue label={dict.home.findGiftTitle} href="#categories" />
         </div>
       </section>
 
+      {/* Mobile-only Cohiba block — placed between the video and the 8-tile
+          grid so the CTA sits "right above 'Find the perfect gift'" as the
+          user requested. Matches the desktop styling (white serif wordmark
+          + DISCOVER underline link). */}
+      <section className="bg-ink px-6 py-12 text-cream sm:hidden">
+        <Link
+          href={`/${locale}/c/isqueiros?col=Cohiba`}
+          className="block"
+        >
+          <h2 className="font-serif text-3xl uppercase tracking-wide">
+            {dict.hero.cohibaWordmark}
+          </h2>
+          <span className="mt-3 inline-block border-b border-cream/60 pb-1 text-xs tracking-[0.22em] uppercase">
+            {dict.hero.discover}
+          </span>
+        </Link>
+      </section>
+
       {/* 8 category tiles — mirrors the official st-dupont.com homepage grid.
+          Title + subtitle introduce the section ("Find the perfect gift").
           Each card opens to its destination in our catalogue. */}
-      <section id="categories" className="bg-cream">
+      <section id="categories" className="scroll-mt-20 bg-cream">
         <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:py-20 lg:py-24">
+          <div className="reveal mb-12 text-center">
+            <h2 className="font-serif text-4xl text-ink md:text-5xl">{dict.home.findGiftTitle}</h2>
+            <p className="mt-4 text-muted md:text-lg">{dict.home.findGiftSub}</p>
+            <div className="gold-rule mx-auto mt-7" />
+          </div>
           <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
             {tiles.map((t, i) => (
               <Link
