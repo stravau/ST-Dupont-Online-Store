@@ -94,7 +94,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           href={`/${locale}/c/isqueiros?col=Cohiba`}
           className="reveal reveal-d2 absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
         >
-          <h2 className="font-serif text-2xl uppercase tracking-wide">
+          <h2 className="font-serif text-xl whitespace-nowrap uppercase tracking-wide">
             {dict.hero.cohibaWordmark}
           </h2>
           <span className="mt-2 inline-block border-b border-cream/60 pb-1 text-[0.65rem] tracking-[0.22em] uppercase">
