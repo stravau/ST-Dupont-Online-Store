@@ -334,3 +334,16 @@ header[data-transparent="true"] .hover\:text-gold:hover {
 header[data-transparent="true"] svg {
   color: var(--color-cream);
 }
+/* The wordmark PNG is white artwork. Over the video (header transparent) we
+   want it white, so cancel the default invert filter. Once the header
+   becomes opaque (cream backdrop), invert it to the dark mark. The filter
+   transitions on the same 500ms timing as the bg/text swap. */
+header img[src*="dupont-logo"] {
+  transition: filter 500ms ease;
+}
+header[data-transparent="true"] img[src*="dupont-logo"] {
+  filter: none;
+}
+header[data-transparent="false"] img[src*="dupont-logo"] {
+  filter: invert(1);
+}

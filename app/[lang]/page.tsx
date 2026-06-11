@@ -72,10 +72,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
         {/* Cohiba CTA — desktop only. Pinned to the bottom-left corner of
             the video with the Maison-style minimal cue: the wordmark in
-            the display serif, an understated DISCOVER link below. */}
+            the display serif, an understated DISCOVER link below. Lifted
+            high enough off the bottom that the centred scroll cue doesn't
+            visually crash into it on shorter desktop viewports. */}
         <Link
           href={`/${locale}/c/isqueiros?col=Cohiba`}
-          className="absolute bottom-12 left-12 z-20 hidden text-cream sm:block lg:bottom-16 lg:left-16"
+          className="reveal reveal-d2 absolute bottom-32 left-12 z-20 hidden text-cream sm:block lg:bottom-40 lg:left-16"
         >
           <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
             {dict.hero.cohibaWordmark}
@@ -90,7 +92,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             bottom-left of the video). */}
         <Link
           href={`/${locale}/c/isqueiros?col=Cohiba`}
-          className="absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
+          className="reveal reveal-d2 absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
         >
           <h2 className="font-serif text-2xl uppercase tracking-wide">
             {dict.hero.cohibaWordmark}
