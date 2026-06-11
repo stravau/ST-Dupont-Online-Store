@@ -26,8 +26,14 @@ export function MobileNav({
   // across browsers (Safari's stroke="currentColor" inheritance behaviour
   // in particular kept letting Tailwind's text-ink win).
   const transparent = useHeaderTransparent();
-  const triggerColour = transparent
-    ? "text-cream drop-shadow-[0_1px_2px_rgb(0_0_0/0.6)]"
+  // Foolproof visibility: when the header is transparent over the video,
+  // wrap the icon in a small rounded ink-with-blur backdrop so the cream
+  // hamburger is obvious even if the underlying frame is bright or the
+  // video failed to load and the page bg is leaking through. On the
+  // normal opaque header the backdrop disappears and we just show the
+  // ink icon on cream.
+  const triggerClasses = transparent
+    ? "text-cream bg-ink/55 backdrop-blur-sm rounded-md p-1.5"
     : "text-ink";
 
   useEffect(() => {
@@ -54,14 +60,14 @@ export function MobileNav({
         aria-label="Menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`${triggerColour} transition-colors hover:text-gold`}
+        className={`${triggerClasses} transition-colors hover:text-gold`}
       >
         {open ? (
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
           </svg>
         ) : (
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
           </svg>
         )}
