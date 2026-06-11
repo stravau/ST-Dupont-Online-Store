@@ -35,8 +35,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     <>
       {/* Cinematic hero: full-bleed Maison video + a single Cohiba CTA. The
           wordmark / eyebrow / subtitle / dual CTAs of the previous hero are
-          gone — the video does the storytelling. */}
-      <section className="text-cream">
+          gone — the video does the storytelling. The negative top margin
+          slides the section up so the video reaches the very top of the
+          viewport, sitting behind the (transparent on first paint) header
+          instead of starting below a visible cream strip. */}
+      <section className="-mt-20 text-cream sm:-mt-24">
         <div className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 text-center">
           {/* Full-bleed cinematic hero video. The Maison ships two crops —
               portrait for mobile, landscape for desktop. Auto-plays muted on
