@@ -336,8 +336,34 @@ header[data-transparent="true"] a,
 header[data-transparent="true"] svg {
   color: var(--color-cream) !important;
 }
+/* Belt-and-braces: also force the SVG stroke directly. On some browsers /
+   Safari versions the stroke="currentColor" attribute doesn't pick up the
+   color cascade once a parent enforces an inherited override, so the
+   hamburger lines stayed transparent. */
+header[data-transparent="true"] svg [stroke="currentColor"],
+header[data-transparent="true"] svg path,
+header[data-transparent="true"] svg circle {
+  stroke: var(--color-cream) !important;
+}
 header[data-transparent="true"] .hover\:text-gold:hover {
   color: var(--color-gold-soft) !important;
+}
+/* Subtle ink scrim across the top 6rem of the homepage hero so the nav
+   icons (and the wordmark) read cleanly even on light or noisy parts of
+   the video. Only fires when the header is transparent so it's invisible
+   on inner pages. */
+header[data-transparent="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.45) 0%,
+    rgb(0 0 0 / 0.15) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 /* The wordmark PNG is white artwork. Over the video (header transparent) we
    want it white, so cancel the default invert filter. Once the header

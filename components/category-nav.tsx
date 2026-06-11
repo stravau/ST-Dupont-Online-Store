@@ -28,15 +28,16 @@ export function CategoryNav({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="mx-auto flex w-full items-center justify-center gap-3 py-4 text-[0.7rem] tracking-[0.22em] text-muted uppercase transition-colors hover:text-ink"
+        className="mx-auto flex w-full items-center justify-center gap-3 py-5 text-xs font-medium tracking-[0.22em] text-ink uppercase transition-colors hover:text-gold sm:text-sm sm:tracking-[0.24em]"
       >
+        <span aria-hidden className="text-gold">{open ? "—" : "+"}</span>
         {open ? closeLabel : browseLabel}
         <svg
-          className={`h-3 w-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
         >
           <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
