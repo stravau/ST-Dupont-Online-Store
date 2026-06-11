@@ -27,27 +27,34 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       <div className="monogram-bg">
       <section className="text-cream">
         <div className="relative flex min-h-[calc((100svh-5rem)/0.9)] items-center justify-center overflow-hidden px-6 text-center">
-          {/* Full-bleed wallpaper. Mobile uses a portrait-cropped image
-              rendered as-is (object-contain preserves the curated
-              framing); desktop uses the landscape image with object-cover
-              and a small scale-down. The ink gradient overlay lifts the
-              cream lettering off either texture. */}
-          <Image
-            src="/hero/homepage-bg-mobile.png"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="absolute inset-0 z-0 object-cover object-center sm:hidden"
-          />
-          <Image
-            src="/hero/homepage-bg.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="absolute inset-0 z-0 hidden object-cover sm:block"
-          />
+          {/* Full-bleed cinematic hero video. The Maison ships two crops —
+              portrait for mobile, landscape for desktop. Auto-plays muted on
+              load (the only way modern browsers permit autoplay), loops, and
+              falls back to the previous still images as posters while the
+              MP4 is buffering. The ink gradient sits on top so the cream
+              lettering stays legible against the footage. */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/hero/homepage-bg-mobile.png"
+            className="absolute inset-0 z-0 h-full w-full object-cover object-center sm:hidden"
+          >
+            <source src="/videos/hero-mobile.mp4" type="video/mp4" />
+          </video>
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/hero/homepage-bg.jpg"
+            className="absolute inset-0 z-0 hidden h-full w-full object-cover sm:block"
+          >
+            <source src="/videos/hero-desktop.mp4" type="video/mp4" />
+          </video>
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/75 via-ink/50 to-ink/85" />
 
           {/* Lettering — vertically centred on the hero by the parent flex.
