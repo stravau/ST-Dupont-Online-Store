@@ -81,9 +81,9 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
               accidentally beaten by Next/Image's own width attribute or any
               parent flex/grid auto-sizing. */}
           <Logo
-            width={600}
+            width={520}
             priority
-            className="w-[260px] sm:w-[480px] lg:w-[560px]"
+            className="w-[220px] sm:w-[400px] lg:w-[480px]"
           />
         </Link>
 
