@@ -75,7 +75,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         />
 
         <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-          <Logo width={340} priority className="w-[188px] sm:w-[240px] lg:w-[340px]" />
+          <Logo width={263} priority className="w-[188px] sm:w-[263px]" />
         </Link>
 
         {/* Middle column on desktop — display:none on mobile so flex
