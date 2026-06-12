@@ -75,12 +75,16 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         />
 
         <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-          {/* Matched to the prominence of the wordmark in the user's pinned
-              reference of the Maison's own site — the wordmark is the
-              visual anchor at the far left, taking ~20% of the navbar
-              width. width prop bumped to 480 so Next/Image serves a
-              high-quality asset at the new display size. */}
-          <Logo width={480} priority className="w-[240px] sm:w-[400px] lg:w-[440px]" />
+          {/* Sized to clearly match the prominence of the wordmark in the
+              official Maison navbar reference the user pinned. Setting the
+              width via inline style as well as className so it can't be
+              accidentally beaten by Next/Image's own width attribute or any
+              parent flex/grid auto-sizing. */}
+          <Logo
+            width={600}
+            priority
+            className="w-[260px] sm:w-[480px] lg:w-[560px]"
+          />
         </Link>
 
         {/* Middle column on desktop — display:none on mobile so flex
