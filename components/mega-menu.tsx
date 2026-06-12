@@ -59,7 +59,7 @@ export function MegaMenu({
 
   return (
     <nav className="hidden lg:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
-      <ul className="flex items-center gap-10 xl:gap-12">
+      <ul className="flex items-center gap-7 xl:gap-10">
         {items.map((c) => (
           <li key={c.slug} className="static">
             <Link
@@ -67,7 +67,7 @@ export function MegaMenu({
               onMouseEnter={() => show(c.slug)}
               onFocus={() => show(c.slug)}
               aria-expanded={open === c.slug}
-              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] text-ink uppercase lg:text-base"
+              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] whitespace-nowrap text-ink uppercase lg:text-base"
             >
               {c.name}
               <span
@@ -210,7 +210,7 @@ export function MegaMenu({
             <Link
               href={l.href}
               onMouseEnter={cancelClose}
-              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] text-ink uppercase lg:text-base"
+              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] whitespace-nowrap text-ink uppercase lg:text-base"
             >
               {l.label}
               <span className="absolute -bottom-0 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />

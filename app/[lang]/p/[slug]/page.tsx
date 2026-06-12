@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getProduct, getCategory, getRelatedProducts, formatPrice } from "@/lib/catalog";
+import { getProduct, getCategory, getRelatedProducts, expandProductCards, formatPrice } from "@/lib/catalog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
+import { ProductCard } from "@/components/product-card";
 import { ProductDetail } from "@/components/product-detail";
 import { SimilarProducts } from "@/components/similar-products";
 import { buildSpecs } from "@/lib/specs";
@@ -54,7 +55,18 @@ export default async function ProductPage({
     product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale)]),
   );
 
+  // Expand related products into (product, sku) tiles on the server and
+  // pre-render each as a ProductCard. SimilarProducts is a client component
+  // (it needs useRef for the scroll arrows); passing rendered nodes keeps it
+  // from having to import @/lib/catalog and dragging Prisma / pg into the
+  // client bundle (build-breaking).
   const related = await getRelatedProducts(product, 15);
+  const relatedItems = related.flatMap((p) =>
+    expandProductCards(p).map(({ sku }) => ({
+      key: `${p.slug}-${sku}`,
+      node: <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
+    })),
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
@@ -143,8 +155,7 @@ export default async function ProductPage({
       )}
 
       <SimilarProducts
-        products={related}
-        lang={locale}
+        items={relatedItems}
         title={dict.product.youMayAlsoLike}
         subtitle={dict.product.youMayAlsoLikeSub}
       />

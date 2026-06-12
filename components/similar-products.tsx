@@ -1,37 +1,31 @@
 "use client";
 
-import { useRef } from "react";
-import type { Product } from "@/lib/catalog";
-import type { Locale } from "@/lib/i18n";
-import { expandProductCards } from "@/lib/catalog";
-import { ProductCard } from "@/components/product-card";
+import { useRef, type ReactNode } from "react";
 
 // "You may also like" — horizontal-scroll slider at the bottom of every
-// product detail page. Each card is one (product, colourway) tile. CSS
-// snap-x scrolling for the touch / trackpad case; prev/next arrow buttons
-// for desktop users who'd otherwise be stuck without a visible scrollbar.
+// product detail page. The page (server component) expands the related
+// products into ProductCard nodes and passes them in via `items`, so this
+// component never has to import @/lib/catalog (which would drag the Prisma /
+// pg modules into the client bundle and break the build).
 export function SimilarProducts({
-  products,
-  lang,
+  items,
   title,
   subtitle,
 }: {
-  products: Product[];
-  lang: Locale;
+  items: { key: string; node: ReactNode }[];
   title: string;
   subtitle?: string;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const cards = products.flatMap((p) => expandProductCards(p)).slice(0, 15);
-  if (cards.length < 4) return null;
+  if (items.length < 4) return null;
 
   const scrollBy = (direction: 1 | -1) => {
     const el = trackRef.current;
     if (!el) return;
-    // Step is roughly two cards wide. clientWidth divided by 4-5 lands a
-    // nice multi-card step on any viewport. Snap-mandatory then aligns to
-    // the nearest card edge so the slider always settles cleanly.
+    // Step is roughly two cards wide. clientWidth × 0.4 lands a comfortable
+    // multi-card stride on any viewport. Snap-mandatory aligns to the
+    // nearest card edge so the slider settles cleanly.
     const step = el.clientWidth * 0.4;
     el.scrollBy({ left: direction * step, behavior: "smooth" });
   };
@@ -45,7 +39,7 @@ export function SimilarProducts({
       </div>
 
       <div className="relative mt-10">
-        {/* Prev / next chevrons — desktop only. On mobile touch-swipe is
+        {/* Prev / next chevrons — desktop only. On mobile, touch-swipe is
             faster than tapping a button, and the buttons would crowd the
             cards on a narrow screen. */}
         <button
@@ -80,12 +74,12 @@ export function SimilarProducts({
           className="no-scrollbar -mx-6 overflow-x-auto px-6 pb-4 scroll-px-6 snap-x snap-mandatory touch-pan-x"
         >
           <ul className="flex gap-5 sm:gap-7">
-            {cards.map(({ product, sku }, i) => (
+            {items.map((it, i) => (
               <li
-                key={`${product.slug}-${sku}`}
+                key={it.key}
                 className={`reveal reveal-d${i % 4} snap-start shrink-0 w-[60vw] sm:w-[280px] lg:w-[300px]`}
               >
-                <ProductCard product={product} lang={lang} variantSku={sku} />
+                {it.node}
               </li>
             ))}
           </ul>
