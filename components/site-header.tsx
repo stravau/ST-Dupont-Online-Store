@@ -50,16 +50,19 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
 
   return (
     <HeaderShell>
-      {/* Layout flips on lg:
-            - Mobile / tablet: flex with justify-between. With MegaMenu
-              display:none on this breakpoint the only visible flex items
-              are hamburger / logo / utilities, so the original look (logo
-              centred between the two outer chrome elements) is preserved.
-            - Desktop: 3-column grid auto/1fr/auto. Hamburger collapses to
-              display:none and the three remaining items each take one
-              column — logo pinned hard left, mega-menu in the middle (its
-              ul centres its own links), utilities pinned hard right. */}
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-8">
+      {/* Layout flips on xl:
+            - Phone -> small laptop (< xl, i.e. < 1280px): flex with
+              justify-between. MegaMenu is display:none in this range so
+              only hamburger / logo / utilities are visible and they
+              spread cleanly. This avoids the mega-menu trying to fit
+              alongside the chrome at awkward 1024-1280 widths where the
+              6 long English labels (WRITING INSTRUMENTS / LEATHER GOODS
+              / ABOUT US…) would have crashed into the logo or wrapped.
+            - Desktop (xl+): 3-column grid auto/1fr/auto. Hamburger
+              collapses, the three remaining items each take one column —
+              logo pinned hard left, mega-menu in the middle (its ul
+              centres its own links), utilities pinned hard right. */}
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5 xl:grid xl:grid-cols-[auto_1fr_auto] xl:gap-8">
         <MobileNav
           lang={lang}
           items={menuItems}
@@ -75,15 +78,15 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         />
 
         <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-          {/* Sized to clearly match the prominence of the wordmark in the
-              official Maison navbar reference the user pinned. Setting the
-              width via inline style as well as className so it can't be
-              accidentally beaten by Next/Image's own width attribute or any
-              parent flex/grid auto-sizing. */}
+          {/* Scales across the breakpoint bands so the wordmark always has
+              room to breathe AND room left for the chrome on its right.
+              Below xl the mega-menu is hidden so the logo can be more
+              generous; at xl+ it has to share the row with the centred
+              mega-menu so it shrinks. */}
           <Logo
             width={520}
             priority
-            className="w-[220px] sm:w-[400px] lg:w-[480px]"
+            className="w-[200px] sm:w-[300px] lg:w-[400px] xl:w-[260px] 2xl:w-[320px]"
           />
         </Link>
 

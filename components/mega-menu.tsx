@@ -58,8 +58,8 @@ export function MegaMenu({
   }, [cancelClose]);
 
   return (
-    <nav className="hidden lg:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
-      <ul className="flex items-center justify-center gap-7 xl:gap-10">
+    <nav className="hidden xl:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
+      <ul className="flex items-center justify-center gap-5 2xl:gap-7">
         {items.map((c) => (
           <li key={c.slug} className="static">
             <Link
@@ -67,7 +67,7 @@ export function MegaMenu({
               onMouseEnter={() => show(c.slug)}
               onFocus={() => show(c.slug)}
               aria-expanded={open === c.slug}
-              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] whitespace-nowrap text-ink uppercase lg:text-base"
+              className="group relative block py-2 text-[13px] font-medium tracking-[0.12em] whitespace-nowrap text-ink uppercase 2xl:text-sm 2xl:tracking-[0.14em]"
             >
               {c.name}
               <span
@@ -210,7 +210,7 @@ export function MegaMenu({
             <Link
               href={l.href}
               onMouseEnter={cancelClose}
-              className="group relative block py-2 text-[15px] font-medium tracking-[0.16em] whitespace-nowrap text-ink uppercase lg:text-base"
+              className="group relative block py-2 text-[13px] font-medium tracking-[0.12em] whitespace-nowrap text-ink uppercase 2xl:text-sm 2xl:tracking-[0.14em]"
             >
               {l.label}
               <span className="absolute -bottom-0 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />
