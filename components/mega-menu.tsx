@@ -59,7 +59,7 @@ export function MegaMenu({
 
   return (
     <nav className="hidden lg:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
-      <ul className="flex items-center gap-7 xl:gap-10">
+      <ul className="flex items-center justify-center gap-7 xl:gap-10">
         {items.map((c) => (
           <li key={c.slug} className="static">
             <Link

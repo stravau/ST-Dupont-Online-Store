@@ -50,28 +50,32 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
 
   return (
     <HeaderShell>
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-        {/* Mobile menu trigger (top-left on small screens) */}
-        <MobileNav
-          lang={lang}
-          items={menuItems}
-          links={[
-            { label: dict.nav.store, href: `/${lang}/loja` },
-            { label: dict.nav.about, href: `/${lang}/historia` },
-          ]}
-          labels={{
-            viewAll: dict.nav.viewAll,
-            collections: dict.nav.collections,
-            products: dict.nav.products,
-          }}
-        />
+      {/* 3-column grid: logo pinned to the left edge, mega-menu fills the
+          middle (and centres its own links), utilities pinned to the right.
+          Replaces the old `justify-between` flex which crowded the logo
+          against the first nav label and the utilities against the last. */}
+      <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-8 px-6 py-5">
+        {/* Left column: mobile-menu trigger (mobile only) + the wordmark */}
+        <div className="flex items-center gap-4">
+          <MobileNav
+            lang={lang}
+            items={menuItems}
+            links={[
+              { label: dict.nav.store, href: `/${lang}/loja` },
+              { label: dict.nav.about, href: `/${lang}/historia` },
+            ]}
+            labels={{
+              viewAll: dict.nav.viewAll,
+              collections: dict.nav.collections,
+              products: dict.nav.products,
+            }}
+          />
+          <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
+            <Logo width={263} priority className="w-[188px] sm:w-[263px]" />
+          </Link>
+        </div>
 
-        {/* Wordmark */}
-        <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-          <Logo width={263} priority className="w-[188px] sm:w-[263px]" />
-        </Link>
-
-        {/* Primary nav — mega-menu */}
+        {/* Middle column: mega-menu */}
         <MegaMenu
           lang={lang}
           items={menuItems}
@@ -86,8 +90,8 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           }}
         />
 
-        {/* Utilities */}
-        <div className="flex items-center gap-6">
+        {/* Right column: language, search, store-pin */}
+        <div className="flex items-center justify-end gap-6">
           <LanguageSwitcher current={lang} />
           <SearchBar
             lang={lang}
