@@ -75,7 +75,11 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         />
 
         <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-          <Logo width={263} priority className="w-[188px] sm:w-[263px]" />
+          {/* Scaled up to match the html font-size bump (16 -> 19px ≈ 1.19×):
+              263 * 1.19 ≈ 315 so the wordmark holds the same visual weight
+              against the surrounding nav labels as it did before the bump.
+              width prop bumped too so Next/Image still serves a sharp asset. */}
+          <Logo width={340} priority className="w-[224px] sm:w-[315px]" />
         </Link>
 
         {/* Middle column on desktop — display:none on mobile so flex
