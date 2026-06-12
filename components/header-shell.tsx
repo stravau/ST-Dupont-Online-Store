@@ -51,8 +51,17 @@ export function HeaderShell({ children }: { children: ReactNode }) {
   return (
     <HeaderTransparentContext.Provider value={effective}>
       <header
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        // Pointer events instead of mouse events so we can filter out
+        // touch — otherwise tapping the hamburger on mobile fires a
+        // synthetic mouseenter, the header flips to opaque cream, and
+        // when the menu closes the user is left looking at a white bar
+        // instead of the video again.
+        onPointerEnter={(e) => {
+          if (e.pointerType !== "touch") setHovered(true);
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType !== "touch") setHovered(false);
+        }}
         data-transparent={effective}
         className={`sticky top-0 z-50 transition-colors duration-300 ${
           effective ? "bg-transparent" : "bg-cream/95 backdrop-blur"

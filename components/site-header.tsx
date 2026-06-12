@@ -50,32 +50,36 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
 
   return (
     <HeaderShell>
-      {/* 3-column grid: logo pinned to the left edge, mega-menu fills the
-          middle (and centres its own links), utilities pinned to the right.
-          Replaces the old `justify-between` flex which crowded the logo
-          against the first nav label and the utilities against the last. */}
-      <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-8 px-6 py-5">
-        {/* Left column: mobile-menu trigger (mobile only) + the wordmark */}
-        <div className="flex items-center gap-4">
-          <MobileNav
-            lang={lang}
-            items={menuItems}
-            links={[
-              { label: dict.nav.store, href: `/${lang}/loja` },
-              { label: dict.nav.about, href: `/${lang}/historia` },
-            ]}
-            labels={{
-              viewAll: dict.nav.viewAll,
-              collections: dict.nav.collections,
-              products: dict.nav.products,
-            }}
-          />
-          <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
-            <Logo width={263} priority className="w-[188px] sm:w-[263px]" />
-          </Link>
-        </div>
+      {/* Layout flips on lg:
+            - Mobile / tablet: flex with justify-between. With MegaMenu
+              display:none on this breakpoint the only visible flex items
+              are hamburger / logo / utilities, so the original look (logo
+              centred between the two outer chrome elements) is preserved.
+            - Desktop: 3-column grid auto/1fr/auto. Hamburger collapses to
+              display:none and the three remaining items each take one
+              column — logo pinned hard left, mega-menu in the middle (its
+              ul centres its own links), utilities pinned hard right. */}
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-8">
+        <MobileNav
+          lang={lang}
+          items={menuItems}
+          links={[
+            { label: dict.nav.store, href: `/${lang}/loja` },
+            { label: dict.nav.about, href: `/${lang}/historia` },
+          ]}
+          labels={{
+            viewAll: dict.nav.viewAll,
+            collections: dict.nav.collections,
+            products: dict.nav.products,
+          }}
+        />
 
-        {/* Middle column: mega-menu */}
+        <Link href={`/${lang}`} aria-label="S.T. Dupont" className="leading-none">
+          <Logo width={340} priority className="w-[188px] sm:w-[240px] lg:w-[340px]" />
+        </Link>
+
+        {/* Middle column on desktop — display:none on mobile so flex
+            justify-between treats it as a non-item. */}
         <MegaMenu
           lang={lang}
           items={menuItems}
