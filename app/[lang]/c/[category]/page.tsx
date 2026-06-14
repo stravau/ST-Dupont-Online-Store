@@ -285,8 +285,9 @@ export default async function CategoryPage({
 
       <CategoryPaged
         cards={pageCards}
-        showMoreLabel={dict.common.showAllOnPage}
-        collapseLabel={dict.common.collapsePage}
+        showAllLabel={dict.common.showAll}
+        showAllHref={buildChipLink({ page: undefined, all: "1" })}
+        isShowingAll={showAll}
       />
 
       <Paginator
@@ -301,7 +302,6 @@ export default async function CategoryPage({
         totalPages={totalPages}
         prevLabel={dict.common.prev}
         nextLabel={dict.common.next}
-        showAllLabel={dict.common.showAll}
       />
       </div>
     </div>

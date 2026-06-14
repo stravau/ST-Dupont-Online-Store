@@ -109,8 +109,16 @@ export default async function GroupPage({
       <PagedGrid
         items={nodes}
         className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8"
-        showMoreLabel={dict.common.showAllOnPage}
-        collapseLabel={dict.common.collapsePage}
+        showAllLabel={dict.common.showAll}
+        showAllHref={(() => {
+          const p = new URLSearchParams();
+          if (g.types && activeType?.key) p.set("type", activeType.key);
+          if (sort !== "featured") p.set("sort", sort);
+          if (activeGender) p.set("g", activeGender);
+          p.set("all", "1");
+          return `/${locale}/t/${g.id}?${p.toString()}`;
+        })()}
+        isShowingAll={showAll}
       />
 
       <Paginator
@@ -124,7 +132,6 @@ export default async function GroupPage({
         totalPages={totalPages}
         prevLabel={dict.common.prev}
         nextLabel={dict.common.next}
-        showAllLabel={dict.common.showAll}
       />
     </div>
   );

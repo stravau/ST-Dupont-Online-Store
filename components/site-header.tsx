@@ -86,7 +86,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           <Logo
             width={520}
             priority
-            className="w-[200px] sm:w-[300px] lg:w-[400px] xl:w-[260px] 2xl:w-[320px]"
+            className="w-[200px] sm:w-[260px] lg:w-[300px] xl:w-[260px] 2xl:w-[320px]"
           />
         </Link>
 

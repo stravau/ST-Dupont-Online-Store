@@ -62,8 +62,9 @@ export default async function NewReleasesPage({
       <PagedGrid
         items={nodes}
         className="product-grid mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8"
-        showMoreLabel={dict.common.showAllOnPage}
-        collapseLabel={dict.common.collapsePage}
+        showAllLabel={dict.common.showAll}
+        showAllHref={`/${locale}/novidades${sort !== "featured" ? `?sort=${sort}&all=1` : "?all=1"}`}
+        isShowingAll={showAll}
       />
 
       <Paginator
@@ -73,7 +74,6 @@ export default async function NewReleasesPage({
         totalPages={totalPages}
         prevLabel={dict.common.prev}
         nextLabel={dict.common.next}
-        showAllLabel={dict.common.showAll}
       />
     </div>
   );
