@@ -46,3 +46,6 @@ next-env.d.ts
 /catalogue/
 server.log
 server.err.log
+
+# DB export artefact
+db-export.xlsx
