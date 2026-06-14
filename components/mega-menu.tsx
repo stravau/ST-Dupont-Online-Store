@@ -85,7 +85,7 @@ export function MegaMenu({
                 className="menu-panel absolute left-0 right-0 top-full border-t border-line bg-cream/97 backdrop-blur"
               >
                 <span aria-hidden className="absolute -top-4 left-0 right-0 h-4" />
-                <div className="mx-auto flex max-w-7xl items-start gap-16 px-6 py-9">
+                <div className="flex items-start gap-12 px-8 py-7 2xl:gap-14 2xl:px-12 2xl:py-8">
                   {/* Intro */}
                   <div
                     className="menu-item w-52 shrink-0 border-r border-line pr-10"
@@ -111,25 +111,30 @@ export function MegaMenu({
                   {c.sections && c.sections.length > 0 ? (
                     // Compact 4×2 grid mirroring st-dupont.com's panel:
                     // every section is a single tall column with tight row
-                    // spacing so long lists (Coleções at 11 items) sit
-                    // comfortably without needing to wrap into a second
-                    // column.
-                    <div className="grid flex-1 grid-cols-2 gap-x-10 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+                    // spacing. The outer flex-1 fills the freed up width
+                    // (no more max-w-7xl cap) so sections breathe across
+                    // the whole screen at any monitor size.
+                    <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-7 md:grid-cols-3 lg:grid-cols-4">
                       {c.sections.map((sec, si) => (
                         <div
                           key={sec.title}
                           className="menu-item min-w-0"
                           style={{ animationDelay: `${0.08 + si * 0.05}s` }}
                         >
-                          <p className="overline mb-3 text-[0.6rem]">{sec.title}</p>
-                          <ul className="space-y-2">
+                          <p className="overline mb-2.5 text-[0.55rem] tracking-[0.18em]">
+                            {sec.title}
+                          </p>
+                          <ul className="space-y-1.5">
                             {sec.items.map((it, i) => (
                               <li
                                 key={`${it.href}${it.label}`}
                                 className="menu-item"
                                 style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
                               >
-                                <Link href={it.href} className="menu-item-hover text-sm text-ink">
+                                <Link
+                                  href={it.href}
+                                  className="menu-item-hover text-[0.8rem] leading-snug text-ink"
+                                >
                                   {it.label}
                                 </Link>
                               </li>
