@@ -124,16 +124,16 @@ export function MegaMenu({
                           <p className="overline mb-2.5 text-[0.55rem] tracking-[0.18em]">
                             {sec.title}
                           </p>
-                          <ul className="space-y-1.5">
+                          <ul className="space-y-1">
                             {sec.items.map((it, i) => (
                               <li
                                 key={`${it.href}${it.label}`}
-                                className="menu-item"
+                                className="menu-item leading-tight"
                                 style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
                               >
                                 <Link
                                   href={it.href}
-                                  className="menu-item-hover text-[0.8rem] leading-snug text-ink"
+                                  className="menu-item-hover text-[0.8rem] leading-tight text-ink"
                                 >
                                   {it.label}
                                 </Link>
