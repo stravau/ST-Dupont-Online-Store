@@ -110,28 +110,41 @@ export function MegaMenu({
                       stays pinned to the left at full height. */}
                   {c.sections && c.sections.length > 0 ? (
                     <div className="grid flex-1 grid-cols-2 gap-x-10 gap-y-9 md:grid-cols-3 lg:grid-cols-4">
-                      {c.sections.map((sec, si) => (
-                        <div
-                          key={sec.title}
-                          className="menu-item min-w-0"
-                          style={{ animationDelay: `${0.08 + si * 0.05}s` }}
-                        >
-                          <p className="overline mb-4 text-[0.6rem]">{sec.title}</p>
-                          <ul className="space-y-3">
-                            {sec.items.map((it, i) => (
-                              <li
-                                key={`${it.href}${it.label}`}
-                                className="menu-item"
-                                style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
-                              >
-                                <Link href={it.href} className="menu-item-hover text-sm text-ink">
-                                  {it.label}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                      {c.sections.map((sec, si) => {
+                        // Cap each section's column at 8 rows — when the list
+                        // is longer the section spans an extra outer grid
+                        // cell and lays its items out in a 2-column inner
+                        // grid so nothing scrolls behind the panel edge.
+                        const wide = sec.items.length > 8;
+                        return (
+                          <div
+                            key={sec.title}
+                            className={`menu-item min-w-0 ${wide ? "col-span-2" : ""}`}
+                            style={{ animationDelay: `${0.08 + si * 0.05}s` }}
+                          >
+                            <p className="overline mb-4 text-[0.6rem]">{sec.title}</p>
+                            <ul
+                              className={
+                                wide
+                                  ? "grid grid-cols-2 gap-x-8 gap-y-3"
+                                  : "space-y-3"
+                              }
+                            >
+                              {sec.items.map((it, i) => (
+                                <li
+                                  key={`${it.href}${it.label}`}
+                                  className="menu-item"
+                                  style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
+                                >
+                                  <Link href={it.href} className="menu-item-hover text-sm text-ink">
+                                    {it.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <>
