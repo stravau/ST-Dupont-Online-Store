@@ -32,15 +32,18 @@ export function Paginator({
   };
   const pageLink = (p: number) =>
     link({ page: p === 1 ? undefined : String(p) });
+  // Compact, single-line layout — Prev · n/total · Next stays on one row
+  // even on narrow iOS columns. min-w-0 + shrink-0 keep the borders from
+  // wrapping the label text under tight widths.
   const linkCls =
-    "inline-flex items-center gap-2 border border-line px-5 py-3 text-xs tracking-[0.18em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:text-gold";
+    "inline-flex shrink-0 items-center gap-1 whitespace-nowrap border border-line px-3 py-2 text-[0.65rem] tracking-[0.14em] text-ink uppercase transition-colors duration-300 hover:border-gold hover:text-gold sm:gap-2 sm:px-5 sm:py-3 sm:text-xs sm:tracking-[0.18em]";
   const disabledCls =
-    "inline-flex items-center gap-2 border border-line/40 px-5 py-3 text-xs tracking-[0.18em] text-muted/40 uppercase";
+    "inline-flex shrink-0 items-center gap-1 whitespace-nowrap border border-line/40 px-3 py-2 text-[0.65rem] tracking-[0.14em] text-muted/40 uppercase sm:gap-2 sm:px-5 sm:py-3 sm:text-xs sm:tracking-[0.18em]";
 
   return (
     <nav
       aria-label="Pagination"
-      className="mt-16 flex flex-wrap items-center justify-center gap-6"
+      className="mt-16 flex flex-nowrap items-center justify-center gap-3 sm:gap-6"
     >
       {page > 1 ? (
         <Link href={pageLink(page - 1)} className={linkCls}>
@@ -49,7 +52,7 @@ export function Paginator({
       ) : (
         <span className={disabledCls}>← {prevLabel}</span>
       )}
-      <span className="text-xs tracking-[0.2em] text-muted uppercase">
+      <span className="shrink-0 whitespace-nowrap text-[0.65rem] tracking-[0.18em] text-muted uppercase sm:text-xs sm:tracking-[0.2em]">
         {page} / {totalPages}
       </span>
       {page < totalPages ? (
