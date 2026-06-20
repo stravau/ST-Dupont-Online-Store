@@ -1155,24 +1155,28 @@ export const products: SeedProduct[] = [
     image: "/products/le-grand-dupont-monogram/LGDM-BLK/front.jpg",
     novelty: true,
     variants: [
-      cwg("LGDM-BLK", "Preto", "Black", ["#15171c"], 198000, [
+      // Inline (not via cwg) so the variant.name carries the full "Le Grand
+      // Dupont · Monogram 1872 — <colour>" surface (what the catalogue card
+      // displays) while the colour-swatch label stays short ("Preto" /
+      // "Silver" / "Yellow Gold") for the hover/aria.
+      { sku: "LGDM-BLK", name: { pt: "Le Grand Dupont · Monogram 1872 — Preto", en: "Le Grand Dupont · Monogram 1872 — Black" }, priceCents: 198000, currency: "EUR", attributes: { color: { label: { pt: "Preto", en: "Black" }, hex: ["#15171c"] } }, images: [
         "/products/le-grand-dupont-monogram/LGDM-BLK/front.jpg",
         "/products/le-grand-dupont-monogram/LGDM-BLK/back.jpg",
         "/products/le-grand-dupont-monogram/LGDM-BLK/closeup.jpg",
         "/products/le-grand-dupont-monogram/LGDM-BLK/open.jpg",
-      ]),
-      cwg("LGDM-SLV", "Prata", "Silver", ["#b9bcc2"], 188000, [
+      ] },
+      { sku: "LGDM-SLV", name: { pt: "Le Grand Dupont · Monogram 1872 — Prata", en: "Le Grand Dupont · Monogram 1872 — Silver" }, priceCents: 188000, currency: "EUR", attributes: { color: { label: { pt: "Prata", en: "Silver" }, hex: ["#b9bcc2"] } }, images: [
         "/products/le-grand-dupont-monogram/LGDM-SLV/front.jpg",
         "/products/le-grand-dupont-monogram/LGDM-SLV/back.jpg",
         "/products/le-grand-dupont-monogram/LGDM-SLV/closeup.jpg",
         "/products/le-grand-dupont-monogram/LGDM-SLV/open.jpg",
-      ]),
-      cwg("LGDM-GLD", "Ouro Amarelo", "Yellow Gold", ["#c8a24a"], 208000, [
+      ] },
+      { sku: "LGDM-GLD", name: { pt: "Le Grand Dupont · Monogram 1872 — Ouro Amarelo", en: "Le Grand Dupont · Monogram 1872 — Yellow Gold" }, priceCents: 208000, currency: "EUR", attributes: { color: { label: { pt: "Ouro Amarelo", en: "Yellow Gold" }, hex: ["#c8a24a"] } }, images: [
         "/products/le-grand-dupont-monogram/LGDM-GLD/front.jpg",
         "/products/le-grand-dupont-monogram/LGDM-GLD/back.jpg",
         "/products/le-grand-dupont-monogram/LGDM-GLD/closeup.jpg",
         "/products/le-grand-dupont-monogram/LGDM-GLD/open.jpg",
-      ]),
+      ] },
     ],
   },
   {

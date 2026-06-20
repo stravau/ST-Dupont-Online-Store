@@ -54,6 +54,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           loop
           playsInline
           preload="auto"
+          // Poster avoids the black-frame flash when the hero video is
+          // still buffering — the EN locale was showing a near-black hero
+          // on cold loads because the Cohiba imagery hadn't streamed yet.
+          poster="/hero/homepage-bg-mobile.png"
           className="absolute inset-0 z-0 h-full w-full object-cover object-center sm:hidden"
         >
           <source src="/videos/hero-mobile.mp4" type="video/mp4" />
@@ -64,6 +68,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           loop
           playsInline
           preload="auto"
+          poster="/hero/homepage-bg.jpg"
           className="absolute inset-0 z-0 hidden h-full w-full object-cover sm:block"
         >
           <source src="/videos/hero-desktop.mp4" type="video/mp4" />
@@ -147,8 +152,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* Novidades grid */}
-      <section className="mx-auto max-w-7xl px-6 pb-28 pt-28">
+      {/* Novidades grid — top padding kept tight; the maisons grid above
+          already has pb-16/20/24 of breathing room. */}
+      <section className="mx-auto max-w-7xl px-6 pb-28 pt-10 sm:pt-12 lg:pt-16">
         <div className="reveal text-center">
           <p className="overline">{dict.sections.novelties}</p>
           <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>

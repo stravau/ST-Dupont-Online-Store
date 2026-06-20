@@ -61,8 +61,8 @@ export function SiteFooter({ lang }: { lang: Locale }) {
           </ul>
           <p className="overline mb-4 mt-10">{dict.footer.follow}</p>
           <div className="flex justify-center gap-5 text-sm text-cream/70 md:justify-start">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Instagram</a>
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Facebook</a>
+            <a href="https://www.instagram.com/stdupontofficial/" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Instagram</a>
+            <a href="https://www.facebook.com/STDUPONTOFFICIAL/" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Facebook</a>
           </div>
         </div>
       </div>

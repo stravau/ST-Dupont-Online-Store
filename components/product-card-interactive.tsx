@@ -86,9 +86,18 @@ export function ProductCardInteractive({
   const colorName = active?.label;
   const activeSku = active?.sku ?? baseSku;
 
-  const linkHref = active
-    ? `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`
-    : href;
+  // The server-rendered card already encodes ?v=<sku> from the chosen
+  // colourway; don't double-append it here when the host's selection
+  // matches what's in the URL already (which it does on per-colour cards
+  // since variantSku === active.sku). Only swap when the user has clicked
+  // a different swatch on the legacy multi-colour card.
+  const linkHref = (() => {
+    if (!active) return href;
+    const m = href.match(/[?&]v=([^&]+)/);
+    if (m && decodeURIComponent(m[1]) === active.sku) return href;
+    if (m) return href.replace(/([?&])v=[^&]+/, `$1v=${encodeURIComponent(active.sku)}`);
+    return `${href}${href.includes("?") ? "&" : "?"}v=${encodeURIComponent(active.sku)}`;
+  })();
 
   const mailHref = inquiryMailto({
     subject: inquireSubject,
