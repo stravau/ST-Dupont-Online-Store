@@ -4,6 +4,7 @@ import { getDictionary } from "@/lib/i18n";
 import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { localeCategorySlug } from "@/lib/category-slugs";
+import { MODEL_COLLECTIONS_BY_CATEGORY } from "@/lib/collection-order";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
@@ -20,38 +21,35 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
   const localizeHref = (href: string): string =>
     href.replace(/\/c\/(isqueiros|escrita|pele|acessorios)\b/g, (_, slug) => `/c/${localeCategorySlug(lang, slug)}`);
   const menuItems = await Promise.all(
-    categories.map(async (c) => ({
-      slug: localeCategorySlug(lang, c.slug),
-      name: c.name[lang],
-      tagline: c.tagline[lang],
-      groups: (categoryArt[c.slug]?.groups ?? []).map((g) => ({
-        label: g.label[lang],
-        href: localizeHref(`/${lang}${g.href}`),
-      })),
-      // Titled columns for the desktop mega-menu (Accessories).
-      sections: (categoryArt[c.slug]?.menuSections ?? []).map((s) => ({
-        title: s.title[lang],
-        items: s.items.map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) })),
-      })),
-      // The "Products" column lists base lines only. Themed sub-collections
-      // (Géode, Popote, DC Comics, …) already live in the "Collections"
-      // column on the left as `groups`, so keep them out of Products.
-      collections: (await getCollections(c.slug)).filter(
-        (x) =>
-          x !== "Accessories" &&
-          x !== "Monogram 1872" &&
-          x !== "DC Comics" &&
-          x !== "20,000 Leagues Under The Sea" &&
-          x !== "Géode" &&
-          x !== "Popote" &&
-          x !== "Maki-e" &&
-          x !== "Orlinski" &&
-          x !== "Horse Mane" &&
-          x !== "Fender" &&
-          x !== "Fuente" &&
-          x !== "Fire X",
-      ),
-    })),
+    categories.map(async (c) => {
+      // The "Products" column (desktop) + the mobile sub-panel both
+      // surface the model lines only. Themed sub-collections (Géode /
+      // Cohiba / DC Comics / Maki-e / …) live in the mega-menu's
+      // Collections column on the left and the catalogue page's themed
+      // sections — keeping them OUT here is what the user asked for.
+      // Allow-list keyed by category so the order matches the editorial
+      // sequence in MODEL_COLLECTIONS_BY_CATEGORY (and the catalogue
+      // grid doesn't drift from the navbar).
+      const allowedModels = MODEL_COLLECTIONS_BY_CATEGORY[c.slug] ?? [];
+      const availableCollections = new Set(
+        (await getCollections(c.slug)).filter((x) => x.length > 0),
+      );
+      return {
+        slug: localeCategorySlug(lang, c.slug),
+        name: c.name[lang],
+        tagline: c.tagline[lang],
+        groups: (categoryArt[c.slug]?.groups ?? []).map((g) => ({
+          label: g.label[lang],
+          href: localizeHref(`/${lang}${g.href}`),
+        })),
+        // Titled columns for the desktop mega-menu (Accessories).
+        sections: (categoryArt[c.slug]?.menuSections ?? []).map((s) => ({
+          title: s.title[lang],
+          items: s.items.map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) })),
+        })),
+        collections: allowedModels.filter((m) => availableCollections.has(m)),
+      };
+    }),
   );
 
   return (

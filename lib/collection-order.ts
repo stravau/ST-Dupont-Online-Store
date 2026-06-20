@@ -102,3 +102,71 @@ export function collectionRank(c: string): number {
   const i = (COLLECTION_ORDER as readonly string[]).indexOf(c);
   return i === -1 ? COLLECTION_ORDER.length : i;
 }
+
+// Explicit allow-list of model lines per category — used by the mobile
+// nav's sub-panel to show ONLY the base-line models for a maison
+// (Le Grand Dupont / Ligne 2 / …) and keep the themed sub-collections
+// (Géode / Cohiba / DC Comics / …) out of that list. Themed groups
+// already live in the desktop mega-menu's Collections column and the
+// catalogue page's themed sections.
+export const MODEL_COLLECTIONS_BY_CATEGORY: Record<string, readonly string[]> = {
+  isqueiros: [
+    "Le Grand Dupont",
+    "Ligne 2",
+    "Ligne 1",
+    "Initial",
+    "Initial Cinatic",
+    "Biggy",
+    "Twiggy",
+    "Slimmy",
+    "Slim 7",
+    "Défi Extreme",
+    "Windproof",
+    "Minijet",
+    "Maxijet",
+    "Megajet",
+    "Table lighter",
+    "Torch",
+    "Lighter Necklace",
+  ],
+  escrita: [
+    "Line D Eternity",
+    "Classique",
+    "Défi Millennium",
+    "Liberté",
+    "Eternity",
+    "Marker Necklace",
+  ],
+  pele: [
+    "Apex",
+    "X-bag",
+    "Riviera",
+    "Victoria",
+    "Atelier",
+    "Firehead",
+    "Neo Capsule",
+    "Défi Explorer",
+    "Classic",
+    "Pen case",
+    "Lighter Accessories",
+  ],
+  acessorios: [
+    "Cigar cutter",
+    "Cigar case",
+    "2 cigar case",
+    "3 cigar case",
+    "Humidors",
+    "Ashtrays",
+    "Cufflinks",
+    "Money Clips",
+    "Tie Clips",
+    "Key Holders",
+    "Pen Cases",
+    "Gas Refills",
+    "Pen Refills",
+    "Lighter Cases",
+    "Notebook",
+    "Gift Boxes",
+  ],
+};
+
