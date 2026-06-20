@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Currículo — Luís Ribeiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    color: #243240;
+    font-size: 10pt;
+    line-height: 1.5;
+  }
+
+  .page { display: flex; min-height: 297mm; }
+
+  /* ---------- SIDEBAR ---------- */
+  .side {
+    width: 64mm;
+    flex: none;
+    background: #14304d;
+    color: #e8eef4;
+    padding: 0 0 18px 0;
+  }
+  .photo-wrap {
+    background: #0f2438;
+    padding: 16px 16px 18px;
+    text-align: center;
+    border-bottom: 3px solid #b8924a;
+  }
+  .photo {
+    width: 42mm;
+    height: 50mm;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 5px;
+    border: 2px solid #b8924a;
+  }
+  .side-block { padding: 14px 16px 0; }
+  .side-h {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #b8924a;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #2c4a66;
+  }
+  .contact-item { margin-bottom: 7px; font-size: 8.6pt; line-height: 1.4; word-break: break-word; }
+  .contact-item .lbl { color: #8fa6bd; display: block; font-size: 7.5pt; letter-spacing: 0.5px; text-transform: uppercase; }
+  .contact-item a, .contact-item span.val { color: #e8eef4; text-decoration: none; }
+
+  .skill-group { margin-bottom: 9px; }
+  .skill-group .sg-title { font-weight: 600; color: #ffffff; font-size: 8.8pt; margin-bottom: 2px; }
+  .skill-group .sg-list { font-size: 8.5pt; color: #c3d2e0; line-height: 1.4; }
+
+  .lang-row { display: flex; justify-content: space-between; font-size: 8.8pt; margin-bottom: 5px; }
+  .lang-row .lvl { color: #b8924a; font-weight: 500; }
+
+  /* ---------- MAIN ---------- */
+  .main { flex: 1; padding: 20px 22px 20px; }
+  .name {
+    font-family: "Lato", "Inter", sans-serif;
+    font-size: 28pt;
+    font-weight: 700;
+    color: #14304d;
+    letter-spacing: 0.5px;
+    line-height: 1.02;
+  }
+  .role {
+    font-size: 11pt;
+    color: #b8924a;
+    font-weight: 600;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+  }
+  .name-rule { height: 2px; background: #e3e9ef; margin: 13px 0 16px; }
+
+  .sec { margin-bottom: 16px; }
+  .sec-h {
+    font-size: 10.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #14304d;
+    margin-bottom: 9px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .sec-h::after { content: ""; flex: 1; height: 1px; background: #e3e9ef; }
+
+  .summary { color: #3a4b5c; text-align: justify; }
+
+  .job { margin-bottom: 11px; }
+  .job:last-child { margin-bottom: 0; }
+  .job-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .job-title { font-weight: 700; color: #1c2b3a; font-size: 10.5pt; }
+  .job-company { color: #2a6aa0; font-weight: 600; }
+  .job-meta { color: #7d8b99; font-size: 8.8pt; white-space: nowrap; }
+  .job ul { margin: 6px 0 0 16px; }
+  .job li { margin-bottom: 3px; color: #3a4b5c; }
+  .job li::marker { color: #b8924a; }
+
+  .edu-title { font-weight: 700; color: #1c2b3a; }
+  .edu-sub { color: #5a6b7b; font-size: 9pt; }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="side">
+      <div class="photo-wrap">
+        <img class="photo" src="foto.jpg" alt="Luís Ribeiro">
+      </div>
+
+      <div class="side-block">
+        <div class="side-h">Contacto</div>
+        <div class="contact-item"><span class="lbl">Email</span><a href="mailto:luismanuelribeiro.work@gmail.com">luismanuelribeiro.work@gmail.com</a></div>
+        <div class="contact-item"><span class="lbl">Telemóvel</span><span class="val">+351 912 544 939</span></div>
+        <div class="contact-item"><span class="lbl">Localização</span><span class="val">Lisboa, Portugal</span></div>
+        <div class="contact-item"><span class="lbl">LinkedIn</span><a href="https://www.linkedin.com/in/luisribeiro2004">linkedin.com/in/luisribeiro2004</a></div>
+        <div class="contact-item"><span class="lbl">Website</span><a href="https://tarzansbarbershop.com">tarzansbarbershop.com</a></div>
+      </div>
+
+      <div class="side-block">
+        <div class="side-h">Competências</div>
+        <div class="skill-group">
+          <div class="sg-title">Vendas &amp; Luxo</div>
+          <div class="sg-list">Venda consultiva · Fecho de venda · Atendimento premium · Cumprimento de objetivos · Conhecimento de produto</div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">Relação com o Cliente</div>
+          <div class="sg-list">Comunicação · Empatia · Fidelização · Clientela internacional</div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">Tecnológicas</div>
+          <div class="sg-list">Sistemas de Informação · Bases de dados · Criação de websites · Análise de dados · MS Office · POS</div>
+        </div>
+        <div class="skill-group">
+          <div class="sg-title">Transversais</div>
+          <div class="sg-list">Aprendizagem rápida · Adaptabilidade · Profissionalismo · Trabalho em equipa</div>
+        </div>
+      </div>
+
+      <div class="side-block">
+        <div class="side-h">Idiomas</div>
+        <div class="lang-row"><span>Português</span><span class="lvl">Nativo</span></div>
+        <div class="lang-row"><span>Inglês</span><span class="lvl">Fluente (C2)</span></div>
+      </div>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="main">
+      <div class="name">Luís Ribeiro</div>
+      <div class="role">Consultor de Vendas — Retalho de Luxo</div>
+      <div class="name-rule"></div>
+
+      <section class="sec">
+        <div class="sec-h">Perfil</div>
+        <p class="summary">
+          Estudante do 2.º ano de Gestão de Sistemas de Informação, conjugo o rigor
+          analítico da formação tecnológica com a experiência prática adquirida no
+          retalho de luxo. Distingo-me pela comunicação cuidada e pelo profissionalismo,
+          pela facilidade de integração em equipas exigentes e por uma assinalável
+          capacidade de aprendizagem. Guiado pela ambição de evoluir na interseção entre
+          negócio, dados e pessoas, procuro desafios que me permitam converter relações de
+          confiança e informação em resultados concretos.
+        </p>
+      </section>
+
+      <section class="sec">
+        <div class="sec-h">Experiência Profissional</div>
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">Consultor de Vendas</span>
+            <span class="job-meta">Dez. 2025 – Presente</span>
+          </div>
+          <div class="job-company">ST Dupont — El Corte Inglés, Lisboa</div>
+          <ul>
+            <li>Venda consultiva de produtos de luxo, ultrapassando os <strong>10.000 €</strong> em vendas e contribuindo para os objetivos comerciais da marca.</li>
+            <li>Atendimento personalizado e exclusivo, adaptado às expectativas exigentes de uma clientela premium, nacional e internacional.</li>
+            <li>Aconselhamento aprofundado sobre o produto, construindo relações de confiança que fidelizam o cliente e elevam o valor médio de compra.</li>
+            <li>Representação dos valores de uma marca de luxo histórica, com postura, discrição e profissionalismo em todos os pontos de contacto.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">Barbeiro Freelance &amp; Empreendedor</span>
+            <span class="job-meta">2020 – Presente</span>
+          </div>
+          <div class="job-company">Tarzan's Barbershop — projeto próprio · tarzansbarbershop.com</div>
+          <ul>
+            <li>Gestão de um negócio próprio de barbearia há mais de <strong>6 anos</strong>, com carteira de clientes fidelizada e agenda gerida de forma autónoma.</li>
+            <li>Conceção e desenvolvimento do <strong>próprio website</strong> (tarzansbarbershop.com), aplicando na prática competências de sistemas de informação e presença digital.</li>
+            <li>Responsável por todas as vertentes do negócio: angariação de clientes, atendimento, marcação e gestão financeira.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-h">Formação</div>
+        <div class="job">
+          <div class="job-head">
+            <span class="edu-title">Licenciatura em Gestão de Sistemas de Informação</span>
+            <span class="job-meta">2024 – Presente</span>
+          </div>
+          <div class="edu-sub">IPS – Escola Superior de Ciências Empresariais (ESCE), Setúbal · 2.º ano</div>
+        </div>
+        <div class="job">
+          <div class="job-head">
+            <span class="edu-title">Estudos em Sociologia</span>
+            <span class="job-meta">2022 – 2024</span>
+          </div>
+          <div class="edu-sub">FCSH – Faculdade de Ciências Sociais e Humanas, Universidade NOVA de Lisboa</div>
+        </div>
+        <div class="job">
+          <div class="job-head">
+            <span class="edu-title">Ensino Secundário — Línguas e Humanidades</span>
+            <span class="job-meta">Média 16,3</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+</body>
+</html>

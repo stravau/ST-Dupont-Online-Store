@@ -222,29 +222,30 @@ export function ProductCardInteractive({
       {/* Text — price given the strongest weight. Each element reserves a
           consistent line/min-height so the colour name, price and CTA
           line up across every card in the row. */}
-      <div className="flex flex-1 flex-col px-6 pb-6 pt-5 text-center sm:px-6 sm:pb-7 sm:pt-6">
-        <p className="overline text-[0.7rem]">{collection}</p>
-        <h3 className="mt-3 line-clamp-2 min-h-[2.5rem] font-serif text-lg leading-snug text-ink sm:min-h-[3rem] sm:text-2xl">
+      <div className="flex flex-1 flex-col px-3.5 pb-4 pt-3.5 text-center sm:px-6 sm:pb-7 sm:pt-6">
+        <p className="overline text-[0.6rem] sm:text-[0.7rem]">{collection}</p>
+        <h3 className="mt-2 line-clamp-2 min-h-[2.1rem] font-serif text-[0.95rem] leading-snug text-ink sm:mt-3 sm:min-h-[3rem] sm:text-2xl">
           {title}
         </h3>
-        <p className="overline mt-4 text-[0.55rem] text-muted">{fromLabel}</p>
-        <p className="mt-1.5 font-serif text-2xl text-ink sm:text-3xl">{price}</p>
+        <p className="overline mt-3 text-[0.5rem] text-muted sm:mt-4 sm:text-[0.55rem]">{fromLabel}</p>
+        <p className="mt-1 font-serif text-lg text-ink sm:mt-1.5 sm:text-3xl">{price}</p>
         {/* Color name slot — always rendered (nbsp when empty) so row
             spacing matches across cards. In per-colour mode (one swatch
             per tile) this becomes the differentiator beneath the price. */}
-        <p className="mt-3 truncate text-[0.6rem] tracking-[0.12em] text-muted uppercase sm:text-xs sm:tracking-[0.14em]">
+        <p className="mt-2 truncate text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:mt-3 sm:text-xs sm:tracking-[0.14em]">
           {colorName ? colorName : " "}
         </p>
 
         {/* Inquire — opens a prefilled email to the boutique with the
             product reference, colourway and any other selected attributes.
-            mt-auto pushes the CTA to the card's foot; pt-6 keeps a minimum
-            gap between the text block above and the button. */}
-        <div className="relative z-20 mt-auto pt-6 sm:pt-7">
+            mt-auto pushes the CTA to the card's foot. `whitespace-nowrap`
+            keeps "Pedir Informação" on a single line on narrow iOS cards
+            where the previous version wrapped onto two rows. */}
+        <div className="relative z-20 mt-auto pt-4 sm:pt-7">
           <a
             href={mailHref}
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex w-full items-center justify-center gap-2 border border-ink bg-ink py-3 text-[0.65rem] tracking-[0.22em] text-gold uppercase sm:py-3.5 sm:text-xs sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
+            className="inline-flex w-full items-center justify-center whitespace-nowrap border border-ink bg-ink px-2 py-2.5 text-[0.55rem] tracking-[0.14em] text-gold uppercase sm:px-3 sm:py-3.5 sm:text-xs sm:tracking-[0.22em] sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
           >
             {inquireLabel}
           </a>

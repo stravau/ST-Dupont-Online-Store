@@ -508,9 +508,25 @@ export function isUsage(value: unknown): value is Usage {
 }
 
 export function hasUsage(p: Product, usage: Usage): boolean {
-  const re =
-    usage === "ballpoint" ? /^ballpoint/i : usage === "rollerball" ? /^rollerball/i : /^fountain/i;
-  return p.variants.some((v) => !!v.attributes.type && re.test(v.attributes.type.en));
+  // Only 4 of 57 writing products carry an explicit attributes.type tag;
+  // the rest came in untyped from the EN/www imports. Fall back to keyword
+  // checks on the variant + product names, then to SKU prefix patterns
+  // (Eternity / Line D Eternity family: 420=FP, 422=RB, 425=BP) so each
+  // usage chip resolves to a meaningful subset instead of repeating the
+  // same handful of ballpoints across all three filters.
+  const patterns =
+    usage === "ballpoint"
+      ? { keys: /\b(ballpoint|esferográfica)\b/i, sku: /^(425|265|820|830)/i }
+      : usage === "rollerball"
+        ? { keys: /\b(roller\s?ball)\b/i, sku: /^(422|412)/i }
+        : { keys: /\b(fountain\s?pen|foutain\s?pen|tinta permanente)\b/i, sku: /^(420|460|410)/i };
+  return p.variants.some((v) => {
+    if (v.attributes.type?.en && patterns.keys.test(v.attributes.type.en)) return true;
+    if (patterns.keys.test(v.name.en) || patterns.keys.test(v.name.pt)) return true;
+    if (patterns.keys.test(p.name.en) || patterns.keys.test(p.name.pt)) return true;
+    if (patterns.sku.test(v.sku)) return true;
+    return false;
+  });
 }
 
 export function fromPrice(product: Product): Variant {

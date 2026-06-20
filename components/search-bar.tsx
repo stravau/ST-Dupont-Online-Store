@@ -142,7 +142,11 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
         <div
           role="dialog"
           aria-label={t.title}
-          className="fixed left-1/2 top-[5.25rem] z-[60] w-[min(92vw,30rem)] -translate-x-1/2 origin-top border border-line bg-paper shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:left-auto sm:right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] sm:translate-x-0 sm:origin-top-right"
+          // `isolate` + `transform-gpu` force a fresh stacking context so the
+          // panel paints as a single opaque layer over the homepage's
+          // background video — without it, iOS Safari rendered the dropdown
+          // with the video bleeding through behind the cream backdrop.
+          className="fixed left-1/2 top-[5.25rem] z-[70] isolate w-[min(92vw,30rem)] -translate-x-1/2 origin-top transform-gpu border border-line bg-cream shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:left-auto sm:right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] sm:translate-x-0 sm:origin-top-right"
         >
           {/* Input */}
           <div className="flex items-center gap-3 border-b border-line px-5 py-4">

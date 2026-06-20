@@ -84,7 +84,7 @@ export default async function StorePage({
               </ul>
             </div>
 
-            <div>
+            <div id="contacto" className="scroll-mt-28">
               <p className="overline">{s.contactTitle}</p>
               <div className="gold-rule mt-5" />
               <dl className="mt-6 space-y-4 text-sm">
@@ -137,7 +137,7 @@ export default async function StorePage({
           </div>
 
           {/* Right: map */}
-          <div className="flex flex-col">
+          <div id="map" className="flex scroll-mt-28 flex-col">
             <p className="overline">{s.mapTitle}</p>
             <div className="gold-rule mt-5" />
             <div className="mt-6 flex md:flex-1">
