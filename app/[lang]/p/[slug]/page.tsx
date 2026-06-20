@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProduct, getCategory, getRelatedProducts, expandProductCards, formatPrice } from "@/lib/catalog";
+import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductCard } from "@/components/product-card";
@@ -73,7 +74,7 @@ export default async function ProductPage({
       <Breadcrumbs
         items={[
           { label: dict.common.home, href: `/${locale}` },
-          { label: cat.name[locale], href: `/${locale}/c/${product.categorySlug}` },
+          { label: cat.name[locale], href: `/${locale}/c/${localeCategorySlug(locale, product.categorySlug)}` },
           { label: product.name[locale] },
         ]}
       />

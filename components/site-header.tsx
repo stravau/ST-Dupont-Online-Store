@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
+import { localeCategorySlug } from "@/lib/category-slugs";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
@@ -13,19 +14,24 @@ import { HeaderShell } from "@/components/header-shell";
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
   const categories = await getCategories();
+  // Rewrites `/c/<canonical>` → `/c/<en-alias>` when on the EN locale so
+  // every link the mega-menu / mobile nav emits respects the SEO-friendly
+  // English category slugs (/en/c/lighters, /en/c/writing, …).
+  const localizeHref = (href: string): string =>
+    href.replace(/\/c\/(isqueiros|escrita|pele|acessorios)\b/g, (_, slug) => `/c/${localeCategorySlug(lang, slug)}`);
   const menuItems = await Promise.all(
     categories.map(async (c) => ({
-      slug: c.slug,
+      slug: localeCategorySlug(lang, c.slug),
       name: c.name[lang],
       tagline: c.tagline[lang],
       groups: (categoryArt[c.slug]?.groups ?? []).map((g) => ({
         label: g.label[lang],
-        href: `/${lang}${g.href}`,
+        href: localizeHref(`/${lang}${g.href}`),
       })),
       // Titled columns for the desktop mega-menu (Accessories).
       sections: (categoryArt[c.slug]?.menuSections ?? []).map((s) => ({
         title: s.title[lang],
-        items: s.items.map((it) => ({ label: it.label[lang], href: `/${lang}${it.href}` })),
+        items: s.items.map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) })),
       })),
       // The "Products" column lists base lines only. Themed sub-collections
       // (Géode, Popote, DC Comics, …) already live in the "Collections"

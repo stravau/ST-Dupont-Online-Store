@@ -529,6 +529,31 @@ export function hasUsage(p: Product, usage: Usage): boolean {
   });
 }
 
+// Price-bucket filter (chip row on every catalogue page). Matches against
+// the product's cheapest variant — a product with at least one variant in
+// the bucket counts as "in range".
+export type PriceBucket = "u200" | "200-500" | "500-1000" | "1000-2500" | "a2500";
+
+export function isPriceBucket(value: unknown): value is PriceBucket {
+  return value === "u200" || value === "200-500" || value === "500-1000" ||
+    value === "1000-2500" || value === "a2500";
+}
+
+export function priceInBucket(product: Product, bucket: PriceBucket): boolean {
+  const min = product.variants.reduce(
+    (m, v) => Math.min(m, v.priceCents),
+    Number.MAX_SAFE_INTEGER,
+  );
+  const eur = min / 100;
+  switch (bucket) {
+    case "u200": return eur < 200;
+    case "200-500": return eur >= 200 && eur < 500;
+    case "500-1000": return eur >= 500 && eur < 1000;
+    case "1000-2500": return eur >= 1000 && eur < 2500;
+    case "a2500": return eur >= 2500;
+  }
+}
+
 export function fromPrice(product: Product): Variant {
   return product.variants.reduce(
     (min, cur) => (cur.priceCents < min.priceCents ? cur : min),

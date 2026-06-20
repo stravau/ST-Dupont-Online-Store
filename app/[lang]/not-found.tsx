@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { defaultLocale, getDictionary } from "@/lib/i18n";
+import { localeCategorySlug } from "@/lib/category-slugs";
 
 // Not-found boundaries don't receive route params, so we present the default
 // locale with category re-entry — a curated salvage, not a dead end.
@@ -28,7 +29,7 @@ export default function NotFound() {
         {categories.map((c) => (
           <Link
             key={c.slug}
-            href={`/${lang}/c/${c.slug}`}
+            href={`/${lang}/c/${localeCategorySlug(lang, c.slug)}`}
             className="text-sm tracking-[0.14em] text-ink uppercase transition-colors hover:text-gold"
           >
             {c[lang]}

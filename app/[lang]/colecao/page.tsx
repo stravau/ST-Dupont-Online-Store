@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { localeCategorySlug } from "@/lib/category-slugs";
 import {
   getCategory,
   getProductsByCategory,
@@ -143,7 +144,7 @@ export default async function CollectionPage({
 
             <div className="mt-12 text-center">
               <Link
-                href={`/${locale}/c/${category.slug}`}
+                href={`/${locale}/c/${localeCategorySlug(locale, category.slug)}`}
                 className="inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
               >
                 {dict.nav.viewAll} · {category.name[locale]}

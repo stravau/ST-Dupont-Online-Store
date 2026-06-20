@@ -33,12 +33,12 @@ export function SpecDetails({ title, specs }: { title: string; specs: Spec[] }) 
         </button>
       </h2>
 
-      <div
-        className={`grid transition-all duration-500 ease-out ${
-          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        <div className="overflow-hidden">
+      {/* Plain conditional mount — the previous `grid-rows-[0fr → 1fr]`
+          animation silently no-ops on iOS Safari 16, which made the
+          accordion look empty when expanded. Direct mount/unmount with
+          a fade-in is universally compatible. */}
+      {open && (
+        <div className="overflow-hidden motion-safe:animate-[fadeIn_220ms_ease-out]">
           <dl className="divide-y divide-line/70 pb-8">
             {specs.map((s) => (
               <div key={s.label} className="grid grid-cols-[40%_1fr] gap-4 py-3.5 text-sm">
@@ -48,7 +48,7 @@ export function SpecDetails({ title, specs }: { title: string; specs: Spec[] }) 
             ))}
           </dl>
         </div>
-      </div>
+      )}
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { localeCategorySlug } from "@/lib/category-slugs";
 import { getNovelties, expandProductCards } from "@/lib/catalog";
 import { STORE } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
@@ -11,13 +12,14 @@ import { notFound } from "next/navigation";
 // Each tile carries an image scraped from the live Maison site (in
 // /public/categories-home) and routes to the right place in our catalogue.
 function homeCategories(locale: Locale) {
+  const c = (canonical: string) => `/${locale}/c/${localeCategorySlug(locale, canonical)}`;
   return [
-    { key: "lighters", labelPt: "Isqueiros", labelEn: "Lighters", href: `/${locale}/c/isqueiros`, img: "/categories-home/lighters.jpg" },
-    { key: "writing", labelPt: "Instrumentos de Escrita", labelEn: "Writing Instruments", href: `/${locale}/c/escrita`, img: "/categories-home/writing.jpg" },
+    { key: "lighters", labelPt: "Isqueiros", labelEn: "Lighters", href: c("isqueiros"), img: "/categories-home/lighters.jpg" },
+    { key: "writing", labelPt: "Instrumentos de Escrita", labelEn: "Writing Instruments", href: c("escrita"), img: "/categories-home/writing.jpg" },
     { key: "cigar-cases", labelPt: "Estojos de Charuto", labelEn: "Cigar Cases", href: `/${locale}/t/smoking?type=cases`, img: "/categories-home/cigar-cases.jpg" },
     { key: "cigar-accessories", labelPt: "Acessórios de Charuto", labelEn: "Cigar Accessories", href: `/${locale}/t/smoking`, img: "/categories-home/cigar-accessories.jpg" },
     { key: "small-leather", labelPt: "Pequena Marroquinaria", labelEn: "Small Leather Goods", href: `/${locale}/t/small-leather`, img: "/categories-home/small-leather.jpg" },
-    { key: "leather", labelPt: "Marroquinaria", labelEn: "Leather Goods", href: `/${locale}/c/pele`, img: "/categories-home/leather.jpg" },
+    { key: "leather", labelPt: "Marroquinaria", labelEn: "Leather Goods", href: c("pele"), img: "/categories-home/leather.jpg" },
     { key: "cufflinks", labelPt: "Botões de Punho", labelEn: "Cufflinks", href: `/${locale}/t/cufflinks`, img: "/categories-home/cufflinks.jpg" },
     { key: "belts", labelPt: "Cintos", labelEn: "Belts", href: `/${locale}/t/belts`, img: "/categories-home/belts.jpg" },
   ];
@@ -81,7 +83,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             high enough off the bottom that the centred scroll cue doesn't
             visually crash into it on shorter desktop viewports. */}
         <Link
-          href={`/${locale}/c/isqueiros?col=Cohiba`}
+          href={`/${locale}/c/${localeCategorySlug(locale, "isqueiros")}?col=Cohiba`}
           className="reveal reveal-d2 absolute bottom-32 left-12 z-20 hidden text-cream sm:block lg:bottom-40 lg:left-16"
         >
           <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
@@ -96,7 +98,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             the scroll cue, hidden on sm+ (desktop has its own copy pinned
             bottom-left of the video). */}
         <Link
-          href={`/${locale}/c/isqueiros?col=Cohiba`}
+          href={`/${locale}/c/${localeCategorySlug(locale, "isqueiros")}?col=Cohiba`}
           className="reveal reveal-d2 absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
         >
           <h2 className="font-serif text-xl whitespace-nowrap uppercase tracking-wide">

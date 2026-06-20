@@ -146,6 +146,9 @@ export default async function StorePage({
                 title={STORE.venue}
                 loadLabel={s.loadMap}
                 consent={s.mapConsent}
+                venue={STORE.venue}
+                street={STORE.street}
+                postcode={STORE.postcode}
               />
             </div>
             <a

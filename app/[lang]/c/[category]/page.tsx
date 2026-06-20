@@ -12,10 +12,14 @@ import {
   inferGender,
   hasUsage,
   isUsage,
+  isPriceBucket,
+  priceInBucket,
   type Gender,
   type Usage,
+  type PriceBucket,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
+import { resolveCategorySlug } from "@/lib/category-slugs";
 import { ACC_SECTION_ORDER, getProductType } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
@@ -33,7 +37,8 @@ export async function generateMetadata({
   params: Promise<{ lang: string; category: string }>;
 }): Promise<Metadata> {
   const { lang, category } = await params;
-  const cat = await getCategory(category);
+  const canonical = resolveCategorySlug(category);
+  const cat = await getCategory(canonical);
   if (!isLocale(lang) || !cat) return {};
   return { title: cat.name[lang as Locale] };
 }
@@ -49,21 +54,26 @@ export default async function CategoryPage({
     page?: string;
     g?: string;
     usage?: string;
+    price?: string;
     all?: string;
   }>;
 }) {
-  const { lang, category } = await params;
+  const { lang, category: categoryParam } = await params;
   const {
     col,
     sort: sortParam,
     page: pageParam,
     g: gParam,
     usage: usageParam,
+    price: priceParam,
     all: allParam,
   } = await searchParams;
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
+  // Accept either the canonical PT slug or the English alias (lighters /
+  // writing / leather / accessories) at the URL — the DB still stores PT.
+  const category = resolveCategorySlug(categoryParam);
   const cat = await getCategory(category);
   if (!cat) notFound();
   const dict = getDictionary(locale);
@@ -90,9 +100,13 @@ export default async function CategoryPage({
         return g === activeGender || g === "unisex";
       })
     : fetched;
-  const filtered = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
+  const activePrice: PriceBucket | undefined = isPriceBucket(priceParam) ? priceParam : undefined;
+  const afterUsage = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
+  const filtered = activePrice ? afterUsage.filter((p) => priceInBucket(p, activePrice)) : afterUsage;
   const sortedItems = sortProducts(filtered, sort, locale);
-  const base = `/${locale}/c/${category}`;
+  // Keep the URL-emitting `base` in the locale-appropriate form so chip
+  // links + paginator never bounce the user back to a PT slug on EN.
+  const base = `/${locale}/c/${categoryParam}`;
 
   // For accessories the natural section is the *item type* (Cigar Cases,
   // Cigar Cutters, Ashtrays, …) rather than the brand collection — the same
@@ -148,6 +162,7 @@ export default async function CategoryPage({
     if (sort !== "featured") params.set("sort", sort);
     if (activeGender && !("g" in overrides)) params.set("g", activeGender);
     if (activeUsage && !("usage" in overrides)) params.set("usage", activeUsage);
+    if (activePrice && !("price" in overrides)) params.set("price", activePrice);
     for (const [k, v] of Object.entries(overrides)) {
       if (v) params.set(k, v);
       else params.delete(k);
@@ -278,6 +293,33 @@ export default async function CategoryPage({
           </Link>
         </div>
       )}
+
+      {/* Price-range filter — chips for the standard luxury bands.
+          Visible on every category; counts/empty states fall out
+          naturally from the filtered product list. */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+        <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
+          {dict.common.priceLabel}
+        </span>
+        <Link href={buildChipLink({ price: undefined })} className={chipClass(!activePrice)}>
+          {dict.common.forAll}
+        </Link>
+        <Link href={buildChipLink({ price: "u200" })} className={chipClass(activePrice === "u200")}>
+          {dict.common.priceUnder200}
+        </Link>
+        <Link href={buildChipLink({ price: "200-500" })} className={chipClass(activePrice === "200-500")}>
+          {dict.common.price200500}
+        </Link>
+        <Link href={buildChipLink({ price: "500-1000" })} className={chipClass(activePrice === "500-1000")}>
+          {dict.common.price500_1000}
+        </Link>
+        <Link href={buildChipLink({ price: "1000-2500" })} className={chipClass(activePrice === "1000-2500")}>
+          {dict.common.price1000_2500}
+        </Link>
+        <Link href={buildChipLink({ price: "a2500" })} className={chipClass(activePrice === "a2500")}>
+          {dict.common.priceAbove2500}
+        </Link>
+      </div>
 
       <div className="mt-10 flex justify-end">
         <SortSelect value={sort} labels={dict.sort} />

@@ -4,6 +4,7 @@
 import { getDictionary, type Locale } from "@/lib/i18n";
 import { productGroups } from "@/lib/product-groups";
 import { legalDocs } from "@/lib/legal";
+import { resolveCategorySlug } from "@/lib/category-slugs";
 
 const CATEGORY_NAV: Record<string, keyof ReturnType<typeof getDictionary>["nav"]> = {
   isqueiros: "lighters",
@@ -22,8 +23,10 @@ export function routeLabel(pathname: string, lang: Locale): string {
 
   const [seg, a] = rest;
   switch (seg) {
-    case "c":
-      return a && CATEGORY_NAV[a] ? dict.nav[CATEGORY_NAV[a]] : dict.nav.collections;
+    case "c": {
+      const canonical = a ? resolveCategorySlug(a) : "";
+      return CATEGORY_NAV[canonical] ? dict.nav[CATEGORY_NAV[canonical]] : dict.nav.collections;
+    }
     case "p":
       return dict.nav.products;
     case "t":
