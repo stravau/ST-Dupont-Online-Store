@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { MenuCategory } from "@/components/mega-menu";
 import { Logo } from "@/components/logo";
 import { useHeaderTransparent } from "@/components/header-shell";
+import { ACCESSORIES_NAV } from "@/lib/collection-order";
 
 // Mobile menu: a full-screen panel that drills down per maison. The root
 // view shows the four maisons + About Us. Tapping a maison swaps to its
@@ -34,6 +35,18 @@ export function MobileNav({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
+  // Inline-expand state for Accessories sub-items that hold nested
+  // children (Cigar Cases → 1/2/3). Keyed by the item's EN label so PT/EN
+  // share one toggle target.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  function toggleExpanded(key: string): void {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
   const pathname = usePathname();
   useEffect(() => {
     queueMicrotask(() => setMounted(true));
@@ -57,10 +70,17 @@ export function MobileNav({
     };
   }, [open]);
 
-  // Reset to the root view whenever the panel re-opens.
+  // Reset to the root view + collapse any expanded sub-items whenever the
+  // panel re-opens or the user backs out of a maison sub-panel.
   useEffect(() => {
-    if (open) setSelected(null);
+    if (open) {
+      setSelected(null);
+      setExpanded(new Set());
+    }
   }, [open]);
+  useEffect(() => {
+    if (!selected) setExpanded(new Set());
+  }, [selected]);
 
   // Root entries — the four maisons + About Us.
   const aboutLink = links.find((l) => l.href.endsWith("/historia"));
@@ -188,35 +208,136 @@ export function MobileNav({
                 </ul>
               )}
 
-              {/* Category view — show every model line (collections) for
-                  the chosen maison FIRST. "View all" at the top lands on
-                  the unfiltered category. Themed sub-collections live in
-                  the desktop mega-menu's Coleções panel; mobile keeps
-                  things uncluttered with just the base lines. */}
-              {selected && (
-                <ul className="mx-auto flex w-full max-w-sm flex-col">
-                  <li className="border-b border-line/60">
-                    <Link
-                      href={`/${lang}/c/${selected.slug}`}
-                      onClick={close}
-                      className="block py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
-                    >
-                      {labels.viewAll}
-                    </Link>
-                  </li>
-                  {selected.collections.map((col) => (
-                    <li key={col} className="border-b border-line/60">
+              {/* Category view. For Lighters / Writing / Leather: flat
+                  list of model lines via selected.collections. For
+                  Accessories: structured layout — two grouped sections
+                  (Smoking, Writing Accessories) with Cigar Cases nested
+                  into 1/2/3, plus the remaining accessory categories as
+                  flat top-level rows below. */}
+              {selected && (() => {
+                const isAccessories =
+                  selected.slug === "acessorios" || selected.slug === "accessories";
+                const tt = (l: { pt: string; en: string }) =>
+                  lang === "pt" ? l.pt : l.en;
+                if (isAccessories) {
+                  return (
+                    <ul className="mx-auto flex w-full max-w-sm flex-col">
+                      <li className="border-b border-line/60">
+                        <Link
+                          href={`/${lang}/c/${selected.slug}`}
+                          onClick={close}
+                          className="block py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                        >
+                          {labels.viewAll}
+                        </Link>
+                      </li>
+                      {ACCESSORIES_NAV.map((entry, i) => {
+                        if (entry.kind === "item") {
+                          return (
+                            <li key={`flat-${i}`} className="border-b border-line/60">
+                              <Link
+                                href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(entry.collection)}`}
+                                onClick={close}
+                                className="block py-3.5 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                              >
+                                {tt(entry.label)}
+                              </Link>
+                            </li>
+                          );
+                        }
+                        return (
+                          <li key={`sec-${i}`} className="border-b border-line/60">
+                            <p className="pt-5 pb-3 text-[0.65rem] font-semibold tracking-[0.22em] text-gold uppercase">
+                              {tt(entry.title)}
+                            </p>
+                            <ul className="pb-2">
+                              {entry.items.map((it) => {
+                                const key = it.label.en;
+                                if (it.children) {
+                                  const isOpen = expanded.has(key);
+                                  return (
+                                    <li key={key} className="border-t border-line/40">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleExpanded(key)}
+                                        aria-expanded={isOpen}
+                                        className="flex w-full items-center justify-between py-3 text-left text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
+                                      >
+                                        <span>{tt(it.label)}</span>
+                                        <svg
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="1.6"
+                                          className={`transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                                        >
+                                          <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      </button>
+                                      {isOpen && (
+                                        <ul className="ml-4 mb-2 border-l border-gold/40 pl-4">
+                                          {it.children.map((child) => (
+                                            <li key={child.label.en}>
+                                              <Link
+                                                href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(child.collection ?? "")}`}
+                                                onClick={close}
+                                                className="block py-2 text-[0.7rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
+                                              >
+                                                {tt(child.label)}
+                                              </Link>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    </li>
+                                  );
+                                }
+                                return (
+                                  <li key={key} className="border-t border-line/40">
+                                    <Link
+                                      href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(it.collection ?? "")}`}
+                                      onClick={close}
+                                      className="block py-3 text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
+                                    >
+                                      {tt(it.label)}
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  );
+                }
+                return (
+                  <ul className="mx-auto flex w-full max-w-sm flex-col">
+                    <li className="border-b border-line/60">
                       <Link
-                        href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(col)}`}
+                        href={`/${lang}/c/${selected.slug}`}
                         onClick={close}
-                        className="block py-3.5 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                        className="block py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
-                        {col}
+                        {labels.viewAll}
                       </Link>
                     </li>
-                  ))}
-                </ul>
-              )}
+                    {selected.collections.map((col) => (
+                      <li key={col} className="border-b border-line/60">
+                        <Link
+                          href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(col)}`}
+                          onClick={close}
+                          className="block py-3.5 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                        >
+                          {col}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
             </nav>
 
             {/* Footer — Contact + Find Store icons. Pinned to the bottom
