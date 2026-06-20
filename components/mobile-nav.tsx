@@ -136,7 +136,11 @@ export function MobileNav({
                 <Logo width={300} className="w-[260px] max-w-[70vw]" />
               </Link>
 
-              {/* Root view — list of maisons. Each opens its sub-panel. */}
+              {/* Shared item style — every button reads as the same
+                  caps-lock chip with a thin bottom border, regardless of
+                  whether it's a maison, a model line or "View all". */}
+              {(() => null)()}
+
               {!selected && (
                 <ul className="mx-auto flex w-full max-w-sm flex-col">
                   {items.map((c) => (
@@ -144,7 +148,7 @@ export function MobileNav({
                       <button
                         type="button"
                         onClick={() => setSelected(c)}
-                        className="flex w-full items-center justify-between py-4 text-left text-base font-medium tracking-[0.08em] text-ink uppercase transition-colors hover:text-gold"
+                        className="flex w-full items-center justify-between py-4 text-left text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
                         <span>{c.name}</span>
                         <svg
@@ -165,7 +169,7 @@ export function MobileNav({
                       <Link
                         href={aboutLink.href}
                         onClick={close}
-                        className="flex w-full items-center justify-between py-4 text-base font-medium tracking-[0.08em] text-ink uppercase transition-colors hover:text-gold"
+                        className="flex w-full items-center justify-between py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
                         <span>{aboutLink.label}</span>
                         <svg
@@ -184,27 +188,30 @@ export function MobileNav({
                 </ul>
               )}
 
-              {/* Category view — the chosen maison's sub-collections, plus
-                  a "View all" at the top to land on the category page. */}
+              {/* Category view — show every model line (collections) for
+                  the chosen maison FIRST. "View all" at the top lands on
+                  the unfiltered category. Themed sub-collections live in
+                  the desktop mega-menu's Coleções panel; mobile keeps
+                  things uncluttered with just the base lines. */}
               {selected && (
                 <ul className="mx-auto flex w-full max-w-sm flex-col">
                   <li className="border-b border-line/60">
                     <Link
                       href={`/${lang}/c/${selected.slug}`}
                       onClick={close}
-                      className="block py-4 text-[0.7rem] tracking-[0.22em] text-gold uppercase transition-colors hover:text-ink"
+                      className="block py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                     >
-                      {labels.viewAll} →
+                      {labels.viewAll}
                     </Link>
                   </li>
-                  {selected.groups.map((g) => (
-                    <li key={g.href} className="border-b border-line/60">
+                  {selected.collections.map((col) => (
+                    <li key={col} className="border-b border-line/60">
                       <Link
-                        href={g.href}
+                        href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(col)}`}
                         onClick={close}
-                        className="block py-3.5 text-sm text-ink transition-colors hover:text-gold"
+                        className="block py-3.5 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
-                        {g.label}
+                        {col}
                       </Link>
                     </li>
                   ))}
