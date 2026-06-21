@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import { getProduct, getCategory, getRelatedProducts, getMostViewed, expandProductCards, formatPrice } from "@/lib/catalog";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -21,7 +21,32 @@ export async function generateMetadata({
   const { lang, slug } = await params;
   const product = await getProduct(slug);
   if (!isLocale(lang) || !product) return {};
-  return { title: product.name[lang as Locale], description: product.description[lang as Locale] };
+  const locale = lang as Locale;
+  const title = product.name[locale];
+  const full = product.description[locale] ?? "";
+  // Google truncates ~160 chars — pull the first sentence (or first
+  // 157 chars + ellipsis) rather than stuffing the entire body.
+  const firstSentence = full.split(/(?<=[.!?])\s/)[0] ?? full;
+  const description = firstSentence.length > 160
+    ? firstSentence.slice(0, 157) + "…"
+    : firstSentence;
+  const ogImage = product.image ?? "/hero/homepage-bg.jpg";
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/${locale}/p/${slug}`,
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}/p/${slug}`])),
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/${locale}/p/${slug}`,
+      images: [ogImage],
+      locale: locale === "pt" ? "pt_PT" : "en_GB",
+      type: "website",
+    },
+  };
 }
 
 export default async function ProductPage({
@@ -83,8 +108,36 @@ export default async function ProductPage({
     })),
   );
 
+  // Product JSON-LD — Schema.org Product with AggregateOffer over the
+  // variants. Tells Google this is a real catalogue item with price
+  // range and powers rich PDP cards in search results.
+  const prices = product.variants.map((v) => v.priceCents / 100);
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name[locale],
+    description: product.description[locale],
+    sku: product.variants[0].sku,
+    brand: { "@type": "Brand", name: "S.T. Dupont" },
+    category: cat.name[locale],
+    ...(product.image ? { image: [product.image] } : {}),
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: product.variants[0].currency,
+      lowPrice: Math.min(...prices).toFixed(2),
+      highPrice: Math.max(...prices).toFixed(2),
+      offerCount: product.variants.length,
+      availability: "https://schema.org/InStock",
+      seller: { "@type": "Organization", name: "S.T. Dupont · El Corte Inglés Lisboa" },
+    },
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
+      />
       <Breadcrumbs
         items={[
           { label: dict.common.home, href: `/${locale}` },

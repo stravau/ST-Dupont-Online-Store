@@ -28,10 +28,19 @@ const bodySans = EB_Garamond({
   display: "swap",
 });
 
+const SITE_URL = "https://st-dupont-online-store.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: "S.T. Dupont — Maison de Luxe Française", template: "%s · S.T. Dupont" },
   description:
     "S.T. Dupont — lighters, writing instruments and leather goods. French luxury craftsmanship since 1872.",
+  openGraph: {
+    type: "website",
+    siteName: "S.T. Dupont",
+    images: ["/hero/homepage-bg.jpg"],
+  },
+  twitter: { card: "summary_large_image", images: ["/hero/homepage-bg.jpg"] },
 };
 
 // Match the cream page/header background so iOS Safari doesn't tint the
@@ -41,7 +50,10 @@ export const viewport: Viewport = {
 };
 
 // Data is DB-backed and per-request; never prerender at build time (so the
-// build never needs the database — Vercel builds stay green pre-seed).
+// build never needs the database — Vercel builds stay green pre-seed). To
+// flip on ISR caching, set this per-page on routes that don't depend on
+// search params, ensuring DATABASE_URL at build points at the production
+// dataset.
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {

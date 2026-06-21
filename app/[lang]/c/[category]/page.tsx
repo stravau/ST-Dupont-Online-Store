@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import {
   getCategory,
   getProductsByCategory,
@@ -18,7 +18,7 @@ import {
   type Usage,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
-import { resolveCategorySlug } from "@/lib/category-slugs";
+import { resolveCategorySlug, localeCategorySlug } from "@/lib/category-slugs";
 import { ACC_SECTION_ORDER, getProductType } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
@@ -40,7 +40,32 @@ export async function generateMetadata({
   const canonical = resolveCategorySlug(category);
   const cat = await getCategory(canonical);
   if (!isLocale(lang) || !cat) return {};
-  return { title: cat.name[lang as Locale] };
+  const locale = lang as Locale;
+  const title = cat.name[locale];
+  const description =
+    cat.history?.[locale] ??
+    cat.tagline?.[locale] ??
+    (locale === "pt"
+      ? `Descubra ${title} S.T. Dupont — artesanato francês desde 1872.`
+      : `Discover S.T. Dupont ${title} — French craftsmanship since 1872.`);
+  const heroImage = categoryArt[canonical]?.hero ?? "/hero/homepage-bg.jpg";
+  return {
+    title,
+    description: description.length > 160 ? description.slice(0, 157) + "…" : description,
+    alternates: {
+      canonical: `/${locale}/c/${localeCategorySlug(locale, canonical)}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `/${l}/c/${localeCategorySlug(l, canonical)}`]),
+      ),
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/${locale}/c/${localeCategorySlug(locale, canonical)}`,
+      images: [heroImage],
+      locale: locale === "pt" ? "pt_PT" : "en_GB",
+    },
+  };
 }
 
 export default async function CategoryPage({

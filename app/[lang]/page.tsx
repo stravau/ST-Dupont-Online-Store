@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { getNovelties, expandProductCards } from "@/lib/catalog";
 import { STORE } from "@/lib/store-info";
@@ -23,6 +24,38 @@ function homeCategories(locale: Locale) {
     { key: "cufflinks", labelPt: "Botões de Punho", labelEn: "Cufflinks", href: `/${locale}/t/cufflinks`, img: "/categories-home/cufflinks.jpg" },
     { key: "belts", labelPt: "Cintos", labelEn: "Belts", href: `/${locale}/t/belts`, img: "/categories-home/belts.jpg" },
   ];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  const dict = getDictionary(lang);
+  const title =
+    lang === "pt"
+      ? "S.T. Dupont — Maison de Luxe Française · Lisboa"
+      : "S.T. Dupont — French Luxury Maison · Lisbon";
+  const description =
+    lang === "pt"
+      ? `${dict.hero.subtitle} Boutique no El Corte Inglés Lisboa.`
+      : `${dict.hero.subtitle} Boutique at El Corte Inglés Lisbon.`;
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/${lang}`,
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/${lang}`,
+      locale: lang === "pt" ? "pt_PT" : "en_GB",
+    },
+  };
 }
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
