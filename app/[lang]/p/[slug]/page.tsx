@@ -88,6 +88,8 @@ export default async function ProductPage({
         initialSku={skuParam}
         specsByVariant={specsByVariant}
         specsTitle={dict.product.specs}
+        description={product.description[locale]}
+        descriptionTitle={dict.product.descriptionTitle}
         labels={{
           typeLabel: dict.product.typeLabel,
           selectType: dict.product.selectType,
@@ -112,7 +114,6 @@ export default async function ProductPage({
             </div>
             <h1 className="mt-4 font-serif text-4xl text-ink md:text-5xl">{product.name[locale]}</h1>
             <div className="gold-rule my-7" />
-            <p className="text-muted">{product.description[locale]}</p>
           </>
         }
         extras={

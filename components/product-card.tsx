@@ -40,12 +40,16 @@ export function ProductCard({
 
   const base = list.reduce((m, v) => (v.priceCents < m.priceCents ? v : m), list[0]);
 
-  // Distinct colourways → interactive swatches (each with its own photo).
-  // When `variantSku` is set the list is already a single variant — the
-  // resulting swatches has length 1 and the interactive component hides the
-  // swatch row, so the card reads as "one colour per tile".
+  // ALWAYS build swatches from the full set of sibling colourways, even
+  // when the card is scoped to one (variantSku). The image-based swatch
+  // strip below the photo lets the user jump to the same product in a
+  // different colour without leaving the card — same product, same
+  // model, different finish.
+  const variantsForSwatches = variantType
+    ? product.variants.filter((v) => v.attributes.type?.[lang] === variantType)
+    : product.variants;
   const swatches: CardSwatch[] = [];
-  for (const v of list) {
+  for (const v of variantsForSwatches) {
     const c = v.attributes.color;
     if (c && !swatches.some((x) => x.label === c.label[lang])) {
       swatches.push({
@@ -53,9 +57,7 @@ export function ProductCard({
         label: c.label[lang],
         hex: c.hex,
         image: v.image ?? product.image,
-        // Close-up (3rd gallery photo) shown on card hover, when supplied.
         hoverImage: v.images?.[2] ?? null,
-        // Full gallery to slide through on the card.
         images: v.images && v.images.length ? v.images : v.image ? [v.image] : [],
         price: formatPrice(v.priceCents, v.currency, lang),
       });
@@ -68,6 +70,12 @@ export function ProductCard({
   // open on a flat single-image variant when a multi-photo one is available.
   const initialSwatch = (() => {
     if (!swatches.length) return 0;
+    // When scoped to a specific colourway, open on it so the big photo
+    // matches the SKU the card was rendered for.
+    if (variantSku) {
+      const i = swatches.findIndex((s) => s.sku === variantSku);
+      if (i >= 0) return i;
+    }
     const hash = [...`${product.slug}${variantType ?? ""}${variantSku ?? ""}`].reduce(
       (h, c) => (h * 31 + c.charCodeAt(0)) >>> 0,
       7,

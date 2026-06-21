@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ProductImage } from "@/components/product-image";
 import { VariantSelector, type VariantOption, type SelectorLabels } from "@/components/variant-selector";
 import { SpecDetails } from "@/components/spec-details";
+import { DescriptionDetails } from "@/components/description-details";
 import { imgSrc } from "@/lib/img";
 import type { Spec } from "@/lib/specs";
 
@@ -22,6 +23,8 @@ export function ProductDetail({
   extras,
   specsByVariant,
   specsTitle,
+  description,
+  descriptionTitle,
 }: {
   fallbackImage: string | null;
   seed: string;
@@ -34,6 +37,8 @@ export function ProductDetail({
   extras: React.ReactNode;
   specsByVariant: Record<string, Spec[]>;
   specsTitle: string;
+  description?: string;
+  descriptionTitle?: string;
 }) {
   const startSku =
     (initialSku && variants.find((v) => v.sku === initialSku)?.sku) ||
@@ -190,6 +195,12 @@ export function ProductDetail({
       </div>
     </div>
 
+      {/* Description disclosure — sits immediately above the spec
+          collapsible so the two read as a pair of complementary
+          "tell me more" toggles. Hidden when no copy is supplied. */}
+      {description && descriptionTitle && (
+        <DescriptionDetails title={descriptionTitle} body={description} />
+      )}
       <SpecDetails title={specsTitle} specs={specsByVariant[activeSku] ?? []} />
     </>
   );

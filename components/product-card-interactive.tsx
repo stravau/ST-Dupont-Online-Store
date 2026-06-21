@@ -102,14 +102,12 @@ export function ProductCardInteractive({
     },
   });
 
+  // No-image fallback for swatches without a real photo — fall back to
+  // the colour gradient so the swatch still reads as an indicator.
   const swatchStyle = (hex: string[]) =>
     hex.length > 1
       ? { background: `linear-gradient(135deg, ${hex[0]} 0 50%, ${hex[1]} 50% 100%)` }
       : { background: hex[0] };
-
-  const MAX = 6;
-  const showCount = swatches.length > MAX ? 5 : Math.min(swatches.length, MAX);
-  const extra = swatches.length - showCount;
 
   return (
     <article
@@ -196,36 +194,55 @@ export function ProductCardInteractive({
         <p className="mt-0.5 line-clamp-1 text-[0.55rem] tracking-[0.14em] text-muted uppercase sm:text-[0.65rem]">
           {collection}
         </p>
-        <p className="mt-1.5 font-serif text-[0.95rem] text-ink sm:mt-2 sm:text-lg">{price}</p>
+        <p className="mt-1.5 font-serif text-lg font-semibold text-ink sm:mt-2 sm:text-2xl">{price}</p>
         {colorName && (
           <p className="mt-0.5 line-clamp-1 text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:text-[0.6rem] sm:tracking-[0.14em]">
             {colorName}
           </p>
         )}
 
+        {/* Colour-variant strip — each swatch is a mini photo of the
+            same product in a different colourway. Side-scrolls when
+            there are more than 3 (mobile) / 5 (desktop) entries.
+            Mobile thumbs are borderless to read as a clean ribbon;
+            desktop carries a subtle line + gold ring on the active. */}
         {swatches.length > 1 && (
-          <div className="relative z-20 mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-2 sm:gap-2">
-            {swatches.slice(0, showCount).map((c, i) => (
-              <button
-                key={c.label}
-                type="button"
-                aria-label={c.label}
-                title={`${c.label} · ${colorWord}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSel(i);
-                  setIdx(0);
-                }}
-                className={`h-3.5 w-3.5 rounded-full ring-offset-2 ring-offset-cream transition-all sm:h-4 sm:w-4 ${
-                  sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
-                }`}
-                style={swatchStyle(c.hex)}
-              />
-            ))}
-            {extra > 0 && (
-              <span className="text-[0.55rem] text-muted sm:text-[0.65rem]">+{extra}</span>
-            )}
+          <div className="relative z-20 mt-2 sm:mt-3">
+            <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto sm:gap-2">
+              {swatches.map((c, i) => {
+                const thumb = imgSrc(c.image);
+                return (
+                  <button
+                    key={c.sku}
+                    type="button"
+                    aria-label={c.label}
+                    title={`${c.label} · ${colorWord}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSel(i);
+                      setIdx(0);
+                    }}
+                    className={`relative aspect-square h-12 w-12 shrink-0 overflow-hidden transition-all sm:h-14 sm:w-14 sm:border ${
+                      sel === i
+                        ? "sm:border-gold sm:ring-1 sm:ring-gold"
+                        : "sm:border-line sm:hover:border-gold/60"
+                    }`}
+                    style={thumb ? undefined : swatchStyle(c.hex)}
+                  >
+                    {thumb && (
+                      <Image
+                        src={thumb}
+                        alt={c.label}
+                        fill
+                        sizes="56px"
+                        className="object-contain"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
