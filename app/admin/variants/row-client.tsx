@@ -2,12 +2,14 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useToast } from "@/components/admin/toast";
 
 type Status = "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
 
-// One row of the admin variants table — every editable cell holds
-// optimistic state, posts a PATCH /api/admin/variant/:id on blur (or
-// select-change for status), and reverts + flashes red on failure.
+// One row of the admin variants table — optimistic edits, PATCH on
+// blur (or select-change for status). Status renders inline as a
+// styled <select> that adopts the colour of the chosen tone so the
+// table reads at a glance.
 export function VariantRow({
   id,
   sku,
@@ -29,15 +31,14 @@ export function VariantRow({
   productName: string;
   productSlug: string;
 }) {
+  const toast = useToast();
   const [ean, setEan]       = useState<string>(eanInit ?? "");
   const [eurStr, setEurStr] = useState<string>((priceInit / 100).toFixed(2));
   const [status, setStatus] = useState<Status>(statusInit);
   const [stock, setStock]   = useState<number>(stockInit);
-  const [savingFlash, setSavingFlash] = useState<null | "saving" | "saved" | "error">(null);
   const [, startTransition] = useTransition();
 
-  async function patch(body: Record<string, unknown>) {
-    setSavingFlash("saving");
+  async function patch(body: Record<string, unknown>, label: string) {
     try {
       const res = await fetch(`/api/admin/variant/${id}`, {
         method: "PATCH",
@@ -45,95 +46,92 @@ export function VariantRow({
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error(String(res.status));
-      setSavingFlash("saved");
-      // Drop the flash after a beat so the row doesn't stay tinted.
-      setTimeout(() => setSavingFlash(null), 1200);
-    } catch {
-      setSavingFlash("error");
-      setTimeout(() => setSavingFlash(null), 2500);
+      toast.push("success", `${label} guardado`);
+    } catch (e) {
+      toast.push("error", `Falha em ${label}: ${(e as Error).message}`);
     }
   }
 
   function commitEan() {
     const trimmed = ean.trim();
     if (trimmed === (eanInit ?? "")) return;
-    startTransition(() => patch({ ean: trimmed === "" ? null : trimmed }));
+    startTransition(() => patch({ ean: trimmed === "" ? null : trimmed }, "EAN"));
   }
   function commitPvp() {
     const cents = Math.round(Number.parseFloat(eurStr.replace(",", ".")) * 100);
     if (!Number.isFinite(cents) || cents < 0) { setEurStr((priceInit / 100).toFixed(2)); return; }
     if (cents === priceInit) return;
-    startTransition(() => patch({ priceCents: cents }));
+    startTransition(() => patch({ priceCents: cents }, "PVP"));
   }
   function commitStatus(next: Status) {
     if (next === status) return;
     setStatus(next);
-    startTransition(() => patch({ status: next }));
+    startTransition(() => patch({ status: next }, "Status"));
   }
   function commitStock(next: number) {
     if (next === stock) return;
     setStock(next);
-    startTransition(() => patch({ stock: next }));
+    startTransition(() => patch({ stock: next }, "Stock"));
   }
 
-  const rowBg =
-    savingFlash === "saving" ? "bg-cream/40" :
-    savingFlash === "saved"  ? "bg-green-50" :
-    savingFlash === "error"  ? "bg-red-50"   :
-                                "";
+  const statusTone =
+    status === "DISPONIVEL"   ? "border-[#2bb673]/40 bg-[#2bb673]/8 text-[#1f7a4d]" :
+    status === "INDISPONIVEL" ? "border-[#d4a017]/50 bg-[#d4a017]/10 text-[#7e5e00]" :
+                                 "border-[#8b95a6]/50 bg-[#8b95a6]/10 text-[#4a5466]";
 
   return (
-    <tr className={`${rowBg} transition-colors`}>
-      <td className="px-3 py-2">
+    <tr className="transition-colors hover:bg-cream/40">
+      <td className="px-4 py-2 align-middle">
         <input
           value={ean}
           onChange={(e) => setEan(e.target.value)}
           onBlur={commitEan}
           placeholder="—"
-          className="w-36 border border-transparent bg-transparent px-2 py-1 text-sm tabular-nums focus:border-line focus:bg-paper"
+          className="w-36 rounded-sm border border-transparent bg-transparent px-2 py-1 font-mono text-xs tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none"
         />
       </td>
-      <td className="px-3 py-2 font-mono text-xs tracking-tight">{sku}</td>
-      <td className="px-3 py-2 text-ink">{desc}</td>
-      <td className="px-3 py-2 text-right">
+      <td className="px-4 py-2 align-middle font-mono text-[0.7rem] tracking-tight text-muted">{sku}</td>
+      <td className="px-4 py-2 align-middle">
+        <span className="block max-w-[28rem] truncate text-sm text-ink" title={desc}>{desc}</span>
+      </td>
+      <td className="px-4 py-2 text-right align-middle">
         <input
           value={eurStr}
           onChange={(e) => setEurStr(e.target.value)}
           onBlur={commitPvp}
-          className="w-20 border border-transparent bg-transparent px-2 py-1 text-right text-sm tabular-nums focus:border-line focus:bg-paper"
+          className="w-20 rounded-sm border border-transparent bg-transparent px-2 py-1 text-right text-sm font-medium tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none"
         />
-        <span className="text-xs text-muted">€</span>
+        <span className="ml-0.5 text-xs text-muted">€</span>
       </td>
-      <td className="px-3 py-2">
+      <td className="px-4 py-2 align-middle">
         <select
           value={status}
           onChange={(e) => commitStatus(e.target.value as Status)}
-          className="border border-line bg-paper px-2 py-1 text-xs tracking-[0.12em] uppercase outline-none focus:border-gold"
+          className={`appearance-none rounded-sm border px-2.5 py-1 pr-6 text-[0.65rem] tracking-[0.12em] uppercase outline-none transition-colors focus:border-gold ${statusTone}`}
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23999' stroke-width='1.5' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 4px center", backgroundSize: "12px" }}
         >
           <option value="DISPONIVEL">Disponível</option>
           <option value="INDISPONIVEL">Indisponível</option>
           <option value="DESCONTINUADO">Descontinuado</option>
         </select>
       </td>
-      <td className="px-3 py-2 text-right">
+      <td className="px-4 py-2 text-right align-middle">
         <input
           type="number"
           value={stock}
           onChange={(e) => setStock(Number.parseInt(e.target.value, 10) || 0)}
           onBlur={() => commitStock(stock)}
-          className="w-16 border border-transparent bg-transparent px-2 py-1 text-right text-sm tabular-nums focus:border-line focus:bg-paper"
+          className={`w-16 rounded-sm border border-transparent bg-transparent px-2 py-1 text-right text-sm tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none ${stock <= 0 ? "text-[#b94a3a]" : stock <= 5 ? "text-[#7e5e00]" : "text-ink"}`}
         />
       </td>
-      <td className="px-3 py-2 text-xs">
-        <div className="flex flex-col gap-1">
+      <td className="px-4 py-2 align-middle text-xs">
+        <div className="flex flex-col gap-0.5">
           {productSlug ? (
-            <Link href={`/pt/p/${productSlug}`} target="_blank" className="text-muted underline-offset-2 hover:text-gold hover:underline">
-              {productName}
-            </Link>
+            <Link href={`/pt/p/${productSlug}`} target="_blank" className="truncate text-muted transition-colors hover:text-gold">{productName}</Link>
           ) : (
-            <span className="text-muted">{productName}</span>
+            <span className="truncate text-muted">{productName}</span>
           )}
-          <Link href={`/admin/variants/${sku}/images`} className="text-[0.6rem] tracking-[0.16em] text-gold uppercase hover:underline">
+          <Link href={`/admin/variants/${sku}/images`} className="text-[0.6rem] tracking-[0.16em] text-gold uppercase transition-colors hover:underline">
             Imagens →
           </Link>
         </div>
