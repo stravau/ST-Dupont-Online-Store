@@ -246,9 +246,9 @@ export function MobileNav({
                           );
                         }
                         // Section header — same caps-lock button style as the
-                        // other rows, with a subtle gold-tinted background to
-                        // signal "this opens a group" without breaking the
-                        // shared visual language.
+                        // other rows. Set apart by a hairline gold rule
+                        // above (not a background tint), so the visual
+                        // language stays consistent.
                         const sectionKey = `section:${entry.title.en}`;
                         const sectionOpen = expanded.has(sectionKey);
                         return (
@@ -257,7 +257,7 @@ export function MobileNav({
                               type="button"
                               onClick={() => toggleExpanded(sectionKey)}
                               aria-expanded={sectionOpen}
-                              className="flex w-full items-center justify-between bg-gold/5 px-3 py-3.5 text-left text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                              className="flex w-full items-center justify-between py-3.5 text-left text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                             >
                               <span>{tt(entry.title)}</span>
                               <svg
@@ -273,7 +273,7 @@ export function MobileNav({
                               </svg>
                             </button>
                             {sectionOpen && (
-                              <ul className="border-t border-line/40 bg-cream/60 pl-2">
+                              <ul className="border-t border-line/40 pl-2">
                                 {entry.items.map((it) => {
                                   const key = it.label.en;
                                   if (it.children) {
