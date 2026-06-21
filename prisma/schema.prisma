@@ -215,6 +215,18 @@ model ProductVariant {
   images        String[] @default([]) // ordered image URLs (CDN)
   stripePriceId String? // Stripe Price id, set when synced
   active        Boolean  @default(true)
+  // ----- ERP-import fields (filled from the daily Starbrands Excel) -----
+  // EAN / barcode — unique per SKU when present. Indexed for fast
+  // scanner lookups in the admin panel.
+  ean                  String?   @unique
+  // When the current priceCents took effect. Optional — for backwards
+  // compat with rows imported before the column existed.
+  pvpStartDate         DateTime?
+  // Active promotional price in cents (overrides priceCents in the UI
+  // while the promo window is open). null = no promo on this variant.
+  promoPriceCents      Int?
+  promoStartDate       DateTime?
+  promoEndDate         DateTime?
 
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   cartItems  CartItem[]
@@ -225,6 +237,8 @@ model ProductVariant {
 
   @@index([productId])
   @@index([active])
+  @@index([ean])
+  @@index([promoEndDate])
 }
 
 // ---------------------------------------------------------------------------
