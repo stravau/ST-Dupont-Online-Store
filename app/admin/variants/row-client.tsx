@@ -125,13 +125,18 @@ export function VariantRow({
         />
       </td>
       <td className="px-3 py-2 text-xs">
-        {productSlug ? (
-          <Link href={`/pt/p/${productSlug}`} target="_blank" className="text-muted underline-offset-2 hover:text-gold hover:underline">
-            {productName}
+        <div className="flex flex-col gap-1">
+          {productSlug ? (
+            <Link href={`/pt/p/${productSlug}`} target="_blank" className="text-muted underline-offset-2 hover:text-gold hover:underline">
+              {productName}
+            </Link>
+          ) : (
+            <span className="text-muted">{productName}</span>
+          )}
+          <Link href={`/admin/variants/${sku}/images`} className="text-[0.6rem] tracking-[0.16em] text-gold uppercase hover:underline">
+            Imagens →
           </Link>
-        ) : (
-          <span className="text-muted">{productName}</span>
-        )}
+        </div>
       </td>
     </tr>
   );
