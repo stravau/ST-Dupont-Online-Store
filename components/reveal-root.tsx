@@ -16,8 +16,17 @@ export function RevealRoot() {
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          if (e.isIntersecting) e.target.classList.add("is-visible");
-          else e.target.classList.remove("is-visible");
+          if (e.isIntersecting) {
+            // Promote to GPU layer just for the duration of the
+            // transition (.is-revealing in CSS), then drop it on
+            // arrival (.is-visible resets will-change: auto) so we
+            // don't keep dozens of compositor layers alive at rest.
+            e.target.classList.add("is-revealing");
+            e.target.classList.add("is-visible");
+          } else {
+            e.target.classList.remove("is-visible");
+            e.target.classList.remove("is-revealing");
+          }
         }
       },
       { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },

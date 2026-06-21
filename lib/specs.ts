@@ -63,11 +63,19 @@ export function buildSpecs(
 
   if (category.slug === "escrita") {
     push(L("Instrumento", "Instrument"), type);
-    if (/permanente|fountain/i.test(type)) {
+    // Match against the canonical EN label only (inferWritingType in
+    // lib/catalog normalises the variant.attributes.type to one of
+    // four known strings) rather than a permissive regex on the
+    // localised value — accidental matches on stray colour names
+    // ("Permanent Blue") no longer flip the Refill row off.
+    const typeEn = a.type?.en ?? "";
+    if (typeEn === "Fountain Pen") {
       push(L("Aparo", "Nib"), t(L("Aço inoxidável", "Stainless steel")));
       push(L("Sistema", "Filling system"), t(L("Cartucho ou conversor", "Cartridge or converter")));
-    } else {
+    } else if (typeEn === "Rollerball" || typeEn === "Ballpoint") {
       push(L("Recarga", "Refill"), t(L("Recarregável (recargas S.T. Dupont)", "Refillable (S.T. Dupont refills)")));
+    } else if (typeEn === "Mechanical Pencil") {
+      push(L("Sistema", "Mechanism"), t(L("Porta-minas 0.7 mm", "0.7 mm lead mechanism")));
     }
     push(L("Fabrico", "Crafted"), t(L("Faverges, França", "Faverges, France")));
   } else if (category.slug === "isqueiros") {

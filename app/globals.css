@@ -193,11 +193,18 @@ a[href],
   transition:
     opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* will-change promoted ONLY while the IntersectionObserver has flagged
+   the element as in-flight. Applying it at rest to every .reveal on the
+   page was forcing the browser to allocate a GPU compositor layer for
+   dozens of elements per route — measurable jank on lower-end mobile. */
+.reveal.is-revealing {
   will-change: opacity, transform;
 }
 .reveal.is-visible {
   opacity: 1;
   transform: none;
+  will-change: auto;
 }
 /* Stagger helpers — apply with .reveal to delay neighbouring items. */
 .reveal-d1 { transition-delay: 0.08s; }
