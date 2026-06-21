@@ -24,12 +24,12 @@ import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { CategoryPaged } from "@/components/category-paged";
-import { CategoryNav } from "@/components/category-nav";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Crest } from "@/components/crest";
 import { PriceRangeSlider } from "@/components/price-range-slider";
+import { FiltersDisclosure } from "@/components/filters-disclosure";
 
 export async function generateMetadata({
   params,
@@ -256,86 +256,112 @@ export default async function CategoryPage({
           </header>
         )}
 
-      {/* Collection switcher — collapsed by default to free up vertical space
-          for the products. Expands on click to reveal every collection
-          (Géode / Popote / Maki-e / Cohiba / Haute Création / …). */}
-      {art && (
-        <CategoryNav
-          items={art.groups.map((g) => ({ label: g.label[locale], href: g.href }))}
-          lang={locale}
-          browseLabel={dict.common.browseCollections}
-          closeLabel={dict.common.closeCollections}
+      {/* Single Filtros / Filters disclosure — collapsed by default on
+          both mobile and desktop. Opens to a vertical stack of every
+          filter the category supports: collection switcher, gender
+          (leather only), usage (writing only), price slider. */}
+      <FiltersDisclosure
+        label={dict.common.filtersLabel}
+        clearLabel={dict.common.clearFilters}
+        clearHref={base}
+        activeCount={
+          (activeCol ? 1 : 0) +
+          (activeGender ? 1 : 0) +
+          (activeUsage ? 1 : 0) +
+          (activeMin !== undefined || activeMax !== undefined ? 1 : 0)
+        }
+      >
+        {art && art.groups.length > 0 && (
+          <div>
+            <p className="mb-3 text-center text-[11px] tracking-[0.2em] text-muted uppercase">
+              {dict.common.collectionsLabel}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {art.groups.map((g) => {
+                const colName = g.href.match(/[?&]col=([^&]+)/);
+                const isActive = colName ? decodeURIComponent(colName[1]) === activeCol : false;
+                return (
+                  <Link
+                    key={g.href}
+                    href={`/${locale}${g.href}`}
+                    className={chipClass(isActive)}
+                  >
+                    {g.label[locale]}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {supportsGender && (
+          <div>
+            <p className="mb-3 text-center text-[11px] tracking-[0.2em] text-muted uppercase">
+              {dict.common.forLabel}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Link href={buildChipLink({ g: undefined })} className={chipClass(!activeGender)}>
+                {dict.common.forAll}
+              </Link>
+              <Link href={buildChipLink({ g: "women" })} className={chipClass(activeGender === "women")}>
+                {dict.common.forWomen}
+              </Link>
+              <Link href={buildChipLink({ g: "men" })} className={chipClass(activeGender === "men")}>
+                {dict.common.forMen}
+              </Link>
+              <Link href={buildChipLink({ g: "unisex" })} className={chipClass(activeGender === "unisex")}>
+                {dict.common.forUnisex}
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {supportsUsage && (
+          <div>
+            <p className="mb-3 text-center text-[11px] tracking-[0.2em] text-muted uppercase">
+              {dict.common.usageLabel}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Link href={buildChipLink({ usage: undefined })} className={chipClass(!activeUsage)}>
+                {dict.common.forAll}
+              </Link>
+              <Link
+                href={buildChipLink({ usage: "ballpoint" })}
+                className={chipClass(activeUsage === "ballpoint")}
+              >
+                {dict.common.usageBallpoint}
+              </Link>
+              <Link
+                href={buildChipLink({ usage: "rollerball" })}
+                className={chipClass(activeUsage === "rollerball")}
+              >
+                {dict.common.usageRollerball}
+              </Link>
+              <Link
+                href={buildChipLink({ usage: "fountain" })}
+                className={chipClass(activeUsage === "fountain")}
+              >
+                {dict.common.usageFountain}
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <PriceRangeSlider
+          min={flooredMin}
+          max={ceiledMax}
+          initialMin={activeMin ?? flooredMin}
+          initialMax={activeMax ?? ceiledMax}
+          basePath={base}
+          preserved={{
+            col: activeCol,
+            sort: sort !== "featured" ? sort : undefined,
+            g: activeGender,
+            usage: activeUsage,
+          }}
+          label={dict.common.priceLabel}
         />
-      )}
-
-      {supportsGender && (
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-          <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
-            {dict.common.forLabel}
-          </span>
-          <Link href={buildChipLink({ g: undefined })} className={chipClass(!activeGender)}>
-            {dict.common.forAll}
-          </Link>
-          <Link href={buildChipLink({ g: "women" })} className={chipClass(activeGender === "women")}>
-            {dict.common.forWomen}
-          </Link>
-          <Link href={buildChipLink({ g: "men" })} className={chipClass(activeGender === "men")}>
-            {dict.common.forMen}
-          </Link>
-          <Link href={buildChipLink({ g: "unisex" })} className={chipClass(activeGender === "unisex")}>
-            {dict.common.forUnisex}
-          </Link>
-        </div>
-      )}
-
-      {supportsUsage && (
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-          <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
-            {dict.common.usageLabel}
-          </span>
-          <Link href={buildChipLink({ usage: undefined })} className={chipClass(!activeUsage)}>
-            {dict.common.forAll}
-          </Link>
-          <Link
-            href={buildChipLink({ usage: "ballpoint" })}
-            className={chipClass(activeUsage === "ballpoint")}
-          >
-            {dict.common.usageBallpoint}
-          </Link>
-          <Link
-            href={buildChipLink({ usage: "rollerball" })}
-            className={chipClass(activeUsage === "rollerball")}
-          >
-            {dict.common.usageRollerball}
-          </Link>
-          <Link
-            href={buildChipLink({ usage: "fountain" })}
-            className={chipClass(activeUsage === "fountain")}
-          >
-            {dict.common.usageFountain}
-          </Link>
-        </div>
-      )}
-
-      {/* Price filter — dual-thumb slider bounded by the cheapest /
-          dearest product visible on the current page (after col /
-          gender / usage filters, before price). Hidden when there's
-          nothing meaningful to filter (single product, identical
-          prices). */}
-      <PriceRangeSlider
-        min={flooredMin}
-        max={ceiledMax}
-        initialMin={activeMin ?? flooredMin}
-        initialMax={activeMax ?? ceiledMax}
-        basePath={base}
-        preserved={{
-          col: activeCol,
-          sort: sort !== "featured" ? sort : undefined,
-          g: activeGender,
-          usage: activeUsage,
-        }}
-        label={dict.common.priceLabel}
-      />
+      </FiltersDisclosure>
 
       <div className="mt-10 flex justify-end">
         <SortSelect value={sort} labels={dict.sort} />

@@ -407,23 +407,20 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
 .range-thumb::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  pointer-events: auto;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 9999px;
   background: var(--gold);
   border: 2px solid var(--cream);
   box-shadow: 0 0 0 1px var(--gold);
   cursor: grab;
-  margin-top: 0; /* WebKit centres for us when track is full-height */
 }
 .range-thumb::-webkit-slider-thumb:active {
   cursor: grabbing;
 }
 .range-thumb::-moz-range-thumb {
-  pointer-events: auto;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 9999px;
   background: var(--gold);
   border: 2px solid var(--cream);
