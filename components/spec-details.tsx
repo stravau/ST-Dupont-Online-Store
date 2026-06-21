@@ -43,7 +43,24 @@ export function SpecDetails({ title, specs }: { title: string; specs: Spec[] }) 
             {specs.map((s) => (
               <div key={s.label} className="grid grid-cols-[40%_1fr] gap-4 py-3.5 text-sm">
                 <dt className="overline text-[0.6rem] text-muted">{s.label}</dt>
-                <dd className="text-ink">{s.value}</dd>
+                <dd className="text-ink">
+                  {s.links && s.links.length > 0 ? (
+                    <span className="flex flex-wrap gap-x-3 gap-y-1.5">
+                      {s.links.map((l, i) => (
+                        <a
+                          key={l.href}
+                          href={l.href}
+                          className="border-b border-gold/50 pb-0.5 transition-colors hover:border-gold hover:text-gold"
+                        >
+                          {l.label}
+                          {i < s.links!.length - 1 ? "" : ""}
+                        </a>
+                      ))}
+                    </span>
+                  ) : (
+                    s.value
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

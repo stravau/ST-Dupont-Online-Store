@@ -412,6 +412,32 @@ export async function getMostViewed(
   }
 }
 
+// Resolves a list of variant SKUs (as parsed from product descriptions
+// — see lib/compatibility) to the parent products. Order preserved so
+// the "Compatible with" row in SpecDetails and the related-products
+// carousel both surface the refills / flints in the same sequence the
+// description mentions them.
+export async function getProductsByVariantSkus(skus: string[]): Promise<Product[]> {
+  if (skus.length === 0) return [];
+  const rows = await prisma.product.findMany({
+    where: { active: true, variants: { some: { sku: { in: skus } } } },
+    include: productInclude,
+  });
+  const products = rows.map(mapProduct);
+  // Order results by where the SKU appears in the input list — gives
+  // callers control over the surface order.
+  const skuOrder = new Map(skus.map((s, i) => [s, i]));
+  return products.sort((a, b) => {
+    const ai = Math.min(
+      ...a.variants.map((v) => skuOrder.get(v.sku) ?? Number.MAX_SAFE_INTEGER),
+    );
+    const bi = Math.min(
+      ...b.variants.map((v) => skuOrder.get(v.sku) ?? Number.MAX_SAFE_INTEGER),
+    );
+    return ai - bi;
+  });
+}
+
 export async function getNovelties(limit = 6): Promise<Product[]> {
   // "New Releases by the Maison" — bias toward exclusive, higher-end
   // lighters so the home grid leads with the maison's signature pieces

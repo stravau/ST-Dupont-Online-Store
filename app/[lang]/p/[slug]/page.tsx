@@ -2,7 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
-import { getProduct, getCategory, getRelatedProducts, getMostViewed, expandProductCards, formatPrice } from "@/lib/catalog";
+import {
+  getProduct,
+  getCategory,
+  getRelatedProducts,
+  getMostViewed,
+  getProductsByVariantSkus,
+  expandProductCards,
+  formatPrice,
+} from "@/lib/catalog";
+import { parseCompatibleRefs } from "@/lib/compatibility";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
@@ -81,17 +90,32 @@ export default async function ProductPage({
     images: v.images,
   }));
 
+  // Parse the marketing description for (REF NNNNNN) callouts —
+  // Dupont's standard "Associated gas refill / flint / ink refill"
+  // pattern — and resolve them to catalogue products. Surfaces in
+  // the "Compatible with" row of every variant's spec list and is
+  // prepended to the "Pode também gostar" carousel.
+  const compatibleRefs = parseCompatibleRefs(product.description[locale]);
+  const compatibleProducts = await getProductsByVariantSkus(compatibleRefs);
+  const compatibleSummary = compatibleProducts.map((p) => ({
+    slug: p.slug,
+    label: p.name[locale],
+  }));
+
   const specsByVariant = Object.fromEntries(
-    product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale)]),
+    product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale, compatibleSummary)]),
   );
 
   // Expand related products into (product, sku) tiles on the server and
-  // pre-render each as a ProductCard. SimilarProducts is a client component
-  // (it needs useRef for the scroll arrows); passing rendered nodes keeps it
-  // from having to import @/lib/catalog and dragging Prisma / pg into the
-  // client bundle (build-breaking).
+  // pre-render each as a ProductCard. Compatible refills / flints come
+  // first so the carousel leads with the matched accessories before
+  // the broader same-category recommendations.
   const related = await getRelatedProducts(product, 15);
-  const relatedItems = related.flatMap((p) =>
+  const relatedMerged = [
+    ...compatibleProducts,
+    ...related.filter((r) => !compatibleProducts.some((c) => c.slug === r.slug)),
+  ].slice(0, 15);
+  const relatedItems = relatedMerged.flatMap((p) =>
     expandProductCards(p).map(({ sku }) => ({
       key: `${p.slug}-${sku}`,
       node: <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,

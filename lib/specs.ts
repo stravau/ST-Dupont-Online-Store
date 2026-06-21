@@ -10,7 +10,11 @@ import type { Locale } from "@/lib/i18n";
 
 export interface Spec {
   label: string;
+  // Plain text value. For the Compatibility row each link is rendered
+  // separately via `links` below — that row sets value="" and uses
+  // links instead so SpecDetails can wrap each entry in an <a>.
   value: string;
+  links?: { label: string; href: string }[];
 }
 
 const L = (pt: string, en: string): Localized => ({ pt, en });
@@ -37,6 +41,7 @@ export function buildSpecs(
   category: Category,
   variant: Variant,
   locale: Locale,
+  compatible: { slug: string; label: string }[] = [],
 ): Spec[] {
   const t = (l: Localized) => l[locale];
   const a = variant.attributes;
@@ -79,6 +84,22 @@ export function buildSpecs(
   push(L("Cor / Acabamento", "Colour / Finish"), colour);
   push(L("Materiais", "Materials"), materials.join(" · "));
   push(L("Referência", "Reference"), variant.sku);
+
+  // Compatibility row — populated from the (REF NNNNNN) callouts in the
+  // marketing description (parseCompatibleRefs → getProductsByVariantSkus
+  // → label). Rendered as a comma-separated list of clickable links by
+  // SpecDetails when `links` is set, value left blank for that branch.
+  if (compatible.length > 0) {
+    specs.push({
+      label: t(L("Compatível com", "Compatible with")),
+      value: "",
+      links: compatible.map((c) => ({
+        label: c.label,
+        href: `/${locale}/p/${c.slug}`,
+      })),
+    });
+  }
+
   push(L("Conservação", "Care"), t(L("Limpar com pano macio e seco", "Wipe with a soft, dry cloth")));
   push(L("Garantia", "Guarantee"), t(L("Garantia internacional S.T. Dupont", "S.T. Dupont international guarantee")));
 
