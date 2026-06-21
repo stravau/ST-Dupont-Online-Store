@@ -177,6 +177,7 @@ export default async function ProductPage({
         items={mostViewedItems}
         title={dict.product.mostViewed}
         subtitle={dict.product.mostViewedSub}
+        minItems={1}
       />
 
       <TrackProductView slug={product.slug} />

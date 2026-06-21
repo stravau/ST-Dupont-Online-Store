@@ -11,14 +11,20 @@ export function SimilarProducts({
   items,
   title,
   subtitle,
+  minItems = 4,
 }: {
   items: { key: string; node: ReactNode }[];
   title: string;
   subtitle?: string;
+  // How many cards the section needs before it'll render. Defaults to
+  // 4 (so a sparse "related" list doesn't show a one-card carousel).
+  // Pass 1 for low-volume slots like "Most viewed" while traffic warms
+  // up — even a single recent click should be enough to show the row.
+  minItems?: number;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
 
-  if (items.length < 4) return null;
+  if (items.length < minItems) return null;
 
   const scrollBy = (direction: 1 | -1) => {
     const el = trackRef.current;
