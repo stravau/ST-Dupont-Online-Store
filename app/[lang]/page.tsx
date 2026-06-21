@@ -56,10 +56,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           loop
           playsInline
           preload="auto"
-          // Poster avoids the black-frame flash when the hero video is
-          // still buffering — the EN locale was showing a near-black hero
-          // on cold loads because the Cohiba imagery hadn't streamed yet.
-          poster="/hero/homepage-bg-mobile.png"
           className="absolute inset-0 z-0 h-full w-full object-cover object-center sm:hidden"
         >
           <source src="/videos/hero-mobile.mp4" type="video/mp4" />
@@ -70,7 +66,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           loop
           playsInline
           preload="auto"
-          poster="/hero/homepage-bg.jpg"
           className="absolute inset-0 z-0 hidden h-full w-full object-cover sm:block"
         >
           <source src="/videos/hero-desktop.mp4" type="video/mp4" />
