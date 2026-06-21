@@ -36,7 +36,10 @@ export default async function ProductPage({
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const product = await getProduct(slug);
-  if (!product) notFound();
+  // A variant-less product would crash ProductDetail at variants[0].sku;
+  // treat it as not-found rather than ship a 500 the moment a SKU is
+  // (de)activated in admin or a reseed lands a half-baked row.
+  if (!product || product.variants.length === 0) notFound();
   const dict = getDictionary(locale);
   const cat = (await getCategory(product.categorySlug))!;
 

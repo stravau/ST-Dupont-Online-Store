@@ -82,14 +82,15 @@ export default async function CategoryPage({
   const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
   const art = categoryArt[category];
-  // Gender filter only applies to leather goods; ignored on other categories.
+  // Gender filter only applies to leather goods; ignored on other
+  // categories. Non-applicable params silently fall to undefined so a
+  // stale `?g=men` from another category never echoes into chip-link
+  // builders (which would re-append it on every URL emitted).
   const supportsGender = category === "pele";
   const activeGender: Gender | undefined =
     supportsGender && (gParam === "men" || gParam === "women" || gParam === "unisex")
       ? gParam
       : undefined;
-  // Usage filter applies to writing only — pens are Ballpoint / Rollerball /
-  // Fountain Pen, exposed as a chip row on /c/escrita.
   const supportsUsage = category === "escrita";
   const activeUsage: Usage | undefined =
     supportsUsage && isUsage(usageParam) ? usageParam : undefined;
@@ -367,26 +368,44 @@ export default async function CategoryPage({
         <SortSelect value={sort} labels={dict.sort} />
       </div>
 
-      <CategoryPaged
-        cards={pageCards}
-        showAllLabel={dict.common.showAll}
-        showAllHref={buildChipLink({ page: undefined, all: "1" })}
-        isShowingAll={showAll}
-      />
+      {allCards.length === 0 ? (
+        <div className="mx-auto mt-16 max-w-md text-center">
+          <p className="font-serif text-2xl text-ink">{dict.common.noResultsTitle}</p>
+          <div className="gold-rule mx-auto my-6" />
+          <p className="text-sm text-muted">{dict.common.noResultsBody}</p>
+          <Link
+            href={base}
+            className="mt-7 inline-block border-b border-ink pb-1 text-xs tracking-[0.2em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+          >
+            {dict.common.clearFilters}
+          </Link>
+        </div>
+      ) : (
+        <>
+          <CategoryPaged
+            cards={pageCards}
+            showAllLabel={dict.common.showAll}
+            showAllHref={buildChipLink({ page: undefined, all: "1" })}
+            isShowingAll={showAll}
+          />
 
-      <Paginator
-        pathname={base}
-        query={{
-          col: activeCol,
-          sort: sort !== "featured" ? sort : undefined,
-          g: activeGender,
-          usage: activeUsage,
-        }}
-        page={page}
-        totalPages={totalPages}
-        prevLabel={dict.common.prev}
-        nextLabel={dict.common.next}
-      />
+          <Paginator
+            pathname={base}
+            query={{
+              col: activeCol,
+              sort: sort !== "featured" ? sort : undefined,
+              g: activeGender,
+              usage: activeUsage,
+              priceMin: activeMin !== undefined ? String(activeMin) : undefined,
+              priceMax: activeMax !== undefined ? String(activeMax) : undefined,
+            }}
+            page={page}
+            totalPages={totalPages}
+            prevLabel={dict.common.prev}
+            nextLabel={dict.common.next}
+          />
+        </>
+      )}
       </div>
     </div>
   );

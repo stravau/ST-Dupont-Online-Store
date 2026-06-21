@@ -64,7 +64,20 @@ export function expandProductCards(p: Product): { product: Product; sku: string 
   for (const v of p.variants) {
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
-    const key = (v.attributes.color?.label.en ?? v.sku).toLowerCase();
+    // Composite key — colour AND finish AND size, so two SKUs that
+    // share a colour label but differ in finish (e.g. Black gunmetal
+    // vs Black lacquer) both produce a card instead of collapsing
+    // into one. Falls back to the raw sku when no attributes exist.
+    const a = v.attributes;
+    const compositeKey = [
+      a.color?.label.en,
+      a.finish?.en,
+      a.size?.en,
+    ]
+      .filter(Boolean)
+      .join("|")
+      .toLowerCase();
+    const key = compositeKey || v.sku.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ product: p, sku: v.sku });
@@ -373,10 +386,11 @@ export async function getMostViewed(
   limit = 12,
   excludeSlug?: string,
 ): Promise<Product[]> {
-  // Wrapped — if the viewCount column / ProductView table hasn't been
-  // migrated yet on this database the query throws "column does not
-  // exist". Swallow and return an empty list so the PDP keeps rendering
-  // (the SimilarProducts component then hides the section).
+  // Wrapped — narrow catch for the "column does not exist" case
+  // (viewCount / ProductView table hasn't been migrated yet on this
+  // database). Anything else — connection timeout, real query bug —
+  // bubbles so it surfaces in logs instead of silently emptying the
+  // carousel.
   try {
     const rows = await prisma.product.findMany({
       where: {
@@ -389,8 +403,12 @@ export async function getMostViewed(
       take: limit,
     });
     return rows.map(mapProduct);
-  } catch {
-    return [];
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/viewCount|ProductView|column.*does not exist|relation.*does not exist/i.test(msg)) {
+      return [];
+    }
+    throw e;
   }
 }
 
