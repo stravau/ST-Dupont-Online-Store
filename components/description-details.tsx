@@ -10,13 +10,13 @@ export function DescriptionDetails({ title, body }: { title: string; body: strin
   if (!body) return null;
 
   return (
-    <section className="mx-auto mt-16 max-w-3xl border-t border-line">
+    <section className="mx-auto mt-12 max-w-3xl border-t border-line">
       <h2>
         <button
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center justify-between py-6 text-left"
+          className="flex w-full items-center justify-between py-4 text-left"
         >
           <span className="text-sm tracking-[0.18em] text-ink uppercase">{title}</span>
           <span
