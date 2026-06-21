@@ -13,6 +13,18 @@ export const STORE = {
   officialLabel: "st-dupont.com",
 } as const;
 
+// Operator legal entity — surfaced in the legal pages. The email domain
+// suggests Starbrands is the local distributor. Update with the real
+// legal entity / company number / registered address before launch.
+export const LEGAL_ENTITY = {
+  pt: "Starbrands, S.A. (operadora local da boutique S.T. Dupont · El Corte Inglés Lisboa)",
+  en: "Starbrands, S.A. (local operator of the S.T. Dupont boutique · El Corte Inglés Lisbon)",
+} as const;
+
+// Flip to true to surface the yellow "Draft document" banner on every
+// legal page while the text is still under legal review.
+export const LEGAL_IS_DRAFT = false;
+
 // Precise coordinates of El Corte Inglés Lisboa (Av. António Augusto de
 // Aguiar 31) — exact pin instead of a fuzzy address text query.
 export const STORE_COORDS = { lat: 38.73386, lng: -9.15351 } as const;

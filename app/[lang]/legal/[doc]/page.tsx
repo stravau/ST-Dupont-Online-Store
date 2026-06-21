@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { legalDocs } from "@/lib/legal";
+import { LEGAL_IS_DRAFT } from "@/lib/store-info";
 
 export async function generateMetadata({
   params,
@@ -12,8 +13,12 @@ export async function generateMetadata({
   const { lang, doc } = await params;
   const d = legalDocs[doc];
   if (!isLocale(lang) || !d) return {};
-  // Drafts: don't index until reviewed by legal counsel.
-  return { title: d.title[lang as Locale], robots: { index: false, follow: true } };
+  // Block indexing while the docs are draft; once LEGAL_IS_DRAFT is
+  // flipped off (counsel reviewed), allow Google to surface them.
+  return {
+    title: d.title[lang as Locale],
+    robots: LEGAL_IS_DRAFT ? { index: false, follow: true } : undefined,
+  };
 }
 
 export default async function LegalPage({
@@ -44,10 +49,14 @@ export default async function LegalPage({
       </section>
 
       <article className="mx-auto max-w-3xl px-6 py-20">
-        {/* Draft / review notice */}
-        <p className="mb-12 border border-gold/40 bg-gold/5 px-5 py-4 text-xs leading-relaxed tracking-wide text-muted">
-          {dict.legal.draftNotice}
-        </p>
+        {/* Draft notice gated behind LEGAL_IS_DRAFT in lib/store-info.
+            Flip the flag back on while the text is being reviewed by
+            counsel. */}
+        {LEGAL_IS_DRAFT && (
+          <p className="mb-12 border border-gold/40 bg-gold/5 px-5 py-4 text-xs leading-relaxed tracking-wide text-muted">
+            {dict.legal.draftNotice}
+          </p>
+        )}
 
         <p className="text-lg leading-relaxed text-ink">{d.intro[locale]}</p>
 

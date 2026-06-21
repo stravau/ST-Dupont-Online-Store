@@ -14,7 +14,7 @@ const dictionaries = {
     nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", collections: "Coleções", viewAll: "Ver tudo", about: "Sobre Nós", backHome: "Início", store: "Loja", products: "Produtos" },
     common: {
       home: "Início",
-      available: "Disponível",
+      available: "Disponível na boutique",
       back: "Voltar",
       prev: "Anterior",
       next: "Seguinte",
@@ -199,7 +199,7 @@ const dictionaries = {
     nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", collections: "Collections", viewAll: "View all", about: "About Us", backHome: "Home", store: "Store", products: "Products" },
     common: {
       home: "Home",
-      available: "Available",
+      available: "Available in boutique",
       back: "Back",
       prev: "Previous",
       next: "Next",

@@ -2506,7 +2506,7 @@ export const products: SeedProduct[] = [
   {
     slug: `ligne-2-3`,
     name: { pt: `Ligne 2`, en: `Ligne 2` },
-    description: { pt: `pBlack smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching./p`, en: `pBlack smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching./p` },
+    description: { pt: `Black smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.`, en: `Black smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.` },
     collection: `Ligne 2`,
     categorySlug: "isqueiros",
     image: `/products/ligne-2-3/183070.webp`,
@@ -2517,7 +2517,7 @@ export const products: SeedProduct[] = [
   {
     slug: `line-d`,
     name: { pt: `Line D`, en: `Line D` },
-    description: { pt: `pBlack smooth leather lighter case. Compatible with Le Grand ST Dupont and Line 2 lighters./p`, en: `pBlack smooth leather lighter case. Compatible with Le Grand ST Dupont and Line 2 lighters./p` },
+    description: { pt: `Black smooth leather lighter case. Compatible with Le Grand ST Dupont and Line 2 lighters.`, en: `Black smooth leather lighter case. Compatible with Le Grand ST Dupont and Line 2 lighters.` },
     collection: `Line D`,
     categorySlug: "escrita",
     image: `/products/line-d/180024.webp`,
@@ -4408,7 +4408,7 @@ export const products: SeedProduct[] = [
   {
     slug: `ligne-2-5`,
     name: { pt: `Ligne 2`, en: `Ligne 2` },
-    description: { pt: `pBrown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching./p`, en: `pBrown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching./p` },
+    description: { pt: `Brown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.`, en: `Brown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.` },
     collection: `Ligne 2`,
     categorySlug: "isqueiros",
     image: `/products/ligne-2-5/183071.webp`,
@@ -4419,7 +4419,7 @@ export const products: SeedProduct[] = [
   {
     slug: `lighter-case-2`,
     name: { pt: `lighter-case`, en: `lighter-case` },
-    description: { pt: `pBlue smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching./p`, en: `pBlue smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching./p` },
+    description: { pt: `Blue smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.`, en: `Blue smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.` },
     collection: `lighter-case`,
     categorySlug: "acessorios",
     image: `/products/lighter-case-2/183073.webp`,
@@ -4747,7 +4747,7 @@ export const products: SeedProduct[] = [
   {
     slug: `cutter-003415`,
     name: { pt: `Cigar stand`, en: `Cigar stand` },
-    description: { pt: `pCigar stand cutter with a double blade and a stand to place your cigar. Decorated with a diamond point, chrome finish, and black lacquer./p`, en: `pCigar stand cutter with a double blade and a stand to place your cigar. Decorated with a diamond point, chrome finish, and black lacquer./p` },
+    description: { pt: `Cigar stand cutter with a double blade and a stand to place your cigar. Decorated with a diamond point, chrome finish, and black lacquer.`, en: `Cigar stand cutter with a double blade and a stand to place your cigar. Decorated with a diamond point, chrome finish, and black lacquer.` },
     collection: `Cortador de Charuto`,
     categorySlug: "acessorios",
     image: `/products/cutter-003415/003415.webp`,
@@ -4912,7 +4912,7 @@ export const products: SeedProduct[] = [
   {
     slug: `cutter-003418`,
     name: { pt: `Double blade`, en: `Double blade` },
-    description: { pt: `pDouble blade cigar cutter, equipped with a double blade and a V-CUT blade. Chrome finish./p`, en: `pDouble blade cigar cutter, equipped with a double blade and a V-CUT blade. Chrome finish./p` },
+    description: { pt: `Double blade cigar cutter, equipped with a double blade and a V-CUT blade. Chrome finish.`, en: `Double blade cigar cutter, equipped with a double blade and a V-CUT blade. Chrome finish.` },
     collection: `Cortador de Charuto`,
     categorySlug: "acessorios",
     image: `/products/cutter-003418/003418.webp`,
@@ -5000,7 +5000,7 @@ export const products: SeedProduct[] = [
   {
     slug: `cutter-003265`,
     name: { pt: `Guillotine`, en: `Guillotine` },
-    description: { pt: `pDouble blade cigar cutter, for consistently perfect cuts. Black finish./p`, en: `pDouble blade cigar cutter, for consistently perfect cuts. Black finish./p` },
+    description: { pt: `Double blade cigar cutter, for consistently perfect cuts. Black finish.`, en: `Double blade cigar cutter, for consistently perfect cuts. Black finish.` },
     collection: `Cortador de Charuto`,
     categorySlug: "acessorios",
     image: `/products/cutter-003265/003265.webp`,
@@ -5011,7 +5011,7 @@ export const products: SeedProduct[] = [
   {
     slug: `cutter-003266`,
     name: { pt: `Guillotine`, en: `Guillotine` },
-    description: { pt: `pDouble blade cigar cutter, for consistently perfect cuts. Chrome finish./p`, en: `pDouble blade cigar cutter, for consistently perfect cuts. Chrome finish./p` },
+    description: { pt: `Double blade cigar cutter, for consistently perfect cuts. Chrome finish.`, en: `Double blade cigar cutter, for consistently perfect cuts. Chrome finish.` },
     collection: `Cortador de Charuto`,
     categorySlug: "acessorios",
     image: `/products/cutter-003266/003266.webp`,
@@ -5022,7 +5022,7 @@ export const products: SeedProduct[] = [
   {
     slug: `cutter-003257`,
     name: { pt: `Guillotine`, en: `Guillotine` },
-    description: { pt: `pDouble blade cigar cutter, equipped with a double blade and a V-CUT blade. Decorated with a chrome finish grid./p`, en: `pDouble blade cigar cutter, equipped with a double blade and a V-CUT blade. Decorated with a chrome finish grid./p` },
+    description: { pt: `Double blade cigar cutter, equipped with a double blade and a V-CUT blade. Decorated with a chrome finish grid.`, en: `Double blade cigar cutter, equipped with a double blade and a V-CUT blade. Decorated with a chrome finish grid.` },
     collection: `Cortador de Charuto`,
     categorySlug: "acessorios",
     image: `/products/cutter-003257/003257.webp`,
@@ -5110,7 +5110,7 @@ export const products: SeedProduct[] = [
   {
     slug: `cutter-003262`,
     name: { pt: `Puncher`, en: `Puncher` },
-    description: { pt: `pKeychain cigar punch cutter, decorated in black lacquer and chrome finishes. Cutting diameter of 8.6mm./p`, en: `pKeychain cigar punch cutter, decorated in black lacquer and chrome finishes. Cutting diameter of 8.6mm./p` },
+    description: { pt: `Keychain cigar punch cutter, decorated in black lacquer and chrome finishes. Cutting diameter of 8.6mm.`, en: `Keychain cigar punch cutter, decorated in black lacquer and chrome finishes. Cutting diameter of 8.6mm.` },
     collection: `Cortador de Charuto`,
     categorySlug: "acessorios",
     image: `/products/cutter-003262/003262.webp`,

@@ -1,8 +1,8 @@
-// DRAFT legal content — provided as a professional template only.
-// Must be reviewed by legal counsel and completed with the operating
-// entity's details (placeholders in [SQUARE BRACKETS]) before launch.
+// Legal content. The operating entity is sourced from lib/store-info
+// (LEGAL_ENTITY) so the placeholder reads cleanly until counsel
+// supplies the final company-number / registered-address detail.
 import type { Locale } from "@/lib/i18n";
-import { STORE } from "@/lib/store-info";
+import { STORE, LEGAL_ENTITY } from "@/lib/store-info";
 
 type L = Record<Locale, string>;
 const t = (pt: string, en: string): L => ({ pt, en });
@@ -19,13 +19,9 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-const UPDATED = t("Maio de 2026", "May 2026");
+const UPDATED = t("Junho de 2026", "June 2026");
 
-// Operating-entity placeholders — replace with the real legal entity.
-const ENTITY = t(
-  "[Razão Social da Entidade], NIPC [número], com sede em [morada da sede], Portugal",
-  "[Operating Company Name], company no. [number], registered at [registered address], Portugal",
-);
+const ENTITY: L = LEGAL_ENTITY;
 
 export const legalDocs: Record<string, LegalDoc> = {
   privacidade: {
