@@ -15,6 +15,7 @@ const dictionaries = {
     common: {
       home: "Início",
       available: "Disponível na boutique",
+      unavailable: "Temporariamente indisponível",
       back: "Voltar",
       prev: "Anterior",
       next: "Seguinte",
@@ -206,6 +207,7 @@ const dictionaries = {
     common: {
       home: "Home",
       available: "Available in boutique",
+      unavailable: "Temporarily unavailable",
       back: "Back",
       prev: "Previous",
       next: "Next",

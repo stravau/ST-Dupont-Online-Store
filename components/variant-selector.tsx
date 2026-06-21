@@ -17,6 +17,7 @@ export interface VariantOption {
   size?: string;
   image?: string | null;
   images?: string[]; // full gallery for the slideshow
+  status?: "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
 }
 
 export interface SelectorLabels {
@@ -41,6 +42,8 @@ export interface SelectorLabels {
   inquiryCallPhone?: string;
   inquiryWhatsapp?: string;
   close?: string;
+  unavailable?: string;
+  unavailableNote?: string;
 }
 
 function uniq<T>(arr: T[]): T[] {
@@ -289,13 +292,31 @@ export function VariantSelector({
         <p className="mt-2 text-xs tracking-[0.14em] text-muted uppercase">{labels.priceNote}</p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setInquiryOpen(true)}
-        className="block w-full bg-ink py-5 text-center text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
-      >
-        {labels.inquire}
-      </button>
+      {active.status === "INDISPONIVEL" ? (
+        <div className="border border-[#d4a017] bg-[#fff7e0] px-4 py-4 text-center">
+          <p className="text-xs tracking-[0.16em] text-[#9a7000] uppercase">
+            {labels.unavailable ?? "Temporarily unavailable"}
+          </p>
+          <p className="mt-1 text-[0.65rem] text-muted">
+            {labels.unavailableNote ?? "Contacte a boutique para mais informações sobre disponibilidade."}
+          </p>
+          <button
+            type="button"
+            onClick={() => setInquiryOpen(true)}
+            className="mt-3 inline-block border-b border-ink pb-0.5 text-[0.65rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+          >
+            {labels.inquire}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setInquiryOpen(true)}
+          className="block w-full bg-ink py-5 text-center text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
+        >
+          {labels.inquire}
+        </button>
+      )}
 
       <InquiryModal
         open={inquiryOpen}

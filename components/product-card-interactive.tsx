@@ -27,6 +27,7 @@ export function ProductCardInteractive({
   collection,
   noveltyLabel,
   availableLabel,
+  indisponivel = false,
   fallbackImage,
   swatches,
   basePrice,
@@ -38,6 +39,10 @@ export function ProductCardInteractive({
   collection: string;
   noveltyLabel: string | null;
   availableLabel: string;
+  // When true, the green-dot chip turns amber and the rendered text is
+  // "Temporariamente indisponível" — the catalogue card still renders
+  // so users can browse, but the PDP CTA will be disabled.
+  indisponivel?: boolean;
   fallbackImage: string | null;
   swatches: CardSwatch[];
   basePrice: string;
@@ -149,8 +154,11 @@ export function ProductCardInteractive({
 
       <div className="flex flex-col pt-2 text-left">
         <div className="flex items-center gap-1.5">
-          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#2bb673]" />
-          <span className="text-[0.5rem] tracking-[0.18em] text-muted uppercase sm:text-[0.6rem]">
+          <span
+            aria-hidden
+            className={`h-1.5 w-1.5 rounded-full ${indisponivel ? "bg-[#d4a017]" : "bg-[#2bb673]"}`}
+          />
+          <span className={`text-[0.5rem] tracking-[0.18em] uppercase sm:text-[0.6rem] ${indisponivel ? "text-[#9a7000]" : "text-muted"}`}>
             {availableLabel}
           </span>
         </div>

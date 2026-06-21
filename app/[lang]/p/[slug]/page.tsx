@@ -74,6 +74,10 @@ export default async function ProductPage({
   // treat it as not-found rather than ship a 500 the moment a SKU is
   // (de)activated in admin or a reseed lands a half-baked row.
   if (!product || product.variants.length === 0) notFound();
+  // Hide DESCONTINUADO variants from the PDP. If every variant of a
+  // product is DESCONTINUADO, the product itself disappears.
+  product.variants = product.variants.filter((v) => v.status !== "DESCONTINUADO");
+  if (product.variants.length === 0) notFound();
   const dict = getDictionary(locale);
   const cat = (await getCategory(product.categorySlug))!;
 
@@ -88,6 +92,7 @@ export default async function ProductPage({
     size: v.attributes.size?.[locale],
     image: v.image,
     images: v.images,
+    status: v.status,
   }));
 
   // Parse the marketing description for (REF NNNNNN) callouts —
@@ -205,6 +210,10 @@ export default async function ProductPage({
           inquiryCallPhone: dict.common.inquiryCallPhone,
           inquiryWhatsapp: dict.common.inquiryWhatsapp,
           close: dict.common.close,
+          unavailable: dict.common.unavailable,
+          unavailableNote: locale === "pt"
+            ? "Contacte a boutique para mais informações sobre disponibilidade."
+            : "Contact the boutique for more information on availability.",
         }}
         header={
           <>

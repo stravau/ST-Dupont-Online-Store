@@ -107,6 +107,11 @@ export function ProductCard({
       ? `${product.name[lang]} · ${variantType}`
       : product.name[lang];
 
+  // INDISPONIVEL → user sees a Temporarily unavailable chip;
+  // DISPONIVEL → the normal Disponível na boutique chip.
+  const isIndisponivel = base.status === "INDISPONIVEL";
+  const availableLabel = isIndisponivel ? dict.common.unavailable : dict.common.available;
+
   return (
     <ProductCardInteractive
       href={href}
@@ -114,7 +119,8 @@ export function ProductCard({
       title={title}
       collection={categoryLabel}
       noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
-      availableLabel={dict.common.available}
+      availableLabel={availableLabel}
+      indisponivel={isIndisponivel}
       fromLabel={dict.product.from}
       colorWord={dict.product.colorLabel.toLowerCase()}
       fallbackImage={product.image}

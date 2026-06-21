@@ -23,6 +23,8 @@ export interface VariantAttributes {
   size?: Localized; // size option (e.g. Line D: Medium/Large/XL) — text chip
 }
 
+export type VariantStatus = "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
+
 export interface Variant {
   sku: string;
   name: Localized;
@@ -31,6 +33,10 @@ export interface Variant {
   attributes: VariantAttributes;
   image: string | null; // primary (front) photo, if supplied
   images: string[]; // full ordered gallery: [front, back, close-up, close-up 2]
+  status: VariantStatus; // DISPONIVEL by default; hides on DESCONTINUADO,
+                         // badge + disabled CTA on INDISPONIVEL.
+  promoPriceCents?: number | null; // active when promoEndDate >= now
+  promoEndDate?: Date | null;
 }
 
 export interface Product {
@@ -62,6 +68,8 @@ export function expandProductCards(p: Product): { product: Product; sku: string 
   const out: { product: Product; sku: string }[] = [];
   const seen = new Set<string>();
   for (const v of p.variants) {
+    // DESCONTINUADO never surfaces in catalogue grids.
+    if (v.status === "DESCONTINUADO") continue;
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
     // Composite key — colour AND finish AND size, so two SKUs that
@@ -182,10 +190,6 @@ function mapProduct(p: ProductRow): Product {
     novelty: p.featured,
     variants: p.variants.map((v) => {
       const attrs = (v.attributes ?? {}) as VariantAttributes;
-      // Fill in attributes.type for writing variants that the seed
-      // left empty — driven by keyword matches on the variant + product
-      // name + description. Keeps filter chips (/c/escrita?usage=)
-      // and spec rows consistent without a destructive backfill.
       const vName = loc(v.name);
       if (categorySlug === "escrita" && !attrs.type) {
         const inferred = inferWritingType(vName.en, vName.pt, productNameEn, productNamePt, productDescEn);
@@ -199,6 +203,9 @@ function mapProduct(p: ProductRow): Product {
         attributes: attrs,
         image: v.images?.[0] ?? null,
         images: v.images ?? [],
+        status: ((v as { status?: VariantStatus }).status ?? "DISPONIVEL") as VariantStatus,
+        promoPriceCents: (v as { promoPriceCents?: number | null }).promoPriceCents ?? null,
+        promoEndDate: (v as { promoEndDate?: Date | null }).promoEndDate ?? null,
       };
     }),
   };
