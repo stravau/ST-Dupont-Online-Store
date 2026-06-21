@@ -373,17 +373,25 @@ export async function getMostViewed(
   limit = 12,
   excludeSlug?: string,
 ): Promise<Product[]> {
-  const rows = await prisma.product.findMany({
-    where: {
-      active: true,
-      viewCount: { gt: 0 },
-      ...(excludeSlug ? { NOT: { slug: excludeSlug } } : {}),
-    },
-    orderBy: { viewCount: "desc" },
-    include: productInclude,
-    take: limit,
-  });
-  return rows.map(mapProduct);
+  // Wrapped — if the viewCount column / ProductView table hasn't been
+  // migrated yet on this database the query throws "column does not
+  // exist". Swallow and return an empty list so the PDP keeps rendering
+  // (the SimilarProducts component then hides the section).
+  try {
+    const rows = await prisma.product.findMany({
+      where: {
+        active: true,
+        viewCount: { gt: 0 },
+        ...(excludeSlug ? { NOT: { slug: excludeSlug } } : {}),
+      },
+      orderBy: { viewCount: "desc" },
+      include: productInclude,
+      take: limit,
+    });
+    return rows.map(mapProduct);
+  } catch {
+    return [];
+  }
 }
 
 export async function getNovelties(limit = 6): Promise<Product[]> {
