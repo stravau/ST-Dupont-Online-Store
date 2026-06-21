@@ -12,11 +12,10 @@ import {
   inferGender,
   hasUsage,
   isUsage,
-  isPriceBucket,
-  priceInBucket,
+  priceInRange,
+  productMinEur,
   type Gender,
   type Usage,
-  type PriceBucket,
 } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { resolveCategorySlug } from "@/lib/category-slugs";
@@ -30,6 +29,7 @@ import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Crest } from "@/components/crest";
+import { PriceRangeSlider } from "@/components/price-range-slider";
 
 export async function generateMetadata({
   params,
@@ -54,7 +54,8 @@ export default async function CategoryPage({
     page?: string;
     g?: string;
     usage?: string;
-    price?: string;
+    priceMin?: string;
+    priceMax?: string;
     all?: string;
   }>;
 }) {
@@ -65,7 +66,8 @@ export default async function CategoryPage({
     page: pageParam,
     g: gParam,
     usage: usageParam,
-    price: priceParam,
+    priceMin: priceMinParam,
+    priceMax: priceMaxParam,
     all: allParam,
   } = await searchParams;
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
@@ -100,9 +102,29 @@ export default async function CategoryPage({
         return g === activeGender || g === "unisex";
       })
     : fetched;
-  const activePrice: PriceBucket | undefined = isPriceBucket(priceParam) ? priceParam : undefined;
   const afterUsage = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
-  const filtered = activePrice ? afterUsage.filter((p) => priceInBucket(p, activePrice)) : afterUsage;
+  // Slider bounds — computed from products visible after col / gender /
+  // usage filters but BEFORE the price filter, so the slider always
+  // represents what's actually on the page.
+  const prices = afterUsage.map(productMinEur).filter((n) => n > 0);
+  const catMin = prices.length ? Math.min(...prices) : 0;
+  const catMax = prices.length ? Math.max(...prices) : 0;
+  // Round to a friendly step (€10) — the slider snaps to the same grid.
+  const flooredMin = Math.floor(catMin / 10) * 10;
+  const ceiledMax = Math.ceil(catMax / 10) * 10;
+  const parsePrice = (s: string | undefined) => {
+    if (!s) return undefined;
+    const n = Number.parseInt(s, 10);
+    return Number.isFinite(n) ? n : undefined;
+  };
+  const userMin = parsePrice(priceMinParam);
+  const userMax = parsePrice(priceMaxParam);
+  const activeMin = userMin !== undefined ? Math.max(flooredMin, userMin) : undefined;
+  const activeMax = userMax !== undefined ? Math.min(ceiledMax, userMax) : undefined;
+  const filtered =
+    activeMin !== undefined || activeMax !== undefined
+      ? afterUsage.filter((p) => priceInRange(p, activeMin, activeMax))
+      : afterUsage;
   const sortedItems = sortProducts(filtered, sort, locale);
   // Keep the URL-emitting `base` in the locale-appropriate form so chip
   // links + paginator never bounce the user back to a PT slug on EN.
@@ -162,7 +184,8 @@ export default async function CategoryPage({
     if (sort !== "featured") params.set("sort", sort);
     if (activeGender && !("g" in overrides)) params.set("g", activeGender);
     if (activeUsage && !("usage" in overrides)) params.set("usage", activeUsage);
-    if (activePrice && !("price" in overrides)) params.set("price", activePrice);
+    if (activeMin !== undefined && !("priceMin" in overrides)) params.set("priceMin", String(activeMin));
+    if (activeMax !== undefined && !("priceMax" in overrides)) params.set("priceMax", String(activeMax));
     for (const [k, v] of Object.entries(overrides)) {
       if (v) params.set(k, v);
       else params.delete(k);
@@ -294,32 +317,25 @@ export default async function CategoryPage({
         </div>
       )}
 
-      {/* Price-range filter — chips for the standard luxury bands.
-          Visible on every category; counts/empty states fall out
-          naturally from the filtered product list. */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        <span className="mr-1 text-[11px] tracking-[0.2em] text-muted uppercase">
-          {dict.common.priceLabel}
-        </span>
-        <Link href={buildChipLink({ price: undefined })} className={chipClass(!activePrice)}>
-          {dict.common.forAll}
-        </Link>
-        <Link href={buildChipLink({ price: "u200" })} className={chipClass(activePrice === "u200")}>
-          {dict.common.priceUnder200}
-        </Link>
-        <Link href={buildChipLink({ price: "200-500" })} className={chipClass(activePrice === "200-500")}>
-          {dict.common.price200500}
-        </Link>
-        <Link href={buildChipLink({ price: "500-1000" })} className={chipClass(activePrice === "500-1000")}>
-          {dict.common.price500_1000}
-        </Link>
-        <Link href={buildChipLink({ price: "1000-2500" })} className={chipClass(activePrice === "1000-2500")}>
-          {dict.common.price1000_2500}
-        </Link>
-        <Link href={buildChipLink({ price: "a2500" })} className={chipClass(activePrice === "a2500")}>
-          {dict.common.priceAbove2500}
-        </Link>
-      </div>
+      {/* Price filter — dual-thumb slider bounded by the cheapest /
+          dearest product visible on the current page (after col /
+          gender / usage filters, before price). Hidden when there's
+          nothing meaningful to filter (single product, identical
+          prices). */}
+      <PriceRangeSlider
+        min={flooredMin}
+        max={ceiledMax}
+        initialMin={activeMin ?? flooredMin}
+        initialMax={activeMax ?? ceiledMax}
+        basePath={base}
+        preserved={{
+          col: activeCol,
+          sort: sort !== "featured" ? sort : undefined,
+          g: activeGender,
+          usage: activeUsage,
+        }}
+        label={dict.common.priceLabel}
+      />
 
       <div className="mt-10 flex justify-end">
         <SortSelect value={sort} labels={dict.sort} />

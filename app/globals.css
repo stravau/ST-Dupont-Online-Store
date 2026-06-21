@@ -388,6 +388,61 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   filter: invert(1);
 }
 
+/* --- Dual-thumb price slider ----------------------------------------- */
+/* Two overlapping <input type=range> drive the price filter. We strip
+   the native track entirely and only show our own (the .price-range
+   wrapper paints the line + selected fill); each thumb is a tiny gold
+   circle that re-enables pointer events so users can grab either
+   handle, including when they sit on top of each other. */
+.range-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+  border: none;
+  height: 100%;
+}
+.range-thumb::-moz-range-track {
+  background: transparent;
+  border: none;
+  height: 100%;
+}
+.range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--gold);
+  border: 2px solid var(--cream);
+  box-shadow: 0 0 0 1px var(--gold);
+  cursor: grab;
+  margin-top: 0; /* WebKit centres for us when track is full-height */
+}
+.range-thumb::-webkit-slider-thumb:active {
+  cursor: grabbing;
+}
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--gold);
+  border: 2px solid var(--cream);
+  box-shadow: 0 0 0 1px var(--gold);
+  cursor: grab;
+}
+.range-thumb::-moz-range-thumb:active {
+  cursor: grabbing;
+}
+.range-thumb:focus {
+  outline: none;
+}
+.range-thumb:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--gold) 40%, transparent);
+}
+.range-thumb:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--gold) 40%, transparent);
+}
+
 /* --- Hidden scrollbar utility ----------------------------------------- */
 /* For horizontal sliders (e.g. SimilarProducts on the product page) — we
    keep native scroll behaviour but remove the visible scrollbar so the

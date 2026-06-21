@@ -540,11 +540,7 @@ export function isPriceBucket(value: unknown): value is PriceBucket {
 }
 
 export function priceInBucket(product: Product, bucket: PriceBucket): boolean {
-  const min = product.variants.reduce(
-    (m, v) => Math.min(m, v.priceCents),
-    Number.MAX_SAFE_INTEGER,
-  );
-  const eur = min / 100;
+  const eur = productMinEur(product);
   switch (bucket) {
     case "u200": return eur < 200;
     case "200-500": return eur >= 200 && eur < 500;
@@ -552,6 +548,30 @@ export function priceInBucket(product: Product, bucket: PriceBucket): boolean {
     case "1000-2500": return eur >= 1000 && eur < 2500;
     case "a2500": return eur >= 2500;
   }
+}
+
+// Cheapest variant's price in whole euros — the slider's bounds and the
+// per-product filter both reduce on this figure.
+export function productMinEur(product: Product): number {
+  const min = product.variants.reduce(
+    (m, v) => Math.min(m, v.priceCents),
+    Number.MAX_SAFE_INTEGER,
+  );
+  return min === Number.MAX_SAFE_INTEGER ? 0 : Math.floor(min / 100);
+}
+
+// Inclusive range — a product matches when its cheapest variant lands
+// between minEur and maxEur (both ends inclusive). Either bound can be
+// undefined to mean "no limit on that side".
+export function priceInRange(
+  product: Product,
+  minEur: number | undefined,
+  maxEur: number | undefined,
+): boolean {
+  const eur = productMinEur(product);
+  if (minEur !== undefined && eur < minEur) return false;
+  if (maxEur !== undefined && eur > maxEur) return false;
+  return true;
 }
 
 export function fromPrice(product: Product): Variant {

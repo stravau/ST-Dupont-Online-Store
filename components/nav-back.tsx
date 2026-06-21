@@ -43,7 +43,8 @@ export function NavBack({ lang, homeLabel }: { lang: Locale; homeLabel: string }
     // Any filter present? Strip back to the unfiltered category instead
     // of jumping all the way home — much closer to what the user expects.
     const hasFilter =
-      sp?.has("col") || sp?.has("usage") || sp?.has("g") || sp?.has("page") || sp?.has("all");
+      sp?.has("col") || sp?.has("usage") || sp?.has("g") || sp?.has("page") ||
+      sp?.has("all") || sp?.has("priceMin") || sp?.has("priceMax");
     if (hasFilter) {
       const slug = localeCategorySlug(lang, canonical);
       href = `/${lang}/c/${slug}`;
