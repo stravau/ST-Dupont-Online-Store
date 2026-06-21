@@ -138,9 +138,38 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   "line-d-3": "escrita",
 };
 
+// Infer the pen-type localised label for a writing variant where the
+// seed didn't carry an explicit attributes.type. Scans the variant
+// name (and the parent product name as a fallback) for the four pen
+// types Dupont sells. Mechanical pencil is rare but kept for
+// completeness so future imports don't drop on the floor.
+const PEN_TYPE_PATTERNS: { test: RegExp; label: { pt: string; en: string } }[] = [
+  { test: /fountain\s?pen|tinta\s?permanente|caneta\s?de\s?tinta/i, label: { pt: "Tinta Permanente", en: "Fountain Pen" } },
+  { test: /roller\s?ball/i, label: { pt: "Rollerball", en: "Rollerball" } },
+  { test: /ballpoint|esferográfica|esferografica/i, label: { pt: "Esferográfica", en: "Ballpoint" } },
+  { test: /mechanical\s?pencil|porta[-\s]?minas/i, label: { pt: "Porta-minas", en: "Mechanical Pencil" } },
+];
+
+function inferWritingType(
+  variantNameEn: string,
+  variantNamePt: string,
+  productNameEn: string,
+  productNamePt: string,
+  description: string,
+): { pt: string; en: string } | undefined {
+  const haystack = `${variantNameEn} ${variantNamePt} ${productNameEn} ${productNamePt} ${description}`;
+  for (const p of PEN_TYPE_PATTERNS) {
+    if (p.test.test(haystack)) return p.label;
+  }
+  return undefined;
+}
+
 function mapProduct(p: ProductRow): Product {
   const storedCategory = p.category.slug as CategorySlug;
   const categorySlug = CATEGORY_OVERRIDES[p.slug] ?? storedCategory;
+  const productNameEn = (p.name as { en?: string })?.en ?? "";
+  const productNamePt = (p.name as { pt?: string })?.pt ?? "";
+  const productDescEn = (p.description as { en?: string })?.en ?? "";
   return {
     id: p.id,
     slug: p.slug,
@@ -151,15 +180,27 @@ function mapProduct(p: ProductRow): Product {
     categorySlug,
     image: p.image,
     novelty: p.featured,
-    variants: p.variants.map((v) => ({
-      sku: v.sku,
-      name: loc(v.name),
-      priceCents: v.priceCents,
-      currency: v.currency as "EUR",
-      attributes: (v.attributes ?? {}) as VariantAttributes,
-      image: v.images?.[0] ?? null,
-      images: v.images ?? [],
-    })),
+    variants: p.variants.map((v) => {
+      const attrs = (v.attributes ?? {}) as VariantAttributes;
+      // Fill in attributes.type for writing variants that the seed
+      // left empty — driven by keyword matches on the variant + product
+      // name + description. Keeps filter chips (/c/escrita?usage=)
+      // and spec rows consistent without a destructive backfill.
+      const vName = loc(v.name);
+      if (categorySlug === "escrita" && !attrs.type) {
+        const inferred = inferWritingType(vName.en, vName.pt, productNameEn, productNamePt, productDescEn);
+        if (inferred) attrs.type = inferred;
+      }
+      return {
+        sku: v.sku,
+        name: vName,
+        priceCents: v.priceCents,
+        currency: v.currency as "EUR",
+        attributes: attrs,
+        image: v.images?.[0] ?? null,
+        images: v.images ?? [],
+      };
+    }),
   };
 }
 
