@@ -201,15 +201,15 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
             {/* Body */}
             <div className="max-h-[60vh] overflow-y-auto">
               {q.trim().length < 2 ? (
-                <p className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
                   {t.start}
                 </p>
               ) : loading ? (
-                <p className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
                   {t.searching}
                 </p>
               ) : hits.length === 0 ? (
-                <p className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
                   {t.noResults}
                 </p>
               ) : (

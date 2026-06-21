@@ -78,6 +78,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
             viewAll: dict.nav.viewAll,
             collections: dict.nav.collections,
             products: dict.nav.products,
+            close: dict.common.closeMenu,
           }}
         />
 

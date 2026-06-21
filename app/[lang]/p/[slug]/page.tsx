@@ -157,6 +157,11 @@ export default async function ProductPage({
         specsTitle={dict.product.specs}
         description={product.description[locale]}
         descriptionTitle={dict.product.descriptionTitle}
+        galleryLabels={{
+          previous: dict.common.previousImage,
+          next: dict.common.nextImage,
+          image: dict.common.imageLabel,
+        }}
         labels={{
           typeLabel: dict.product.typeLabel,
           selectType: dict.product.selectType,

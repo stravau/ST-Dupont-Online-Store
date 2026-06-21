@@ -72,20 +72,28 @@ export default async function LocaleLayout({
   const locale = lang as Locale;
 
   return (
-    <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full scroll-smooth`}>
+    <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full motion-safe:scroll-smooth`}>
       {/* bg-ink on body sits behind the footer so the "reveal from behind"
           effect (main scrolls over a fixed footer underneath) reads as a
           smooth transition from the cream content area into the dark
           monogram-bg footer. */}
       <body className="flex min-h-full flex-col bg-ink">
+        {/* Skip-link — first focusable element so keyboard users jump
+            past the header chrome straight into <main>. .sr-only keeps
+            it visually hidden until focus, then it springs to the
+            top-left corner with the standard gold accent. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-xs focus:tracking-[0.18em] focus:text-gold focus:uppercase"
+        >
+          {getDictionary(locale).common.skipToContent}
+        </a>
         <ScrollToTop />
         <SiteHeader lang={locale} />
         <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
         {/* z-10 + bg-cream keeps the main content above the sticky
-            footer (z-0) at every scroll position except the very end.
-            The footer is position:sticky bottom-0 so it reserves its
-            own height in document flow — no manual spacer required. */}
-        <main className="relative z-10 flex-1 bg-cream">
+            footer (z-0) at every scroll position except the very end. */}
+        <main id="main" className="relative z-10 flex-1 bg-cream">
           <PageTransition>{children}</PageTransition>
         </main>
         <SiteFooter lang={locale} />

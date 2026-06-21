@@ -17,7 +17,7 @@
   --paper: #ffffff; /* clean white surfaces (cards) */
   --gold: #b58a34; /* antique gold accent */
   --gold-soft: #d8bd7c; /* lighter gold for fine details on dark */
-  --muted: #5b6b82; /* slate-blue secondary text */
+  --muted: #4a5a72; /* slate-blue secondary text — AA contrast on cream */
   --line: #d4deec; /* light blue-grey borders */
 }
 

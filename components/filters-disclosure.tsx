@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // One single "Filtros" disclosure on /c/[category] — holds the
 // collection switcher, the gender/usage chip rows and the price
-// slider. Collapsed by default on both desktop and mobile; opens
-// inline beneath its trigger row. The active filter count renders
+// slider. Opens by default on desktop (>=md), collapsed on mobile
+// where vertical space is tight. The active filter count renders
 // next to the label so users see at a glance whether anything is
 // applied without opening the panel.
 export function FiltersDisclosure({
@@ -21,7 +21,14 @@ export function FiltersDisclosure({
   activeCount: number;
   children: React.ReactNode;
 }) {
+  // Default to closed (matches SSR + mobile). The effect below
+  // promotes desktop visitors to open after hydration so the filter
+  // chrome is visible without a click; mobile stays collapsed.
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(min-width: 768px)").matches) setOpen(true);
+  }, []);
 
   return (
     <div className="mt-8 border-y border-line">
@@ -30,10 +37,11 @@ export function FiltersDisclosure({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
+          aria-label={activeCount > 0 ? `${label} (${activeCount})` : label}
           className="inline-flex items-center gap-3 text-xs font-medium tracking-[0.22em] text-ink uppercase transition-colors hover:text-gold sm:text-sm sm:tracking-[0.24em]"
         >
           <span aria-hidden className="text-gold">{open ? "—" : "+"}</span>
-          {label}
+          <span aria-hidden>{label}</span>
           {activeCount > 0 && (
             <span aria-hidden className="font-serif text-gold normal-case tracking-normal">
               ({activeCount})

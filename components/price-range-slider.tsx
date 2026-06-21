@@ -100,6 +100,7 @@ export function PriceRangeSlider({
           step={step}
           value={lo}
           aria-label={`${label} — min`}
+          aria-valuetext={`${currencySymbol}${lo}`}
           onChange={(e) => onLoChange(+e.target.value)}
           onMouseUp={() => commit(lo, hi)}
           onTouchEnd={() => commit(lo, hi)}
@@ -120,6 +121,7 @@ export function PriceRangeSlider({
           step={step}
           value={hi}
           aria-label={`${label} — max`}
+          aria-valuetext={`${currencySymbol}${hi}`}
           onChange={(e) => onHiChange(+e.target.value)}
           onMouseUp={() => commit(lo, hi)}
           onTouchEnd={() => commit(lo, hi)}

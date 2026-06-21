@@ -25,6 +25,7 @@ export function ProductDetail({
   specsTitle,
   description,
   descriptionTitle,
+  galleryLabels = { previous: "Previous image", next: "Next image", image: "Image" },
 }: {
   fallbackImage: string | null;
   seed: string;
@@ -39,6 +40,7 @@ export function ProductDetail({
   specsTitle: string;
   description?: string;
   descriptionTitle?: string;
+  galleryLabels?: { previous: string; next: string; image: string };
 }) {
   const startSku =
     (initialSku && variants.find((v) => v.sku === initialSku)?.sku) ||
@@ -143,7 +145,7 @@ export function ProductDetail({
           <>
             <button
               type="button"
-              aria-label="Previous image"
+              aria-label={galleryLabels.previous}
               onClick={() => go(-1)}
               className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/85 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
             >
@@ -153,7 +155,7 @@ export function ProductDetail({
             </button>
             <button
               type="button"
-              aria-label="Next image"
+              aria-label={galleryLabels.next}
               onClick={() => go(1)}
               className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/85 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
             >
@@ -166,7 +168,7 @@ export function ProductDetail({
                 <button
                   key={i}
                   type="button"
-                  aria-label={`Image ${i + 1}`}
+                  aria-label={`${galleryLabels.image} ${i + 1}`}
                   onClick={() => setIdx(i)}
                   className={`h-1.5 rounded-full transition-all ${
                     i === safeIdx ? "w-5 bg-gold" : "w-1.5 bg-line hover:bg-gold/60"

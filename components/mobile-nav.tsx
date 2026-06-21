@@ -30,6 +30,7 @@ export function MobileNav({
     products: string;
     contactUs?: string;
     findStore?: string;
+    close?: string;
   };
 }) {
   const [open, setOpen] = useState(false);
@@ -135,7 +136,7 @@ export function MobileNav({
               )}
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={labels.close ?? "Close"}
                 onClick={close}
                 className="text-ink transition-colors hover:text-gold"
               >

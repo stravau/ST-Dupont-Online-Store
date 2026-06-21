@@ -88,7 +88,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
+          aria-hidden="true"
+          tabIndex={-1}
           className="absolute inset-0 z-0 h-full w-full object-cover object-center sm:hidden"
         >
           <source src="/videos/hero-mobile.mp4" type="video/mp4" />
@@ -98,7 +100,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
+          aria-hidden="true"
+          tabIndex={-1}
           className="absolute inset-0 z-0 hidden h-full w-full object-cover sm:block"
         >
           <source src="/videos/hero-desktop.mp4" type="video/mp4" />
