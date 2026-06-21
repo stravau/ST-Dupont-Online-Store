@@ -1,18 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { locales, defaultLocale } from "@/lib/i18n";
+import { auth } from "@/auth";
 
-// Redirect any path missing a locale prefix to a locale-prefixed path,
-// preferring the visitor's Accept-Language when it matches a supported one.
-// (Next 16 `proxy` convention — replaces the deprecated `middleware`.)
+// Next 16 `proxy` convention — replaces the deprecated `middleware`.
+// Two concerns interleaved here, in order:
+//
+//   1. /admin/*  + /api/admin/*  → require an authenticated ADMIN
+//                                    session, otherwise redirect to
+//                                    /admin/login. /admin/login itself
+//                                    stays open so users can sign in.
+//   2. All other site routes      → redirect to a locale-prefixed path
+//                                    using Accept-Language as the hint.
 function resolveLocale(req: NextRequest): string {
   const header = req.headers.get("accept-language") ?? "";
   const preferred = header.split(",").map((p) => p.split(";")[0].trim().slice(0, 2).toLowerCase());
   return preferred.find((l) => (locales as readonly string[]).includes(l)) ?? defaultLocale;
 }
 
-export default function proxy(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // ---- Admin gate ----
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+    const isLogin = pathname === "/admin/login";
+    if (isLogin) return NextResponse.next();
+    const session = await auth();
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (role !== "ADMIN") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/admin/login";
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
+  // ---- Locale redirect ----
   const hasLocale = locales.some(
     (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`),
   );
@@ -25,6 +48,8 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Skip Next internals, API, and files with an extension (assets).
-  matcher: ["/((?!_next|api|.*\\..*).*)"],
+  // Include /admin/* + /api/admin/* in the matcher (they were previously
+  // excluded by the /api skip). Static assets and Next internals still
+  // skip out.
+  matcher: ["/((?!_next|api/(?!admin)|.*\\..*).*)", "/api/admin/:path*"],
 };

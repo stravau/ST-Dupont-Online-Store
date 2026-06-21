@@ -22,6 +22,15 @@ enum UserRole {
   ADMIN
 }
 
+// DISPONIVEL    — visible on the site, normal flow
+// INDISPONIVEL  — visible, badged "Indisponível", Pedir-Informação disabled
+// DESCONTINUADO — hidden from /c/ and /p/ entirely
+enum VariantStatus {
+  DISPONIVEL
+  INDISPONIVEL
+  DESCONTINUADO
+}
+
 enum OrderStatus {
   PENDING // created, awaiting payment
   PAID // Stripe confirmed payment
@@ -59,6 +68,7 @@ model User {
   cart      Cart?
   orders    Order[]
   wishlist  WishlistItem[]
+  adminActions AdminAction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -215,6 +225,11 @@ model ProductVariant {
   images        String[] @default([]) // ordered image URLs (CDN)
   stripePriceId String? // Stripe Price id, set when synced
   active        Boolean  @default(true)
+  // Lifecycle state — DISPONIVEL by default. INDISPONIVEL shows on site
+  // with a badge + disabled Pedir-Informação; DESCONTINUADO hides
+  // entirely. `active` stays as a legacy flag (already used by some
+  // queries) — gradually phased out in favour of `status`.
+  status        VariantStatus @default(DISPONIVEL)
   // ----- ERP-import fields (filled from the daily Starbrands Excel) -----
   // EAN / barcode — unique per SKU when present. Indexed for fast
   // scanner lookups in the admin panel.
@@ -237,8 +252,34 @@ model ProductVariant {
 
   @@index([productId])
   @@index([active])
+  @@index([status])
   @@index([ean])
   @@index([promoEndDate])
+}
+
+// Audit trail for every write the admin panel performs — manual edits
+// in /admin/variants AND bulk uploads. Stores the diff as JSON so the
+// admin can review/revert later. userId is the User.id of the admin
+// who triggered the action; nullable so seed / migration writes don't
+// fail.
+model AdminAction {
+  id        String   @id @default(cuid())
+  userId    String?
+  // entityType: VARIANT | PRODUCT | PROMO | UPLOAD_BATCH
+  // action:    UPDATE | CREATE | DELETE | UPLOAD
+  entityType String
+  action     String
+  entityId   String? // e.g. variant sku or product slug
+  before     Json?   // snapshot of changed fields before the write
+  after      Json?   // snapshot after the write
+  note       String? // optional human-readable summary
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([entityType, entityId])
 }
 
 // ---------------------------------------------------------------------------
