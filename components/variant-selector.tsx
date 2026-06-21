@@ -5,6 +5,8 @@ import Image from "next/image";
 import { compareSwatch } from "@/lib/swatch-order";
 import { inquiryMailto } from "@/lib/inquiry";
 import { imgSrc } from "@/lib/img";
+import { InquiryModal } from "@/components/inquiry-modal";
+import { STORE } from "@/lib/store-info";
 
 export interface VariantOption {
   sku: string;
@@ -30,6 +32,15 @@ export interface SelectorLabels {
   inquireSubject: string;
   inquireBody: string;
   priceNote: string;
+  // Pre-mailto dialog strings — surfaced when the user taps Inquire
+  // so the email path is confirmed and phone / WhatsApp alternates
+  // are visible for visitors without a configured mail client.
+  inquiryDialogTitle?: string;
+  inquiryDialogBody?: string;
+  inquiryOpenEmail?: string;
+  inquiryCallPhone?: string;
+  inquiryWhatsapp?: string;
+  close?: string;
 }
 
 function uniq<T>(arr: T[]): T[] {
@@ -74,6 +85,7 @@ export function VariantSelector({
     (initialType && variants.find((v) => v.type === initialType)?.sku) ||
     variants[0].sku;
   const [sku, setSku] = useState(initialSku);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
   const active = variants.find((v) => v.sku === sku) ?? variants[0];
 
   // Lift the active SKU so a parent can swap the product image per colourway.
@@ -277,12 +289,33 @@ export function VariantSelector({
         <p className="mt-2 text-xs tracking-[0.14em] text-muted uppercase">{labels.priceNote}</p>
       </div>
 
-      <a
-        href={mailHref}
+      <button
+        type="button"
+        onClick={() => setInquiryOpen(true)}
         className="block w-full bg-ink py-5 text-center text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
       >
         {labels.inquire}
-      </a>
+      </button>
+
+      <InquiryModal
+        open={inquiryOpen}
+        onClose={() => setInquiryOpen(false)}
+        mailHref={mailHref}
+        phone={STORE.phone}
+        phoneHref={STORE.phoneHref}
+        // WhatsApp deep-link with the same prefilled subject so the
+        // boutique sees a meaningful first line.
+        whatsappHref={`https://wa.me/${STORE.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Olá! Tenho interesse em: ${productTitle} (ref ${active.sku}).`)}`}
+        email={`stdupont_eci_lx@starbrands.pt`}
+        labels={{
+          title: labels.inquiryDialogTitle ?? "How would you like to reach us?",
+          body: labels.inquiryDialogBody ?? "We handle personalised enquiries at the boutique.",
+          openEmail: labels.inquiryOpenEmail ?? "Open email",
+          callPhone: labels.inquiryCallPhone ?? "Call",
+          whatsapp: labels.inquiryWhatsapp ?? "WhatsApp",
+          close: labels.close ?? "Close",
+        }}
+      />
     </div>
   );
 }

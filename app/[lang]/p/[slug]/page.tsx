@@ -199,6 +199,12 @@ export default async function ProductPage({
           inquireSubject: dict.product.inquireSubject,
           inquireBody: dict.product.inquireBody,
           priceNote: dict.product.priceNote,
+          inquiryDialogTitle: dict.common.inquiryDialogTitle,
+          inquiryDialogBody: dict.common.inquiryDialogBody,
+          inquiryOpenEmail: dict.common.inquiryOpenEmail,
+          inquiryCallPhone: dict.common.inquiryCallPhone,
+          inquiryWhatsapp: dict.common.inquiryWhatsapp,
+          close: dict.common.close,
         }}
         header={
           <>
