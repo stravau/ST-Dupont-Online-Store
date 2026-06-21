@@ -12,14 +12,11 @@ export interface CardSwatch {
   label: string;
   hex: string[];
   image: string | null;
-  hoverImage?: string | null; // close-up, shown on card hover (desktop only)
-  images?: string[]; // full gallery — slide through with the card arrows
+  hoverImage?: string | null;
+  images?: string[];
   price: string;
 }
 
-// Catalogue card. One layout everywhere — a green in-stock dot by the heart,
-// the swatches below the photo, a single-line colour name — just rendered
-// at larger proportions on desktop.
 export function ProductCardInteractive({
   href,
   seed,
@@ -56,10 +53,8 @@ export function ProductCardInteractive({
   inquireBody: string;
 }) {
   const [sel, setSel] = useState(initialSwatch);
-  const [idx, setIdx] = useState(0); // image index within the active gallery
+  const [idx, setIdx] = useState(0);
   const [hover, setHover] = useState(false);
-  // Hover preview is desktop-only — on touch it would stick on the close-up.
-  // Kept in state (not a ref) so it's safe to read during render.
   const [hoverable, setHoverable] = useState(false);
   useEffect(() => {
     const canHover =
@@ -79,7 +74,6 @@ export function ProductCardInteractive({
           : [];
   const len = gallery.length;
   const safeIdx = len ? ((idx % len) + len) % len : 0;
-  // Desktop hover shows the close-up (3rd photo) only while at the front.
   const shownIdx =
     hover && hoverable && safeIdx === 0 && len > 2 ? 2 : safeIdx;
   const image = imgSrc(gallery[shownIdx] ?? fallbackImage);
@@ -88,11 +82,6 @@ export function ProductCardInteractive({
   const colorName = active?.label;
   const activeSku = active?.sku ?? baseSku;
 
-  // The server-rendered card already encodes ?v=<sku> from the chosen
-  // colourway; don't double-append it here when the host's selection
-  // matches what's in the URL already (which it does on per-colour cards
-  // since variantSku === active.sku). Only swap when the user has clicked
-  // a different swatch on the legacy multi-colour card.
   const linkHref = (() => {
     if (!active) return href;
     const m = href.match(/[?&]v=([^&]+)/);
@@ -118,7 +107,6 @@ export function ProductCardInteractive({
       ? { background: `linear-gradient(135deg, ${hex[0]} 0 50%, ${hex[1]} 50% 100%)` }
       : { background: hex[0] };
 
-  // Show at most 6 swatches; with more than 6, show 5 and a "+N".
   const MAX = 6;
   const showCount = swatches.length > MAX ? 5 : Math.min(swatches.length, MAX);
   const extra = swatches.length - showCount;
@@ -127,25 +115,21 @@ export function ProductCardInteractive({
     <article
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      // Maison-style card — no chrome around the tile. The cream surface
-      // sits seamlessly on the page; the photo, name and price do the
-      // talking, exactly like st-dupont.com.
-      className="lux-hover reveal group relative flex h-full flex-col bg-paper"
+      // No chrome around the tile — the article is transparent so the
+      // text under the photo sits "free" on the page's cream background.
+      // The border lives on the image alone, exactly like st-dupont.com.
+      className="reveal group relative flex h-full flex-col"
     >
-      {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
-      {/* Novelty badge — corner overlay only. The in-stock indicator
-          moved into the text block below the image (matches reference). */}
       {noveltyLabel && (
         <span className="absolute left-2.5 top-2.5 z-20 overline min-w-0 max-w-[60%] truncate bg-ink/85 px-2.5 py-1 text-[0.6rem] text-paper">
           {noveltyLabel}
         </span>
       )}
 
-      {/* Image — portrait. shrink-0 + w-full so the equal-height flex column
-          can't compress it on iOS Safari (aspect-ratio flex bug). */}
-      <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden">
+      {/* Image — portrait, framed by the only border on the card. */}
+      <div className="lux-hover relative aspect-[4/5] w-full shrink-0 overflow-hidden border border-line bg-paper">
         <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]">
           {image ? (
             <Image
@@ -160,7 +144,6 @@ export function ProductCardInteractive({
             <ProductImage seed={seed} label={title} className="h-full w-full" />
           )}
         </div>
-        {/* Slide through this colourway's photos without entering the item */}
         {len > 1 && (
           <>
             <button
@@ -198,37 +181,30 @@ export function ProductCardInteractive({
         )}
       </div>
 
-      {/* Text block — left-aligned Maison layout:
-          • green dot + AVAILABLE
-          • product name (caps, prominent)
-          • category / collection (caps, smaller, muted)
-          • price (no "From" prefix, just the figure) */}
-      <div className="flex flex-1 flex-col px-1 pb-3 pt-4 text-left sm:px-1.5 sm:pb-5 sm:pt-6">
-        <div className="flex items-center gap-2">
-          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#2bb673] sm:h-2 sm:w-2" />
-          <span className="text-[0.55rem] tracking-[0.18em] text-muted uppercase sm:text-[0.65rem]">
+      {/* Text block — sits "free" on the page; no padding chrome, just
+          tight vertical rhythm. */}
+      <div className="flex flex-1 flex-col pt-2.5 pb-1 text-left sm:pt-3">
+        <div className="flex items-center gap-1.5">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#2bb673]" />
+          <span className="text-[0.55rem] tracking-[0.18em] text-muted uppercase sm:text-[0.6rem]">
             {availableLabel}
           </span>
         </div>
-        <h3 className="mt-2 line-clamp-2 min-h-[2rem] font-serif text-[0.95rem] tracking-[0.04em] text-ink uppercase sm:mt-3 sm:min-h-[2.5rem] sm:text-xl">
+        <h3 className="mt-1 line-clamp-1 font-serif text-[0.9rem] tracking-[0.04em] text-ink uppercase sm:mt-1.5 sm:text-lg">
           {title}
         </h3>
-        <p className="mt-1 line-clamp-1 text-[0.6rem] tracking-[0.14em] text-muted uppercase sm:mt-1.5 sm:text-[0.7rem]">
+        <p className="mt-0.5 line-clamp-1 text-[0.55rem] tracking-[0.14em] text-muted uppercase sm:text-[0.65rem]">
           {collection}
         </p>
-        <p className="mt-3 font-serif text-base text-ink sm:mt-5 sm:text-xl">{price}</p>
-        {/* Colour name slot — keep when a colourway is active so per-card
-            differentiation reads cleanly when the grid renders one card
-            per colourway. nbsp keeps the line height even when empty. */}
-        <p className="mt-1.5 line-clamp-1 text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:mt-2 sm:text-[0.65rem] sm:tracking-[0.14em]">
-          {colorName ? colorName : " "}
-        </p>
+        <p className="mt-1.5 font-serif text-[0.95rem] text-ink sm:mt-2 sm:text-lg">{price}</p>
+        {colorName && (
+          <p className="mt-0.5 line-clamp-1 text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:text-[0.6rem] sm:tracking-[0.14em]">
+            {colorName}
+          </p>
+        )}
 
-        {/* Swatches — small left-aligned dots, only when there's more
-            than one colourway. Reserved space below collapses cleanly
-            when single-variant. */}
         {swatches.length > 1 && (
-          <div className="relative z-20 mt-3 flex flex-wrap items-center gap-2 sm:mt-4 sm:gap-2.5">
+          <div className="relative z-20 mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-2 sm:gap-2">
             {swatches.slice(0, showCount).map((c, i) => (
               <button
                 key={c.label}
@@ -241,27 +217,24 @@ export function ProductCardInteractive({
                   setSel(i);
                   setIdx(0);
                 }}
-                className={`h-4 w-4 rounded-full ring-offset-2 ring-offset-paper transition-all sm:h-5 sm:w-5 ${
+                className={`h-3.5 w-3.5 rounded-full ring-offset-2 ring-offset-cream transition-all sm:h-4 sm:w-4 ${
                   sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
                 }`}
                 style={swatchStyle(c.hex)}
               />
             ))}
             {extra > 0 && (
-              <span className="text-[0.6rem] text-muted sm:text-xs">+{extra}</span>
+              <span className="text-[0.55rem] text-muted sm:text-[0.65rem]">+{extra}</span>
             )}
           </div>
         )}
 
-        {/* Inquire — desktop only, fades in on card hover. Hidden on
-            mobile entirely (the card itself is the tap target on touch
-            devices). Underlined caps link, Maison-secondary style — no
-            heavy black button. */}
-        <div className="relative z-20 mt-auto hidden pt-4 sm:block sm:pt-6">
+        {/* Inquire — desktop only, fades in on card hover. */}
+        <div className="relative z-20 mt-auto hidden pt-2 sm:block sm:pt-3">
           <a
             href={mailHref}
             onClick={(e) => e.stopPropagation()}
-            className="inline-block border-b border-ink pb-0.5 text-[0.65rem] tracking-[0.2em] text-ink uppercase opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-gold hover:text-gold"
+            className="inline-block border-b border-ink pb-0.5 text-[0.6rem] tracking-[0.2em] text-ink uppercase opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-gold hover:text-gold"
           >
             {inquireLabel}
           </a>
