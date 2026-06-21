@@ -106,6 +106,7 @@ export function ProductCard({
       title={title}
       collection={categoryLabel}
       noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
+      availableLabel={dict.common.available}
       fromLabel={dict.product.from}
       colorWord={dict.product.colorLabel.toLowerCase()}
       fallbackImage={product.image}

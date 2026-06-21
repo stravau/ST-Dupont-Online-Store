@@ -26,7 +26,8 @@ export function ProductCardInteractive({
   title,
   collection,
   noveltyLabel,
-  fromLabel,
+  availableLabel,
+  fromLabel: _fromLabel,
   colorWord,
   fallbackImage,
   swatches,
@@ -42,6 +43,7 @@ export function ProductCardInteractive({
   title: string;
   collection: string;
   noveltyLabel: string | null;
+  availableLabel: string;
   fromLabel: string;
   colorWord: string;
   fallbackImage: string | null;
@@ -125,25 +127,21 @@ export function ProductCardInteractive({
     <article
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="lux-hover reveal group relative flex h-full flex-col overflow-hidden border border-line bg-paper"
+      // Maison-style card — no chrome around the tile. The cream surface
+      // sits seamlessly on the page; the photo, name and price do the
+      // talking, exactly like st-dupont.com.
+      className="lux-hover reveal group relative flex h-full flex-col bg-paper"
     >
       {/* Stretched navigation hit-area */}
       <Link href={linkHref} aria-label={title} className="absolute inset-0 z-10" />
 
-      {/* Top bar — novelty badge (left) + in-stock dot (right). */}
-      <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2.5">
-        {noveltyLabel ? (
-          <span className="overline min-w-0 truncate bg-ink/85 px-2.5 py-1 text-[0.6rem] text-paper">
-            {noveltyLabel}
-          </span>
-        ) : (
-          <span aria-hidden />
-        )}
-        <span
-          aria-hidden
-          className="h-2.5 w-2.5 rounded-full bg-[#2bb673] shadow-[0_0_0_3px_rgba(255,255,255,0.7)] sm:h-3 sm:w-3"
-        />
-      </div>
+      {/* Novelty badge — corner overlay only. The in-stock indicator
+          moved into the text block below the image (matches reference). */}
+      {noveltyLabel && (
+        <span className="absolute left-2.5 top-2.5 z-20 overline min-w-0 max-w-[60%] truncate bg-ink/85 px-2.5 py-1 text-[0.6rem] text-paper">
+          {noveltyLabel}
+        </span>
+      )}
 
       {/* Image — portrait. shrink-0 + w-full so the equal-height flex column
           can't compress it on iOS Safari (aspect-ratio flex bug). */}
@@ -200,68 +198,72 @@ export function ProductCardInteractive({
         )}
       </div>
 
-      {/* Colour swatches — always rendered (even when there's just one
-          variant) so every card reserves the same vertical slot and the
-          text below lines up across the row. */}
-      <div className="relative z-20 flex min-h-[2.25rem] flex-wrap items-center justify-center gap-2.5 px-4 pt-5 sm:min-h-[2.75rem] sm:gap-3">
-        {swatches.length > 1 &&
-          swatches.slice(0, showCount).map((c, i) => (
-            <button
-              key={c.label}
-              type="button"
-              aria-label={c.label}
-              title={`${c.label} · ${colorWord}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setSel(i);
-                setIdx(0);
-              }}
-              className={`h-6 w-6 rounded-full ring-offset-2 ring-offset-paper transition-all sm:h-7 sm:w-7 ${
-                sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
-              }`}
-              style={swatchStyle(c.hex)}
-            />
-          ))}
-        {swatches.length > 1 && extra > 0 && (
-          <span className="text-xs text-muted sm:text-sm">+{extra}</span>
-        )}
-      </div>
-
-      {/* Text — price given the strongest weight. Each element reserves a
-          consistent line/min-height so the colour name, price and CTA
-          line up across every card in the row. */}
-      <div className="flex flex-1 flex-col px-3.5 pb-4 pt-3.5 text-center sm:px-6 sm:pb-7 sm:pt-6">
-        <p className="overline text-[0.6rem] sm:text-[0.7rem]">{collection}</p>
-        <h3 className="mt-2 line-clamp-2 min-h-[2.1rem] font-serif text-[0.95rem] leading-snug text-ink sm:mt-3 sm:min-h-[3rem] sm:text-2xl">
+      {/* Text block — left-aligned Maison layout:
+          • green dot + AVAILABLE
+          • product name (caps, prominent)
+          • category / collection (caps, smaller, muted)
+          • price (no "From" prefix, just the figure) */}
+      <div className="flex flex-1 flex-col px-1 pb-3 pt-4 text-left sm:px-1.5 sm:pb-5 sm:pt-6">
+        <div className="flex items-center gap-2">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#2bb673] sm:h-2 sm:w-2" />
+          <span className="text-[0.55rem] tracking-[0.18em] text-muted uppercase sm:text-[0.65rem]">
+            {availableLabel}
+          </span>
+        </div>
+        <h3 className="mt-2 line-clamp-2 min-h-[2rem] font-serif text-[0.95rem] tracking-[0.04em] text-ink uppercase sm:mt-3 sm:min-h-[2.5rem] sm:text-xl">
           {title}
         </h3>
-        <p className="overline mt-3 text-[0.5rem] text-muted sm:mt-4 sm:text-[0.55rem]">{fromLabel}</p>
-        <p className="mt-1 font-serif text-lg text-ink sm:mt-1.5 sm:text-3xl">{price}</p>
-        {/* Color name slot — always rendered (nbsp when empty) so row
-            spacing matches across cards. In per-colour mode (one swatch
-            per tile) this becomes the differentiator beneath the price. */}
-        <p className="mt-2 truncate text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:mt-3 sm:text-xs sm:tracking-[0.14em]">
-          {colorName ? colorName : " "}
+        <p className="mt-1 line-clamp-1 text-[0.6rem] tracking-[0.14em] text-muted uppercase sm:mt-1.5 sm:text-[0.7rem]">
+          {collection}
+        </p>
+        <p className="mt-3 font-serif text-base text-ink sm:mt-5 sm:text-xl">{price}</p>
+        {/* Colour name slot — keep when a colourway is active so per-card
+            differentiation reads cleanly when the grid renders one card
+            per colourway. nbsp keeps the line height even when empty. */}
+        <p className="mt-1.5 line-clamp-1 text-[0.55rem] tracking-[0.1em] text-muted uppercase sm:mt-2 sm:text-[0.65rem] sm:tracking-[0.14em]">
+          {colorName ? colorName : " "}
         </p>
 
-        {/* Inquire — opens a prefilled email to the boutique with the
-            product reference, colourway and any other selected attributes.
-            mt-auto pushes the CTA to the card's foot. `whitespace-nowrap`
-            keeps "Pedir Informação" on a single line on narrow iOS cards
-            where the previous version wrapped onto two rows. */}
-        <div className="relative z-20 mt-auto pt-4 sm:pt-7">
+        {/* Swatches — small left-aligned dots, only when there's more
+            than one colourway. Reserved space below collapses cleanly
+            when single-variant. */}
+        {swatches.length > 1 && (
+          <div className="relative z-20 mt-3 flex flex-wrap items-center gap-2 sm:mt-4 sm:gap-2.5">
+            {swatches.slice(0, showCount).map((c, i) => (
+              <button
+                key={c.label}
+                type="button"
+                aria-label={c.label}
+                title={`${c.label} · ${colorWord}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSel(i);
+                  setIdx(0);
+                }}
+                className={`h-4 w-4 rounded-full ring-offset-2 ring-offset-paper transition-all sm:h-5 sm:w-5 ${
+                  sel === i ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
+                }`}
+                style={swatchStyle(c.hex)}
+              />
+            ))}
+            {extra > 0 && (
+              <span className="text-[0.6rem] text-muted sm:text-xs">+{extra}</span>
+            )}
+          </div>
+        )}
+
+        {/* Inquire — desktop only, fades in on card hover. Hidden on
+            mobile entirely (the card itself is the tap target on touch
+            devices). Underlined caps link, Maison-secondary style — no
+            heavy black button. */}
+        <div className="relative z-20 mt-auto hidden pt-4 sm:block sm:pt-6">
           <a
             href={mailHref}
             onClick={(e) => e.stopPropagation()}
-            // min-w-0 + truncate keep the label inside the button even on
-            // the narrowest iOS columns; the inner span carries the
-            // typography so the box itself stays predictable.
-            className="flex w-full min-w-0 items-center justify-center overflow-hidden border border-ink bg-ink px-2.5 py-2.5 sm:px-3 sm:py-3.5 sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
+            className="inline-block border-b border-ink pb-0.5 text-[0.65rem] tracking-[0.2em] text-ink uppercase opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-gold hover:text-gold"
           >
-            <span className="block w-full truncate text-center text-[0.5rem] tracking-[0.1em] text-gold uppercase sm:text-xs sm:tracking-[0.22em]">
-              {inquireLabel}
-            </span>
+            {inquireLabel}
           </a>
         </div>
       </div>
