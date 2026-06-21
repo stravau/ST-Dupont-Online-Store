@@ -240,8 +240,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* Boutique */}
-      <section className="reveal mx-auto max-w-3xl px-6 py-32 text-center">
+      {/* Boutique — pb-20 instead of pb-32 so the dark monogram-bg
+          footer peeks above the fold and tells the user there's more
+          underneath the cream. The footer is position:sticky bottom-0
+          z-0; without this trim the reveal effect on long pages was
+          invisible to anyone who stopped reading at the CTA. */}
+      <section className="reveal mx-auto max-w-3xl px-6 pt-32 pb-20 text-center">
         <p className="overline">{dict.sections.boutiqueEyebrow}</p>
         <h2 className="mt-6 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
         <div className="gold-rule mx-auto my-8" />
