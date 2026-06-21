@@ -254,9 +254,14 @@ export function ProductCardInteractive({
           <a
             href={mailHref}
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex w-full items-center justify-center whitespace-nowrap border border-ink bg-ink px-2 py-2.5 text-[0.55rem] tracking-[0.14em] text-gold uppercase sm:px-3 sm:py-3.5 sm:text-xs sm:tracking-[0.22em] sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
+            // min-w-0 + truncate keep the label inside the button even on
+            // the narrowest iOS columns; the inner span carries the
+            // typography so the box itself stays predictable.
+            className="flex w-full min-w-0 items-center justify-center overflow-hidden border border-ink bg-ink px-2.5 py-2.5 sm:px-3 sm:py-3.5 sm:transition-colors sm:duration-300 sm:hover:border-gold sm:hover:bg-gold sm:hover:text-ink"
           >
-            {inquireLabel}
+            <span className="block w-full truncate text-center text-[0.5rem] tracking-[0.1em] text-gold uppercase sm:text-xs sm:tracking-[0.22em]">
+              {inquireLabel}
+            </span>
           </a>
         </div>
       </div>

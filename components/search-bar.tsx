@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ProductMedia } from "@/components/product-media";
 
@@ -25,13 +26,23 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1);
 
+  // Portal the dropdown to document.body so it escapes the transparent
+  // header's CSS cascade (the rule that forces every descendant's
+  // text-ink to cream while the chrome is over the video kept rendering
+  // the input + hit titles invisible until the user hovered the navbar).
+  useEffect(() => {
+    queueMicrotask(() => setMounted(true));
+  }, []);
+
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const close = useCallback(() => {
@@ -52,11 +63,16 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  // Outside click + Esc.
+  // Outside click + Esc. With the dropdown portaled to document.body, the
+  // panel sits outside rootRef in the DOM — check both refs before
+  // closing so a click inside the dropdown doesn't dismiss it.
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) close();
+      const target = e.target as Node;
+      if (rootRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      close();
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") close();
@@ -138,100 +154,120 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
         </svg>
       </button>
 
-      {open && (
-        <div
-          role="dialog"
-          aria-label={t.title}
-          // `isolate` + `transform-gpu` force a fresh stacking context so the
-          // panel paints as a single opaque layer over the homepage's
-          // background video — without it, iOS Safari rendered the dropdown
-          // with the video bleeding through behind the cream backdrop.
-          className="fixed left-1/2 top-[5.25rem] z-[70] isolate w-[min(92vw,30rem)] -translate-x-1/2 origin-top transform-gpu border border-line bg-cream shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:left-auto sm:right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] sm:translate-x-0 sm:origin-top-right"
-        >
-          {/* Input */}
-          <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="shrink-0 text-gold"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
-            </svg>
-            <input
-              ref={inputRef}
-              type="search"
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setActive(-1);
-              }}
-              onKeyDown={onKeyDown}
-              placeholder={t.placeholder}
-              aria-label={t.title}
-              className="w-full bg-transparent text-sm tracking-wide text-ink placeholder:text-muted focus:outline-none"
-            />
-          </div>
+      {open && mounted &&
+        // Portal to document.body so the dropdown escapes the header's
+        // data-transparent CSS cascade. Inline-styled colours (rather
+        // than text-ink/text-muted classes) so the text stays readable
+        // regardless of any descendant rules that target the header.
+        createPortal(
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-label={t.title}
+            className="fixed left-1/2 top-[5.25rem] z-[70] isolate w-[min(92vw,30rem)] -translate-x-1/2 origin-top transform-gpu border border-line bg-cream shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:left-auto sm:right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] sm:translate-x-0 sm:origin-top-right"
+            style={{ color: "var(--ink)" }}
+          >
+            {/* Input */}
+            <div className="flex items-center gap-3 border-b border-line px-5 py-4">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="shrink-0"
+                style={{ color: "var(--gold)" }}
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+              </svg>
+              <input
+                ref={inputRef}
+                type="search"
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setActive(-1);
+                }}
+                onKeyDown={onKeyDown}
+                placeholder={t.placeholder}
+                aria-label={t.title}
+                className="w-full bg-transparent text-sm tracking-wide placeholder:text-muted focus:outline-none"
+                style={{ color: "var(--ink)" }}
+              />
+            </div>
 
-          {/* Body */}
-          <div className="max-h-[60vh] overflow-y-auto">
-            {q.trim().length < 2 ? (
-              <p className="px-5 py-8 text-center text-sm text-muted">{t.start}</p>
-            ) : loading ? (
-              <p className="px-5 py-8 text-center text-sm text-muted">{t.searching}</p>
-            ) : hits.length === 0 ? (
-              <p className="px-5 py-8 text-center text-sm text-muted">{t.noResults}</p>
-            ) : (
-              <ul role="listbox">
-                {hits.map((h, i) => (
-                  <li key={h.slug}>
-                    <button
-                      type="button"
-                      onMouseEnter={() => setActive(i)}
-                      onClick={() => navigate(`/${lang}/p/${h.slug}`)}
-                      className={`flex w-full items-center gap-4 px-5 py-3 text-left transition-colors ${
-                        active === i ? "bg-cream" : "hover:bg-cream"
-                      }`}
-                    >
-                      <span className="h-14 w-12 shrink-0 overflow-hidden border border-line">
-                        <ProductMedia
-                          image={h.image}
-                          seed={h.slug}
-                          label={h.name}
-                          className="h-full w-full"
-                          sizes="48px"
-                        />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="overline block text-[0.55rem]">{h.collection}</span>
-                        <span className="mt-1 block truncate font-serif text-base text-ink">
-                          {h.name}
+            {/* Body */}
+            <div className="max-h-[60vh] overflow-y-auto">
+              {q.trim().length < 2 ? (
+                <p className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                  {t.start}
+                </p>
+              ) : loading ? (
+                <p className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                  {t.searching}
+                </p>
+              ) : hits.length === 0 ? (
+                <p className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                  {t.noResults}
+                </p>
+              ) : (
+                <ul role="listbox">
+                  {hits.map((h, i) => (
+                    <li key={h.slug}>
+                      <button
+                        type="button"
+                        onMouseEnter={() => setActive(i)}
+                        onClick={() => navigate(`/${lang}/p/${h.slug}`)}
+                        className={`flex w-full items-center gap-4 px-5 py-3 text-left transition-colors ${
+                          active === i ? "bg-cream" : "hover:bg-cream"
+                        }`}
+                      >
+                        <span className="h-14 w-12 shrink-0 overflow-hidden border border-line">
+                          <ProductMedia
+                            image={h.image}
+                            seed={h.slug}
+                            label={h.name}
+                            className="h-full w-full"
+                            sizes="48px"
+                          />
                         </span>
-                      </span>
-                      <span className="shrink-0 text-sm text-muted">{h.price}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                        <span className="min-w-0 flex-1">
+                          <span className="overline block text-[0.55rem]" style={{ color: "var(--muted)" }}>
+                            {h.collection}
+                          </span>
+                          <span
+                            className="mt-1 block truncate font-serif text-base"
+                            style={{ color: "var(--ink)" }}
+                          >
+                            {h.name}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-sm" style={{ color: "var(--muted)" }}>
+                          {h.price}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-          {/* Footer */}
-          {q.trim().length >= 2 && hits.length > 0 && (
-            <button
-              type="button"
-              onClick={goToSearch}
-              className="block w-full border-t border-line bg-ink px-5 py-3.5 text-center text-xs tracking-[0.2em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
-            >
-              {t.viewAll} ({total})
-            </button>
-          )}
-        </div>
-      )}
+            {/* Footer */}
+            {q.trim().length >= 2 && hits.length > 0 && (
+              <button
+                type="button"
+                onClick={goToSearch}
+                className="block w-full border-t border-line bg-ink px-5 py-3.5 text-center text-xs tracking-[0.2em] uppercase transition-colors hover:bg-gold"
+                style={{ color: "var(--cream)" }}
+              >
+                {t.viewAll} ({total})
+              </button>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

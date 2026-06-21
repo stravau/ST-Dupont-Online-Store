@@ -245,68 +245,92 @@ export function MobileNav({
                             </li>
                           );
                         }
+                        // Section header — same caps-lock button style as the
+                        // other rows, with a subtle gold-tinted background to
+                        // signal "this opens a group" without breaking the
+                        // shared visual language.
+                        const sectionKey = `section:${entry.title.en}`;
+                        const sectionOpen = expanded.has(sectionKey);
                         return (
                           <li key={`sec-${i}`} className="border-b border-line/60">
-                            <p className="pt-5 pb-3 text-[0.65rem] font-semibold tracking-[0.22em] text-gold uppercase">
-                              {tt(entry.title)}
-                            </p>
-                            <ul className="pb-2">
-                              {entry.items.map((it) => {
-                                const key = it.label.en;
-                                if (it.children) {
-                                  const isOpen = expanded.has(key);
-                                  return (
-                                    <li key={key} className="border-t border-line/40">
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleExpanded(key)}
-                                        aria-expanded={isOpen}
-                                        className="flex w-full items-center justify-between py-3 text-left text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
-                                      >
-                                        <span>{tt(it.label)}</span>
-                                        <svg
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="1.6"
-                                          className={`transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                            <button
+                              type="button"
+                              onClick={() => toggleExpanded(sectionKey)}
+                              aria-expanded={sectionOpen}
+                              className="flex w-full items-center justify-between bg-gold/5 px-3 py-3.5 text-left text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                            >
+                              <span>{tt(entry.title)}</span>
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                className={`transition-transform duration-200 ${sectionOpen ? "rotate-90" : ""}`}
+                              >
+                                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                            {sectionOpen && (
+                              <ul className="border-t border-line/40 bg-cream/60 pl-2">
+                                {entry.items.map((it) => {
+                                  const key = it.label.en;
+                                  if (it.children) {
+                                    const isOpen = expanded.has(key);
+                                    return (
+                                      <li key={key} className="border-t border-line/40 first:border-t-0">
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleExpanded(key)}
+                                          aria-expanded={isOpen}
+                                          className="flex w-full items-center justify-between py-3 pr-3 text-left text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
                                         >
-                                          <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      </button>
-                                      {isOpen && (
-                                        <ul className="ml-4 mb-2 border-l border-gold/40 pl-4">
-                                          {it.children.map((child) => (
-                                            <li key={child.label.en}>
-                                              <Link
-                                                href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(child.collection ?? "")}`}
-                                                onClick={close}
-                                                className="block py-2 text-[0.7rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
-                                              >
-                                                {tt(child.label)}
-                                              </Link>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      )}
+                                          <span>{tt(it.label)}</span>
+                                          <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.6"
+                                            className={`transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                                          >
+                                            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                          </svg>
+                                        </button>
+                                        {isOpen && (
+                                          <ul className="ml-3 mb-2 border-l border-gold/40 pl-3">
+                                            {it.children.map((child) => (
+                                              <li key={child.label.en}>
+                                                <Link
+                                                  href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(child.collection ?? "")}`}
+                                                  onClick={close}
+                                                  className="block py-2 text-[0.7rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
+                                                >
+                                                  {tt(child.label)}
+                                                </Link>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                      </li>
+                                    );
+                                  }
+                                  return (
+                                    <li key={key} className="border-t border-line/40 first:border-t-0">
+                                      <Link
+                                        href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(it.collection ?? "")}`}
+                                        onClick={close}
+                                        className="block py-3 pr-3 text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
+                                      >
+                                        {tt(it.label)}
+                                      </Link>
                                     </li>
                                   );
-                                }
-                                return (
-                                  <li key={key} className="border-t border-line/40">
-                                    <Link
-                                      href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(it.collection ?? "")}`}
-                                      onClick={close}
-                                      className="block py-3 text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
-                                    >
-                                      {tt(it.label)}
-                                    </Link>
-                                  </li>
-                                );
-                              })}
-                            </ul>
+                                })}
+                              </ul>
+                            )}
                           </li>
                         );
                       })}
