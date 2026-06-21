@@ -61,13 +61,24 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${displaySerif.variable} ${bodySans.variable} h-full scroll-smooth`}>
-      <body className="flex min-h-full flex-col">
+      {/* bg-ink on body sits behind the footer so the "reveal from behind"
+          effect (main scrolls over a fixed footer underneath) reads as a
+          smooth transition from the cream content area into the dark
+          monogram-bg footer. */}
+      <body className="flex min-h-full flex-col bg-ink">
         <ScrollToTop />
         <SiteHeader lang={locale} />
         <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
-        <main className="flex-1">
+        {/* z-10 + bg-cream keeps the main content above the fixed footer
+            (z-0) at every scroll position except the very end. */}
+        <main className="relative z-10 flex-1 bg-cream">
           <PageTransition>{children}</PageTransition>
         </main>
+        {/* Reserve scroll space matching the footer's height so the user
+            can scroll past the end of main and reveal the fixed footer
+            underneath. Heights are conservative — slightly taller than
+            the actual footer so the reveal completes cleanly. */}
+        <div aria-hidden className="h-[420px] md:h-[300px]" />
         <SiteFooter lang={locale} />
         <RevealRoot />
       </body>
