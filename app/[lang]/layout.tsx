@@ -69,16 +69,13 @@ export default async function LocaleLayout({
         <ScrollToTop />
         <SiteHeader lang={locale} />
         <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
-        {/* z-10 + bg-cream keeps the main content above the fixed footer
-            (z-0) at every scroll position except the very end. */}
+        {/* z-10 + bg-cream keeps the main content above the sticky
+            footer (z-0) at every scroll position except the very end.
+            The footer is position:sticky bottom-0 so it reserves its
+            own height in document flow — no manual spacer required. */}
         <main className="relative z-10 flex-1 bg-cream">
           <PageTransition>{children}</PageTransition>
         </main>
-        {/* Reserve scroll space matching the footer's height so the user
-            can scroll past the end of main and reveal the fixed footer
-            underneath. Heights are conservative — slightly taller than
-            the actual footer so the reveal completes cleanly. */}
-        <div aria-hidden className="h-[420px] md:h-[300px]" />
         <SiteFooter lang={locale} />
         <RevealRoot />
       </body>

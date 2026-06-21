@@ -9,13 +9,13 @@ export function SiteFooter({ lang }: { lang: Locale }) {
   const year = new Date().getFullYear();
   const floor = lang === "pt" ? "Piso 0" : "Floor 0";
 
-  // Fixed at the viewport bottom and stacked below the cream <main>
-  // (z-0 vs main's z-10) so the page content scrolls OVER the footer.
-  // The empty spacer in the layout reserves matching scroll-room — at
-  // the end of the page the user sees the footer "reveal from behind"
-  // as the cream content lifts off the bottom of the viewport.
+  // position: sticky + bottom-0 keeps the footer pinned to the viewport
+  // bottom (z-0) while the cream <main> (z-10) scrolls OVER it. Unlike
+  // `fixed`, sticky participates in document flow — the footer reserves
+  // its own height automatically, so the reveal-from-behind effect
+  // doesn't need a manually-sized spacer to match it.
   return (
-    <footer className="fixed inset-x-0 bottom-0 z-0 monogram-bg text-cream">
+    <footer className="sticky bottom-0 z-0 monogram-bg text-cream">
       <div className="mx-auto h-px max-w-[64rem] bg-gradient-to-r from-transparent via-gold-soft to-transparent" />
 
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-7 text-center md:grid-cols-3 md:gap-12 md:py-12 md:text-left">
