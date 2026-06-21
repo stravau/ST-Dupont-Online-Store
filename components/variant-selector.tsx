@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { compareSwatch } from "@/lib/swatch-order";
 import { inquiryMailto } from "@/lib/inquiry";
+import { imgSrc } from "@/lib/img";
 
 export interface VariantOption {
   sku: string;
@@ -52,9 +54,18 @@ export function VariantSelector({
   const types = uniq(variants.map((v) => v.type).filter(Boolean) as string[]);
   const finishes = uniq(variants.map((v) => v.finish).filter(Boolean) as string[]);
   const sizes = uniq(variants.map((v) => v.size).filter(Boolean) as string[]);
-  const colorList: { label: string; hex: string[] }[] = [];
+  // Pair each unique colour with the first variant's image so the
+  // selector can render mini-photo thumbnails (see the strip below)
+  // instead of the old coloured-circle swatches.
+  const colorList: { label: string; hex: string[]; image: string | null }[] = [];
   for (const v of variants) {
-    if (v.color && !colorList.some((c) => c.label === v.color!.label)) colorList.push(v.color);
+    if (v.color && !colorList.some((c) => c.label === v.color!.label)) {
+      colorList.push({
+        label: v.color.label,
+        hex: v.color.hex,
+        image: v.image ?? null,
+      });
+    }
   }
   colorList.sort(compareSwatch);
 
@@ -145,7 +156,10 @@ export function VariantSelector({
         </fieldset>
       )}
 
-      {/* Colour — swatch circles */}
+      {/* Colour — mini photo of the same product in each colourway.
+          Side-scrolls when the strip exceeds the viewport width (3
+          fit on mobile, 5 on desktop without scroll). Fallback to a
+          coloured gradient when a variant has no image. */}
       {colorList.length > 0 && (
         <fieldset>
           <div className="flex items-baseline justify-between">
@@ -153,9 +167,14 @@ export function VariantSelector({
             {active.color && <span className="text-sm text-gold">{active.color.label}</span>}
           </div>
           {colorList.length > 1 ? (
-            <div className="mt-4 flex flex-wrap gap-3" role="radiogroup" aria-label={labels.selectColor}>
+            <div
+              className="no-scrollbar mt-4 flex gap-2 overflow-x-auto sm:gap-3"
+              role="radiogroup"
+              aria-label={labels.selectColor}
+            >
               {colorList.map((c) => {
                 const on = active.color?.label === c.label;
+                const thumb = imgSrc(c.image);
                 return (
                   <button
                     key={c.label}
@@ -165,11 +184,22 @@ export function VariantSelector({
                     aria-label={c.label}
                     title={c.label}
                     onClick={() => choose({ color: c.label })}
-                    className={`relative h-9 w-9 rounded-full ring-offset-2 ring-offset-cream transition-all duration-300 ${
-                      on ? "ring-2 ring-gold" : "ring-1 ring-line hover:ring-gold/60"
+                    className={`relative aspect-square h-16 w-16 shrink-0 overflow-hidden bg-paper transition-all duration-300 sm:h-20 sm:w-20 sm:border ${
+                      on
+                        ? "sm:border-gold sm:ring-1 sm:ring-gold"
+                        : "sm:border-line sm:hover:border-gold/60"
                     }`}
+                    style={thumb ? undefined : swatch(c.hex)}
                   >
-                    <span className="absolute inset-1 rounded-full" style={swatch(c.hex)} />
+                    {thumb && (
+                      <Image
+                        src={thumb}
+                        alt={c.label}
+                        fill
+                        sizes="80px"
+                        className="object-contain"
+                      />
+                    )}
                   </button>
                 );
               })}
