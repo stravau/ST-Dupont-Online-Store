@@ -111,20 +111,25 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
         {/* Cohiba CTA — desktop only. Pinned to the bottom-left corner of
             the video with the Maison-style minimal cue: the wordmark in
-            the display serif, an understated DISCOVER link below. Lifted
-            high enough off the bottom that the centred scroll cue doesn't
-            visually crash into it on shorter desktop viewports. */}
-        <Link
-          href={`/${locale}/c/${localeCategorySlug(locale, "isqueiros")}?col=Cohiba`}
-          className="reveal reveal-d2 absolute bottom-32 left-12 z-20 hidden text-cream sm:block lg:bottom-40 lg:left-16"
-        >
-          <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
-            {dict.hero.cohibaWordmark}
-          </h1>
-          <span className="mt-3 inline-block border-b border-cream/60 pb-1 text-xs tracking-[0.22em] uppercase transition-colors hover:border-gold-soft hover:text-gold-soft">
-            {dict.hero.discover}
-          </span>
-        </Link>
+            the display serif, an understated DISCOVER link below. A
+            second secondary link (Explore the Maison) sits below so
+            non-Cohiba visitors have a path into the catalogue. */}
+        <div className="reveal reveal-d2 absolute bottom-32 left-12 z-20 hidden text-cream sm:block lg:bottom-40 lg:left-16">
+          <Link href={`/${locale}/c/${localeCategorySlug(locale, "isqueiros")}?col=Cohiba`}>
+            <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
+              {dict.hero.cohibaWordmark}
+            </h1>
+            <span className="mt-3 inline-block border-b border-cream/60 pb-1 text-xs tracking-[0.22em] uppercase transition-colors hover:border-gold-soft hover:text-gold-soft">
+              {dict.hero.discover}
+            </span>
+          </Link>
+          <Link
+            href={`/${locale}/colecao`}
+            className="mt-5 inline-block text-[0.65rem] tracking-[0.22em] text-cream/70 uppercase transition-colors hover:text-gold-soft"
+          >
+            {locale === "pt" ? "Explorar a Maison" : "Explore the Maison"} →
+          </Link>
+        </div>
 
         {/* Mobile-only Cohiba CTA — sits OVER the video, centred, just above
             the scroll cue, hidden on sm+ (desktop has its own copy pinned
@@ -228,7 +233,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               src="/heritage/heritage-1872.png"
               alt="S.T. Dupont — 1872"
               fill
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 768px) 90vw, 480px"
               className="object-cover opacity-95"
             />
           </div>

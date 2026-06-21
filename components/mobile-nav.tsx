@@ -71,10 +71,13 @@ export function MobileNav({
     };
   }, [open]);
 
-  // Reset to the root view + collapse any expanded sub-items whenever the
-  // panel re-opens or the user backs out of a maison sub-panel.
+  // Reset to the root view only when the panel CLOSES — preserves the
+  // drilled-in maison sub-panel while it's open. Previously this fired
+  // on every toggle of `open`, so closing then reopening lost the user's
+  // place; now backing out via the close (X) button explicitly returns
+  // to root for next time.
   useEffect(() => {
-    if (open) {
+    if (!open) {
       setSelected(null);
       setExpanded(new Set());
     }

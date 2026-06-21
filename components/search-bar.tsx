@@ -88,10 +88,19 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
   // Debounced suggestions. All state updates happen inside the async
   // callback (never synchronously in the effect body).
   useEffect(() => {
+    // Strip combining diacritics before measuring length so a query
+    // of pure accents (e.g. "´´" or "áé") doesn't fire a fetch that
+    // can only ever return zero hits and read as "no results" — the
+    // backend does the same normalisation, so meaningful length is
+    // what matters.
+    const meaningful = q
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .trim();
     const query = q.trim();
     const ctrl = new AbortController();
     const id = setTimeout(async () => {
-      if (query.length < 2) {
+      if (meaningful.length < 2) {
         setHits([]);
         setTotal(0);
         setLoading(false);
@@ -200,7 +209,7 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
 
             {/* Body */}
             <div className="max-h-[60vh] overflow-y-auto">
-              {q.trim().length < 2 ? (
+              {q.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().length < 2 ? (
                 <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
                   {t.start}
                 </p>

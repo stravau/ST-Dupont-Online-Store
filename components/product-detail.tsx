@@ -121,7 +121,7 @@ export function ProductDetail({
                     src={src}
                     alt={label}
                     fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 100vw, 640px"
                     priority={i === 0}
                     className="object-contain will-change-transform"
                     style={

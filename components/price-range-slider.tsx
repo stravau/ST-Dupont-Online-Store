@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 // Dual-thumb price range slider. Two overlapping <input type=range>
@@ -33,6 +33,9 @@ export function PriceRangeSlider({
   const router = useRouter();
   const [lo, setLo] = useState(initialMin);
   const [hi, setHi] = useState(initialMax);
+  // Track whether the user is mid-drag — only commit on release, never
+  // on every onChange tick (would spam the router and lag the URL).
+  const draggingRef = useRef(false);
 
   useEffect(() => {
     setLo(initialMin);
@@ -48,11 +51,27 @@ export function PriceRangeSlider({
     router.push(qs ? `${basePath}?${qs}` : basePath);
   }
 
+  // Effect-driven commit — after the user releases the thumb the
+  // release handlers flip `draggingRef.current = true`; the effect
+  // then fires on the next (lo, hi) change with the current state in
+  // scope, sidestepping the stale-closure issue the old onMouseUp
+  // handler had on fast drags (the bound callback captured (lo, hi)
+  // at render time, before the final tick had landed).
+  useEffect(() => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    commit(lo, hi);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lo, hi]);
+
   function onLoChange(v: number) {
     setLo(Math.min(v, hi - step));
   }
   function onHiChange(v: number) {
     setHi(Math.max(v, lo + step));
+  }
+  function flag() {
+    draggingRef.current = true;
   }
 
   const span = Math.max(1, max - min);
@@ -102,11 +121,9 @@ export function PriceRangeSlider({
           aria-label={`${label} — min`}
           aria-valuetext={`${currencySymbol}${lo}`}
           onChange={(e) => onLoChange(+e.target.value)}
-          onMouseUp={() => commit(lo, hi)}
-          onTouchEnd={() => commit(lo, hi)}
-          onKeyUp={(e) => {
-            if (e.key === "Enter" || e.key === " ") commit(lo, hi);
-          }}
+          onMouseUp={flag}
+          onTouchEnd={flag}
+          onKeyUp={flag}
           // Lower input on top so the user can always grab the min
           // thumb; once the min is close to max, the user can still
           // grab the max thumb from its visible edge (which sticks out
@@ -123,11 +140,9 @@ export function PriceRangeSlider({
           aria-label={`${label} — max`}
           aria-valuetext={`${currencySymbol}${hi}`}
           onChange={(e) => onHiChange(+e.target.value)}
-          onMouseUp={() => commit(lo, hi)}
-          onTouchEnd={() => commit(lo, hi)}
-          onKeyUp={(e) => {
-            if (e.key === "Enter" || e.key === " ") commit(lo, hi);
-          }}
+          onMouseUp={flag}
+          onTouchEnd={flag}
+          onKeyUp={flag}
           className="range-thumb absolute inset-0 m-0 w-full appearance-none bg-transparent"
           style={{ zIndex: 3 }}
         />
