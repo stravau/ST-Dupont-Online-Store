@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import { getProduct, getCategory, getRelatedProducts, expandProductCards, formatPrice } from "@/lib/catalog";
+import { getProduct, getCategory, getRelatedProducts, getMostViewed, expandProductCards, formatPrice } from "@/lib/catalog";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
 import { ProductCard } from "@/components/product-card";
 import { ProductDetail } from "@/components/product-detail";
 import { SimilarProducts } from "@/components/similar-products";
+import { TrackProductView } from "@/components/track-product-view";
 import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR } from "@/lib/store-info";
 
@@ -66,6 +67,16 @@ export default async function ProductPage({
     expandProductCards(p).map(({ sku }) => ({
       key: `${p.slug}-${sku}`,
       node: <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
+    })),
+  );
+  // Most-viewed across the whole catalogue, excluding the current
+  // product. Hidden by SimilarProducts when fewer than 4 entries exist
+  // (i.e. while traffic data is still warming up).
+  const mostViewed = await getMostViewed(15, product.slug);
+  const mostViewedItems = mostViewed.flatMap((p) =>
+    expandProductCards(p).map(({ sku }) => ({
+      key: `mv-${p.slug}-${sku}`,
+      node: <ProductCard key={`mv-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
     })),
   );
 
@@ -161,6 +172,14 @@ export default async function ProductPage({
         title={dict.product.youMayAlsoLike}
         subtitle={dict.product.youMayAlsoLikeSub}
       />
+
+      <SimilarProducts
+        items={mostViewedItems}
+        title={dict.product.mostViewed}
+        subtitle={dict.product.mostViewedSub}
+      />
+
+      <TrackProductView slug={product.slug} />
     </div>
   );
 }

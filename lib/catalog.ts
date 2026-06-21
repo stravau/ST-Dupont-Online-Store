@@ -365,6 +365,27 @@ function hashCode(s: string): number {
   return h;
 }
 
+// Pulled from the denormalised Product.viewCount column. Excludes the
+// current product when a slug is passed in so the carousel under a PDP
+// never recommends the page you're already on. Limit defaults match the
+// rest of the catalogue helpers.
+export async function getMostViewed(
+  limit = 12,
+  excludeSlug?: string,
+): Promise<Product[]> {
+  const rows = await prisma.product.findMany({
+    where: {
+      active: true,
+      viewCount: { gt: 0 },
+      ...(excludeSlug ? { NOT: { slug: excludeSlug } } : {}),
+    },
+    orderBy: { viewCount: "desc" },
+    include: productInclude,
+    take: limit,
+  });
+  return rows.map(mapProduct);
+}
+
 export async function getNovelties(limit = 6): Promise<Product[]> {
   // "New Releases by the Maison" — bias toward exclusive, higher-end
   // lighters so the home grid leads with the maison's signature pieces

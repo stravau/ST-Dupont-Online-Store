@@ -31,14 +31,14 @@ export function SimilarProducts({
   };
 
   return (
-    <section className="mt-20 border-t border-line pt-16">
+    <section className="mt-10 border-t border-line pt-10">
       <div className="reveal text-center">
         <p className="overline">{title}</p>
-        {subtitle && <p className="mt-4 text-sm text-muted">{subtitle}</p>}
-        <div className="gold-rule mx-auto mt-7" />
+        {subtitle && <p className="mt-3 text-sm text-muted">{subtitle}</p>}
+        <div className="gold-rule mx-auto mt-5" />
       </div>
 
-      <div className="relative mt-10">
+      <div className="relative mt-7">
         {/* Prev / next chevrons — desktop only. On mobile, touch-swipe is
             faster than tapping a button, and the buttons would crowd the
             cards on a narrow screen. */}

@@ -134,6 +134,8 @@ const dictionaries = {
       descriptionTitle: "Descrição",
       youMayAlsoLike: "Pode também gostar",
       youMayAlsoLikeSub: "Uma seleção da maison, escolhida a dedo para si",
+      mostViewed: "Artigos mais vistos",
+      mostViewedSub: "As peças que mais despertam a atenção dos nossos visitantes",
     },
     footer: {
       tagline: "Maison de luxe française · desde 1872",
@@ -308,6 +310,8 @@ const dictionaries = {
       descriptionTitle: "Description",
       youMayAlsoLike: "You may also like",
       youMayAlsoLikeSub: "A selection from the Maison, hand-picked for you",
+      mostViewed: "Most viewed",
+      mostViewedSub: "The pieces our visitors are talking about right now",
     },
     footer: {
       tagline: "Maison de luxe française · since 1872",

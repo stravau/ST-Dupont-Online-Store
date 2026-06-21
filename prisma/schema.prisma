@@ -168,16 +168,39 @@ model Product {
   categoryId  String
   featured    Boolean @default(false) // surfaced in "Novidades"
   active      Boolean @default(true)
+  // Denormalised hit counter — incremented on each PDP impression. Drives
+  // the "Most viewed" carousel and the admin analytics panel. The
+  // ProductView table below holds the per-impression rows for richer
+  // reporting (time-series, traffic source) when admin needs to drill in.
+  viewCount   Int     @default(0)
 
   category Category         @relation(fields: [categoryId], references: [id])
   variants ProductVariant[]
   wishlistItems WishlistItem[]
+  views    ProductView[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
   @@index([active])
+  @@index([viewCount])
+}
+
+// One row per PDP impression. The PDP fires a small POST after mount;
+// this table backs admin analytics (counts over time, popular days,
+// per-product trends). Anonymous — no userId, no IP — so privacy stays
+// clean. The denormalised Product.viewCount above mirrors COUNT(*) for
+// fast catalogue sorting without touching this table.
+model ProductView {
+  id        String   @id @default(cuid())
+  productId String
+  viewedAt  DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([viewedAt])
 }
 
 model ProductVariant {
