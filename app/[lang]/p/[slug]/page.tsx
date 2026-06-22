@@ -120,22 +120,31 @@ export default async function ProductPage({
     ...compatibleProducts,
     ...related.filter((r) => !compatibleProducts.some((c) => c.slug === r.slug)),
   ].slice(0, 15);
-  const relatedItems = relatedMerged.flatMap((p) =>
-    expandProductCards(p).map(({ sku }) => ({
-      key: `${p.slug}-${sku}`,
-      node: <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
-    })),
-  );
+  // Hard cap at 15 CARDS (not 15 products) — without the slice, every
+  // related product expands into one card per colourway, so 15 multi-
+  // colour products explode the carousel to 40+ tiles.
+  const relatedItems = relatedMerged
+    .flatMap((p) =>
+      expandProductCards(p).map(({ sku }) => ({
+        key: `${p.slug}-${sku}`,
+        node: <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
+      })),
+    )
+    .slice(0, 15);
   // Most-viewed across the whole catalogue, excluding the current
   // product. Hidden by SimilarProducts when fewer than 4 entries exist
   // (i.e. while traffic data is still warming up).
   const mostViewed = await getMostViewed(15, product.slug);
-  const mostViewedItems = mostViewed.flatMap((p) =>
-    expandProductCards(p).map(({ sku }) => ({
-      key: `mv-${p.slug}-${sku}`,
-      node: <ProductCard key={`mv-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
-    })),
-  );
+  // Same 15-CARD cap as relatedItems — expandProductCards inflates per
+  // colourway, so without the slice the carousel runs 30-50 tiles long.
+  const mostViewedItems = mostViewed
+    .flatMap((p) =>
+      expandProductCards(p).map(({ sku }) => ({
+        key: `mv-${p.slug}-${sku}`,
+        node: <ProductCard key={`mv-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
+      })),
+    )
+    .slice(0, 15);
 
   // Product JSON-LD — Schema.org Product with AggregateOffer over the
   // variants. Tells Google this is a real catalogue item with price

@@ -76,8 +76,10 @@ export function CategoryPaged({
       </div>
       {hasMobileOverflow && (
         <div className="mt-10 text-center sm:hidden">
+          {/* scroll={false} — keep the user where they tapped from. */}
           <Link
             href={showAllHref}
+            scroll={false}
             className="inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
           >
             {showAllLabel}

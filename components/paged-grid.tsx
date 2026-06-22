@@ -37,8 +37,12 @@ export function PagedGrid({
       </div>
       {hasOverflow && (
         <div className="mt-10 text-center sm:hidden">
+          {/* scroll={false} so Next.js doesn't auto-scroll to top on click
+              — we want the user to STAY on the bottom of the page and
+              just see more items load below. */}
           <Link
             href={showAllHref}
+            scroll={false}
             className="inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"
           >
             {showAllLabel}

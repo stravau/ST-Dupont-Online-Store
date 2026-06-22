@@ -10,8 +10,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 // pathname, a new filter, a new sort) still scrolls.
 //
 // To detect that: remember the previous (pathname, params) and compare. If
-// only `all` or `page` changed, we skip the scroll.
-const STAY_PUT_KEYS = new Set(["all", "page"]);
+// only `all` changed, we skip the scroll. (Paginator next/prev DOES scroll
+// because the user expects page 2 from the top; only the "Show all" toggle
+// is exempt.)
+const STAY_PUT_KEYS = new Set(["all"]);
 
 export function ScrollToTop() {
   const pathname = usePathname();

@@ -136,8 +136,12 @@ export default async function CategoryPage({
   const catMin = prices.length ? Math.min(...prices) : 0;
   const catMax = prices.length ? Math.max(...prices) : 0;
   // Round to a friendly step (€10) — the slider snaps to the same grid.
+  // Hard ceiling at €5000: anything north of that is haute-création /
+  // bespoke territory and shouldn't stretch the bar so far that 80% of
+  // the visible products bunch up in the left 5%.
+  const PRICE_CEILING = 5000;
   const flooredMin = Math.floor(catMin / 10) * 10;
-  const ceiledMax = Math.ceil(catMax / 10) * 10;
+  const ceiledMax = Math.min(PRICE_CEILING, Math.ceil(catMax / 10) * 10);
   const parsePrice = (s: string | undefined) => {
     if (!s) return undefined;
     const n = Number.parseInt(s, 10);
