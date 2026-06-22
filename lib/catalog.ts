@@ -358,6 +358,27 @@ export async function getProductsByCategory(
   return rows.map(mapProduct).filter((p) => p.categorySlug === slug);
 }
 
+// Cross-category theme aggregation. The "Cohiba" / "Monogram 1872" / similar
+// themes live across lighters, accessories, leather goods at the same time
+// (the official Cohiba 60th-anniversary capsule has lighters AND a 2-cigar
+// case AND cufflinks AND an ashtray). The per-category page only ever shows
+// one slice; this returns the WHOLE theme for the /colecao/[theme] route.
+//
+// Match is the same slug-substring strategy as the per-category col filter
+// (COLLECTION_SLUG_PATTERNS), but unscoped to a category.
+export async function getProductsByTheme(themeLabel: string): Promise<Product[]> {
+  const pattern = COLLECTION_SLUG_PATTERNS[themeLabel];
+  const where = pattern
+    ? { active: true, OR: [{ collection: themeLabel }, { slug: { contains: pattern } }] }
+    : { active: true, collection: themeLabel };
+  const rows = await prisma.product.findMany({
+    where,
+    include: productInclude,
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map(mapProduct);
+}
+
 export async function getCollections(categorySlug: string): Promise<string[]> {
   // Derive from the effective category so overridden products contribute their
   // collection too (and incorrectly-stored ones drop out).

@@ -113,7 +113,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             the video with the Maison-style minimal cue: the wordmark in
             the display serif, an understated DISCOVER link below. */}
         <div className="reveal reveal-d2 absolute bottom-32 left-12 z-20 hidden text-cream sm:block lg:bottom-40 lg:left-16">
-          <Link href={`/${locale}/c/${localeCategorySlug(locale, "isqueiros")}?col=Cohiba`}>
+          <Link href={`/${locale}/colecao/cohiba`}>
             <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
               {dict.hero.cohibaWordmark}
             </h1>
@@ -127,7 +127,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             the scroll cue, hidden on sm+ (desktop has its own copy pinned
             bottom-left of the video). */}
         <Link
-          href={`/${locale}/c/${localeCategorySlug(locale, "isqueiros")}?col=Cohiba`}
+          href={`/${locale}/colecao/cohiba`}
           className="reveal reveal-d2 absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
         >
           <h2 className="font-serif text-xl whitespace-nowrap uppercase tracking-wide">
