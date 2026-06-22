@@ -401,6 +401,14 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
    wrapper paints the line + selected fill); each thumb is a tiny gold
    circle that re-enables pointer events so users can grab either
    handle, including when they sit on top of each other. */
+/* Disable pointer events on the input track itself, then re-enable on the
+   thumb only. With two inputs overlapping the same physical track this is
+   the ONLY reliable way to make both thumbs grabbable — without it the
+   stacking-context z-index trick (lower input on top) leaves the upper
+   thumb permanently blocked once the lower one is anywhere past 0%. */
+.range-thumb {
+  pointer-events: none;
+}
 .range-thumb::-webkit-slider-runnable-track {
   background: transparent;
   border: none;
@@ -421,6 +429,7 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   border: 2px solid var(--cream);
   box-shadow: 0 0 0 1px var(--gold);
   cursor: grab;
+  pointer-events: auto;
 }
 .range-thumb::-webkit-slider-thumb:active {
   cursor: grabbing;
@@ -433,6 +442,7 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   border: 2px solid var(--cream);
   box-shadow: 0 0 0 1px var(--gold);
   cursor: grab;
+  pointer-events: auto;
 }
 .range-thumb::-moz-range-thumb:active {
   cursor: grabbing;

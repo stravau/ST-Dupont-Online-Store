@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { STORE, mapsEmbedSrc, mapsDirectionsUrl } from "@/lib/store-info";
@@ -29,22 +30,34 @@ export default async function StorePage({
 
   return (
     <div>
-      {/* Hero */}
-      <section className="monogram-bg text-cream">
-        <div className="mx-auto max-w-4xl px-6 py-28 text-center">
+      {/* Hero — full-bleed photo of the El Corte Inglés Lisbon entrance
+          (the building the boutique is in) with the same ink scrim + gold
+          accents used on the category pages, so the page reads as part of
+          the brand chrome rather than a generic info page. */}
+      <section className="relative overflow-hidden text-cream">
+        <Image
+          src="/store/eci-mall.jpg"
+          alt={STORE.venue}
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 z-0 object-cover object-center"
+        />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/70 via-ink/55 to-ink/80" />
+        <div className="relative z-20 mx-auto max-w-4xl px-6 py-28 text-center md:py-36">
           <p className="overline text-gold-soft">{s.eyebrow}</p>
           <h1 className="mt-6 font-serif text-5xl font-light leading-tight md:text-6xl">
             {s.title}
           </h1>
           <div className="gold-rule mx-auto my-8" />
-          <p className="mx-auto max-w-2xl text-base font-light text-cream/75 md:text-lg">
+          <p className="mx-auto max-w-2xl text-base font-light text-cream/85 md:text-lg">
             {s.lede}
           </p>
           <a
             href={mapsDirectionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-10 inline-flex items-center gap-3 border border-gold-soft px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
+            className="mt-10 inline-flex items-center gap-3 border border-gold-soft bg-ink/30 px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase backdrop-blur-sm transition-colors duration-300 hover:bg-gold-soft hover:text-ink"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
               <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" strokeLinejoin="round" />

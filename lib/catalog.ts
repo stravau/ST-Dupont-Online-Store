@@ -542,26 +542,27 @@ function lev(a: string, b: string, max: number): number {
   return prev[n];
 }
 
-// Direct substring is the first chance to match — covers "ligne", "fuente",
-// SKUs, etc. If it misses, treat the term as a possible typo and accept it if
-// any word in the blob is within a small edit distance (1 for short terms, 2
-// for longer ones). Very short terms (≤3) only match exactly to avoid noise.
+// Substring match first. The Levenshtein fallback was making "ligne 2"
+// fuzzy-match into unrelated products via per-term typo tolerance (and
+// once we also searched the description blob, words like "ligne" matched
+// every "lighter" / "line" / "lined…" mention in body copy). New rule:
+// fuzzy only on multi-word queries' SHORT (≤6 char) terms, edit distance
+// 1 only. Anything longer requires an exact substring hit.
 function termMatches(term: string, blob: string, words: string[]): boolean {
   if (blob.includes(term)) return true;
-  const limit = term.length <= 3 ? 0 : term.length <= 6 ? 1 : 2;
-  if (limit === 0) return false;
+  if (term.length < 4 || term.length > 6) return false;
   for (const w of words) {
-    if (Math.abs(w.length - term.length) > limit) continue;
-    if (lev(term, w, limit) <= limit) return true;
+    if (Math.abs(w.length - term.length) > 1) continue;
+    if (lev(term, w, 1) <= 1) return true;
   }
   return false;
 }
 
 // Full-catalogue search. Each term must match (AND) somewhere across product
-// name (PT/EN), description, collection, category slug + name, variant
-// finish/SKU. Substring first; falls back to a small edit-distance check so
-// "dupnt" still finds "dupont". Catalogue is small enough that in-memory
-// filtering is exact and fast.
+// name (PT/EN), collection, category slug + name, and variant name / SKU.
+// We DELIBERATELY no longer search the body description — the long-form
+// brand copy was polluting matches (a search for "ligne 2" was pulling in
+// any product whose description happened to mention 'ligne' or '2').
 export async function searchProducts(query: string): Promise<Product[]> {
   const q = normalize(query);
   if (!q) return [];
@@ -583,8 +584,6 @@ export async function searchProducts(query: string): Promise<Product[]> {
       [
         p.name.pt,
         p.name.en,
-        p.description.pt,
-        p.description.en,
         p.collection,
         p.categorySlug,
         cn?.pt,
