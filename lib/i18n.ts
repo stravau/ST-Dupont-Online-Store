@@ -152,6 +152,8 @@ const dictionaries = {
       youMayAlsoLikeSub: "Uma seleção da maison, escolhida a dedo para si",
       mostViewed: "Artigos mais vistos",
       mostViewedSub: "As peças que mais despertam a atenção dos nossos visitantes",
+      compatibleRefills: "Recargas compatíveis",
+      compatibleRefillsSub: "Os consumíveis recomendados para este artigo",
     },
     footer: {
       tagline: "Maison de luxe française · desde 1872",
@@ -344,6 +346,8 @@ const dictionaries = {
       youMayAlsoLikeSub: "A selection from the Maison, hand-picked for you",
       mostViewed: "Most viewed",
       mostViewedSub: "The pieces our visitors are talking about right now",
+      compatibleRefills: "Compatible refills",
+      compatibleRefillsSub: "The recommended consumables for this item",
     },
     footer: {
       tagline: "Maison de luxe française · since 1872",

@@ -111,19 +111,26 @@ export default async function ProductPage({
     product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale, compatibleSummary)]),
   );
 
-  // Expand related products into (product, sku) tiles on the server and
-  // pre-render each as a ProductCard. Compatible refills / flints come
-  // first so the carousel leads with the matched accessories before
-  // the broader same-category recommendations.
+  // Compatible refills / flints — parsed from the marketing description's
+  // "Associated refills: 040112 Blue …" callouts. Rendered in their own
+  // "Recargas compatíveis" carousel above the generic "You may also
+  // like" row, so the recommendation is precise (the EXACT consumables
+  // the product copy names) rather than mixed in with broader same-
+  // category picks.
+  const compatibleItems = compatibleProducts
+    .flatMap((p) =>
+      expandProductCards(p).map(({ sku }) => ({
+        key: `cr-${p.slug}-${sku}`,
+        node: <ProductCard key={`cr-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
+      })),
+    )
+    .slice(0, 15);
+  // Broader "You may also like" — same-category recommendations from the
+  // related-products scorer. Refills are NOT prepended here any more
+  // (they live in their own dedicated carousel) so this stays cleanly
+  // about discoverability of the rest of the catalogue.
   const related = await getRelatedProducts(product, 15);
-  const relatedMerged = [
-    ...compatibleProducts,
-    ...related.filter((r) => !compatibleProducts.some((c) => c.slug === r.slug)),
-  ].slice(0, 15);
-  // Hard cap at 15 CARDS (not 15 products) — without the slice, every
-  // related product expands into one card per colourway, so 15 multi-
-  // colour products explode the carousel to 40+ tiles.
-  const relatedItems = relatedMerged
+  const relatedItems = related
     .flatMap((p) =>
       expandProductCards(p).map(({ sku }) => ({
         key: `${p.slug}-${sku}`,
@@ -274,6 +281,15 @@ export default async function ProductPage({
             {product.history[locale]}
           </p>
         </section>
+      )}
+
+      {compatibleItems.length > 0 && (
+        <SimilarProducts
+          items={compatibleItems}
+          title={dict.product.compatibleRefills}
+          subtitle={dict.product.compatibleRefillsSub}
+          minItems={1}
+        />
       )}
 
       <SimilarProducts
