@@ -22,7 +22,7 @@ export async function PATCH(
 
   const current = await prisma.productVariant.findUnique({
     where: { id },
-    select: { id: true, sku: true, ean: true, priceCents: true, status: true, stock: true },
+    select: { id: true, sku: true, ean: true, priceCents: true, status: true, stock: true, description: true },
   });
   if (!current) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
 
@@ -56,6 +56,21 @@ export async function PATCH(
     if (typeof v !== "number" || !Number.isInteger(v) || v < 0) return NextResponse.json({ ok: false, error: "stock invalid" }, { status: 400 });
     data.stock = v;
     if (v !== current.stock) { before.stock = current.stock; after.stock = v; }
+  }
+  // Per-colourway description override — JSON { pt, en } | null. Pass
+  // null to clear the override and have the PDP fall back to the parent
+  // Product.description copy.
+  if ("description" in body) {
+    const v = body.description;
+    const valid =
+      v === null ||
+      (v !== null && typeof v === "object" && !Array.isArray(v) &&
+       (("pt" in v && typeof (v as Record<string, unknown>).pt === "string") ||
+        ("en" in v && typeof (v as Record<string, unknown>).en === "string")));
+    if (!valid) return NextResponse.json({ ok: false, error: "description must be { pt?, en? } or null" }, { status: 400 });
+    data.description = v as object | null;
+    before.description = current.description;
+    after.description = v;
   }
 
   if (Object.keys(data).length === 0) {

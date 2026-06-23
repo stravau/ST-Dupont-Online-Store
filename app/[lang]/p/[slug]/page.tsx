@@ -110,6 +110,12 @@ export default async function ProductPage({
   const specsByVariant = Object.fromEntries(
     product.variants.map((v) => [v.sku, buildSpecs(product, cat, v, locale, compatibleSummary)]),
   );
+  // Per-colourway description override map. Each entry is null when the
+  // variant inherits the parent product copy; a localised string when
+  // the variant has its own story (set in /admin/variants).
+  const descriptionByVariant = Object.fromEntries(
+    product.variants.map((v) => [v.sku, v.description?.[locale] ?? null]),
+  );
 
   // Compatible refills / flints — parsed from the marketing description's
   // "Associated refills: 040112 Blue …" callouts. Rendered in their own
@@ -201,6 +207,7 @@ export default async function ProductPage({
         specsByVariant={specsByVariant}
         specsTitle={dict.product.specs}
         description={product.description[locale]}
+        descriptionByVariant={descriptionByVariant}
         descriptionTitle={dict.product.descriptionTitle}
         galleryLabels={{
           previous: dict.common.previousImage,

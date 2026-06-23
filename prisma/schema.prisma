@@ -218,6 +218,11 @@ model ProductVariant {
   productId     String
   sku           String   @unique
   name          Json // Localized — e.g. { pt: "Paládio", en: "Palladium" }
+  // Optional per-colourway override of the parent Product.description.
+  // Set when a single colourway has its own copy (special edition, limited
+  // run, finish-specific story). Null = inherit from Product. Localized
+  // shape { pt, en } same as Product.description.
+  description   Json?
   attributes    Json     @default("{}") // { finish: "palladium", color: "black" }
   priceCents    Int
   currency      String   @default("EUR")

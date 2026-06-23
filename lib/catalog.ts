@@ -28,6 +28,7 @@ export type VariantStatus = "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
 export interface Variant {
   sku: string;
   name: Localized;
+  description: Localized | null; // per-colourway copy; null = inherit Product.description
   priceCents: number;
   currency: "EUR";
   attributes: VariantAttributes;
@@ -98,6 +99,7 @@ const loc = (j: unknown): Localized => j as Localized;
 type VariantRow = {
   sku: string;
   name: unknown;
+  description?: unknown; // optional — older rows pre-migration won't include it
   priceCents: number;
   currency: string;
   attributes: unknown;
@@ -198,6 +200,7 @@ function mapProduct(p: ProductRow): Product {
       return {
         sku: v.sku,
         name: vName,
+        description: v.description ? loc(v.description) : null,
         priceCents: v.priceCents,
         currency: v.currency as "EUR",
         attributes: attrs,

@@ -131,9 +131,14 @@ export function VariantRow({
           ) : (
             <span className="truncate text-muted">{productName}</span>
           )}
-          <Link href={`/admin/variants/${sku}/images`} className="text-[0.6rem] tracking-[0.16em] text-gold uppercase transition-colors hover:underline">
-            Imagens →
-          </Link>
+          <div className="flex gap-3 text-[0.6rem] tracking-[0.16em] text-gold uppercase">
+            <Link href={`/admin/variants/${sku}/images`} className="transition-colors hover:underline">
+              Imagens →
+            </Link>
+            <Link href={`/admin/variants/${sku}/description`} className="transition-colors hover:underline">
+              Descrição →
+            </Link>
+          </div>
         </div>
       </td>
     </tr>

@@ -24,6 +24,7 @@ export function ProductDetail({
   specsByVariant,
   specsTitle,
   description,
+  descriptionByVariant,
   descriptionTitle,
   galleryLabels = { previous: "Previous image", next: "Next image", image: "Image" },
 }: {
@@ -39,6 +40,7 @@ export function ProductDetail({
   specsByVariant: Record<string, Spec[]>;
   specsTitle: string;
   description?: string;
+  descriptionByVariant?: Record<string, string | null | undefined>;
   descriptionTitle?: string;
   galleryLabels?: { previous: string; next: string; image: string };
 }) {
@@ -199,10 +201,16 @@ export function ProductDetail({
 
       {/* Description disclosure — sits immediately above the spec
           collapsible so the two read as a pair of complementary
-          "tell me more" toggles. Hidden when no copy is supplied. */}
-      {description && descriptionTitle && (
-        <DescriptionDetails title={descriptionTitle} body={description} />
-      )}
+          "tell me more" toggles. Hidden when no copy is supplied.
+          When a per-colourway override exists for the active variant
+          it replaces the parent description (special editions / one-
+          off finishes get their own story). */}
+      {(() => {
+        const body = descriptionByVariant?.[activeSku] ?? description;
+        return body && descriptionTitle ? (
+          <DescriptionDetails title={descriptionTitle} body={body} />
+        ) : null;
+      })()}
       <SpecDetails title={specsTitle} specs={specsByVariant[activeSku] ?? []} />
     </>
   );
