@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -23,20 +24,39 @@ function formatValue(key: string, v: unknown): string {
     const d = new Date(String(v));
     if (!Number.isNaN(d.getTime())) return d.toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
   }
-  if (k === "images" && Array.isArray(v)) return `${v.length} imagens`;
-  if (typeof v === "object") return JSON.stringify(v);
+  if (k === "images" && Array.isArray(v)) return `${v.length} ${v.length === 1 ? "imagem" : "imagens"}`;
+  // Localized text shapes — { pt, en } show as the PT slice for read-
+  // ability, with EN as a tooltip on the rendered span.
+  if (typeof v === "object" && v !== null) {
+    const obj = v as Record<string, unknown>;
+    if (typeof obj.pt === "string" || typeof obj.en === "string") {
+      const ptStr = typeof obj.pt === "string" ? obj.pt : "";
+      const enStr = typeof obj.en === "string" ? obj.en : "";
+      const pick = ptStr || enStr || "";
+      return pick.length > 80 ? pick.slice(0, 77) + "…" : pick;
+    }
+    return JSON.stringify(v);
+  }
   return String(v);
 }
 
 const STATUS_TONE: Record<string, string> = {
-  DISPONIVEL: "bg-[#2bb673]/10 text-[#1f7a4d]",
-  INDISPONIVEL: "bg-[#d4a017]/10 text-[#7e5e00]",
-  DESCONTINUADO: "bg-[#8b95a6]/15 text-[#4a5466]",
+  DISPONIVEL:    "bg-[#2bb673]/15 text-[#155f3a]",
+  INDISPONIVEL:  "bg-[#d4a017]/15 text-[#6a4f00]",
+  DESCONTINUADO: "bg-[#8b95a6]/20 text-[#3a4452]",
 };
 
 function renderField(key: string, value: unknown) {
   if (typeof value === "string" && value in STATUS_TONE) {
     return <span className={`inline-block px-2 py-0.5 text-[0.6rem] tracking-[0.14em] uppercase ${STATUS_TONE[value]}`}>{value}</span>;
+  }
+  // For localised-text shapes, surface the EN translation as a tooltip
+  // so the admin can hover-confirm without expanding the row.
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.en === "string") {
+      return <span className="font-mono text-[0.7rem] tabular-nums text-ink" title={obj.en}>{formatValue(key, value)}</span>;
+    }
   }
   return <span className="font-mono text-[0.7rem] tabular-nums text-ink">{formatValue(key, value)}</span>;
 }
@@ -70,17 +90,18 @@ function relativeTime(d: Date, now: Date): string {
 export default async function AdminAuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ entityType?: string; entityId?: string; action?: string; page?: string }>;
+  searchParams: Promise<{ entityType?: string; entityId?: string; action?: string; userEmail?: string; page?: string }>;
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
 
-  const where: { entityType?: string; entityId?: string; action?: string } = {};
+  const where: { entityType?: string; entityId?: string; action?: string; user?: { email: string } } = {};
   if (sp.entityType) where.entityType = sp.entityType;
   if (sp.entityId)   where.entityId   = sp.entityId;
   if (sp.action)     where.action     = sp.action;
+  if (sp.userEmail)  where.user       = { email: sp.userEmail };
 
-  const [total, rows] = await Promise.all([
+  const [total, rows, adminUsers] = await Promise.all([
     prisma.adminAction.count({ where }),
     prisma.adminAction.findMany({
       where,
@@ -89,15 +110,40 @@ export default async function AdminAuditPage({
       take: PAGE_SIZE,
       include: { user: { select: { email: true } } },
     }),
+    // Distinct admins who have ever generated an action — feeds the
+    // user filter dropdown without having to scrape the rendered rows.
+    prisma.user.findMany({
+      where: { role: "ADMIN", adminActions: { some: {} } },
+      select: { email: true },
+      orderBy: { email: "asc" },
+    }),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const hasFilters = sp.entityType || sp.entityId || sp.action;
+
+  // Clamp page overflow — `?page=999` on a 2-page result previously
+  // returned an empty page. Now redirects to the last real page so the
+  // admin doesn't see "Sem actividade" on a healthy log.
+  if (page > totalPages && total > 0) {
+    const params = new URLSearchParams();
+    if (sp.entityType) params.set("entityType", sp.entityType);
+    if (sp.entityId)   params.set("entityId",   sp.entityId);
+    if (sp.action)     params.set("action",     sp.action);
+    if (sp.userEmail)  params.set("userEmail",  sp.userEmail);
+    if (totalPages > 1) params.set("page", String(totalPages));
+    const qs = params.toString();
+    redirect(`/admin/audit${qs ? `?${qs}` : ""}`);
+  }
+  const hasFilters = sp.entityType || sp.entityId || sp.action || sp.userEmail;
 
   // Group rows by calendar day so the timeline reads in stages.
+  // Use the LOCAL day boundary, not UTC — previously a row near
+  // midnight Lisbon time would jump days vs the visible label.
   type Group = { day: string; label: string; items: typeof rows };
   const groups: Group[] = [];
+  const dayKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   for (const r of rows) {
-    const day = r.createdAt.toISOString().slice(0, 10);
+    const day = dayKey(r.createdAt);
     const last = groups[groups.length - 1];
     if (last && last.day === day) last.items.push(r);
     else groups.push({ day, label: r.createdAt.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" }), items: [r] });
@@ -108,6 +154,7 @@ export default async function AdminAuditPage({
     if (sp.entityType) params.set("entityType", sp.entityType);
     if (sp.entityId)   params.set("entityId",   sp.entityId);
     if (sp.action)     params.set("action",     sp.action);
+    if (sp.userEmail)  params.set("userEmail",  sp.userEmail);
     if (target > 1)    params.set("page",       String(target));
     const qs = params.toString();
     return `/admin/audit${qs ? `?${qs}` : ""}`;
@@ -123,7 +170,7 @@ export default async function AdminAuditPage({
         subtitle={`${total.toLocaleString("pt-PT")} acções registadas${totalPages > 1 ? ` · página ${page} de ${totalPages}` : ""}.`}
       />
 
-      <form method="get" className="grid items-end gap-3 border border-line bg-paper p-5 sm:grid-cols-4">
+      <form method="get" className="grid items-end gap-3 border border-line bg-paper p-5 sm:grid-cols-2 lg:grid-cols-5">
         <label className="block">
           <span className="overline mb-1.5 block text-[0.55rem] text-muted">Tipo</span>
           <select name="entityType" defaultValue={sp.entityType ?? ""} className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold">
@@ -145,11 +192,20 @@ export default async function AdminAuditPage({
           </select>
         </label>
         <label className="block">
+          <span className="overline mb-1.5 block text-[0.55rem] text-muted">Utilizador</span>
+          <select name="userEmail" defaultValue={sp.userEmail ?? ""} className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold">
+            <option value="">Todos</option>
+            {adminUsers.map((u) => (
+              <option key={u.email} value={u.email}>{u.email}</option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
           <span className="overline mb-1.5 block text-[0.55rem] text-muted">ID (sku ou slug)</span>
           <input name="entityId" defaultValue={sp.entityId ?? ""} placeholder="STD000430, popote…" className="w-full border border-line bg-paper px-3 py-2 font-mono text-xs outline-none focus:border-gold" />
         </label>
         <div className="flex items-center gap-3">
-          <button type="submit" className="bg-ink px-5 py-2 text-xs tracking-[0.2em] text-cream uppercase hover:bg-gold hover:text-ink">Filtrar</button>
+          <button type="submit" className="bg-ink px-5 py-2.5 text-xs tracking-[0.2em] text-cream uppercase hover:bg-gold hover:text-ink">Filtrar</button>
           {hasFilters && <Link href="/admin/audit" className="text-[0.65rem] tracking-[0.18em] text-muted uppercase hover:text-gold">Limpar</Link>}
         </div>
       </form>
@@ -174,9 +230,9 @@ export default async function AdminAuditPage({
 
                   const actionTone =
                     a.action === "UPDATE" ? "text-gold border-gold/40 bg-gold/5" :
-                    a.action === "CREATE" ? "text-[#1f7a4d] border-[#2bb673]/40 bg-[#2bb673]/5" :
+                    a.action === "CREATE" ? "text-[#155f3a] border-[#2bb673]/40 bg-[#2bb673]/5" :
                     a.action === "DELETE" ? "text-[#b94a3a] border-red-300 bg-red-50" :
-                                             "text-[#7e5e00] border-[#d4a017]/40 bg-[#d4a017]/10";
+                                             "text-[#6a4f00] border-[#d4a017]/40 bg-[#d4a017]/10";
 
                   // Variants + promos get a deep-link to the variants list
                   // filtered by the sku, so the admin can jump to edit.
@@ -214,14 +270,20 @@ export default async function AdminAuditPage({
                             )}
                           </div>
 
-                          {/* Diff lines — only when there's a structured before/after */}
+                          {/* Diff lines — only when there's a structured before/after.
+                              Mobile stacks before/after with a centered arrow row;
+                              desktop uses a 4-column grid so the change reads
+                              left-to-right at a glance. */}
                           {diff.length > 0 && (
-                            <ul className="mt-3 space-y-1 text-xs">
+                            <ul className="mt-3 space-y-2 text-xs">
                               {diff.map((d) => (
-                                <li key={d.key} className="grid grid-cols-[8rem_1fr] gap-3 sm:grid-cols-[10rem_1fr_auto_1fr]">
+                                <li key={d.key} className="grid gap-1 sm:grid-cols-[10rem_1fr_auto_1fr] sm:gap-3">
                                   <span className="overline text-[0.55rem] text-muted">{d.key}</span>
-                                  <span className="break-words">{renderField(d.key, d.before)}</span>
-                                  <span className="hidden text-muted sm:inline">→</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="break-words">{renderField(d.key, d.before)}</span>
+                                    <span className="text-muted sm:hidden" aria-hidden>→</span>
+                                  </div>
+                                  <span className="hidden text-muted sm:inline" aria-hidden>→</span>
                                   <span className="break-words">{renderField(d.key, d.after)}</span>
                                 </li>
                               ))}

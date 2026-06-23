@@ -1,5 +1,6 @@
 import { signIn } from "@/auth";
 import { redirect } from "next/navigation";
+import { formatLockoutRemaining, lockoutExpiresAt, recordAttempt } from "@/lib/login-lockout";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +17,13 @@ function isSafeAdminTarget(target: string): boolean {
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string; minutes?: string }>;
 }) {
-  const { error, callbackUrl } = await searchParams;
+  const { error, callbackUrl, minutes } = await searchParams;
 
   async function action(formData: FormData) {
     "use server";
-    const email    = String(formData.get("email") ?? "");
+    const email    = String(formData.get("email") ?? "").toLowerCase().trim();
     const password = String(formData.get("password") ?? "");
     // `callbackUrl` comes from the form (echoed from the request query string)
     // — never trust it. Only accept same-origin admin paths so a crafted
@@ -30,10 +31,32 @@ export default async function AdminLoginPage({
     // off-site redirect.
     const rawTarget = String(formData.get("callbackUrl") ?? "/admin");
     const target = isSafeAdminTarget(rawTarget) ? rawTarget : "/admin";
+
+    // Lockout pre-check — refuse the attempt outright and surface a
+    // dedicated error so the operator knows it's not a typo, it's the
+    // brute-force shield. We still record the attempt (failure) so the
+    // window keeps sliding while someone is hammering on us.
+    if (email) {
+      const locked = await lockoutExpiresAt(email);
+      if (locked) {
+        await recordAttempt(email, false);
+        const mins = formatLockoutRemaining(locked);
+        redirect(`/admin/login?error=locked&minutes=${encodeURIComponent(mins)}&callbackUrl=${encodeURIComponent(target)}`);
+      }
+    }
+
     try {
       await signIn("credentials", { email, password, redirectTo: target });
     } catch (e) {
       if ((e as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw e;
+      // Re-check lockout AFTER the attempt so a failed login that
+      // crossed the threshold this turn ends with the lockout-specific
+      // error rather than the generic one.
+      const lockedNow = email ? await lockoutExpiresAt(email) : null;
+      if (lockedNow) {
+        const mins = formatLockoutRemaining(lockedNow);
+        redirect(`/admin/login?error=locked&minutes=${encodeURIComponent(mins)}&callbackUrl=${encodeURIComponent(target)}`);
+      }
       redirect(`/admin/login?error=invalid&callbackUrl=${encodeURIComponent(target)}`);
     }
   }
@@ -70,6 +93,11 @@ export default async function AdminLoginPage({
           {error === "invalid" && (
             <p className="mt-5 border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
               Credenciais inválidas.
+            </p>
+          )}
+          {error === "locked" && (
+            <p className="mt-5 border border-[#d4a017]/50 bg-[#d4a017]/10 px-3 py-2 text-xs text-[#6a4f00]">
+              Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
             </p>
           )}
 

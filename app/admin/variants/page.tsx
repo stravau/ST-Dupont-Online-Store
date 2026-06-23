@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { PageHeader } from "@/components/admin/page-header";
@@ -77,6 +78,23 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasFilters = q || status || stock || ean || promo || unmapped;
+
+  // Clamp page overflow — `?page=999` on a 2-page result previously
+  // showed an "empty" page instead of clamping. Redirect to the last
+  // real page so the admin lands on actual data.
+  if (page > totalPages && total > 0) {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (status) params.set("status", status);
+    if (stock) params.set("stock", stock);
+    if (ean) params.set("ean", ean);
+    if (promo) params.set("promo", promo);
+    if (unmapped) params.set("unmapped", unmapped);
+    if (sort && sort !== "updated") params.set("sort", sort);
+    if (totalPages > 1) params.set("page", String(totalPages));
+    const qs = params.toString();
+    redirect(`/admin/variants${qs ? `?${qs}` : ""}`);
+  }
 
   function pageHref(target: number) {
     const params = new URLSearchParams();
@@ -202,6 +220,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
                     priceCents={v.priceCents}
                     status={v.status}
                     stock={v.stock}
+                    updatedAt={v.updatedAt.toISOString()}
                     productName={productName}
                     productSlug={v.product?.slug ?? ""}
                   />

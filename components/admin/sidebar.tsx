@@ -59,6 +59,7 @@ export function AdminSidebar({
                   <li key={it.href}>
                     <Link
                       href={it.href}
+                      aria-current={active ? "page" : undefined}
                       className={`flex items-center gap-3 rounded-sm px-3 py-2 text-sm transition-colors ${
                         active
                           ? "bg-ink text-cream"
@@ -101,9 +102,20 @@ export function AdminMobileBar({ email, signOutAction }: { email: string; signOu
     <div className="sticky top-0 z-30 border-b border-line bg-paper md:hidden">
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <Link href="/admin" className="font-serif text-base">Admin</Link>
-        <form action={signOutAction}>
-          <button type="submit" className="text-[0.6rem] tracking-[0.18em] text-muted uppercase hover:text-gold">{email}</button>
-        </form>
+        <div className="flex items-center gap-3">
+          <span className="truncate text-[0.6rem] tracking-[0.16em] text-muted uppercase max-w-[10rem]" title={email}>
+            {email}
+          </span>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              aria-label="Sair da conta"
+              className="rounded-sm border border-line px-2.5 py-1 text-[0.6rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+            >
+              Sair
+            </button>
+          </form>
+        </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto px-3 pb-3">
         {flat.map((it) => {
@@ -112,7 +124,8 @@ export function AdminMobileBar({ email, signOutAction }: { email: string; signOu
             <Link
               key={it.href}
               href={it.href}
-              className={`shrink-0 rounded-sm px-3 py-1.5 text-[0.65rem] tracking-[0.18em] uppercase ${
+              aria-current={active ? "page" : undefined}
+              className={`shrink-0 rounded-sm px-3 py-2 text-[0.65rem] tracking-[0.18em] uppercase min-h-[36px] flex items-center ${
                 active ? "bg-ink text-cream" : "text-ink hover:text-gold"
               }`}
             >

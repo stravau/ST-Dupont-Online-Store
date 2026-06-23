@@ -8,13 +8,16 @@ import { prisma } from "@/lib/prisma";
 export type Cell = string | number | boolean | Date | null | undefined;
 
 // Read a workbook from an uploaded File and return the first non-empty
-// sheet as rows of objects keyed by their (uppercased) header.
+// sheet as rows of objects keyed by their (uppercased) header. Cells
+// come back AS STRINGS (raw: false) so a big EAN like 3597390000118 —
+// which Excel happily reads as a number and corrupts to scientific
+// notation on round-trip — survives intact for `where: { ean }` lookup.
 export async function readUploadedSheet(file: File): Promise<Record<string, Cell>[]> {
   const buf = Buffer.from(await file.arrayBuffer());
-  const wb = xlsx.read(buf, { type: "buffer", cellDates: true });
+  const wb = xlsx.read(buf, { type: "buffer", cellDates: true, raw: false });
   for (const name of wb.SheetNames) {
     const ws = wb.Sheets[name];
-    const arr = xlsx.utils.sheet_to_json<Record<string, Cell>>(ws, { defval: null });
+    const arr = xlsx.utils.sheet_to_json<Record<string, Cell>>(ws, { defval: null, raw: false });
     if (arr.length === 0) continue;
     // Normalise headers: trim + uppercase + strip accents/spaces. Also
     // accept Portuguese variants (DESCRIÇÃO → DESCRICAO).
@@ -89,6 +92,7 @@ export function refCandidates(ref: string): string[] {
 export interface ResolvedVariant {
   id: string;
   sku: string;
+  ean: string | null;
   priceCents: number;
   stock: number;
   promoPriceCents: number | null;
@@ -99,12 +103,61 @@ export interface ResolvedVariant {
 const RESOLVED_SELECT = {
   id: true,
   sku: true,
+  ean: true,
   priceCents: true,
   stock: true,
   promoPriceCents: true,
   promoStartDate: true,
   promoEndDate: true,
 } as const;
+
+// Batched variant lookup — given N (ean, ref) pairs, returns an array
+// of length N where each slot is the resolved variant or null. Issues
+// AT MOST two findMany calls regardless of N (one for the EANs, one
+// for every REF candidate). Use this in upload loops to keep them
+// under the serverless function timeout — sequential per-row lookups
+// were the bottleneck at ~1000 rows.
+export async function batchResolveVariants(
+  rows: { ean: string | null; ref: string | null }[],
+): Promise<(ResolvedVariant | null)[]> {
+  // Collect every distinct EAN and every distinct REF candidate.
+  const eanSet = new Set<string>();
+  const candSet = new Set<string>();
+  const rowCands: string[][] = rows.map((r) => {
+    if (r.ean) eanSet.add(r.ean);
+    const cands = r.ref ? refCandidates(r.ref) : [];
+    for (const c of cands) candSet.add(c);
+    return cands;
+  });
+  const [byEan, bySku] = await Promise.all([
+    eanSet.size === 0
+      ? Promise.resolve([] as ResolvedVariant[])
+      : prisma.productVariant.findMany({
+          where: { ean: { in: Array.from(eanSet) } },
+          select: RESOLVED_SELECT,
+        }),
+    candSet.size === 0
+      ? Promise.resolve([] as ResolvedVariant[])
+      : prisma.productVariant.findMany({
+          where: { sku: { in: Array.from(candSet) } },
+          select: RESOLVED_SELECT,
+        }),
+  ]);
+  const eanMap = new Map(byEan.map((v) => [v.ean!, v]));
+  const skuMap = new Map(bySku.map((v) => [v.sku, v]));
+
+  return rows.map((r, i) => {
+    if (r.ean) {
+      const hit = eanMap.get(r.ean);
+      if (hit) return hit;
+    }
+    for (const c of rowCands[i]) {
+      const hit = skuMap.get(c);
+      if (hit) return hit;
+    }
+    return null;
+  });
+}
 
 export async function resolveVariant(
   ean: string | null,

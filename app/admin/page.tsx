@@ -1,10 +1,31 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
+
+// Stat counts are aggregated server-side and only need to be fresh-ish —
+// 60s of cache means a hot dashboard pull doesn't run 6 Postgres counts
+// per refresh. `recentActions` lives outside the cache so the activity
+// feed still shows new audit rows the moment they land.
+const getDashboardStats = unstable_cache(
+  async () => {
+    const [variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo] = await Promise.all([
+      prisma.productVariant.count(),
+      prisma.productVariant.count({ where: { stock: { lte: 0 } } }),
+      prisma.productVariant.count({ where: { status: "INDISPONIVEL" } }),
+      prisma.productVariant.count({ where: { status: "DESCONTINUADO" } }),
+      prisma.product.count({ where: { slug: "unmapped-inventory" } }),
+      prisma.productVariant.count({ where: { promoEndDate: { gte: new Date() } } }),
+    ]);
+    return { variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo };
+  },
+  ["admin-dashboard-stats-v1"],
+  { revalidate: 60 },
+);
 
 function StatTile({ label, value, hint, intent = "default" }: { label: string; value: string | number; hint?: string; intent?: "default" | "warning" | "danger" }) {
   const accent =
@@ -39,19 +60,15 @@ function JumpCard({ href, eyebrow, title, body, Icon }: { href: string; eyebrow:
 }
 
 export default async function AdminHome() {
-  const [variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo, recentActions] = await Promise.all([
-    prisma.productVariant.count(),
-    prisma.productVariant.count({ where: { stock: { lte: 0 } } }),
-    prisma.productVariant.count({ where: { status: "INDISPONIVEL" } }),
-    prisma.productVariant.count({ where: { status: "DESCONTINUADO" } }),
-    prisma.product.count({ where: { slug: "unmapped-inventory" } }),
-    prisma.productVariant.count({ where: { promoEndDate: { gte: new Date() } } }),
+  const [stats, recentActions] = await Promise.all([
+    getDashboardStats(),
     prisma.adminAction.findMany({
       orderBy: { createdAt: "desc" },
       take: 8,
       include: { user: { select: { email: true } } },
     }),
   ]);
+  const { variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo } = stats;
 
   return (
     <div className="space-y-10">

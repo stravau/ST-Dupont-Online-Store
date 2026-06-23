@@ -11,8 +11,15 @@ export const dynamic = "force-dynamic";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const email = session?.user?.email ?? "";
+  const role = (session?.user as { role?: string } | undefined)?.role;
 
-  if (!email) return <>{children}</>;
+  // Defence-in-depth: proxy.ts already rejects non-ADMIN sessions before
+  // they reach this layout, but if that gate is ever removed by mistake
+  // we don't want a CUSTOMER session rendering admin chrome. Only show
+  // the shell when we have BOTH an email AND the ADMIN role; otherwise
+  // pass through to the child (which for /admin/login is the form, for
+  // anything else is unreachable past proxy.ts).
+  if (!email || role !== "ADMIN") return <>{children}</>;
 
   async function signOutAction() {
     "use server";

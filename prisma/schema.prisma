@@ -262,6 +262,23 @@ model ProductVariant {
   @@index([promoEndDate])
 }
 
+// Brute-force shield for /admin/login. Every credentials authorize
+// attempt writes one row (success or failure). Before accepting an
+// auth attempt we count failures for the given email within the last
+// LOCKOUT_WINDOW_MIN; once the threshold is hit the email is locked
+// out for LOCKOUT_DURATION_MIN. Successful logins clear the failure
+// count for that email.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  success   Boolean
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([createdAt])
+}
+
 // Audit trail for every write the admin panel performs — manual edits
 // in /admin/variants AND bulk uploads. Stores the diff as JSON so the
 // admin can review/revert later. userId is the User.id of the admin

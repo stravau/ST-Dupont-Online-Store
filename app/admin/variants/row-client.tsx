@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/admin/toast";
 
 type Status = "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
@@ -10,6 +11,11 @@ type Status = "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
 // blur (or select-change for status). Status renders inline as a
 // styled <select> that adopts the colour of the chosen tone so the
 // table reads at a glance.
+//
+// Concurrent-edit safety: every PATCH carries the `updatedAt` we last
+// saw, so the server refuses (409) when another admin has edited the
+// same row in between. We surface the conflict with a toast + a hard
+// router.refresh() so the row re-renders against the new server state.
 export function VariantRow({
   id,
   sku,
@@ -18,6 +24,7 @@ export function VariantRow({
   priceCents: priceInit,
   status: statusInit,
   stock: stockInit,
+  updatedAt: updatedAtInit,
   productName,
   productSlug,
 }: {
@@ -28,15 +35,17 @@ export function VariantRow({
   priceCents: number;
   status: Status;
   stock: number;
+  updatedAt: string; // ISO timestamp from the server render
   productName: string;
   productSlug: string;
 }) {
   const toast = useToast();
+  const router = useRouter();
   const [ean, setEan]       = useState<string>(eanInit ?? "");
   const [eurStr, setEurStr] = useState<string>((priceInit / 100).toFixed(2));
   const [status, setStatus] = useState<Status>(statusInit);
-  const [stock, setStock]   = useState<number>(stockInit);
-  // Server-confirmed values — `ean`/`eurStr`/`status`/`stock` are the
+  const [stockStr, setStockStr] = useState<string>(String(stockInit));
+  // Server-confirmed values — `ean`/`eurStr`/`status`/`stockStr` are the
   // optimistic local state, these are what's actually persisted. After a
   // successful PATCH we update both; on failure we roll the optimistic
   // state back here. Previously the row would silently lie when the
@@ -45,6 +54,7 @@ export function VariantRow({
   const [savedPriceCents, setSavedPriceCents] = useState<number>(priceInit);
   const [savedStatus, setSavedStatus] = useState<Status>(statusInit);
   const [savedStock, setSavedStock] = useState<number>(stockInit);
+  const [savedUpdatedAt, setSavedUpdatedAt] = useState<string>(updatedAtInit);
   const [, startTransition] = useTransition();
 
   async function patch(body: Record<string, unknown>, label: string): Promise<boolean> {
@@ -52,9 +62,25 @@ export function VariantRow({
       const res = await fetch(`/api/admin/variant/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ ...body, expectedUpdatedAt: savedUpdatedAt }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      // 409 = optimistic-concurrency conflict — another admin won. Surface
+      // it explicitly and force a refresh so the row re-renders against
+      // the new server state instead of pretending our edit stuck.
+      if (res.status === 409) {
+        toast.push("error", `${label}: conflito — alguém editou este artigo entretanto, a recarregar`);
+        router.refresh();
+        return false;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({} as { error?: string }));
+        throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      // Server doesn't return updatedAt yet, but for now a successful
+      // PATCH means the row's updatedAt is "after now" — best-effort
+      // bumping with the current time so the NEXT PATCH won't 409 on
+      // ourselves.
+      setSavedUpdatedAt(new Date().toISOString());
       toast.push("success", `${label} guardado`);
       return true;
     } catch (e) {
@@ -66,6 +92,12 @@ export function VariantRow({
   function commitEan() {
     const trimmed = ean.trim();
     if (trimmed === (savedEan ?? "")) return;
+    // EAN-8 or EAN-13 only — surface client-side to avoid the 400 trip.
+    if (trimmed !== "" && !/^\d{8}$|^\d{13}$/.test(trimmed)) {
+      toast.push("error", "EAN deve ter 8 ou 13 dígitos");
+      setEan(savedEan ?? "");
+      return;
+    }
     const next = trimmed === "" ? null : trimmed;
     startTransition(async () => {
       const ok = await patch({ ean: next }, "EAN");
@@ -85,6 +117,14 @@ export function VariantRow({
   }
   function commitStatus(next: Status) {
     if (next === savedStatus) return;
+    // Destructive flip — DESCONTINUADO hides from the storefront.
+    // Confirm so it's not a one-click accident.
+    if (next === "DESCONTINUADO") {
+      const ok = typeof window === "undefined" ? true : window.confirm(
+        `Descontinuar ${sku}? Vai desaparecer da loja.`,
+      );
+      if (!ok) return;
+    }
     setStatus(next);
     startTransition(async () => {
       const ok = await patch({ status: next }, "Status");
@@ -92,21 +132,34 @@ export function VariantRow({
       else setStatus(savedStatus); // dropdown snaps back
     });
   }
-  function commitStock(next: number) {
-    if (next === savedStock) return;
-    if (next < 0) { setStock(savedStock); return; }
-    setStock(next);
+  function commitStock() {
+    // Tolerate "—", "abc" and other garbage by snapping back to the
+    // saved value WITHOUT a 0 round-trip. Previously the input would
+    // clear to 0 the moment the user typed a non-digit mid-edit.
+    const parsed = Number.parseInt(stockStr.trim(), 10);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setStockStr(String(savedStock));
+      return;
+    }
+    if (parsed === savedStock) return;
     startTransition(async () => {
-      const ok = await patch({ stock: next }, "Stock");
-      if (ok) setSavedStock(next);
-      else setStock(savedStock);
+      const ok = await patch({ stock: parsed }, "Stock");
+      if (ok) setSavedStock(parsed);
+      else setStockStr(String(savedStock));
     });
   }
 
+  const stockNum = Number.parseInt(stockStr.trim(), 10);
+  const stockTone =
+    !Number.isFinite(stockNum) ? "text-ink" :
+    stockNum <= 0 ? "text-[#b94a3a]" :
+    stockNum <= 5 ? "text-[#7e5e00]" :
+                    "text-ink";
+
   const statusTone =
-    status === "DISPONIVEL"   ? "border-[#2bb673]/40 bg-[#2bb673]/8 text-[#1f7a4d]" :
-    status === "INDISPONIVEL" ? "border-[#d4a017]/50 bg-[#d4a017]/10 text-[#7e5e00]" :
-                                 "border-[#8b95a6]/50 bg-[#8b95a6]/10 text-[#4a5466]";
+    status === "DISPONIVEL"   ? "border-[#2bb673]/60 bg-[#2bb673]/15 text-[#155f3a]" :
+    status === "INDISPONIVEL" ? "border-[#d4a017]/70 bg-[#d4a017]/15 text-[#6a4f00]" :
+                                 "border-[#8b95a6]/70 bg-[#8b95a6]/15 text-[#3a4452]";
 
   return (
     <tr className="transition-colors hover:bg-cream/40">
@@ -116,7 +169,9 @@ export function VariantRow({
           onChange={(e) => setEan(e.target.value)}
           onBlur={commitEan}
           placeholder="—"
-          className="w-36 rounded-sm border border-transparent bg-transparent px-2 py-1 font-mono text-xs tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none"
+          aria-label={`EAN de ${sku}`}
+          inputMode="numeric"
+          className="w-36 rounded-sm border border-transparent bg-transparent px-2 py-2 font-mono text-xs tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none sm:py-1"
         />
       </td>
       <td className="px-4 py-2 align-middle font-mono text-[0.7rem] tracking-tight text-muted">{sku}</td>
@@ -128,7 +183,9 @@ export function VariantRow({
           value={eurStr}
           onChange={(e) => setEurStr(e.target.value)}
           onBlur={commitPvp}
-          className="w-20 rounded-sm border border-transparent bg-transparent px-2 py-1 text-right text-sm font-medium tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none"
+          aria-label={`PVP de ${sku} em euros`}
+          inputMode="decimal"
+          className="w-20 rounded-sm border border-transparent bg-transparent px-2 py-2 text-right text-sm font-medium tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none sm:py-1"
         />
         <span className="ml-0.5 text-xs text-muted">€</span>
       </td>
@@ -136,7 +193,8 @@ export function VariantRow({
         <select
           value={status}
           onChange={(e) => commitStatus(e.target.value as Status)}
-          className={`appearance-none rounded-sm border px-2.5 py-1 pr-6 text-[0.65rem] tracking-[0.12em] uppercase outline-none transition-colors focus:border-gold ${statusTone}`}
+          aria-label={`Estado de ${sku}`}
+          className={`appearance-none rounded-sm border px-2.5 py-1.5 pr-6 text-[0.65rem] tracking-[0.12em] uppercase outline-none transition-colors focus:border-gold ${statusTone}`}
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23999' stroke-width='1.5' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 4px center", backgroundSize: "12px" }}
         >
           <option value="DISPONIVEL">Disponível</option>
@@ -146,11 +204,12 @@ export function VariantRow({
       </td>
       <td className="px-4 py-2 text-right align-middle">
         <input
-          type="number"
-          value={stock}
-          onChange={(e) => setStock(Number.parseInt(e.target.value, 10) || 0)}
-          onBlur={() => commitStock(stock)}
-          className={`w-16 rounded-sm border border-transparent bg-transparent px-2 py-1 text-right text-sm tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none ${stock <= 0 ? "text-[#b94a3a]" : stock <= 5 ? "text-[#7e5e00]" : "text-ink"}`}
+          value={stockStr}
+          onChange={(e) => setStockStr(e.target.value)}
+          onBlur={commitStock}
+          aria-label={`Stock de ${sku}`}
+          inputMode="numeric"
+          className={`w-16 rounded-sm border border-transparent bg-transparent px-2 py-2 text-right text-sm tabular-nums transition-colors hover:bg-cream/50 focus:border-gold focus:bg-paper focus:outline-none sm:py-1 ${stockTone}`}
         />
       </td>
       <td className="px-4 py-2 align-middle text-xs">
