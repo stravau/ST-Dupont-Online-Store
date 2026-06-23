@@ -379,6 +379,62 @@ export async function getProductsByTheme(themeLabel: string): Promise<Product[]>
   return rows.map(mapProduct);
 }
 
+// Per-category model line-up for the horizontal hero slider on /c/[category].
+// Resolves each curated ModelEntry to a representative product (first hit by
+// collection match, falling back to product-type match for accessories) and
+// picks its primary image as the thumbnail.
+export interface ModelThumbnail {
+  key: string;
+  label: string;        // already localised
+  image: string;        // /public path or remote URL
+  href: string;         // locale-prefixed full path
+}
+
+export async function getCategoryModelThumbnails(
+  categorySlug: string,
+  locale: Locale,
+): Promise<ModelThumbnail[]> {
+  const { categoryModels } = await import("@/lib/category-models");
+  const entries = categoryModels[categorySlug];
+  if (!entries || entries.length === 0) return [];
+  const products = await getProductsByCategory(categorySlug);
+  let getType: typeof import("@/lib/product-groups").getProductType | null = null;
+  if (categorySlug === "acessorios") {
+    ({ getProductType: getType } = await import("@/lib/product-groups"));
+  }
+  const { localeCategorySlug } = await import("@/lib/category-slugs");
+  const localisedCat = localeCategorySlug(locale, categorySlug);
+  const pickImage = (p: Product): string | null => {
+    const v = p.variants.find((x) => x.image || x.images.length);
+    return v?.image ?? v?.images[0] ?? p.image ?? null;
+  };
+  const out: ModelThumbnail[] = [];
+  for (const e of entries) {
+    let rep: Product | undefined;
+    if (e.cols.length > 0) {
+      rep = products.find((p) => e.cols.includes(p.collection));
+    } else if (getType) {
+      rep = products.find((p) => {
+        const t = getType!(p, locale);
+        return t ? t.key === e.key || t.key.startsWith(`${e.key}-`) : false;
+      });
+    }
+    if (!rep) continue;
+    const image = pickImage(rep);
+    if (!image) continue;
+    let href: string;
+    if (e.themeHref) {
+      href = `/${locale}${e.themeHref}`;
+    } else {
+      // ?col=<collection> filter on the same category page
+      const firstCol = e.cols[0] ?? rep.collection;
+      href = `/${locale}/c/${localisedCat}?col=${encodeURIComponent(firstCol)}`;
+    }
+    out.push({ key: e.key, label: e.label[locale], image, href });
+  }
+  return out;
+}
+
 export async function getCollections(categorySlug: string): Promise<string[]> {
   // Derive from the effective category so overridden products contribute their
   // collection too (and incorrectly-stored ones drop out).

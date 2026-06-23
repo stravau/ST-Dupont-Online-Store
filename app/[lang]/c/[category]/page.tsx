@@ -7,6 +7,7 @@ import {
   getCategory,
   getProductsByCategory,
   getCollections,
+  getCategoryModelThumbnails,
   sortProducts,
   expandProductCards,
   inferGender,
@@ -24,6 +25,7 @@ import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { CategoryPaged } from "@/components/category-paged";
+import { CategoryHeroSlider } from "@/components/category-hero-slider";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -107,6 +109,11 @@ export default async function CategoryPage({
   const collections = await getCollections(category);
   const activeCol = col && collections.includes(col) ? col : undefined;
   const art = categoryArt[category];
+  // Model line-up for the horizontal hero slider — one thumbnail per signature
+  // model (Ligne 2, Apex, …) drawn from the category's curated lineup. Falls
+  // back to the static `art.hero` image when no models resolve (e.g. an empty
+  // catalogue or a category without a configured lineup).
+  const modelThumbs = await getCategoryModelThumbnails(category, locale);
   // Gender filter only applies to leather goods; ignored on other
   // categories. Non-applicable params silently fall to undefined so a
   // stale `?g=men` from another category never echoes into chip-link
@@ -232,11 +239,21 @@ export default async function CategoryPage({
 
   return (
     <div>
-      {art?.hero ? (
-        /* Full-bleed photo header. monogram-bg is the fallback if the image
-           fails to load. Explicit positive z-stacking instead of -z-10 to
-           avoid Safari painting the negative-z image *behind* the parent
-           background under body zoom (showed as a navy stripe up top). */
+      {modelThumbs.length > 0 ? (
+        /* Horizontal model line-up slider — replaces the static hero image at
+           the top of the category page. Each card filters the catalogue to
+           one model line. */
+        <CategoryHeroSlider
+          thumbnails={modelThumbs}
+          eyebrow={cat.name[locale]}
+          title={art?.art ?? cat.name[locale]}
+          description={cat.history?.[locale]}
+          prevAria={dict.common.prev}
+          nextAria={dict.common.next}
+        />
+      ) : art?.hero ? (
+        /* Fallback static hero — only fires when the category has no model
+           lineup configured (or none of its models resolved to a product). */
         <header className="monogram-bg relative overflow-hidden text-center text-cream">
           <Image
             src={art.hero}
@@ -270,7 +287,7 @@ export default async function CategoryPage({
           ]}
         />
 
-        {!art?.hero && (
+        {!art?.hero && modelThumbs.length === 0 && (
           <header className="mx-auto mt-2 max-w-2xl text-center">
             <Crest className="mb-6" />
             <p className="overline">{cat.name[locale]}</p>
