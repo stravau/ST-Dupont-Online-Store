@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { readUploadedSheet, pick, asString, asNumber, asDate, batchResolveVariants } from "@/lib/admin-upload";
@@ -31,6 +32,10 @@ export async function POST(req: Request) {
   if (rows.length === 0) {
     return NextResponse.json({ ok: false, error: "empty sheet" }, { status: 400 });
   }
+  // Single id shared by every AdminAction this upload writes — the
+  // audit viewer groups on it to render one collapsible card per
+  // batch. Generated upfront so per-row writes can carry it.
+  const batchId = randomUUID();
   let updated = 0, unchanged = 0, unmatched = 0, skipped = 0;
   const unmatchedSample: { ref?: string; ean?: string }[] = [];
 
@@ -67,6 +72,7 @@ export async function POST(req: Request) {
         prisma.adminAction.create({
           data: {
             userId,
+            batchId,
             entityType: "VARIANT",
             action: "UPDATE",
             entityId: v.sku,
@@ -86,6 +92,7 @@ export async function POST(req: Request) {
     await prisma.adminAction.create({
       data: {
         userId,
+        batchId,
         entityType: "UPLOAD_BATCH",
         action: "UPLOAD",
         entityId: "pvp",

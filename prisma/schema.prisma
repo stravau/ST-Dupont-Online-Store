@@ -295,6 +295,12 @@ model AdminAction {
   before     Json?   // snapshot of changed fields before the write
   after      Json?   // snapshot after the write
   note       String? // optional human-readable summary
+  // Groups all per-row writes from one Excel upload under a single id.
+  // The UPLOAD_BATCH summary row shares this id with every VARIANT /
+  // PROMO row produced by the same upload, so the audit viewer can
+  // render ONE collapsible card per batch with every child change
+  // listed inside. Null for inline edits made via /admin/variants.
+  batchId    String?
   createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -302,6 +308,7 @@ model AdminAction {
   @@index([userId])
   @@index([createdAt])
   @@index([entityType, entityId])
+  @@index([batchId])
 }
 
 // ---------------------------------------------------------------------------

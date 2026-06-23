@@ -95,11 +95,24 @@ export default async function AdminAuditPage({
   const sp = await searchParams;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
 
-  const where: { entityType?: string; entityId?: string; action?: string; user?: { email: string } } = {};
-  if (sp.entityType) where.entityType = sp.entityType;
-  if (sp.entityId)   where.entityId   = sp.entityId;
-  if (sp.action)     where.action     = sp.action;
-  if (sp.userEmail)  where.user       = { email: sp.userEmail };
+  const userFilter: { entityType?: string; entityId?: string; action?: string; user?: { email: string } } = {};
+  if (sp.entityType) userFilter.entityType = sp.entityType;
+  if (sp.entityId)   userFilter.entityId   = sp.entityId;
+  if (sp.action)     userFilter.action     = sp.action;
+  if (sp.userEmail)  userFilter.user       = { email: sp.userEmail };
+
+  // Top-level entries are EITHER a row not part of any upload batch
+  // (the inline edits from /admin/variants) OR the UPLOAD_BATCH
+  // summary row itself. The per-row variant writes that belong to a
+  // batch are pulled in as CHILDREN of the batch card, not as their
+  // own list entries — keeps the audit feed at 1 card per real
+  // operation regardless of sheet size.
+  const where = {
+    AND: [
+      userFilter,
+      { OR: [{ batchId: null }, { entityType: "UPLOAD_BATCH" }] },
+    ],
+  };
 
   const [total, rows, adminUsers] = await Promise.all([
     prisma.adminAction.count({ where }),
@@ -119,6 +132,26 @@ export default async function AdminAuditPage({
     }),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Pull every child action that belongs to a batch on this page in
+  // one extra query — keeps render simple (each batch card already
+  // has its children at hand) without a per-batch round-trip.
+  const batchIds = rows
+    .filter((r) => r.entityType === "UPLOAD_BATCH" && r.batchId)
+    .map((r) => r.batchId!) as string[];
+  const childRows = batchIds.length === 0
+    ? []
+    : await prisma.adminAction.findMany({
+        where: { batchId: { in: batchIds }, NOT: { entityType: "UPLOAD_BATCH" } },
+        orderBy: { createdAt: "asc" },
+        include: { user: { select: { email: true } } },
+      });
+  const childrenByBatch = new Map<string, typeof childRows>();
+  for (const c of childRows) {
+    if (!c.batchId) continue;
+    if (!childrenByBatch.has(c.batchId)) childrenByBatch.set(c.batchId, []);
+    childrenByBatch.get(c.batchId)!.push(c);
+  }
 
   // Clamp page overflow — `?page=999` on a 2-page result previously
   // returned an empty page. Now redirects to the last real page so the
@@ -224,132 +257,17 @@ export default async function AdminAuditPage({
 
               <ul className="space-y-2">
                 {g.items.map((a) => {
-                  const before = (a.before as Snapshot) ?? null;
-                  const after  = (a.after  as Snapshot) ?? null;
-                  const diff   = buildDiff(before, after);
-
-                  const actionTone =
-                    a.action === "UPDATE" ? "text-gold border-gold/40 bg-gold/5" :
-                    a.action === "CREATE" ? "text-[#155f3a] border-[#2bb673]/40 bg-[#2bb673]/5" :
-                    a.action === "DELETE" ? "text-[#b94a3a] border-red-300 bg-red-50" :
-                                             "text-[#6a4f00] border-[#d4a017]/40 bg-[#d4a017]/10";
-
-                  // Variants + promos get a deep-link to the variants list
-                  // filtered by the sku, so the admin can jump to edit.
-                  const idHref =
-                    (a.entityType === "VARIANT" || a.entityType === "PROMO") && a.entityId
-                      ? `/admin/variants?q=${encodeURIComponent(a.entityId)}`
-                      : null;
-
-                  // Headline summary in the collapsed card. Updates show the
-                  // changed-field count; uploads/creates fall back to the
-                  // batch note; everything else hides the line.
-                  const changeCount = diff.length;
-                  const summaryLine =
-                    a.entityType === "UPLOAD_BATCH"
-                      ? a.note
-                      : changeCount > 0
-                        ? `${changeCount} ${changeCount === 1 ? "campo alterado" : "campos alterados"}`
-                        : a.note ?? null;
-
+                  const isBatch = a.entityType === "UPLOAD_BATCH";
+                  const items = isBatch && a.batchId
+                    ? (childrenByBatch.get(a.batchId) ?? [])
+                    : [];
                   return (
                     <li key={a.id}>
-                      {/* Native <details> = collapsible card. No JS, no
-                          client component, keyboard + screen-reader
-                          friendly out of the box. */}
-                      <details className="group border border-line bg-paper transition-colors open:border-gold/60 hover:border-line/80">
-                        <summary className="grid cursor-pointer list-none items-center gap-3 px-5 py-4 sm:grid-cols-[8rem_auto_1fr_auto_auto] sm:gap-5 [&::-webkit-details-marker]:hidden">
-                          {/* When */}
-                          <div className="text-xs text-muted">
-                            <p className="text-ink tabular-nums">
-                              {a.createdAt.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                            <p className="mt-0.5 text-[0.65rem] tracking-wide">{relativeTime(a.createdAt, now)}</p>
-                          </div>
-
-                          {/* Action badge */}
-                          <span className={`inline-flex w-fit items-center border px-2.5 py-1 text-[0.6rem] tracking-[0.16em] uppercase ${actionTone}`}>
-                            {a.action}
-                          </span>
-
-                          {/* Entity + summary line */}
-                          <div className="min-w-0">
-                            <p className="flex items-center gap-2 text-xs">
-                              <span className="font-mono text-[0.65rem] text-muted">{a.entityType}</span>
-                              {a.entityId && (
-                                <span className="truncate font-mono text-[0.75rem] text-ink">{a.entityId}</span>
-                              )}
-                            </p>
-                            {summaryLine && (
-                              <p className="mt-1 truncate text-[0.7rem] text-muted">{summaryLine}</p>
-                            )}
-                          </div>
-
-                          {/* Who */}
-                          <p className="hidden truncate text-right text-[0.65rem] text-muted sm:block" title={a.user?.email ?? "system"}>
-                            {a.user?.email ?? "system"}
-                          </p>
-
-                          {/* Chevron — rotates when open */}
-                          <svg
-                            className="ml-auto h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            aria-hidden
-                          >
-                            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </summary>
-
-                        {/* Expanded body — diff lines + deep-link + note */}
-                        <div className="border-t border-line/60 bg-cream/40 px-5 py-4 sm:px-6">
-                          {diff.length > 0 ? (
-                            <ul className="space-y-2 text-xs">
-                              {diff.map((d) => (
-                                <li key={d.key} className="grid gap-1 sm:grid-cols-[10rem_1fr_auto_1fr] sm:gap-3">
-                                  <span className="overline text-[0.55rem] text-muted">{d.key}</span>
-                                  <div className="flex items-center gap-2">
-                                    <span className="break-words">{renderField(d.key, d.before)}</span>
-                                    <span className="text-muted sm:hidden" aria-hidden>→</span>
-                                  </div>
-                                  <span className="hidden text-muted sm:inline" aria-hidden>→</span>
-                                  <span className="break-words">{renderField(d.key, d.after)}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-[0.7rem] text-muted">Sem diff estruturado para esta acção.</p>
-                          )}
-
-                          {/* Note shown beneath the diff (uploads + creates
-                              carry it; updates rarely do). */}
-                          {a.note && diff.length > 0 && (
-                            <p className="mt-3 border-t border-line/60 pt-3 text-[0.7rem] text-muted">{a.note}</p>
-                          )}
-
-                          {/* Mobile-only "who" line — hidden in the
-                              summary on small screens where space is tight. */}
-                          <p className="mt-3 text-[0.65rem] text-muted sm:hidden">
-                            por <span className="text-ink">{a.user?.email ?? "system"}</span>
-                          </p>
-
-                          {/* Deep link to /admin/variants filtered by sku.
-                              Only for entries where the entity actually
-                              maps to a variant the admin can edit. */}
-                          {idHref && (
-                            <div className="mt-4">
-                              <Link
-                                href={idHref}
-                                className="inline-flex items-center gap-2 border border-line bg-paper px-3 py-1.5 text-[0.65rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
-                              >
-                                Abrir em Artigos →
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      </details>
+                      {isBatch ? (
+                        <BatchCard action={a} items={items} now={now} />
+                      ) : (
+                        <ActionCard action={a} now={now} />
+                      )}
                     </li>
                   );
                 })}
@@ -367,5 +285,286 @@ export default async function AdminAuditPage({
         </div>
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Card helpers
+// ---------------------------------------------------------------------------
+
+// Shape mirrors what `findMany({ include: { user } })` returns. Decoupled
+// from the inline page typing so BatchCard / ActionCard can be reused.
+interface ActionRow {
+  id: string;
+  userId: string | null;
+  entityType: string;
+  action: string;
+  entityId: string | null;
+  before: unknown;
+  after: unknown;
+  note: string | null;
+  batchId: string | null;
+  createdAt: Date;
+  user: { email: string } | null;
+}
+
+function toneFor(action: string): string {
+  return action === "UPDATE" ? "text-gold border-gold/40 bg-gold/5" :
+         action === "CREATE" ? "text-[#155f3a] border-[#2bb673]/40 bg-[#2bb673]/5" :
+         action === "DELETE" ? "text-[#b94a3a] border-red-300 bg-red-50" :
+                                "text-[#6a4f00] border-[#d4a017]/40 bg-[#d4a017]/10";
+}
+
+function deepLink(a: ActionRow): string | null {
+  return (a.entityType === "VARIANT" || a.entityType === "PROMO") && a.entityId
+    ? `/admin/variants?q=${encodeURIComponent(a.entityId)}`
+    : null;
+}
+
+// Individual-action card (inline edits + create rows that aren't part
+// of any upload batch). Collapsed header is action + entity + change-
+// count; expanded body is the full diff.
+function ActionCard({ action: a, now }: { action: ActionRow; now: Date }) {
+  const before = (a.before as Snapshot) ?? null;
+  const after  = (a.after  as Snapshot) ?? null;
+  const diff   = buildDiff(before, after);
+  const tone   = toneFor(a.action);
+  const idHref = deepLink(a);
+  const summaryLine = diff.length > 0
+    ? `${diff.length} ${diff.length === 1 ? "campo alterado" : "campos alterados"}`
+    : a.note ?? null;
+
+  return (
+    <details className="group border border-line bg-paper transition-colors open:border-gold/60 hover:border-line/80">
+      <summary className="grid cursor-pointer list-none items-center gap-3 px-5 py-4 sm:grid-cols-[8rem_auto_1fr_auto_auto] sm:gap-5 [&::-webkit-details-marker]:hidden">
+        <div className="text-xs text-muted">
+          <p className="text-ink tabular-nums">
+            {a.createdAt.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+          <p className="mt-0.5 text-[0.65rem] tracking-wide">{relativeTime(a.createdAt, now)}</p>
+        </div>
+
+        <span className={`inline-flex w-fit items-center border px-2.5 py-1 text-[0.6rem] tracking-[0.16em] uppercase ${tone}`}>
+          {a.action}
+        </span>
+
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-xs">
+            <span className="font-mono text-[0.65rem] text-muted">{a.entityType}</span>
+            {a.entityId && (
+              <span className="truncate font-mono text-[0.75rem] text-ink">{a.entityId}</span>
+            )}
+          </p>
+          {summaryLine && <p className="mt-1 truncate text-[0.7rem] text-muted">{summaryLine}</p>}
+        </div>
+
+        <p className="hidden truncate text-right text-[0.65rem] text-muted sm:block" title={a.user?.email ?? "system"}>
+          {a.user?.email ?? "system"}
+        </p>
+
+        <svg
+          className="ml-auto h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </summary>
+
+      <div className="border-t border-line/60 bg-cream/40 px-5 py-4 sm:px-6">
+        {diff.length > 0 ? (
+          <ul className="space-y-2 text-xs">
+            {diff.map((d) => (
+              <li key={d.key} className="grid gap-1 sm:grid-cols-[10rem_1fr_auto_1fr] sm:gap-3">
+                <span className="overline text-[0.55rem] text-muted">{d.key}</span>
+                <div className="flex items-center gap-2">
+                  <span className="break-words">{renderField(d.key, d.before)}</span>
+                  <span className="text-muted sm:hidden" aria-hidden>→</span>
+                </div>
+                <span className="hidden text-muted sm:inline" aria-hidden>→</span>
+                <span className="break-words">{renderField(d.key, d.after)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-[0.7rem] text-muted">Sem diff estruturado para esta acção.</p>
+        )}
+
+        {a.note && diff.length > 0 && (
+          <p className="mt-3 border-t border-line/60 pt-3 text-[0.7rem] text-muted">{a.note}</p>
+        )}
+
+        <p className="mt-3 text-[0.65rem] text-muted sm:hidden">
+          por <span className="text-ink">{a.user?.email ?? "system"}</span>
+        </p>
+
+        {idHref && (
+          <div className="mt-4">
+            <Link
+              href={idHref}
+              className="inline-flex items-center gap-2 border border-line bg-paper px-3 py-1.5 text-[0.65rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+            >
+              Abrir em Artigos →
+            </Link>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+}
+
+// Upload-batch card — collapsed header is the batch headline; expanded
+// body is a vertical list of every per-row change that landed in the
+// same upload, each nested in its own <details> so the admin can drill
+// further into individual diffs without leaving the batch view.
+function BatchCard({
+  action: a,
+  items,
+  now,
+}: {
+  action: ActionRow;
+  items: ActionRow[];
+  now: Date;
+}) {
+  // Tally child outcomes for a quick "47 updated · 3 created" headline.
+  const updateCount = items.filter((c) => c.action === "UPDATE").length;
+  const createCount = items.filter((c) => c.action === "CREATE").length;
+  const summary = items.length === 0
+    ? (a.note ?? "Sem alterações registadas")
+    : [
+        updateCount > 0 ? `${updateCount} actualizada${updateCount === 1 ? "" : "s"}` : null,
+        createCount > 0 ? `${createCount} criada${createCount === 1 ? "" : "s"}` : null,
+      ].filter(Boolean).join(" · ");
+
+  return (
+    <details className="group border-l-[3px] border-l-gold border border-line bg-paper transition-colors open:border-gold/60 hover:border-line/80">
+      <summary className="grid cursor-pointer list-none items-center gap-3 px-5 py-4 sm:grid-cols-[8rem_auto_1fr_auto_auto] sm:gap-5 [&::-webkit-details-marker]:hidden">
+        <div className="text-xs text-muted">
+          <p className="text-ink tabular-nums">
+            {a.createdAt.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+          <p className="mt-0.5 text-[0.65rem] tracking-wide">{relativeTime(a.createdAt, now)}</p>
+        </div>
+
+        <span className="inline-flex w-fit items-center border border-gold/50 bg-gold/10 px-2.5 py-1 text-[0.6rem] tracking-[0.16em] text-gold uppercase">
+          Upload · {a.entityId ?? "?"}
+        </span>
+
+        <div className="min-w-0">
+          <p className="font-serif text-sm text-ink">
+            {a.note ?? "Upload"}
+          </p>
+          <p className="mt-1 text-[0.7rem] text-muted">
+            {items.length === 0
+              ? summary
+              : <>
+                  <span className="text-ink">{items.length}</span>{" "}
+                  {items.length === 1 ? "variant alterado" : "variants alterados"}
+                  {summary ? <> · {summary}</> : null}
+                </>}
+          </p>
+        </div>
+
+        <p className="hidden truncate text-right text-[0.65rem] text-muted sm:block" title={a.user?.email ?? "system"}>
+          {a.user?.email ?? "system"}
+        </p>
+
+        <svg
+          className="ml-auto h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </summary>
+
+      <div className="border-t border-line/60 bg-cream/40 px-3 py-3 sm:px-5 sm:py-4">
+        {items.length === 0 ? (
+          <p className="px-2 py-3 text-[0.7rem] text-muted">
+            Sem variants escritos por este upload. Resumo:&nbsp;
+            <span className="text-ink">{a.note ?? "—"}</span>
+          </p>
+        ) : (
+          <ul className="space-y-1.5">
+            {items.map((c) => (
+              <li key={c.id}>
+                <ChildRow row={c} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </details>
+  );
+}
+
+// One child variant change inside a batch. Nested <details> — clicking
+// expands the per-variant diff inline without leaving the batch card.
+function ChildRow({ row }: { row: ActionRow }) {
+  const before = (row.before as Snapshot) ?? null;
+  const after  = (row.after  as Snapshot) ?? null;
+  const diff   = buildDiff(before, after);
+  const tone   = toneFor(row.action);
+  const idHref = deepLink(row);
+
+  return (
+    <details className="group/child border border-line/60 bg-paper transition-colors open:border-gold/40">
+      <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-2.5 sm:grid-cols-[auto_1fr_auto] sm:gap-4 [&::-webkit-details-marker]:hidden">
+        <span className={`inline-flex w-fit items-center border px-2 py-0.5 text-[0.55rem] tracking-[0.16em] uppercase ${tone}`}>
+          {row.action}
+        </span>
+
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-xs">
+            {row.entityId && (
+              <span className="truncate font-mono text-[0.75rem] text-ink">{row.entityId}</span>
+            )}
+            <span className="font-mono text-[0.6rem] text-muted">{row.entityType}</span>
+          </p>
+          {diff.length > 0 && (
+            <p className="mt-0.5 truncate text-[0.65rem] text-muted">
+              {diff.length} {diff.length === 1 ? "campo" : "campos"} ·{" "}
+              {diff.map((d) => d.key).join(", ")}
+            </p>
+          )}
+        </div>
+
+        <svg
+          className="ml-auto h-3.5 w-3.5 shrink-0 text-muted transition-transform duration-200 group-open/child:rotate-180"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </summary>
+
+      <div className="border-t border-line/40 bg-cream/30 px-4 py-3">
+        {diff.length > 0 ? (
+          <ul className="space-y-1.5 text-xs">
+            {diff.map((d) => (
+              <li key={d.key} className="grid gap-1 sm:grid-cols-[8rem_1fr_auto_1fr] sm:gap-3">
+                <span className="overline text-[0.55rem] text-muted">{d.key}</span>
+                <div className="flex items-center gap-2">
+                  <span className="break-words">{renderField(d.key, d.before)}</span>
+                  <span className="text-muted sm:hidden" aria-hidden>→</span>
+                </div>
+                <span className="hidden text-muted sm:inline" aria-hidden>→</span>
+                <span className="break-words">{renderField(d.key, d.after)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-[0.7rem] text-muted">{row.note ?? "Sem diff estruturado."}</p>
+        )}
+
+        {idHref && (
+          <div className="mt-3">
+            <Link
+              href={idHref}
+              className="inline-flex items-center gap-2 border border-line bg-paper px-2.5 py-1 text-[0.6rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+            >
+              Abrir em Artigos →
+            </Link>
+          </div>
+        )}
+      </div>
+    </details>
   );
 }

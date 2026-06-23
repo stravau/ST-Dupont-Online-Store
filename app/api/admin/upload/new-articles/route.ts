@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { readUploadedSheet, pick, asString, asNumber, asInt, refCandidates } from "@/lib/admin-upload";
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
   if (rows.length === 0) {
     return NextResponse.json({ ok: false, error: "empty sheet" }, { status: 400 });
   }
+  const batchId = randomUUID();
   let created = 0, updated = 0, skipped = 0;
   const unmatchedSample: { ref?: string; reason: string }[] = [];
 
@@ -133,7 +135,7 @@ export async function POST(req: Request) {
           }),
           prisma.adminAction.create({
             data: {
-              userId, entityType: "VARIANT", action: "UPDATE", entityId: sku,
+              userId, batchId, entityType: "VARIANT", action: "UPDATE", entityId: sku,
               note: "New-articles upload (existing SKU, updated)",
               // Proper diff — captures the prior state, not just `after`.
               before: {
@@ -194,7 +196,7 @@ export async function POST(req: Request) {
         });
         await tx.adminAction.create({
           data: {
-            userId, entityType: "VARIANT", action: "CREATE", entityId: sku,
+            userId, batchId, entityType: "VARIANT", action: "CREATE", entityId: sku,
             note: `New article created · product slug ${slug}`,
             after: { ean, priceCents: cents, stock, slug } as object,
           },
@@ -211,6 +213,7 @@ export async function POST(req: Request) {
     await prisma.adminAction.create({
       data: {
         userId,
+        batchId,
         entityType: "UPLOAD_BATCH",
         action: "UPLOAD",
         entityId: "new-articles",
