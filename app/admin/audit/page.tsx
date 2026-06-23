@@ -222,7 +222,7 @@ export default async function AdminAuditPage({
                 {g.label}
               </h2>
 
-              <ol className="space-y-px">
+              <ul className="space-y-2">
                 {g.items.map((a) => {
                   const before = (a.before as Snapshot) ?? null;
                   const after  = (a.after  as Snapshot) ?? null;
@@ -241,41 +241,72 @@ export default async function AdminAuditPage({
                       ? `/admin/variants?q=${encodeURIComponent(a.entityId)}`
                       : null;
 
-                  return (
-                    <li key={a.id} className="border-l-[3px] border-l-gold/30 bg-paper hover:border-l-gold">
-                      <article className="grid gap-3 px-5 py-4 sm:grid-cols-[10rem_1fr_auto] sm:items-start sm:gap-6">
-                        {/* When */}
-                        <div className="text-xs text-muted">
-                          <p className="text-ink tabular-nums">
-                            {a.createdAt.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                          </p>
-                          <p className="mt-0.5 text-[0.65rem] tracking-wide">{relativeTime(a.createdAt, now)}</p>
-                        </div>
+                  // Headline summary in the collapsed card. Updates show the
+                  // changed-field count; uploads/creates fall back to the
+                  // batch note; everything else hides the line.
+                  const changeCount = diff.length;
+                  const summaryLine =
+                    a.entityType === "UPLOAD_BATCH"
+                      ? a.note
+                      : changeCount > 0
+                        ? `${changeCount} ${changeCount === 1 ? "campo alterado" : "campos alterados"}`
+                        : a.note ?? null;
 
-                        {/* What */}
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className={`inline-block border px-2 py-0.5 text-[0.6rem] tracking-[0.16em] uppercase ${actionTone}`}>
-                              {a.action}
-                            </span>
-                            <span className="font-mono text-[0.65rem] text-muted">{a.entityType}</span>
-                            {a.entityId && (
-                              idHref ? (
-                                <Link href={idHref} className="font-mono text-[0.7rem] text-ink underline-offset-2 hover:text-gold hover:underline">
-                                  {a.entityId}
-                                </Link>
-                              ) : (
-                                <span className="font-mono text-[0.7rem] text-ink">{a.entityId}</span>
-                              )
+                  return (
+                    <li key={a.id}>
+                      {/* Native <details> = collapsible card. No JS, no
+                          client component, keyboard + screen-reader
+                          friendly out of the box. */}
+                      <details className="group border border-line bg-paper transition-colors open:border-gold/60 hover:border-line/80">
+                        <summary className="grid cursor-pointer list-none items-center gap-3 px-5 py-4 sm:grid-cols-[8rem_auto_1fr_auto_auto] sm:gap-5 [&::-webkit-details-marker]:hidden">
+                          {/* When */}
+                          <div className="text-xs text-muted">
+                            <p className="text-ink tabular-nums">
+                              {a.createdAt.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                            <p className="mt-0.5 text-[0.65rem] tracking-wide">{relativeTime(a.createdAt, now)}</p>
+                          </div>
+
+                          {/* Action badge */}
+                          <span className={`inline-flex w-fit items-center border px-2.5 py-1 text-[0.6rem] tracking-[0.16em] uppercase ${actionTone}`}>
+                            {a.action}
+                          </span>
+
+                          {/* Entity + summary line */}
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-2 text-xs">
+                              <span className="font-mono text-[0.65rem] text-muted">{a.entityType}</span>
+                              {a.entityId && (
+                                <span className="truncate font-mono text-[0.75rem] text-ink">{a.entityId}</span>
+                              )}
+                            </p>
+                            {summaryLine && (
+                              <p className="mt-1 truncate text-[0.7rem] text-muted">{summaryLine}</p>
                             )}
                           </div>
 
-                          {/* Diff lines — only when there's a structured before/after.
-                              Mobile stacks before/after with a centered arrow row;
-                              desktop uses a 4-column grid so the change reads
-                              left-to-right at a glance. */}
-                          {diff.length > 0 && (
-                            <ul className="mt-3 space-y-2 text-xs">
+                          {/* Who */}
+                          <p className="hidden truncate text-right text-[0.65rem] text-muted sm:block" title={a.user?.email ?? "system"}>
+                            {a.user?.email ?? "system"}
+                          </p>
+
+                          {/* Chevron — rotates when open */}
+                          <svg
+                            className="ml-auto h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            aria-hidden
+                          >
+                            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </summary>
+
+                        {/* Expanded body — diff lines + deep-link + note */}
+                        <div className="border-t border-line/60 bg-cream/40 px-5 py-4 sm:px-6">
+                          {diff.length > 0 ? (
+                            <ul className="space-y-2 text-xs">
                               {diff.map((d) => (
                                 <li key={d.key} className="grid gap-1 sm:grid-cols-[10rem_1fr_auto_1fr] sm:gap-3">
                                   <span className="overline text-[0.55rem] text-muted">{d.key}</span>
@@ -288,27 +319,41 @@ export default async function AdminAuditPage({
                                 </li>
                               ))}
                             </ul>
+                          ) : (
+                            <p className="text-[0.7rem] text-muted">Sem diff estruturado para esta acção.</p>
                           )}
 
-                          {/* Note — surfaced when there's no structured diff
-                              (UPLOAD_BATCH rows carry only a note) or as a
-                              caption beneath the diff. */}
-                          {a.note && (
-                            <p className="mt-2 text-[0.7rem] text-muted">{a.note}</p>
+                          {/* Note shown beneath the diff (uploads + creates
+                              carry it; updates rarely do). */}
+                          {a.note && diff.length > 0 && (
+                            <p className="mt-3 border-t border-line/60 pt-3 text-[0.7rem] text-muted">{a.note}</p>
                           )}
-                        </div>
 
-                        {/* Who */}
-                        <div className="text-right text-[0.65rem] text-muted">
-                          <p className="truncate" title={a.user?.email ?? "system"}>
-                            {a.user?.email ?? "system"}
+                          {/* Mobile-only "who" line — hidden in the
+                              summary on small screens where space is tight. */}
+                          <p className="mt-3 text-[0.65rem] text-muted sm:hidden">
+                            por <span className="text-ink">{a.user?.email ?? "system"}</span>
                           </p>
+
+                          {/* Deep link to /admin/variants filtered by sku.
+                              Only for entries where the entity actually
+                              maps to a variant the admin can edit. */}
+                          {idHref && (
+                            <div className="mt-4">
+                              <Link
+                                href={idHref}
+                                className="inline-flex items-center gap-2 border border-line bg-paper px-3 py-1.5 text-[0.65rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+                              >
+                                Abrir em Artigos →
+                              </Link>
+                            </div>
+                          )}
                         </div>
-                      </article>
+                      </details>
                     </li>
                   );
                 })}
-              </ol>
+              </ul>
             </section>
           ))}
         </div>
