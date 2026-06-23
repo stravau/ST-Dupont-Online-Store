@@ -16,6 +16,14 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     <div className="flex flex-col items-center md:items-start">
       <Logo variant="light" width={244} className="w-[176px] md:w-[244px]" />
       <p className="overline mt-3 md:mt-5">{dict.footer.tagline}</p>
+      <a
+        href={STORE.officialUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 text-xs text-cream/85 transition-colors hover:text-gold md:mt-5 md:text-sm"
+      >
+        {dict.footer.official} ↗
+      </a>
     </div>
   );
 
@@ -44,14 +52,6 @@ export function SiteFooter({ lang }: { lang: Locale }) {
         <Link href={`/${lang}/loja`} className="transition-colors hover:text-gold">
           {dict.footer.viewStore} →
         </Link>
-        <a
-          href={STORE.officialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition-colors hover:text-gold"
-        >
-          {dict.footer.official} ↗
-        </a>
       </div>
     </div>
   );
