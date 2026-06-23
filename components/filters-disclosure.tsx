@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 // One single "Filtros" disclosure on /c/[category] — holds the
 // collection switcher, the gender/usage chip rows and the price
-// slider. Opens by default on desktop (>=md), collapsed on mobile
-// where vertical space is tight. The active filter count renders
-// next to the label so users see at a glance whether anything is
-// applied without opening the panel.
+// slider. Always starts closed (mobile + desktop alike) so the
+// catalogue grid sits high on the page; users opt in to filtering.
 export function FiltersDisclosure({
   label,
   clearLabel,
@@ -21,14 +19,7 @@ export function FiltersDisclosure({
   activeCount: number;
   children: React.ReactNode;
 }) {
-  // Default to closed (matches SSR + mobile). The effect below
-  // promotes desktop visitors to open after hydration so the filter
-  // chrome is visible without a click; mobile stays collapsed.
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(min-width: 768px)").matches) setOpen(true);
-  }, []);
 
   return (
     <div className="mt-8 border-y border-line">

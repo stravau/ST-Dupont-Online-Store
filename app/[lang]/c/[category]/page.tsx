@@ -245,9 +245,7 @@ export default async function CategoryPage({
            one model line. */
         <CategoryHeroSlider
           thumbnails={modelThumbs}
-          eyebrow={cat.name[locale]}
           title={art?.art ?? cat.name[locale]}
-          description={cat.history?.[locale]}
           prevAria={dict.common.prev}
           nextAria={dict.common.next}
         />

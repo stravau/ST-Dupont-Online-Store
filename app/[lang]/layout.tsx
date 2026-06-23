@@ -30,9 +30,7 @@ export default async function LocaleLayout({
   const locale = lang as Locale;
 
   return (
-    // The wrapping div replaces the previous body styles — keeps the
-    // flex / bg-ink stack the sticky footer reveal depends on.
-    <div className="flex min-h-screen flex-col bg-ink">
+    <div className="flex min-h-screen flex-col bg-cream">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-xs focus:tracking-[0.18em] focus:text-gold focus:uppercase"
@@ -42,7 +40,7 @@ export default async function LocaleLayout({
       <ScrollToTop />
       <SiteHeader lang={locale} />
       <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
-      <main id="main" className="relative z-10 flex-1 bg-cream">
+      <main id="main" className="flex-1 bg-cream">
         <PageTransition>{children}</PageTransition>
       </main>
       <SiteFooter lang={locale} />
