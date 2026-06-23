@@ -82,15 +82,38 @@ export function refCandidates(ref: string): string[] {
 }
 
 // Resolve an Excel row to ONE variant by EAN first, then REF candidates.
-// Returns null when nothing matches.
+// Returns null when nothing matches. Selects every field the upload
+// routes need for `before` snapshots in the audit log — adding fields
+// here is cheap and keeps each route from having to round-trip a second
+// findUnique just to capture pre-update state.
+export interface ResolvedVariant {
+  id: string;
+  sku: string;
+  priceCents: number;
+  stock: number;
+  promoPriceCents: number | null;
+  promoStartDate: Date | null;
+  promoEndDate: Date | null;
+}
+
+const RESOLVED_SELECT = {
+  id: true,
+  sku: true,
+  priceCents: true,
+  stock: true,
+  promoPriceCents: true,
+  promoStartDate: true,
+  promoEndDate: true,
+} as const;
+
 export async function resolveVariant(
   ean: string | null,
   ref: string | null,
-): Promise<{ id: string; sku: string; priceCents: number } | null> {
+): Promise<ResolvedVariant | null> {
   if (ean) {
     const v = await prisma.productVariant.findUnique({
       where: { ean },
-      select: { id: true, sku: true, priceCents: true },
+      select: RESOLVED_SELECT,
     });
     if (v) return v;
   }
@@ -98,7 +121,7 @@ export async function resolveVariant(
     const cands = refCandidates(ref);
     const matches = await prisma.productVariant.findMany({
       where: { sku: { in: cands } },
-      select: { id: true, sku: true, priceCents: true },
+      select: RESOLVED_SELECT,
     });
     if (matches.length === 1) return matches[0];
     if (matches.length > 1) {

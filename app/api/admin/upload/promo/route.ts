@@ -32,6 +32,12 @@ export async function POST(req: Request) {
       continue;
     }
 
+    if (promo != null && promo < 0) { skipped++; continue; }
+    // A non-null promo price with no DATA_FIM would create an evergreen
+    // promo (never expires) — that's a data hazard, not a config option.
+    // Reject the row and let the admin re-upload with the right end date.
+    if (promo != null && end == null) { skipped++; continue; }
+
     const data: {
       promoPriceCents: number | null;
       promoStartDate: Date | null;
@@ -41,7 +47,6 @@ export async function POST(req: Request) {
       promoStartDate: promo != null ? (start ?? new Date()) : null,
       promoEndDate: promo != null ? end : null,
     };
-    if (promo != null && promo < 0) { skipped++; continue; }
 
     try {
       await prisma.$transaction([
@@ -53,7 +58,16 @@ export async function POST(req: Request) {
             action: "UPDATE",
             entityId: v.sku,
             note: "Promo upload",
-            after: data as object,
+            before: {
+              promoPriceCents: v.promoPriceCents,
+              promoStartDate: v.promoStartDate?.toISOString() ?? null,
+              promoEndDate: v.promoEndDate?.toISOString() ?? null,
+            } as object,
+            after: {
+              promoPriceCents: data.promoPriceCents,
+              promoStartDate: data.promoStartDate?.toISOString() ?? null,
+              promoEndDate: data.promoEndDate?.toISOString() ?? null,
+            } as object,
           },
         }),
       ]);

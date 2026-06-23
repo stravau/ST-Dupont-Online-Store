@@ -36,9 +36,18 @@ export function VariantRow({
   const [eurStr, setEurStr] = useState<string>((priceInit / 100).toFixed(2));
   const [status, setStatus] = useState<Status>(statusInit);
   const [stock, setStock]   = useState<number>(stockInit);
+  // Server-confirmed values — `ean`/`eurStr`/`status`/`stock` are the
+  // optimistic local state, these are what's actually persisted. After a
+  // successful PATCH we update both; on failure we roll the optimistic
+  // state back here. Previously the row would silently lie when the
+  // server rejected (UI showed the new value, DB held the old).
+  const [savedEan, setSavedEan] = useState<string | null>(eanInit);
+  const [savedPriceCents, setSavedPriceCents] = useState<number>(priceInit);
+  const [savedStatus, setSavedStatus] = useState<Status>(statusInit);
+  const [savedStock, setSavedStock] = useState<number>(stockInit);
   const [, startTransition] = useTransition();
 
-  async function patch(body: Record<string, unknown>, label: string) {
+  async function patch(body: Record<string, unknown>, label: string): Promise<boolean> {
     try {
       const res = await fetch(`/api/admin/variant/${id}`, {
         method: "PATCH",
@@ -47,31 +56,51 @@ export function VariantRow({
       });
       if (!res.ok) throw new Error(String(res.status));
       toast.push("success", `${label} guardado`);
+      return true;
     } catch (e) {
       toast.push("error", `Falha em ${label}: ${(e as Error).message}`);
+      return false;
     }
   }
 
   function commitEan() {
     const trimmed = ean.trim();
-    if (trimmed === (eanInit ?? "")) return;
-    startTransition(() => patch({ ean: trimmed === "" ? null : trimmed }, "EAN"));
+    if (trimmed === (savedEan ?? "")) return;
+    const next = trimmed === "" ? null : trimmed;
+    startTransition(async () => {
+      const ok = await patch({ ean: next }, "EAN");
+      if (ok) setSavedEan(next);
+      else setEan(savedEan ?? ""); // roll back the input
+    });
   }
   function commitPvp() {
     const cents = Math.round(Number.parseFloat(eurStr.replace(",", ".")) * 100);
-    if (!Number.isFinite(cents) || cents < 0) { setEurStr((priceInit / 100).toFixed(2)); return; }
-    if (cents === priceInit) return;
-    startTransition(() => patch({ priceCents: cents }, "PVP"));
+    if (!Number.isFinite(cents) || cents < 0) { setEurStr((savedPriceCents / 100).toFixed(2)); return; }
+    if (cents === savedPriceCents) return;
+    startTransition(async () => {
+      const ok = await patch({ priceCents: cents }, "PVP");
+      if (ok) setSavedPriceCents(cents);
+      else setEurStr((savedPriceCents / 100).toFixed(2));
+    });
   }
   function commitStatus(next: Status) {
-    if (next === status) return;
+    if (next === savedStatus) return;
     setStatus(next);
-    startTransition(() => patch({ status: next }, "Status"));
+    startTransition(async () => {
+      const ok = await patch({ status: next }, "Status");
+      if (ok) setSavedStatus(next);
+      else setStatus(savedStatus); // dropdown snaps back
+    });
   }
   function commitStock(next: number) {
-    if (next === stock) return;
+    if (next === savedStock) return;
+    if (next < 0) { setStock(savedStock); return; }
     setStock(next);
-    startTransition(() => patch({ stock: next }, "Stock"));
+    startTransition(async () => {
+      const ok = await patch({ stock: next }, "Stock");
+      if (ok) setSavedStock(next);
+      else setStock(savedStock);
+    });
   }
 
   const statusTone =

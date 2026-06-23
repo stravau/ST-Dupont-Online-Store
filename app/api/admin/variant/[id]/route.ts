@@ -39,9 +39,16 @@ export async function PATCH(
   if ("priceCents" in body) {
     const v = body.priceCents;
     if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return NextResponse.json({ ok: false, error: "priceCents invalid" }, { status: 400 });
-    data.priceCents = v;
-    data.pvpStartDate = new Date();
-    if (v !== current.priceCents) { before.priceCents = current.priceCents; after.priceCents = v; }
+    // Only write priceCents + pvpStartDate when the value ACTUALLY changes
+    // — onBlur fires on every focus loss in the admin table, even with no
+    // edit, and silently resetting pvpStartDate on every no-op was
+    // corrupting the price-history timeline.
+    if (v !== current.priceCents) {
+      data.priceCents = v;
+      data.pvpStartDate = new Date();
+      before.priceCents = current.priceCents;
+      after.priceCents = v;
+    }
   }
   if ("status" in body) {
     const v = body.status;
@@ -59,18 +66,21 @@ export async function PATCH(
   }
   // Per-colourway description override — JSON { pt, en } | null. Pass
   // null to clear the override and have the PDP fall back to the parent
-  // Product.description copy.
+  // Product.description copy. Empty-string PT and EN together are
+  // promoted to null so the PDP fallback logic (truthy check on the
+  // locale string) actually fires instead of rendering a blank section.
   if ("description" in body) {
     const v = body.description;
-    const valid =
-      v === null ||
-      (v !== null && typeof v === "object" && !Array.isArray(v) &&
-       (("pt" in v && typeof (v as Record<string, unknown>).pt === "string") ||
-        ("en" in v && typeof (v as Record<string, unknown>).en === "string")));
+    const isObj = v !== null && typeof v === "object" && !Array.isArray(v);
+    const ptStr = isObj && typeof (v as Record<string, unknown>).pt === "string" ? ((v as Record<string, string>).pt) : undefined;
+    const enStr = isObj && typeof (v as Record<string, unknown>).en === "string" ? ((v as Record<string, string>).en) : undefined;
+    const valid = v === null || (isObj && (ptStr !== undefined || enStr !== undefined));
     if (!valid) return NextResponse.json({ ok: false, error: "description must be { pt?, en? } or null" }, { status: 400 });
-    data.description = v as object | null;
+    const allBlank = v === null || ((ptStr ?? "").trim() === "" && (enStr ?? "").trim() === "");
+    const stored = allBlank ? null : { pt: (ptStr ?? "").trim(), en: (enStr ?? "").trim() };
+    data.description = stored;
     before.description = current.description;
-    after.description = v;
+    after.description = stored;
   }
 
   if (Object.keys(data).length === 0) {

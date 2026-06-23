@@ -3,6 +3,16 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+// Same-origin admin path? Rejects protocol-relative URLs (//evil.com),
+// absolute URLs (https://evil.com), and any path outside /admin. Used to
+// sanitize the `callbackUrl` query string echoed back through the form.
+function isSafeAdminTarget(target: string): boolean {
+  if (!target.startsWith("/")) return false;
+  if (target.startsWith("//")) return false;        // protocol-relative
+  if (target.startsWith("/\\")) return false;       // backslash-trick
+  return target === "/admin" || target.startsWith("/admin/") || target.startsWith("/admin?");
+}
+
 export default async function AdminLoginPage({
   searchParams,
 }: {
@@ -14,7 +24,12 @@ export default async function AdminLoginPage({
     "use server";
     const email    = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
-    const target   = String(formData.get("callbackUrl") ?? "/admin");
+    // `callbackUrl` comes from the form (echoed from the request query string)
+    // — never trust it. Only accept same-origin admin paths so a crafted
+    // ?callbackUrl=//evil.example can't turn a successful login into an
+    // off-site redirect.
+    const rawTarget = String(formData.get("callbackUrl") ?? "/admin");
+    const target = isSafeAdminTarget(rawTarget) ? rawTarget : "/admin";
     try {
       await signIn("credentials", { email, password, redirectTo: target });
     } catch (e) {
@@ -58,7 +73,11 @@ export default async function AdminLoginPage({
             </p>
           )}
 
-          <input type="hidden" name="callbackUrl" value={callbackUrl ?? "/admin"} />
+          <input
+            type="hidden"
+            name="callbackUrl"
+            value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
+          />
 
           <label className="mt-6 block">
             <span className="overline mb-1.5 block text-[0.55rem] text-muted">Email</span>

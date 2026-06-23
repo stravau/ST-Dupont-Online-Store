@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/admin/toast";
 
 // Two textareas (PT + EN) wired to the variant PATCH endpoint. Save
@@ -22,16 +22,9 @@ export function DescriptionEditor({
   const [pt, setPt] = useState(initial?.pt ?? "");
   const [en, setEn] = useState(initial?.en ?? "");
   const [busy, setBusy] = useState(false);
-  const [, startTransition] = useTransition();
 
-  async function save() {
+  async function patch(payload: { description: { pt: string; en: string } | null }, successMsg: string) {
     setBusy(true);
-    const trimmedPt = pt.trim();
-    const trimmedEn = en.trim();
-    const payload =
-      !trimmedPt && !trimmedEn
-        ? { description: null }
-        : { description: { pt: trimmedPt, en: trimmedEn } };
     try {
       const res = await fetch(`/api/admin/variant/${variantId}`, {
         method: "PATCH",
@@ -39,7 +32,7 @@ export function DescriptionEditor({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(String(res.status));
-      toast.push("success", payload.description ? "Descrição guardada" : "Override removido");
+      toast.push("success", successMsg);
     } catch (e) {
       toast.push("error", `Falha ao guardar: ${(e as Error).message}`);
     } finally {
@@ -47,10 +40,24 @@ export function DescriptionEditor({
     }
   }
 
-  function clear() {
+  async function save() {
+    const trimmedPt = pt.trim();
+    const trimmedEn = en.trim();
+    const payload =
+      !trimmedPt && !trimmedEn
+        ? { description: null as null }
+        : { description: { pt: trimmedPt, en: trimmedEn } };
+    await patch(payload, payload.description ? "Descrição guardada" : "Override removido");
+  }
+
+  // Sends `description: null` directly — does NOT depend on React having
+  // flushed `setPt("")` / `setEn("")` first. Previously this called
+  // `save()` after a state update, which read stale state and re-posted
+  // the OLD copy as a non-null override, so "Limpar" silently no-op'd.
+  async function clear() {
     setPt("");
     setEn("");
-    startTransition(() => save());
+    await patch({ description: null }, "Override removido");
   }
 
   const hasOverride = Boolean(initial?.pt || initial?.en);

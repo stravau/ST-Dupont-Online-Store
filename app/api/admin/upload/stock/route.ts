@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       if (unmatchedSample.length < 10) unmatchedSample.push({ ref: ref ?? undefined, ean: ean ?? undefined });
       continue;
     }
+    if (v.stock === stock) { updated++; continue; } // no-op counts as success
     try {
       await prisma.$transaction([
         prisma.productVariant.update({ where: { id: v.id }, data: { stock } }),
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
             action: "UPDATE",
             entityId: v.sku,
             note: "Stock upload",
+            before: { stock: v.stock } as object,
             after: { stock } as object,
           },
         }),
