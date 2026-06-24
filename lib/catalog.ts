@@ -73,32 +73,20 @@ export function expandProductCards(p: Product): { product: Product; sku: string 
     if (v.status === "DESCONTINUADO") continue;
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
-    // Composite key — colour AND type AND finish AND size AND price, so
-    // two SKUs only collapse into one tile when they're genuinely the
-    // same offering. Why each part matters:
-    //   - type:  a black rollerball vs a black fountain pen are
-    //            different products and must both show.
-    //   - price: several catalogue "products" actually BUNDLE distinct
-    //            items (e.g. a €1000 Victoria tote and a €355 Victoria
-    //            wallet, both "black"). Without price in the key the
-    //            cheaper one collapsed into the dearer and vanished from
-    //            the grid. Price separates the price-tiered sub-products.
-    // Including all of these cut grid-hidden colourways from 417 → ~117
-    // (the remaining ones are true same-colour/same-price duplicates,
-    // which SHOULD collapse). Falls back to the raw sku when a variant
-    // carries no attributes at all.
-    const a = v.attributes;
-    const compositeKey = [
-      a.color?.label.en,
-      a.type?.en,
-      a.finish?.en,
-      a.size?.en,
-      `€${v.priceCents}`,
-    ]
-      .filter(Boolean)
-      .join("|")
-      .toLowerCase();
-    const key = compositeKey || v.sku.toLowerCase();
+    // Dedup by the actual PHOTO. A "duplicate tile" is, by definition,
+    // two tiles showing the same image — so the hero image is the
+    // truest dedup key. This:
+    //   - collapses genuine duplicates (e.g. 12 line-d-eternity SKUs
+    //     that all share one generic "front.jpg"), and
+    //   - shows every visually-distinct colourway / sub-product (the
+    //     €1000 Victoria tote and the €355 Victoria wallet have
+    //     different photos, so both appear).
+    // Earlier attribute-based keys either hid real colourways (colour
+    // only) or rendered same-photo duplicates (colour+price); keying on
+    // the image avoids both. Falls back to the sku only when a variant
+    // somehow has no resolvable image (shouldn't happen — imageless
+    // variants are filtered out above).
+    const key = (v.image || v.images[0] || p.image || v.sku).toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ product: p, sku: v.sku });

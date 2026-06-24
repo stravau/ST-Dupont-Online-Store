@@ -331,6 +331,28 @@ const KEEP_VARIANTS: Record<string, Set<string>> = {
   "le-grand-dupont": new Set(["C23780CL", "C23013N"]),
 };
 
+// Bundle splitter — several scraped "products" actually cram multiple
+// distinct items under one entry (e.g. Victoria = a €1000 tote AND a
+// €355 wallet, each in several colours). On the per-colourway grid that
+// renders as a jumble of same-colour tiles ("three black Victorias").
+// Splitting one source product into several real products — partitioned
+// by SKU prefix — gives each item its own clean colour range. Keyed by
+// the source slug; each part's variants are filtered by SKU prefix, and
+// every variant name is rewritten to carry the part label so cards read
+// "Victoria · Tote — Preto" instead of a bare "Victoria — Preto".
+interface SplitPart {
+  slug: string;
+  name: { pt: string; en: string };
+  collection?: string;
+  prefixes: string[]; // case-insensitive SKU startsWith
+}
+const SPLIT_PRODUCT: Record<string, SplitPart[]> = {
+  victoria: [
+    { slug: "victoria-tote", name: { pt: "Victoria · Tote", en: "Victoria · Tote" }, prefixes: ["1VI333"] },
+    { slug: "victoria-wallet", name: { pt: "Victoria · Carteira", en: "Victoria · Wallet" }, prefixes: ["1VI514", "1VI592"] },
+  ],
+};
+
 // Vanikoro → 20,000 Leagues text rewrite — sweep label strings too, since
 // names like "Slimmy · 20000 Lieues sous les mers — Royal Blue" reach the
 // cards via variant.name not just product.name.
@@ -444,6 +466,46 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
     }));
     // After variant filter the product may have no variants — drop it.
     if (variants.length === 0) continue;
+
+    // Bundle split — emit one product per SplitPart, partitioning the
+    // variants by SKU prefix and rewriting each variant name to carry
+    // the part label (so "Victoria — Preto" becomes "Victoria · Tote —
+    // Preto"). Anything not captured by a part falls through into the
+    // last part as a safety net so no colourway is silently lost.
+    const split = SPLIT_PRODUCT[newSlug] ?? SPLIT_PRODUCT[p.slug];
+    if (split) {
+      const assigned = new Set<string>();
+      split.forEach((part, idx) => {
+        const isLast = idx === split.length - 1;
+        const partVariants = variants.filter((v) => {
+          if (assigned.has(v.sku)) return false;
+          const hit = part.prefixes.some((pre) => v.sku.toUpperCase().startsWith(pre.toUpperCase()));
+          // last part sweeps up any unmatched leftovers
+          if (hit || (isLast && !assigned.has(v.sku))) { assigned.add(v.sku); return true; }
+          return false;
+        }).map((v) => {
+          const colour = v.attributes?.color?.label;
+          return {
+            ...v,
+            name: colour
+              ? { pt: `${part.name.pt} — ${colour.pt}`, en: `${part.name.en} — ${colour.en}` }
+              : part.name,
+          };
+        });
+        if (partVariants.length === 0) return;
+        out.push({
+          ...p,
+          slug: part.slug,
+          name: part.name,
+          categorySlug: newCategory,
+          collection: rewriteDefi(rewriteLignePerfectCling(part.collection ?? newCollection)),
+          image: partVariants[0].image ?? partVariants[0].images?.[0] ?? p.image,
+          variants: partVariants,
+        });
+      });
+      continue;
+    }
+
     out.push({
       ...p,
       slug: newSlug,
