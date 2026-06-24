@@ -73,15 +73,27 @@ export function expandProductCards(p: Product): { product: Product; sku: string 
     if (v.status === "DESCONTINUADO") continue;
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
-    // Composite key — colour AND finish AND size, so two SKUs that
-    // share a colour label but differ in finish (e.g. Black gunmetal
-    // vs Black lacquer) both produce a card instead of collapsing
-    // into one. Falls back to the raw sku when no attributes exist.
+    // Composite key — colour AND type AND finish AND size AND price, so
+    // two SKUs only collapse into one tile when they're genuinely the
+    // same offering. Why each part matters:
+    //   - type:  a black rollerball vs a black fountain pen are
+    //            different products and must both show.
+    //   - price: several catalogue "products" actually BUNDLE distinct
+    //            items (e.g. a €1000 Victoria tote and a €355 Victoria
+    //            wallet, both "black"). Without price in the key the
+    //            cheaper one collapsed into the dearer and vanished from
+    //            the grid. Price separates the price-tiered sub-products.
+    // Including all of these cut grid-hidden colourways from 417 → ~117
+    // (the remaining ones are true same-colour/same-price duplicates,
+    // which SHOULD collapse). Falls back to the raw sku when a variant
+    // carries no attributes at all.
     const a = v.attributes;
     const compositeKey = [
       a.color?.label.en,
+      a.type?.en,
       a.finish?.en,
       a.size?.en,
+      `€${v.priceCents}`,
     ]
       .filter(Boolean)
       .join("|")
