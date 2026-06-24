@@ -127,9 +127,11 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   // accidentally in isqueiros — cigar cutters belong with the smoking accessories
   "cigar-cutter": "acessorios",
   "cigar-cutter-monogram-1872": "acessorios",
-  // accidentally in acessorios — these are full lighters / writing instruments
-  "ligne-2-3": "isqueiros",
-  "ligne-2-5": "isqueiros",
+  // accidentally in acessorios — these are full lighters / writing instruments.
+  // NB: ligne-2-3 and ligne-2-5 used to live here too, but they're leather
+  // LIGHTER CASES (estojos), not lighters — they belong in acessorios and
+  // are stored there now. Only ligne-2-6 (a real Montecristo Ligne 2
+  // lighter) stays forced into isqueiros.
   "ligne-2-6": "isqueiros",
   "maxijet-2": "isqueiros",
   "haute-creation": "isqueiros", // Haute Création is a high-end lighter line
