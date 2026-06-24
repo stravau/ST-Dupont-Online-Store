@@ -35,7 +35,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "atelier-2-small-cigar-pouch-1485", name: { pt: "Atelier · Small Cigar Pouch", en: "Atelier · Small Cigar Pouch" }, skus: ["141352"] },
   ],
   "defi-explorer-2": [
-    { slug: "defi-explorer-2-other", name: { pt: "Défi Explorer · Outros", en: "Défi Explorer · Other" }, skus: ["1IC23NK1"] },
     { slug: "defi-explorer-2-messenger", name: { pt: "Défi Explorer · Messenger", en: "Défi Explorer · Messenger" }, skus: ["1IC194BK1","1IC194NK1"] },
     { slug: "defi-explorer-2-backpack", name: { pt: "Défi Explorer · Backpack", en: "Défi Explorer · Backpack" }, skus: ["1IC223BK1","1IC223NK1"] },
     { slug: "defi-explorer-2-document-holder", name: { pt: "Défi Explorer · Document Holder", en: "Défi Explorer · Document Holder" }, skus: ["1IC132BK1"] },
@@ -163,14 +162,10 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "neo-capsule-2-document-holder", name: { pt: "Neo Capsule · Document Holder", en: "Neo Capsule · Document Holder" }, skus: ["181441","181341","181241"] },
     { slug: "neo-capsule-2-double-document-holder", name: { pt: "Neo Capsule · Double Document Holder", en: "Neo Capsule · Double Document Holder" }, skus: ["181242"] },
   ],
-  "firehead-keyring-pouch": [
-    { slug: "firehead-keyring-pouch-other", name: { pt: "Firehead · Porta-Chaves & Bolsa · Outros", en: "Firehead · Keyring & Pouch · Other" }, skus: ["161610"] },
-    { slug: "firehead-keyring-pouch-other-695", name: { pt: "Firehead · Porta-Chaves & Bolsa · Outros", en: "Firehead · Keyring & Pouch · Other" }, skus: ["160612"] },
-  ],
   "line-d-wallet": [
-    { slug: "line-d-wallet-other", name: { pt: "Line D · Carteira · Outros", en: "Line D · Wallet · Other" }, skus: ["180002"] },
-    { slug: "line-d-wallet-other-430", name: { pt: "Line D · Carteira · Outros", en: "Line D · Wallet · Other" }, skus: ["180045"] },
-    { slug: "line-d-wallet-other-460", name: { pt: "Line D · Carteira · Outros", en: "Line D · Wallet · Other" }, skus: ["180044"] },
+    { slug: "line-d-wallet-6-card-id-wallet", name: { pt: "Line D · Carteira · Carteira 6 Cartões + ID", en: "Line D · Wallet · 6-Card ID Wallet" }, skus: ["180002"] },
+    { slug: "line-d-wallet-long-wallet-13-card", name: { pt: "Line D · Carteira · Carteira Longa 13 Cartões", en: "Line D · Wallet · Long Wallet 13-Card" }, skus: ["180045"] },
+    { slug: "line-d-wallet-zipped-wallet", name: { pt: "Line D · Carteira · Carteira com Fecho", en: "Line D · Wallet · Zipped Wallet" }, skus: ["180044"] },
   ],
   "eternity-orlinski": [
     { slug: "eternity-orlinski-rollerball-large", name: { pt: "Eternity · Orlinski · Rollerball Grande", en: "Eternity · Orlinski · Rollerball Large" }, skus: ["422061L","422062L","422060L"] },
@@ -189,7 +184,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
   "defi-milenium": [
     { slug: "defi-milenium-ballpoint", name: { pt: "Défi Millennium · Esferográfica", en: "Defi milenium · Ballpoint" }, skus: ["405004","405003","405739","405737","405736","405719","405706"] },
     { slug: "defi-milenium-rollerball", name: { pt: "Défi Millennium · Rollerball", en: "Defi milenium · Rollerball" }, skus: ["402003","402736","402737","402719","402706"] },
-    { slug: "defi-milenium-other", name: { pt: "Défi Millennium · Outros", en: "Defi milenium · Other" }, skus: ["402034","402739","DM-RB-NVC","DM-RB-BMB","DM-RB-MRC"] },
     { slug: "defi-milenium-fountain-pen", name: { pt: "Défi Millennium · Caneta de Tinta Permanente", en: "Defi milenium · Fountain Pen" }, skus: ["400003","400004","400739","400736","400719","400706"] },
   ],
   "d-initial": [
@@ -199,7 +193,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
   ],
   "eternity": [
     { slug: "eternity-ballpoint-large", name: { pt: "Line D Eternity · Esferográfica Grande", en: "Line D Eternity · Ballpoint Large" }, skus: ["425216L"] },
-    { slug: "eternity-other", name: { pt: "Line D Eternity · Outros", en: "Line D Eternity · Other" }, skus: ["422008XL","422221XL","420008XL","420221XL"] },
     { slug: "eternity-rollerball-large", name: { pt: "Line D Eternity · Rollerball Grande", en: "Line D Eternity · Rollerball Large" }, skus: ["422216L"] },
     { slug: "eternity-rollerball-xl", name: { pt: "Line D Eternity · Rollerball XL", en: "Line D Eternity · Rollerball XL" }, skus: ["422011XL","422220XL"] },
     { slug: "eternity-fountain-pen-large", name: { pt: "Line D Eternity · Caneta de Tinta Permanente Grande", en: "Line D Eternity · Fountain Pen Large" }, skus: ["420216L"] },
@@ -220,14 +213,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
   "eternity-fire-x": [
     { slug: "eternity-fire-x-rollerball-medium", name: { pt: "Eternity · Fire X · Rollerball Média", en: "Eternity · Fire X · Rollerball Medium" }, skus: ["422070M"] },
     { slug: "eternity-fire-x-fountain-pen-medium", name: { pt: "Eternity · Fire X · Caneta de Tinta Permanente Média", en: "Eternity · Fire X · Fountain Pen Medium" }, skus: ["420070M"] },
-  ],
-  "liberte-2": [
-    { slug: "liberte-2-ballpoint", name: { pt: "Liberté · Esferográfica", en: "Liberte · Ballpoint" }, skus: ["465226G","465223G","465222G"] },
-    { slug: "liberte-2-other", name: { pt: "Liberté · Outros", en: "Liberte · Other" }, skus: ["465225G"] },
-  ],
-  "d-initial-dragon": [
-    { slug: "d-initial-dragon-ballpoint", name: { pt: "D-Initial · Dragon · Esferográfica", en: "D-Initial · Dragon · Ballpoint" }, skus: ["265026","265027","265028"] },
-    { slug: "d-initial-dragon-other", name: { pt: "D-Initial · Dragon · Outros", en: "D-Initial · Dragon · Other" }, skus: ["265029","265030"] },
   ],
   "eternity-2": [
     { slug: "eternity-2-ballpoint-medium", name: { pt: "Line D Eternity · Esferográfica Média", en: "Line D Eternity · Ballpoint Medium" }, skus: ["425014M","425016M","425220M"] },
@@ -303,18 +288,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "eternity-horse-mane-rollerball-large", name: { pt: "Eternity · Horse Mane · Rollerball Grande", en: "Eternity · Horse Mane · Rollerball Large" }, skus: ["422088L","422080L"] },
     { slug: "eternity-horse-mane-fountain-pen-large", name: { pt: "Eternity · Horse Mane · Caneta de Tinta Permanente Grande", en: "Eternity · Horse Mane · Fountain Pen Large" }, skus: ["420080L","420088L"] },
   ],
-  "2-cigar-case": [
-    { slug: "2-cigar-case-leather-case", name: { pt: "Estojo Duplo de Charuto · Estojo em Pele", en: "2 cigar case · Leather Case" }, skus: ["183245","183260","183250","183249","183240","183269"] },
-    { slug: "2-cigar-case-other", name: { pt: "Estojo Duplo de Charuto · Outros", en: "2 cigar case · Other" }, skus: ["183267","183243"] },
-  ],
-  "3-cigar-case": [
-    { slug: "3-cigar-case-leather-case", name: { pt: "Estojo Triplo de Charuto · Estojo em Pele", en: "3 cigar case · Leather Case" }, skus: ["183349","183340","183417","183419"] },
-    { slug: "3-cigar-case-other", name: { pt: "Estojo Triplo de Charuto · Outros", en: "3 cigar case · Other" }, skus: ["183364"] },
-  ],
-  "2-cigar-case-dragon": [
-    { slug: "2-cigar-case-dragon-other", name: { pt: "Estojo para 2 Charutos · Dragon · Outros", en: "2-cigar-case · Dragon · Other" }, skus: ["183276","183270","183274"] },
-    { slug: "2-cigar-case-dragon-leather-case", name: { pt: "Estojo para 2 Charutos · Dragon · Estojo em Pele", en: "2-cigar-case · Dragon · Leather Case" }, skus: ["183271","183273"] },
-  ],
   "box-10-refills": [
     { slug: "box-10-refills-black-ink", name: { pt: "Caixa de 10 Recargas Rollerball · Black Ink", en: "Box of 10 Rollerball Refills · Black Ink" }, skus: ["040110"] },
     { slug: "box-10-refills-green-ink", name: { pt: "Caixa de 10 Recargas Rollerball · Green Ink", en: "Box of 10 Rollerball Refills · Green Ink" }, skus: ["040363"] },
@@ -339,7 +312,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "box-12-refills-green", name: { pt: "Caixa de 12 Recargas de Gás · Green", en: "Box of 12 Gas Refills · Green" }, skus: ["000433"] },
     { slug: "box-12-refills-red", name: { pt: "Caixa de 12 Recargas de Gás · Red", en: "Box of 12 Gas Refills · Red" }, skus: ["000435"] },
     { slug: "box-12-refills-yellow", name: { pt: "Caixa de 12 Recargas de Gás · Yellow", en: "Box of 12 Gas Refills · Yellow" }, skus: ["000432"] },
-    { slug: "box-12-refills-other", name: { pt: "Caixa de 12 Recargas de Gás · Outros", en: "Box of 12 Gas Refills · Other" }, skus: ["000444"] },
   ],
   "box-5-refills": [
     { slug: "box-5-refills-mechanical-pencil-mechanism", name: { pt: "Frasco de Tinta (Cx. 5) · Mechanical Pencil Mechanism", en: "Ink Bottle (Box of 5) · Mechanical Pencil Mechanism" }, skus: ["408811"] },
@@ -401,10 +373,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "pen-refill-rollerball-pen-blue", name: { pt: "Recargas para Caneta · Rollerball Pen-Blue", en: "Pen Refills · Rollerball Pen-Blue" }, skus: ["940840"] },
     { slug: "pen-refill-ballpoint-pen-black", name: { pt: "Recargas para Caneta · Ballpoint-Pen-Black", en: "Pen Refills · Ballpoint-Pen-Black" }, skus: ["940854","940851"] },
     { slug: "pen-refill-ballpoint-pen-blue", name: { pt: "Recargas para Caneta · Ballpoint-Pen-Blue", en: "Pen Refills · Ballpoint-Pen-Blue" }, skus: ["940850","940853"] },
-  ],
-  "gift-box-gift": [
-    { slug: "gift-box-gift-other", name: { pt: "Caixas Presente · Gift · Outros", en: "Gift Boxes · Gift · Other" }, skus: ["087601"] },
-    { slug: "gift-box-gift-pen-stand", name: { pt: "Caixas Presente · Gift · Pen Stand", en: "Gift Boxes · Gift · Pen Stand" }, skus: ["087451"] },
   ],
   "cufflinks": [
     { slug: "cufflinks-diamond-head", name: { pt: "Botões de Punho · Diamond Head", en: "Cufflinks · Diamond Head" }, skus: ["005567","005597"] },

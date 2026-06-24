@@ -137,6 +137,10 @@ const DROP_SLUGS = new Set<string>([
   "line-d-eternity",
   "initial",
   "le-grand-dupont-monogram",
+  // 2026-06 — "· Other" clean sweep: both variants of this product are
+  // orphans (not in www or the ECI control sheet, no EAN). Dropping the
+  // whole parent rather than leave it empty after the orphan removal below.
+  "firehead-keyring-pouch",
   // www import scrap — placeholder collections with no salvage path.
   "misc",
   "x-2",

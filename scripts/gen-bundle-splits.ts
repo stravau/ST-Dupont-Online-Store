@@ -96,6 +96,15 @@ function slugify(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
 }
 
+// Per-SKU name overrides for real products whose www title is missing, so
+// they get a proper model name instead of falling into "· Other". Sourced
+// from the ECI control sheet "Descrição" column.
+const SKU_OVERRIDE: Record<string, { en: string; pt: string }> = {
+  "180002": { en: "6-Card ID Wallet", pt: "Carteira 6 Cartões + ID" }, // CARTEIRA 6CC ID LINE D
+  "180045": { en: "Long Wallet 13-Card", pt: "Carteira Longa 13 Cartões" }, // CARTEIRA LONGA 13CC LINE D
+  "180044": { en: "Zipped Wallet", pt: "Carteira com Fecho" }, // CARTEIRA C/FECHO LINE D
+};
+
 const CATS = ["pele", "escrita", "acessorios"];
 const out: string[] = [];
 const summary: Record<string, number> = {};
@@ -107,7 +116,7 @@ for (const cat of CATS) {
     const groups = new Map<string, { en: string; pt: string; minPrice: number; skus: string[] }>();
     for (const v of p.variants) {
       const w = wwwBySku.get(v.sku.toUpperCase());
-      const c = w ? canon(w.title, cat) : { en: "Other", pt: "Outros" };
+      const c = SKU_OVERRIDE[v.sku] ?? (w ? canon(w.title, cat) : { en: "Other", pt: "Outros" });
       const ov = OVERLAY[v.sku];
       const price = ov?.priceCents ? Math.round(ov.priceCents / 100) : (w?.price ?? Math.round(v.priceCents / 100));
       // leather: split same-type models by price; writing/acc: title only.
