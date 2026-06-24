@@ -32,18 +32,29 @@ function cands(sku: string): string[] {
 }
 
 const overlay: Record<string, { ean: string | null; priceCents: number | null }> = {};
-let priced = 0, eaned = 0, changed = 0;
+// ProductVariant.ean is @unique — one control EAN can map to two of our
+// SKUs (e.g. 000430 & 900430 = same physical refill). Give each EAN to
+// the FIRST SKU only; later collisions keep their price but get null EAN,
+// so the seed never hits a unique-constraint violation (which would abort
+// the whole reseed and wipe the catalogue).
+const usedEans = new Set<string>();
+let priced = 0, eaned = 0, changed = 0, eanDropped = 0;
 const sample: string[] = [];
 for (const p of products) for (const v of p.variants) {
   let c; for (const k of cands(v.sku)) { if (ctl.has(k)) { c = ctl.get(k); break; } }
   if (!c) continue;
   const priceCents = c.pvp > 0 ? Math.round(c.pvp * 100) : null;
-  const ean = c.ean || null;
+  let ean = c.ean || null;
+  if (ean) {
+    if (usedEans.has(ean)) { ean = null; eanDropped++; }
+    else usedEans.add(ean);
+  }
   if (!priceCents && !ean) continue;
   overlay[v.sku] = { ean, priceCents };
   if (priceCents) { priced++; if (priceCents !== v.priceCents) { changed++; if (sample.length < 10) sample.push(`${v.sku} €${v.priceCents/100}→€${priceCents/100}`); } }
   if (ean) eaned++;
 }
+console.log(`EANs dropped as duplicates: ${eanDropped}`);
 fs.writeFileSync("prisma/eci-overlay.generated.json", JSON.stringify(overlay, null, 0));
 console.log(`overlay entries: ${Object.keys(overlay).length} | with price: ${priced} | with EAN: ${eaned} | price changes: ${changed}`);
 console.log("sample changes:", sample.join(" | "));
