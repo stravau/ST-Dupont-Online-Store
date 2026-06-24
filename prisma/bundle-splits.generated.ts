@@ -230,7 +230,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "d-initial-dragon-other", name: { pt: "D-Initial · Dragon · Outros", en: "D-Initial · Dragon · Other" }, skus: ["265029","265030"] },
   ],
   "eternity-2": [
-    { slug: "eternity-2-other", name: { pt: "Line D Eternity · Outros", en: "Line D Eternity · Other" }, skus: ["425017L","425018M","422017L","422018M"] },
     { slug: "eternity-2-ballpoint-medium", name: { pt: "Line D Eternity · Esferográfica Média", en: "Line D Eternity · Ballpoint Medium" }, skus: ["425014M","425016M","425220M"] },
     { slug: "eternity-2-rollerball-medium", name: { pt: "Line D Eternity · Rollerball Média", en: "Line D Eternity · Rollerball Medium" }, skus: ["422014M","422016M","422220M"] },
     { slug: "eternity-2-ballpoint-large", name: { pt: "Line D Eternity · Esferográfica Grande", en: "Line D Eternity · Ballpoint Large" }, skus: ["425015L","425220L"] },
@@ -242,7 +241,6 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
     { slug: "defi-millennium-2-fountain-pen", name: { pt: "Défi Millennium · Caneta de Tinta Permanente", en: "Défi Millennium · Fountain Pen" }, skus: ["400737"] },
   ],
   "eternity-3": [
-    { slug: "eternity-3-other", name: { pt: "Line D Eternity · Outros", en: "Line D Eternity · Other" }, skus: ["420017L","420018M"] },
     { slug: "eternity-3-fountain-pen-medium", name: { pt: "Line D Eternity · Caneta de Tinta Permanente Média", en: "Line D Eternity · Fountain Pen Medium" }, skus: ["420014M","420016M","420220M"] },
     { slug: "eternity-3-fountain-pen-large", name: { pt: "Line D Eternity · Caneta de Tinta Permanente Grande", en: "Line D Eternity · Fountain Pen Large" }, skus: ["420015L","420220L"] },
     { slug: "eternity-3-rollerball-large", name: { pt: "Line D Eternity · Rollerball Grande", en: "Line D Eternity · Rollerball Large" }, skus: ["422015L"] },
