@@ -154,7 +154,10 @@ const RECATEGORIZE: Record<string, "isqueiros" | "escrita" | "pele" | "acessorio
   "cigar-cutter": "acessorios",
   "cigar-cutter-extra": "acessorios",
   "cigar-cutter-monogram-1872": "acessorios",
-  "ligne-2-lighter-case": "pele",
+  // Lighter cases are smoking accessories, not leather goods — they live
+  // under acessorios alongside the other Estojos para Isqueiros. (Brown
+  // sibling ligne-2-5 already resolves to acessorios via seed-data.ts.)
+  "ligne-2-lighter-case": "acessorios",
 };
 
 const RECOLLECTION: Record<string, string> = {
@@ -162,7 +165,7 @@ const RECOLLECTION: Record<string, string> = {
   // Themed sub-lines move to their own collections so the Lighter grid
   // groups them in dedicated sections.
   "ligne-2": "Ligne 2",
-  "ligne-2-lighter-case": "Ligne 2",
+  "ligne-2-lighter-case": "Estojos para Isqueiros",
   "ligne-2-perfect-cling": "Ligne 2",
   "ligne-2-camo": "Ligne 2",
   "ligne-2-padron": "Ligne 2",

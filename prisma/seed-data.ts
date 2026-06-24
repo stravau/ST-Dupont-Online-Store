@@ -2505,13 +2505,13 @@ export const products: SeedProduct[] = [
   },
   {
     slug: `ligne-2-3`,
-    name: { pt: `Estojo de Isqueiro · Ligne 2`, en: `Lighter Case · Ligne 2` },
+    name: { pt: `Ligne 2 · Estojo`, en: `Ligne 2 · Lighter Case` },
     description: { pt: `Estojo para isqueiro em couro de vaca liso preto, acomoda um isqueiro Ligne 2. Gravado em relevo com o logótipo S.T. Dupont e costuras azul, branco e vermelho.`, en: `Black smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.` },
     collection: `Estojos para Isqueiros`,
     categorySlug: "acessorios",
     image: `/products/ligne-2-3/183070.webp`,
     variants: [
-      { sku: `183070`, name: { pt: `Estojo de Isqueiro · Ligne 2 — Preto`, en: `Lighter Case · Ligne 2 — Black` }, priceCents: 19780, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/ligne-2-3/183070.webp`, images: [`/products/ligne-2-3/183070.webp`, `/products/ligne-2-3/183070-2.webp`, `/products/ligne-2-3/183070-3.webp`] }
+      { sku: `183070`, name: { pt: `Ligne 2 · Estojo — Preto`, en: `Ligne 2 · Lighter Case — Black` }, priceCents: 19780, currency: "EUR", attributes: { color: { label: { pt: `Preto`, en: `Black` }, hex: ["#15171c"] } }, image: `/products/ligne-2-3/183070.webp`, images: [`/products/ligne-2-3/183070.webp`, `/products/ligne-2-3/183070-2.webp`, `/products/ligne-2-3/183070-3.webp`] }
     ],
   },
   {
@@ -4407,13 +4407,13 @@ export const products: SeedProduct[] = [
   },
   {
     slug: `ligne-2-5`,
-    name: { pt: `Estojo de Isqueiro · Ligne 2`, en: `Lighter Case · Ligne 2` },
+    name: { pt: `Ligne 2 · Estojo`, en: `Ligne 2 · Lighter Case` },
     description: { pt: `Estojo para isqueiro em couro de vaca liso castanho, acomoda um isqueiro Ligne 2. Gravado em relevo com o logótipo S.T. Dupont e costuras azul, branco e vermelho.`, en: `Brown smooth cowhide leather lighter case, accommodates a Line 2 lighter. Embossed with the S.T. Dupont logo and blue, white, red stitching.` },
     collection: `Estojos para Isqueiros`,
     categorySlug: "acessorios",
     image: `/products/ligne-2-5/183071.webp`,
     variants: [
-      { sku: `183071`, name: { pt: `Estojo de Isqueiro · Ligne 2 — Castanho`, en: `Lighter Case · Ligne 2 — Brown` }, priceCents: 17000, currency: "EUR", attributes: { color: { label: { pt: `Castanho`, en: `Brown` }, hex: ["#6b4a2a"] } }, image: `/products/ligne-2-5/183071.webp`, images: [`/products/ligne-2-5/183071.webp`, `/products/ligne-2-5/183071-2.webp`, `/products/ligne-2-5/183071-3.webp`] },
+      { sku: `183071`, name: { pt: `Ligne 2 · Estojo — Castanho`, en: `Ligne 2 · Lighter Case — Brown` }, priceCents: 17000, currency: "EUR", attributes: { color: { label: { pt: `Castanho`, en: `Brown` }, hex: ["#6b4a2a"] } }, image: `/products/ligne-2-5/183071.webp`, images: [`/products/ligne-2-5/183071.webp`, `/products/ligne-2-5/183071-2.webp`, `/products/ligne-2-5/183071-3.webp`] },
     ],
   },
   {
