@@ -8,6 +8,10 @@ import type { SeedProduct } from "./seed-data";
 import { collectionRank } from "../lib/collection-order";
 import descriptionOverrides from "./description-overrides.json";
 import { LEATHER_SPLITS } from "./leather-splits.generated";
+import eciOverlay from "./eci-overlay.generated.json";
+
+// SKU → { ean, priceCents } sourced from the ECI boutique control sheet.
+const ECI_OVERLAY = eciOverlay as Record<string, { ean: string | null; priceCents: number | null }>;
 
 // Slug → description rewrite, scraped from the body_html on www.st-dupont.com.
 // Applied per-product so the catalogue copy reads exactly the way the maison
@@ -605,15 +609,24 @@ async function main() {
         active: true,
         categoryId,
         variants: {
-          create: p.variants.map((v) => ({
-            sku: v.sku,
-            name: v.name,
-            priceCents: v.priceCents,
-            currency: v.currency,
-            attributes: v.attributes as unknown as Prisma.InputJsonValue,
-            images: v.images ?? (v.image ? [v.image] : []),
-            stock: 25,
-          })),
+          create: p.variants.map((v) => {
+            // ECI overlay — restores the real EAN + current PVP from the
+            // boutique control sheet, keyed by SKU. Baked into the repo so
+            // EANs survive the reseed (which wipes the DB) and the admin's
+            // EAN lookups keep working. Falls back to the seed price when a
+            // SKU isn't in the control sheet (placeholder/discontinued).
+            const o = ECI_OVERLAY[v.sku] as { ean: string | null; priceCents: number | null } | undefined;
+            return {
+              sku: v.sku,
+              name: v.name,
+              priceCents: o?.priceCents ?? v.priceCents,
+              currency: v.currency,
+              attributes: v.attributes as unknown as Prisma.InputJsonValue,
+              images: v.images ?? (v.image ? [v.image] : []),
+              stock: 25,
+              ean: o?.ean ?? null,
+            };
+          }),
         },
       },
     });

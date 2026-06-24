@@ -8,6 +8,8 @@
 // Re-run with: npx tsx scripts/gen-leather-splits.ts
 import fs from "fs";
 import { products } from "../prisma/seed-data";
+import overlayJson from "../prisma/eci-overlay.generated.json";
+const OVERLAY = overlayJson as Record<string, { ean: string | null; priceCents: number | null }>;
 
 // ---- exclude products dropped at seed time ----
 const seedSrc = fs.readFileSync("prisma/seed.ts", "utf8");
@@ -93,7 +95,10 @@ for (const p of LEATHER) {
   for (const v of p.variants) {
     const w = wwwBySku.get(v.sku.toUpperCase());
     const type = w ? canonType(w.title) : "Other";
-    const price = w?.price ?? Math.round(v.priceCents / 100);
+    // Use the ECI overlay price (the real PVP that the seed will store)
+    // so grouping matches what the catalogue actually shows.
+    const ov = OVERLAY[v.sku];
+    const price = ov?.priceCents ? Math.round(ov.priceCents / 100) : (w?.price ?? Math.round(v.priceCents / 100));
     const key = `${type}|${price}`;
     if (!groups.has(key)) groups.set(key, { type, minPrice: price || 99999, skus: [] });
     groups.get(key)!.skus.push(v.sku);
@@ -110,11 +115,11 @@ for (const p of LEATHER) {
   const parts: string[] = [];
   for (const g of [...groups.values()].sort((a, b) => a.minPrice - b.minPrice)) {
     const collides = (typeCounts.get(g.type) ?? 0) > 1;
-    const enType = collides ? `${g.type} (${g.minPrice}€)` : g.type;
-    const ptBase = PT[g.type] ?? g.type;
-    const ptType = collides ? `${ptBase} (${g.minPrice}€)` : ptBase;
-    const en = `${p.name.en} · ${enType}`;
-    const pt = `${p.name.pt} · ${ptType}`;
+    // Display name is item-type only — NO price suffix (the price shows on
+    // the card itself). The price stays in the slug so products at the same
+    // type but different price tiers keep unique, stable URLs.
+    const en = `${p.name.en} · ${g.type}`;
+    const pt = `${p.name.pt} · ${PT[g.type] ?? g.type}`;
     let slug = `${p.slug}-${slugify(g.type)}${collides ? "-" + g.minPrice : ""}`;
     let n = 2; while (usedSlug.has(slug)) slug = `${p.slug}-${slugify(g.type)}-${g.minPrice}-${n++}`;
     usedSlug.add(slug);
