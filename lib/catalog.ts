@@ -60,35 +60,50 @@ export interface Category {
   history: Localized | null;
 }
 
-// Expand a product into one card descriptor per colourway. Catalogue grids
-// render a tile per (product, colourway) instead of a single tile with
-// swatches — the swatch UI is reserved for the product detail page.
-// Drops variants/products with no usable photo and dedups by colour label
-// so two SKUs of the same colourway don't render as identical tiles.
+// Expand a product into one card descriptor per distinct MODEL. Catalogue
+// grids show one tile per model (not one per colourway) — the colour swatch
+// UI is reserved for the product detail page. Drops variants/products with
+// no usable photo.
+//
+// A "model" is keyed on the colour-stripped name + price. This collapses the
+// real source of grid repetition — the same item in many colours (e.g. a
+// 1-pen case in black/blue/green at one price all render as ONE tile) —
+// while still surfacing genuinely distinct items that happen to share a
+// product slug or name. Victoria, for instance, is one product whose
+// variants are all named "Victoria — <colour>" but are three different
+// goods distinguished only by price (the €1000 tote, the €355 wallet, the
+// €495 piece); keeping price in the key keeps all three visible instead of
+// hiding two of them. We deliberately do NOT key on the photo: different
+// colours have different photos, so an image key lets every colour through
+// (the exact repetition we're removing). A secondary image guard is still
+// applied so two variants that share one generic photo never double up.
+// A "model" identity for a variant: its name with the colour label stripped,
+// plus price. Two variants share a model when they're the same item in a
+// different colour (collapse to one grid tile + one swatch group); they differ
+// when the price or the (colour-free) name differs (the €1000 Victoria tote vs
+// the €355 wallet stay distinct even though both are named "Victoria").
+export function modelKeyOf(v: Variant): string {
+  const cols = [v.attributes.color?.label?.en, v.attributes.color?.label?.pt];
+  let base = (v.name.en || v.name.pt || v.sku).toLowerCase();
+  for (const c of cols) if (c) base = base.split(c.toLowerCase()).join("");
+  base = base.replace(/[—–·\-]+\s*$/g, "").replace(/\s+/g, " ").trim();
+  return `${base}|${v.priceCents}`;
+}
+
 export function expandProductCards(p: Product): { product: Product; sku: string }[] {
   const out: { product: Product; sku: string }[] = [];
-  const seen = new Set<string>();
+  const seenModel = new Set<string>();
+  const seenImage = new Set<string>();
   for (const v of p.variants) {
     // DESCONTINUADO never surfaces in catalogue grids.
     if (v.status === "DESCONTINUADO") continue;
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
-    // Dedup by the actual PHOTO. A "duplicate tile" is, by definition,
-    // two tiles showing the same image — so the hero image is the
-    // truest dedup key. This:
-    //   - collapses genuine duplicates (e.g. 12 line-d-eternity SKUs
-    //     that all share one generic "front.jpg"), and
-    //   - shows every visually-distinct colourway / sub-product (the
-    //     €1000 Victoria tote and the €355 Victoria wallet have
-    //     different photos, so both appear).
-    // Earlier attribute-based keys either hid real colourways (colour
-    // only) or rendered same-photo duplicates (colour+price); keying on
-    // the image avoids both. Falls back to the sku only when a variant
-    // somehow has no resolvable image (shouldn't happen — imageless
-    // variants are filtered out above).
-    const key = (v.image || v.images[0] || p.image || v.sku).toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
+    const modelKey = modelKeyOf(v);
+    const imageKey = (v.image || v.images[0] || p.image || v.sku).toLowerCase();
+    if (seenModel.has(modelKey) || seenImage.has(imageKey)) continue;
+    seenModel.add(modelKey);
+    seenImage.add(imageKey);
     out.push({ product: p, sku: v.sku });
   }
   return out;

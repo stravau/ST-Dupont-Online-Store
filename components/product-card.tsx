@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
-import { type Product, formatPrice } from "@/lib/catalog";
+import { type Product, formatPrice, modelKeyOf } from "@/lib/catalog";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 import { compareSwatch } from "@/lib/swatch-order";
 
@@ -40,14 +40,19 @@ export function ProductCard({
 
   const base = list.reduce((m, v) => (v.priceCents < m.priceCents ? v : m), list[0]);
 
-  // ALWAYS build swatches from the full set of sibling colourways, even
-  // when the card is scoped to one (variantSku). The image-based swatch
-  // strip below the photo lets the user jump to the same product in a
-  // different colour without leaving the card — same product, same
-  // model, different finish.
+  // Build swatches from the colourways of THIS model. When the card is scoped
+  // to one colourway (variantSku) the grid renders one tile per model, so the
+  // swatch strip must show only the sibling colours of that same model — i.e.
+  // variants sharing its colour-free name + price. Otherwise a split product
+  // that spans several price points (e.g. a 1-pen case at €120…€240) would
+  // show every tier's colours on every tile.
+  const scopedVariant = variantSku ? product.variants.find((v) => v.sku === variantSku) : undefined;
+  const modelKey = scopedVariant ? modelKeyOf(scopedVariant) : null;
   const variantsForSwatches = variantType
     ? product.variants.filter((v) => v.attributes.type?.[lang] === variantType)
-    : product.variants;
+    : modelKey
+      ? product.variants.filter((v) => modelKeyOf(v) === modelKey)
+      : product.variants;
   const swatches: CardSwatch[] = [];
   for (const v of variantsForSwatches) {
     const c = v.attributes.color;
@@ -97,15 +102,12 @@ export function ProductCard({
     .filter(Boolean)
     .join("&");
   const href = `/${lang}/p/${product.slug}${qs ? `?${qs}` : ""}`;
-  // When this card represents one specific colourway (variantSku is set), use
-  // the variant's full name — it already encodes the colour (e.g. "Perfect
-  // Cut — Silver"). Without this, three Perfect Cut cards in a row would all
-  // read identical, just with a different swatch dot.
-  const title = variantSku
-    ? base.name[lang]
-    : variantType
-      ? `${product.name[lang]} · ${variantType}`
-      : product.name[lang];
+  // The grid now renders one tile per MODEL (not per colourway), so the title
+  // is the model/product name — never a single colour. Post-split the product
+  // name already is the model ("Pen Cases · 1-Pen Case"), and the swatch strip
+  // below the photo carries the colours. Showing "… — Black" here would read
+  // as if the model only came in black.
+  const title = variantType ? `${product.name[lang]} · ${variantType}` : product.name[lang];
 
   // INDISPONIVEL → user sees a Temporarily unavailable chip;
   // DISPONIVEL → the normal Disponível na boutique chip.
