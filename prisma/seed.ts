@@ -347,9 +347,16 @@ interface SplitPart {
   prefixes: string[]; // case-insensitive SKU startsWith
 }
 const SPLIT_PRODUCT: Record<string, SplitPart[]> = {
+  // Victoria bundles three distinct items (per the www product copy):
+  //   1VI333 — Tote (€1000)
+  //   1VI514 — Card holder & coin purse, compact (€355)
+  //   1VI592 — Long wallet, envelope (€495)
+  // Grouping 1VI514 + 1VI592 produced two black "Carteira" twins; giving
+  // each its own product + name removes the duplicate.
   victoria: [
     { slug: "victoria-tote", name: { pt: "Victoria · Tote", en: "Victoria · Tote" }, prefixes: ["1VI333"] },
-    { slug: "victoria-wallet", name: { pt: "Victoria · Carteira", en: "Victoria · Wallet" }, prefixes: ["1VI514", "1VI592"] },
+    { slug: "victoria-card-holder", name: { pt: "Victoria · Porta-Cartões", en: "Victoria · Card Holder" }, prefixes: ["1VI514"] },
+    { slug: "victoria-long-wallet", name: { pt: "Victoria · Carteira", en: "Victoria · Long Wallet" }, prefixes: ["1VI592"] },
   ],
 };
 
