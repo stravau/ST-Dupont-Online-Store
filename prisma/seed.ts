@@ -125,6 +125,18 @@ const DROP_SLUGS = new Set<string>([
   "ligne-2-20000-lieues-sous-les-mers",
   "twiggy-20000-lieues-sous-les-mers",
   "slimmy-20000-lieues-sous-les-mers",
+  // 2026-06 — hand-authored placeholder pen/lighter products with fake
+  // SKUs (LDE-/INI-/LIB-/LGDM-). They duplicate the real www-imported
+  // models that carry true SKUs + ECI prices + EANs:
+  //   liberte        → liberte-2 / liberte-3 (collection "Liberté")
+  //   line-d-eternity→ eternity family (collection renamed to "Line D
+  //                    Eternity" below)
+  //   initial        → d-initial / initial-3 (collection "Initial")
+  //   le-grand-dupont-monogram → has no images (invisible) + fake SKUs
+  "liberte",
+  "line-d-eternity",
+  "initial",
+  "le-grand-dupont-monogram",
   // www import scrap — placeholder collections with no salvage path.
   "misc",
   "x-2",
@@ -472,7 +484,11 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
     if (DROP_SLUGS.has(p.slug)) continue;
     const newSlug = RENAME_SLUG[p.slug] ?? p.slug;
     const newCategory = RECATEGORIZE[newSlug] ?? p.categorySlug;
-    const newCollection = RECOLLECTION[newSlug] ?? p.collection;
+    let newCollection = RECOLLECTION[newSlug] ?? p.collection;
+    // The Eternity pen line's proper Maison name is "Line D Eternity" —
+    // rename the collection so it reads correctly and the category slider
+    // (which keys on "Line D Eternity") resolves to these real products.
+    if (newCollection === "Eternity") newCollection = "Line D Eternity";
     const newName = RENAME_NAME[newSlug] ?? p.name;
     const keep = KEEP_VARIANTS[p.slug];
     const variants = (keep ? p.variants.filter((v) => keep.has(v.sku)) : p.variants).map((v) => ({
