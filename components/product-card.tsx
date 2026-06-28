@@ -101,11 +101,34 @@ export function ProductCard({
   // the variant's full name — it already encodes the colour (e.g. "Perfect
   // Cut — Silver"). Without this, three Perfect Cut cards in a row would all
   // read identical, just with a different swatch dot.
-  const title = variantSku
+  let title = variantSku
     ? base.name[lang]
     : variantType
       ? `${product.name[lang]} · ${variantType}`
       : product.name[lang];
+  // When two SKUs of the same product share the same display name +
+  // price + colour (genuine separate inventory tracked by the boutique,
+  // see slim-7-geode 027035/036, ligne-2-catwoman, maxijet, …), the
+  // grid would render identical-looking cards. Detect the collision
+  // and append a discreet "· REF" suffix using the variant's SKU so
+  // the cards become distinguishable without touching the seed-data.
+  if (variantSku) {
+    const myName   = base.name[lang]?.toLowerCase().trim();
+    const myColour = base.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
+    const myPrice  = base.priceCents;
+    const collisions = product.variants.filter((v) => {
+      if (v.status === "DESCONTINUADO") return false;
+      const vColour = v.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
+      return (
+        v.name[lang]?.toLowerCase().trim() === myName &&
+        v.priceCents === myPrice &&
+        vColour === myColour
+      );
+    });
+    if (collisions.length > 1) {
+      title = `${title} · Ref. ${base.sku}`;
+    }
+  }
 
   // INDISPONIVEL → user sees a Temporarily unavailable chip;
   // DISPONIVEL → the normal Disponível na boutique chip.
