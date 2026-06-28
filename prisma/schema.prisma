@@ -20,6 +20,8 @@ datasource db {
 enum UserRole {
   CUSTOMER
   ADMIN
+  LOJA_LIS // boutique Lisboa — edits only Stk LIS in /admin/variants
+  LOJA_VNG // boutique V. N. de Gaia — edits only Stk VNG
 }
 
 // DISPONIVEL    — visible on the site, normal flow
@@ -226,7 +228,13 @@ model ProductVariant {
   attributes    Json     @default("{}") // { finish: "palladium", color: "black" }
   priceCents    Int
   currency      String   @default("EUR")
+  // Total stock — application keeps this == stockLis + stockVng on
+  // every write (manual edit + Excel upload). Kept as a stored column
+  // so existing queries (catalogue card, low-stock KPI) don't have to
+  // recompute on every read.
   stock         Int      @default(0)
+  stockLis      Int      @default(0) // boutique Lisboa
+  stockVng      Int      @default(0) // boutique V. N. de Gaia
   images        String[] @default([]) // ordered image URLs (CDN)
   stripePriceId String? // Stripe Price id, set when synced
   active        Boolean  @default(true)

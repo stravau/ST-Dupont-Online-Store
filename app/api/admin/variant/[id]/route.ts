@@ -27,16 +27,34 @@ export async function PATCH(
   const { id } = await params;
   const session = await auth();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  const role   = (session?.user as { role?: string } | undefined)?.role ?? null;
 
   let body: Record<string, unknown>;
   try { body = await req.json(); }
   catch { return NextResponse.json({ ok: false, error: "bad json" }, { status: 400 }); }
 
+  // Boutique roles can only touch their own stock column. Reject any
+  // payload that tries to write a forbidden field with 403, before any
+  // DB read.
+  if (role === "LOJA_LIS" || role === "LOJA_VNG") {
+    const allowed = role === "LOJA_LIS" ? "stockLis" : "stockVng";
+    const editable = ["stockLis", "stockVng", "expectedUpdatedAt"]; // only the allowed key + the optimistic-concurrency marker
+    const submitted = Object.keys(body).filter((k) => k !== "expectedUpdatedAt");
+    if (submitted.some((k) => k !== allowed)) {
+      return NextResponse.json(
+        { ok: false, error: `role ${role} can only edit ${allowed}` },
+        { status: 403 },
+      );
+    }
+    void editable;
+  }
+
   const current = await prisma.productVariant.findUnique({
     where: { id },
     select: {
       id: true, sku: true, ean: true, priceCents: true, status: true,
-      stock: true, description: true, updatedAt: true, active: true,
+      stock: true, stockLis: true, stockVng: true,
+      description: true, updatedAt: true, active: true,
     },
   });
   if (!current) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
@@ -106,7 +124,47 @@ export async function PATCH(
       after.status = v;
     }
   }
-  if ("stock" in body) {
+  // Per-store stock columns — ADMIN can set the totals directly via
+  // `stock`; LOJA_* edit only their own column. After any change to
+  // stockLis or stockVng we automatically recompute the legacy `stock`
+  // total so storefront queries (and the catalog low-stock KPI) stay
+  // consistent without per-call recomputation.
+  let nextLis = current.stockLis;
+  let nextVng = current.stockVng;
+  let lisOrVngChanged = false;
+  if ("stockLis" in body) {
+    const v = body.stockLis;
+    if (typeof v !== "number" || !Number.isInteger(v) || v < 0) return NextResponse.json({ ok: false, error: "stockLis invalid" }, { status: 400 });
+    if (v !== current.stockLis) {
+      data.stockLis = v;
+      before.stockLis = current.stockLis;
+      after.stockLis = v;
+      nextLis = v;
+      lisOrVngChanged = true;
+    }
+  }
+  if ("stockVng" in body) {
+    const v = body.stockVng;
+    if (typeof v !== "number" || !Number.isInteger(v) || v < 0) return NextResponse.json({ ok: false, error: "stockVng invalid" }, { status: 400 });
+    if (v !== current.stockVng) {
+      data.stockVng = v;
+      before.stockVng = current.stockVng;
+      after.stockVng = v;
+      nextVng = v;
+      lisOrVngChanged = true;
+    }
+  }
+  if (lisOrVngChanged) {
+    const newTotal = nextLis + nextVng;
+    if (newTotal !== current.stock) {
+      data.stock = newTotal;
+      before.stock = current.stock;
+      after.stock = newTotal;
+    }
+  } else if ("stock" in body) {
+    // Direct total edit (ADMIN only — loja roles get blocked at the
+    // earlier role gate). Used by the legacy upload paths until each
+    // store sends its own column.
     const v = body.stock;
     if (typeof v !== "number" || !Number.isInteger(v) || v < 0) return NextResponse.json({ ok: false, error: "stock invalid" }, { status: 400 });
     if (v !== current.stock) {

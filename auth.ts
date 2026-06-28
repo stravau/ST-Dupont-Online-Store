@@ -94,13 +94,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     // Authorisation gate — middleware.ts delegates here. Returns true
     // when the route should be allowed, false to redirect to signIn.
+    // ADMIN gets full panel access; LOJA_LIS and LOJA_VNG can sign in
+    // to maintain their own boutique stock column (per-field gating
+    // lives in the API routes / page UI).
     async authorized({ auth: session, request }) {
       const { pathname } = request.nextUrl;
       const isAdminPath = pathname.startsWith("/admin");
       const isLoginPath = pathname === "/admin/login";
       if (!isAdminPath || isLoginPath) return true;
-      // /admin/* requires an ADMIN session
-      return Boolean(session?.user && (session.user as { role?: string }).role === "ADMIN");
+      const role = (session?.user as { role?: string } | undefined)?.role;
+      return role === "ADMIN" || role === "LOJA_LIS" || role === "LOJA_VNG";
     },
   },
 });

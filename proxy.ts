@@ -26,7 +26,11 @@ export default async function proxy(req: NextRequest) {
     if (isLogin) return NextResponse.next();
     const session = await auth();
     const role = (session?.user as { role?: string } | undefined)?.role;
-    if (role !== "ADMIN") {
+    // ADMIN gets everything; LOJA_LIS / LOJA_VNG can access the panel
+    // to maintain their own boutique stock column (field-level gating
+    // lives in the per-route handlers).
+    const allowed = role === "ADMIN" || role === "LOJA_LIS" || role === "LOJA_VNG";
+    if (!allowed) {
       const url = req.nextUrl.clone();
       url.pathname = "/admin/login";
       url.searchParams.set("callbackUrl", pathname);

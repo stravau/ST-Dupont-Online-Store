@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/app/generated/prisma/client";
+import { auth } from "@/auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { IconSearch, IconUpload } from "@/components/admin/icons";
@@ -25,6 +26,13 @@ interface SearchProps {
 }
 
 export default async function AdminVariantsPage({ searchParams }: SearchProps) {
+  const session = await auth();
+  const rawRole = (session?.user as { role?: string } | undefined)?.role;
+  // Default to ADMIN locally (no session) so the page is testable in
+  // dev without seeding a user; in prod the proxy gate already
+  // enforces one of the three valid roles before the page renders.
+  const role: "ADMIN" | "LOJA_LIS" | "LOJA_VNG" =
+    rawRole === "LOJA_LIS" || rawRole === "LOJA_VNG" ? rawRole : "ADMIN";
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const status = sp.status;
@@ -181,14 +189,16 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
               <th className="px-4 py-3 text-left font-medium">Descrição</th>
               <th className="px-4 py-3 text-right font-medium">PVP</th>
               <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-right font-medium">Stock</th>
+              <th className="px-4 py-3 text-right font-medium">Stk LIS</th>
+              <th className="px-4 py-3 text-right font-medium">Stk VNG</th>
+              <th className="px-4 py-3 text-right font-medium">Total</th>
               <th className="px-4 py-3 text-left font-medium">Produto</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line/70">
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={9}>
                   <EmptyState
                     title={hasFilters ? "Sem resultados" : "Sem artigos"}
                     body={hasFilters ? "Alarga os filtros ou limpa-os." : "Importa um Excel ou cria via /admin/uploads."}
@@ -214,12 +224,14 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
                   <VariantRow
                     key={v.id}
                     id={v.id}
+                    role={role}
                     sku={v.sku}
                     ean={v.ean}
                     desc={variantName}
                     priceCents={v.priceCents}
                     status={v.status}
-                    stock={v.stock}
+                    stockLis={v.stockLis}
+                    stockVng={v.stockVng}
                     updatedAt={v.updatedAt.toISOString()}
                     productName={productName}
                     productSlug={v.product?.slug ?? ""}
