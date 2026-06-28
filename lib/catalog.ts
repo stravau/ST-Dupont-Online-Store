@@ -73,20 +73,19 @@ export function expandProductCards(p: Product): { product: Product; sku: string 
     if (v.status === "DESCONTINUADO") continue;
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
-    // Dedup by the actual PHOTO. A "duplicate tile" is, by definition,
-    // two tiles showing the same image — so the hero image is the
-    // truest dedup key. This:
-    //   - collapses genuine duplicates (e.g. 12 line-d-eternity SKUs
-    //     that all share one generic "front.jpg"), and
-    //   - shows every visually-distinct colourway / sub-product (the
-    //     €1000 Victoria tote and the €355 Victoria wallet have
-    //     different photos, so both appear).
-    // Earlier attribute-based keys either hid real colourways (colour
-    // only) or rendered same-photo duplicates (colour+price); keying on
-    // the image avoids both. Falls back to the sku only when a variant
-    // somehow has no resolvable image (shouldn't happen — imageless
-    // variants are filtered out above).
-    const key = (v.image || v.images[0] || p.image || v.sku).toLowerCase();
+    // Dedup by the customer-visible identity (name + price + colour),
+    // not by image URL. Two SKUs that display the same name, the same
+    // price and the same colour ARE the same card to a shopper — even
+    // if the boutique tracks them as separate SKUs with separate photo
+    // files (e.g. slim-7-geode 027035 + 027036, both "Slim 7 · Géode —
+    // Azul" at €271.40). The previous image-based key let those slip
+    // through as adjacent duplicate tiles. Different colour / price /
+    // name still produces distinct cards. Image is folded in as the
+    // last-resort tie-break so the dedup also catches the legacy
+    // "generic front.jpg duplicated across 12 SKUs" case.
+    const name = (v.name.pt || v.name.en || "").trim().toLowerCase();
+    const colour = (v.attributes.color?.label.en ?? "").trim().toLowerCase();
+    const key = `${name}|${v.priceCents}|${colour}`;
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ product: p, sku: v.sku });
