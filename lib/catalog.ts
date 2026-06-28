@@ -73,19 +73,14 @@ export function expandProductCards(p: Product): { product: Product; sku: string 
     if (v.status === "DESCONTINUADO") continue;
     const hasImage = !!(v.image || v.images.length || p.image);
     if (!hasImage) continue;
-    // Dedup by the customer-visible identity (name + price + colour),
-    // not by image URL. Two SKUs that display the same name, the same
-    // price and the same colour ARE the same card to a shopper — even
-    // if the boutique tracks them as separate SKUs with separate photo
-    // files (e.g. slim-7-geode 027035 + 027036, both "Slim 7 · Géode —
-    // Azul" at €271.40). The previous image-based key let those slip
-    // through as adjacent duplicate tiles. Different colour / price /
-    // name still produces distinct cards. Image is folded in as the
-    // last-resort tie-break so the dedup also catches the legacy
-    // "generic front.jpg duplicated across 12 SKUs" case.
-    const name = (v.name.pt || v.name.en || "").trim().toLowerCase();
-    const colour = (v.attributes.color?.label.en ?? "").trim().toLowerCase();
-    const key = `${name}|${v.priceCents}|${colour}`;
+    // Dedup by the PHOTO. Same image file = same card; different image
+    // files render as separate cards even when name/price/colour
+    // coincide, because the boutique tracks each SKU separately and
+    // the customer needs to see every available item. The hero photos
+    // may look visually similar — that's a data issue (matching photo
+    // files for distinct SKUs) and is fixed in the catalogue assets,
+    // not papered over by collapsing rows here.
+    const key = (v.image || v.images[0] || p.image || v.sku).toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ product: p, sku: v.sku });
