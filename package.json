@@ -14,7 +14,8 @@
     "db:export": "tsx scripts/export-products.ts",
     "admin:bootstrap": "tsx scripts/admin-bootstrap.ts",
     "erp:import": "tsx scripts/import-erp-excel.ts",
-    "stock:rectify": "tsx scripts/import-resumo-stock-pvp.ts"
+    "stock:rectify": "tsx scripts/import-resumo-stock-pvp.ts",
+    "names:sync": "tsx scripts/sync-variant-names.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

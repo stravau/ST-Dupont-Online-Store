@@ -1269,8 +1269,8 @@ export const products: SeedProduct[] = [
     categorySlug: "isqueiros",
     image: `/products/slim-7-geode/027036.webp`,
     variants: [
-      { sku: `027036`, name: { pt: `Slim 7 · Géode — Azul`, en: `Slim 7 · Geode — Blue` }, priceCents: 27140, currency: "EUR", attributes: { color: { label: { pt: `Azul`, en: `Blue` }, hex: ["#1f3c66"] } }, image: `/products/slim-7-geode/027036.webp`, images: [`/products/slim-7-geode/027036.webp`, `/products/slim-7-geode/027036-2.webp`, `/products/slim-7-geode/027036-3.webp`, `/products/slim-7-geode/027036-4.webp`] },
-      { sku: `027035`, name: { pt: `Slim 7 · Géode — Azul`, en: `Slim 7 · Geode — Blue` }, priceCents: 27140, currency: "EUR", attributes: { color: { label: { pt: `Azul`, en: `Blue` }, hex: ["#1f3c66"] } }, image: `/products/slim-7-geode/027035.webp`, images: [`/products/slim-7-geode/027035.webp`, `/products/slim-7-geode/027035-2.webp`, `/products/slim-7-geode/027035-3.webp`, `/products/slim-7-geode/027035-4.webp`] }
+      { sku: `027036`, name: { pt: `Slim 7 · Géode — Verde / Dourado`, en: `Slim 7 · Geode — Green / Gold` }, priceCents: 27140, currency: "EUR", attributes: { color: { label: { pt: `Verde / Dourado`, en: `Green / Gold` }, hex: ["#1f6b3a", "#c8a24a"] } }, image: `/products/slim-7-geode/027036.webp`, images: [`/products/slim-7-geode/027036.webp`, `/products/slim-7-geode/027036-2.webp`, `/products/slim-7-geode/027036-3.webp`, `/products/slim-7-geode/027036-4.webp`] },
+      { sku: `027035`, name: { pt: `Slim 7 · Géode — Azul / Crómio`, en: `Slim 7 · Geode — Blue / Chrome` }, priceCents: 27140, currency: "EUR", attributes: { color: { label: { pt: `Azul / Crómio`, en: `Blue / Chrome` }, hex: ["#1f3c66", "#c9ccd1"] } }, image: `/products/slim-7-geode/027035.webp`, images: [`/products/slim-7-geode/027035.webp`, `/products/slim-7-geode/027035-2.webp`, `/products/slim-7-geode/027035-3.webp`, `/products/slim-7-geode/027035-4.webp`] }
     ],
   },
   {
