@@ -98,7 +98,7 @@ export function SearchFilters({
   };
 
   return (
-    <div className="mt-8 flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3">
       <FilterRow
         label={labels.categories}
         options={categories}

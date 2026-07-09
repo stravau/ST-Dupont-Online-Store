@@ -56,7 +56,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     </div>
   );
 
-  // Legal block — privacy / terms / returns links + follow icons.
+  // Legal block — privacy / terms / returns links.
   const legalBlock = (
     <div>
       <p className="overline mb-2.5 md:mb-5">{dict.footer.legal}</p>
@@ -65,26 +65,40 @@ export function SiteFooter({ lang }: { lang: Locale }) {
         <li><Link href={`/${lang}/legal/termos`} className="transition-colors hover:text-gold">{dict.footer.terms}</Link></li>
         <li><Link href={`/${lang}/legal/devolucoes`} className="transition-colors hover:text-gold">{dict.footer.returns}</Link></li>
       </ul>
-      <p className="overline mt-3 mb-1.5 md:mt-7 md:mb-4">{dict.footer.follow}</p>
-      <div className="flex justify-center gap-5 text-xs text-cream/85 md:justify-start md:text-sm">
-        <a href="https://www.instagram.com/stdupontofficial/" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Instagram</a>
-        <a href="https://www.facebook.com/STDUPONTOFFICIAL/" target="_blank" rel="noopener noreferrer" className="hover:text-gold">Facebook</a>
+    </div>
+  );
+
+  // Follow block — social links. Lives under the brand ("S.T. Dupont") block,
+  // not Legal: following the Maison belongs with the Maison, not the fine print.
+  const followBlock = (
+    <div className="mt-6 flex flex-col items-center md:mt-7 md:items-start">
+      <p className="overline mb-1.5 md:mb-4">{dict.footer.follow}</p>
+      <div className="flex gap-5 text-xs text-cream/85 md:text-sm">
+        <a href="https://www.instagram.com/stdupontofficial/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Instagram</a>
+        <a href="https://www.facebook.com/STDUPONTOFFICIAL/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Facebook</a>
       </div>
     </div>
   );
 
   return (
     <footer className="monogram-bg text-cream">
-      {/* Mobile: three tap-to-expand sections matching the side-nav UX. */}
+      {/* Mobile: three tap-to-expand sections matching the side-nav UX.
+          "Follow" lives inside the S.T. Dupont tab (with the brand). */}
       <div className="mx-auto max-w-7xl px-6 pt-2 md:hidden">
-        <FooterMobileSection title="S.T. Dupont">{brandBlock}</FooterMobileSection>
+        <FooterMobileSection title="S.T. Dupont">
+          {brandBlock}
+          {followBlock}
+        </FooterMobileSection>
         <FooterMobileSection title={dict.footer.legal}>{legalBlock}</FooterMobileSection>
         <FooterMobileSection title={dict.footer.contact}>{contactBlock}</FooterMobileSection>
       </div>
 
-      {/* Desktop: classic 3-column footer. */}
+      {/* Desktop: classic 3-column footer — follow sits under the brand column. */}
       <div className="mx-auto hidden max-w-7xl gap-12 px-6 py-12 text-left md:grid md:grid-cols-3">
-        {brandBlock}
+        <div>
+          {brandBlock}
+          {followBlock}
+        </div>
         {contactBlock}
         {legalBlock}
       </div>

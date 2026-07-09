@@ -55,19 +55,21 @@ export function CategoryHeroSlider({
   };
 
   return (
-    <header className="monogram-bg relative overflow-hidden text-cream">
-      <div className="relative mx-auto max-w-7xl px-6 pt-5 pb-4">
+    <header className="slider-band relative overflow-hidden text-cream">
+      <div className="relative mx-auto max-w-7xl px-6 pt-6 pb-5">
         <h1 className="text-center font-serif text-2xl text-cream sm:text-3xl">
           {title}
         </h1>
+        {/* fine gold rule — sharp, centred */}
+        <div className="mx-auto mt-3 h-px w-14 bg-gold-soft/50" />
 
-        <div className="relative mt-4">
+        <div className="relative mt-5">
           {canScrollPrev && (
             <button
               type="button"
               aria-label={prevAria}
               onClick={() => scroll(-1)}
-              className="absolute top-1/2 left-1 z-10 hidden -translate-y-1/2 rounded-full bg-ink/70 p-2 text-cream backdrop-blur-sm transition-colors hover:bg-ink md:block"
+              className="absolute top-1/2 left-1 z-10 hidden -translate-y-1/2 border border-gold-soft/25 bg-black/50 p-2 text-gold-soft backdrop-blur-sm transition-colors hover:border-gold-soft/60 hover:text-cream md:block"
             >
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M12 4 6 10l6 6" />
@@ -79,7 +81,7 @@ export function CategoryHeroSlider({
               type="button"
               aria-label={nextAria}
               onClick={() => scroll(1)}
-              className="absolute top-1/2 right-1 z-10 hidden -translate-y-1/2 rounded-full bg-ink/70 p-2 text-cream backdrop-blur-sm transition-colors hover:bg-ink md:block"
+              className="absolute top-1/2 right-1 z-10 hidden -translate-y-1/2 border border-gold-soft/25 bg-black/50 p-2 text-gold-soft backdrop-blur-sm transition-colors hover:border-gold-soft/60 hover:text-cream md:block"
             >
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="m8 4 6 6-6 6" />
@@ -97,7 +99,7 @@ export function CategoryHeroSlider({
                 href={m.href}
                 className="group shrink-0 snap-start"
               >
-                <div className="relative h-28 w-24 overflow-hidden rounded-md bg-white ring-1 ring-line/30 transition-transform duration-500 group-hover:scale-[1.03] sm:h-32 sm:w-28 md:h-36 md:w-32">
+                <div className="relative h-28 w-24 overflow-hidden bg-white ring-1 ring-gold-soft/20 transition-all duration-500 group-hover:ring-gold-soft/60 sm:h-32 sm:w-28 md:h-36 md:w-32">
                   <Image
                     src={m.image}
                     alt={m.label}
@@ -106,7 +108,7 @@ export function CategoryHeroSlider({
                     className="object-contain object-center p-2 transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
-                <p className="mt-1.5 text-center font-serif text-[0.7rem] leading-tight text-cream sm:text-xs">
+                <p className="mt-2 text-center font-serif text-[0.68rem] uppercase leading-tight tracking-[0.14em] text-cream/85 transition-colors group-hover:text-gold-soft sm:text-[0.72rem]">
                   {m.label}
                 </p>
               </Link>

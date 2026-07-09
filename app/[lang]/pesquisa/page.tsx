@@ -9,6 +9,7 @@ import { PagedGrid } from "@/components/paged-grid";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
 import { SearchFilters, type FacetOption } from "@/components/search-filters";
+import { FiltersDisclosure } from "@/components/filters-disclosure";
 import { Crest } from "@/components/crest";
 
 export async function generateMetadata({
@@ -73,7 +74,14 @@ export default async function SearchPage({
 
   const activeCategory = catParam && catCounts.has(catParam) ? catParam : undefined;
 
-  const colSource = activeCategory ? raw.filter((p) => p.categorySlug === activeCategory) : raw;
+  // Collections are scoped to ONE category — never a global dump of every
+  // house. They surface once a category is chosen (or when the whole result
+  // set is a single category); with no category picked, none show.
+  const effectiveCategory =
+    activeCategory ?? (categoryFacets.length === 1 ? categoryFacets[0].value : undefined);
+  const colSource = effectiveCategory
+    ? raw.filter((p) => p.categorySlug === effectiveCategory)
+    : [];
   const colCounts = new Map<string, number>();
   for (const p of colSource) colCounts.set(p.collection, (colCounts.get(p.collection) ?? 0) + 1);
   const collectionFacets: FacetOption[] = [...colCounts.entries()]
@@ -149,21 +157,34 @@ export default async function SearchPage({
         </p>
       )}
 
-      {query && raw.length > 0 && (
-        <SearchFilters
-          pathname={pathname}
-          query={query}
-          sort={sort}
-          activeCategory={activeCategory}
-          activeCollection={activeCollection}
-          categories={categoryFacets}
-          collections={collectionFacets}
-          labels={{
-            categories: s.categories,
-            collections: s.collections,
-            all: s.allFilter,
-          }}
-        />
+      {query && raw.length > 0 && (categoryFacets.length > 1 || collectionFacets.length > 1) && (
+        <FiltersDisclosure
+          label={dict.common.filtersLabel}
+          clearLabel={dict.common.clearFilters}
+          clearHref={(() => {
+            const p = new URLSearchParams();
+            if (query) p.set("q", query);
+            if (sort !== "featured") p.set("sort", sort);
+            const qs = p.toString();
+            return qs ? `${pathname}?${qs}` : pathname;
+          })()}
+          activeCount={(activeCategory ? 1 : 0) + (activeCollection ? 1 : 0)}
+        >
+          <SearchFilters
+            pathname={pathname}
+            query={query}
+            sort={sort}
+            activeCategory={activeCategory}
+            activeCollection={activeCollection}
+            categories={categoryFacets}
+            collections={collectionFacets}
+            labels={{
+              categories: s.categories,
+              collections: s.collections,
+              all: s.allFilter,
+            }}
+          />
+        </FiltersDisclosure>
       )}
 
       {query && filtered.length > 0 && (

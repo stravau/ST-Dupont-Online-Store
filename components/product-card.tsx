@@ -97,25 +97,20 @@ export function ProductCard({
     .filter(Boolean)
     .join("&");
   const href = `/${lang}/p/${product.slug}${qs ? `?${qs}` : ""}`;
-  // When this card represents one specific colourway (variantSku is set), use
-  // the variant's full name — it already encodes the colour (e.g. "Perfect
-  // Cut — Silver"). Without this, three Perfect Cut cards in a row would all
-  // read identical, just with a different swatch dot.
-  let title = variantSku
-    ? base.name[lang]
-    : variantType
-      ? `${product.name[lang]} · ${variantType}`
-      : product.name[lang];
-  // When two SKUs of the same product share the same display name +
-  // price + colour (genuine separate inventory tracked by the boutique,
-  // see slim-7-geode 027035/036, ligne-2-catwoman, maxijet, …), the
-  // grid would render identical-looking cards. Detect the collision
-  // and append a discreet "· REF" suffix using the variant's SKU so
-  // the cards become distinguishable without touching the seed-data.
+  // Title is the model/product name — never the colour. The colour is already
+  // conveyed by the hero photo and the swatch strip, so repeating it in the
+  // title ("Leather Case — Violeta") is redundant. Tiles still render per
+  // colourway (different photos); only the duplicated colour word is dropped.
+  let title = variantType ? `${product.name[lang]} · ${variantType}` : product.name[lang];
+  // Colour-free titles mean two live SKUs of the same product at the same
+  // price and colour (genuine separate inventory, e.g. slim-7-geode
+  // 027035/036, Line D belts by size) would render as identical cards.
+  // Append a discreet "· Ref. <SKU>" in that case so they stay
+  // distinguishable — without touching seed-data.
   if (variantSku) {
-    const myName   = base.name[lang]?.toLowerCase().trim();
+    const myName = base.name[lang]?.toLowerCase().trim();
     const myColour = base.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
-    const myPrice  = base.priceCents;
+    const myPrice = base.priceCents;
     const collisions = product.variants.filter((v) => {
       if (v.status === "DESCONTINUADO") return false;
       const vColour = v.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
