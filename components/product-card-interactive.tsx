@@ -25,6 +25,7 @@ export function ProductCardInteractive({
   seed,
   title,
   collection,
+  variantLabel,
   noveltyLabel,
   availableLabel,
   indisponivel = false,
@@ -37,6 +38,9 @@ export function ProductCardInteractive({
   seed: string;
   title: string;
   collection: string;
+  // Distinguisher shown on the subtitle line when the card is one colourway of
+  // a multi-card product (usually the colour). Falls back to `collection`.
+  variantLabel?: string;
   noveltyLabel: string | null;
   availableLabel: string;
   // When true, the green-dot chip turns amber and the rendered text is
@@ -166,7 +170,7 @@ export function ProductCardInteractive({
           {title}
         </h3>
         <p className="line-clamp-1 text-[0.55rem] tracking-[0.14em] text-muted uppercase sm:text-[0.65rem]">
-          {collection}
+          {variantLabel ?? collection}
         </p>
         <p className="mt-1 font-serif text-base font-semibold text-ink sm:mt-1.5 sm:text-xl">{price}</p>
       </div>

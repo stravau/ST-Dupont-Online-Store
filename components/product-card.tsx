@@ -98,30 +98,41 @@ export function ProductCard({
     .join("&");
   const href = `/${lang}/p/${product.slug}${qs ? `?${qs}` : ""}`;
   // Title is the model/product name — never the colour. The colour is already
-  // conveyed by the hero photo and the swatch strip, so repeating it in the
-  // title ("Leather Case — Violeta") is redundant. Tiles still render per
-  // colourway (different photos); only the duplicated colour word is dropped.
-  let title = variantType ? `${product.name[lang]} · ${variantType}` : product.name[lang];
-  // Colour-free titles mean two live SKUs of the same product at the same
-  // price and colour (genuine separate inventory, e.g. slim-7-geode
-  // 027035/036, Line D belts by size) would render as identical cards.
-  // Append a discreet "· Ref. <SKU>" in that case so they stay
-  // distinguishable — without touching seed-data.
+  // conveyed by the hero photo and swatch strip, so repeating it in the title
+  // ("Leather Case — Violeta") is redundant.
+  const title = variantType ? `${product.name[lang]} · ${variantType}` : product.name[lang];
+
+  // Sibling cards of one product all share that title, so the COLOUR is what
+  // tells them apart. It goes on the subtitle line (below) — NOT the title,
+  // which line-clamps to one row and would hide an appended colour. Only when
+  // the product actually renders more than one card (>1 distinct photo);
+  // a lone card needs no colour label (the photo already shows it). When two
+  // SKUs share the same colour AND price (genuine separate inventory, e.g.
+  // slim-7-geode 027035/036 or Line D belts by size) the colour can't
+  // disambiguate, so a discreet "· Ref. <SKU>" is appended.
+  let variantLabel: string | undefined;
   if (variantSku) {
-    const myName = base.name[lang]?.toLowerCase().trim();
-    const myColour = base.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
-    const myPrice = base.priceCents;
-    const collisions = product.variants.filter((v) => {
-      if (v.status === "DESCONTINUADO") return false;
-      const vColour = v.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
-      return (
-        v.name[lang]?.toLowerCase().trim() === myName &&
-        v.priceCents === myPrice &&
-        vColour === myColour
-      );
-    });
-    if (collisions.length > 1) {
-      title = `${title} · Ref. ${base.sku}`;
+    const photoKeys = new Set(
+      product.variants
+        .filter((v) => v.status !== "DESCONTINUADO" && (v.image || v.images?.length || product.image))
+        .map((v) => (v.image || v.images?.[0] || product.image || v.sku).toLowerCase()),
+    );
+    if (photoKeys.size > 1) {
+      const colour = base.attributes.color?.label[lang];
+      const myName = base.name[lang]?.toLowerCase().trim();
+      const myColour = colour?.toLowerCase().trim() ?? "";
+      const myPrice = base.priceCents;
+      const sameColourSiblings = product.variants.filter((v) => {
+        if (v.status === "DESCONTINUADO") return false;
+        const vColour = v.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
+        return v.name[lang]?.toLowerCase().trim() === myName && v.priceCents === myPrice && vColour === myColour;
+      });
+      variantLabel =
+        sameColourSiblings.length > 1
+          ? colour
+            ? `${colour} · Ref. ${base.sku}`
+            : `Ref. ${base.sku}`
+          : colour;
     }
   }
 
@@ -136,6 +147,7 @@ export function ProductCard({
       seed={product.slug}
       title={title}
       collection={categoryLabel}
+      variantLabel={variantLabel}
       noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
       availableLabel={availableLabel}
       indisponivel={isIndisponivel}

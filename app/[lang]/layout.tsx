@@ -40,7 +40,7 @@ export default async function LocaleLayout({
       <ScrollToTop />
       <SiteHeader lang={locale} />
       <NavBack lang={locale} homeLabel={getDictionary(locale).nav.backHome} />
-      <main id="main" className="flex-1 bg-cream">
+      <main id="main" className="flex flex-1 flex-col bg-cream">
         <PageTransition>{children}</PageTransition>
       </main>
       <SiteFooter lang={locale} />

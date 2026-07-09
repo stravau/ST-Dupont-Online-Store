@@ -117,9 +117,10 @@ h1, h2, h3, .font-serif {
    Deliberately understated: quiet, premium, easy to miss unless you look. */
 .page-loader {
   display: flex;
+  flex: 1 1 auto; /* fill the main content area so the footer stays put */
   align-items: center;
   justify-content: center;
-  min-height: 52vh;
+  min-height: 60vh; /* fallback if an ancestor isn't a flex column */
 }
 .page-loader__bar {
   position: relative;

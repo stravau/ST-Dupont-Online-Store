@@ -91,13 +91,13 @@ export function CategoryHeroSlider({
 
           <div
             ref={trackRef}
-            className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth sm:gap-4"
+            className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth [justify-content:safe_center] sm:gap-6"
           >
             {thumbnails.map((m) => (
               <Link
                 key={m.key}
                 href={m.href}
-                className="group shrink-0 snap-start"
+                className="group flex shrink-0 snap-start flex-col items-center"
               >
                 <div className="relative h-28 w-24 overflow-hidden bg-white ring-1 ring-gold-soft/20 transition-all duration-500 group-hover:ring-gold-soft/60 sm:h-32 sm:w-28 md:h-36 md:w-32">
                   <Image
@@ -108,7 +108,7 @@ export function CategoryHeroSlider({
                     className="object-contain object-center p-2 transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
-                <p className="mt-2 text-center font-serif text-[0.68rem] uppercase leading-tight tracking-[0.14em] text-cream/85 transition-colors group-hover:text-gold-soft sm:text-[0.72rem]">
+                <p className="mt-2 flex min-h-[2.4em] w-24 items-start justify-center text-center font-serif text-[0.68rem] uppercase leading-tight tracking-[0.14em] text-cream/85 transition-colors group-hover:text-gold-soft sm:w-28 sm:text-[0.72rem] md:w-32">
                   {m.label}
                 </p>
               </Link>
