@@ -34,20 +34,26 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
       const availableCollections = new Set(
         (await getCollections(c.slug)).filter((x) => x.length > 0),
       );
+      // Every menu list is sorted alphabetically (locale-aware) so the navbar
+      // reads A→Z in every section, desktop and mobile alike.
+      const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label, lang);
       return {
         slug: localeCategorySlug(lang, c.slug),
         name: c.name[lang],
         tagline: c.tagline[lang],
-        groups: (categoryArt[c.slug]?.groups ?? []).map((g) => ({
-          label: g.label[lang],
-          href: localizeHref(`/${lang}${g.href}`),
-        })),
+        groups: (categoryArt[c.slug]?.groups ?? [])
+          .map((g) => ({ label: g.label[lang], href: localizeHref(`/${lang}${g.href}`) }))
+          .sort(byLabel),
         // Titled columns for the desktop mega-menu (Accessories).
         sections: (categoryArt[c.slug]?.menuSections ?? []).map((s) => ({
           title: s.title[lang],
-          items: s.items.map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) })),
+          items: s.items
+            .map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) }))
+            .sort(byLabel),
         })),
-        collections: allowedModels.filter((m) => availableCollections.has(m)),
+        collections: allowedModels
+          .filter((m) => availableCollections.has(m))
+          .sort((a, b) => a.localeCompare(b, lang)),
       };
     }),
   );

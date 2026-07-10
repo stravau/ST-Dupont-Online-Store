@@ -33,6 +33,10 @@ export function PriceRangeSlider({
   const router = useRouter();
   const [lo, setLo] = useState(initialMin);
   const [hi, setHi] = useState(initialMax);
+  // Editable text mirrors of lo/hi so people can TYPE a bound instead of
+  // dragging. Free text while editing; parsed + clamped + committed on blur/Enter.
+  const [loInput, setLoInput] = useState(String(initialMin));
+  const [hiInput, setHiInput] = useState(String(initialMax));
   // Track whether the user is mid-drag — only commit on release, never
   // on every onChange tick (would spam the router and lag the URL).
   const draggingRef = useRef(false);
@@ -74,6 +78,25 @@ export function PriceRangeSlider({
     draggingRef.current = true;
   }
 
+  // Keep the text boxes in sync when the thumbs move (or the props reset).
+  useEffect(() => setLoInput(String(lo)), [lo]);
+  useEffect(() => setHiInput(String(hi)), [hi]);
+
+  function applyLo() {
+    const v = parseInt(loInput.replace(/[^\d]/g, ""), 10);
+    if (Number.isNaN(v)) return setLoInput(String(lo));
+    const clamped = Math.max(min, Math.min(v, hi - step));
+    setLo(clamped);
+    commit(clamped, hi);
+  }
+  function applyHi() {
+    const v = parseInt(hiInput.replace(/[^\d]/g, ""), 10);
+    if (Number.isNaN(v)) return setHiInput(String(hi));
+    const clamped = Math.min(max, Math.max(v, lo + step));
+    setHi(clamped);
+    commit(lo, clamped);
+  }
+
   const span = Math.max(1, max - min);
   const loPct = ((lo - min) / span) * 100;
   const hiPct = ((hi - min) / span) * 100;
@@ -97,11 +120,35 @@ export function PriceRangeSlider({
     <div className="w-full">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[11px] tracking-[0.2em] text-muted uppercase">{label}</span>
-        <span className="font-serif text-sm text-ink">
-          {currencySymbol}
-          {lo} — {currencySymbol}
-          {hi}
-        </span>
+        <div className="flex items-center gap-1 font-serif text-sm text-ink">
+          <span>{currencySymbol}</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={loInput}
+            aria-label={`${label} — min`}
+            onChange={(e) => setLoInput(e.target.value)}
+            onBlur={applyLo}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            className="w-14 border-b border-line bg-transparent text-right tabular-nums outline-none transition-colors focus:border-gold"
+          />
+          <span className="px-0.5 text-muted">—</span>
+          <span>{currencySymbol}</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={hiInput}
+            aria-label={`${label} — max`}
+            onChange={(e) => setHiInput(e.target.value)}
+            onBlur={applyHi}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            className="w-14 border-b border-line bg-transparent text-right tabular-nums outline-none transition-colors focus:border-gold"
+          />
+        </div>
       </div>
       <div className="price-range relative h-8 px-1">
         <div className="pointer-events-none absolute inset-x-1 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-line" />

@@ -66,10 +66,17 @@ export function ProductDetail({
   const onZoomMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse") return;
     const rect = e.currentTarget.getBoundingClientRect();
-    setZoom({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    // Invisible frame: a dead margin around the edges where the zoom does NOT
+    // engage, so moving the cursor out to the arrows / dots doesn't yank the
+    // photo into a magnified view mid-reach.
+    const FRAME = 56;
+    if (px < FRAME || px > rect.width - FRAME || py < FRAME || py > rect.height - FRAME) {
+      setZoom(null);
+      return;
+    }
+    setZoom({ x: (px / rect.width) * 100, y: (py / rect.height) * 100 });
   }, []);
   const onZoomLeave = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== "mouse") return;
@@ -145,26 +152,31 @@ export function ProductDetail({
 
         {hasMany && (
           <>
-            <button
-              type="button"
-              aria-label={galleryLabels.previous}
-              onClick={() => go(-1)}
-              className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/85 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              aria-label={galleryLabels.next}
-              onClick={() => go(1)}
-              className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/85 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            {/* Bounded gallery — hide prev on the first photo, next on the last. */}
+            {safeIdx > 0 && (
+              <button
+                type="button"
+                aria-label={galleryLabels.previous}
+                onClick={() => go(-1)}
+                className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/85 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+            {safeIdx < gallery.length - 1 && (
+              <button
+                type="button"
+                aria-label={galleryLabels.next}
+                onClick={() => go(1)}
+                className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/85 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
             <div className="absolute inset-x-0 bottom-3 z-10 flex items-center justify-center gap-2">
               {gallery.map((_, i) => (
                 <button
