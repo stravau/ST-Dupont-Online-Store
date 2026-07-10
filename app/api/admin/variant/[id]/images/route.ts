@@ -19,14 +19,14 @@ const MAX_IMAGES_PER_VARIANT = 12;
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ sku: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const csrf = assertSameOrigin(req);
   if (csrf) return csrf;
   const rl = await assertRateLimit(req, "images-put", 60, 60_000);
   if (rl) return rl;
 
-  const { sku } = await params;
+  const { id: sku } = await params;
   const session = await auth();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
 
@@ -83,7 +83,7 @@ export async function PUT(
 
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ sku: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const csrf = assertSameOrigin(req);
   if (csrf) return csrf;
@@ -92,7 +92,7 @@ export async function POST(
   const rl = await assertRateLimit(req, "images-upload", 20, 60_000);
   if (rl) return rl;
 
-  const { sku } = await params;
+  const { id: sku } = await params;
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json(
       { ok: false, error: "BLOB_READ_WRITE_TOKEN not set on this deploy" },
