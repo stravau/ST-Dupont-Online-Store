@@ -51,7 +51,12 @@ export function ProductCard({
   const swatches: CardSwatch[] = [];
   for (const v of variantsForSwatches) {
     const c = v.attributes.color;
-    if (c && !swatches.some((x) => x.label === c.label[lang])) {
+    // Dedup colourways by label, BUT always keep the variant this card was
+    // rendered for (variantSku) — otherwise a sibling that shares a colour
+    // label (e.g. two "Brown" Maki-E designs, dragon vs floral) gets deduped
+    // out, `initialSwatch` can't find it, and the card shows the WRONG photo
+    // and price while still linking to its own SKU (card ≠ product page).
+    if (c && (v.sku === variantSku || !swatches.some((x) => x.label === c.label[lang]))) {
       swatches.push({
         sku: v.sku,
         label: c.label[lang],
