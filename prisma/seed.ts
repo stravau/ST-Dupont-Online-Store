@@ -8,6 +8,7 @@ import type { SeedProduct } from "./seed-data";
 import { collectionRank } from "../lib/collection-order";
 import descriptionOverrides from "./description-overrides.json";
 import { BUNDLE_SPLITS } from "./bundle-splits.generated";
+import { MERGE_INTO } from "./pen-groups";
 import eciOverlay from "./eci-overlay.generated.json";
 
 // SKU → { ean, priceCents } sourced from the ECI boutique control sheet.
@@ -487,10 +488,32 @@ const _LEGACY_COLLECTION_ORDER_UNUSED = [
 ];
 
 
+// Pen size from the SKU suffix — M = Medium, L = Large, XL = XL (a digit must
+// precede M/L so codes like "…CL" / "…N" aren't mistaken for a size). Drives
+// the size swatch on the pen product page. Escrita only.
+function penSize(sku: string): { pt: string; en: string } | undefined {
+  if (/XL$/i.test(sku)) return { pt: "XL", en: "XL" };
+  if (/[0-9]L$/i.test(sku)) return { pt: "Grande", en: "Large" };
+  if (/[0-9]M$/i.test(sku)) return { pt: "Média", en: "Medium" };
+  return undefined;
+}
+
 function transform(list: readonly SeedProduct[]): SeedProduct[] {
   const out: SeedProduct[] = [];
+  // Fold merge-source products' variants into their target so a fragmented
+  // line (Line D Eternity across eternity/eternity-2/eternity-3) becomes ONE
+  // parent that splits into coherent per-type products with all sizes.
+  const mergedExtra = new Map<string, SeedProduct["variants"][number][]>();
+  for (const p of list) {
+    const t = MERGE_INTO[p.slug];
+    if (!t) continue;
+    const arr = mergedExtra.get(t) ?? [];
+    arr.push(...p.variants);
+    mergedExtra.set(t, arr);
+  }
   for (const p of list) {
     if (DROP_SLUGS.has(p.slug)) continue;
+    if (MERGE_INTO[p.slug]) continue; // variants folded into the target below
     const newSlug = RENAME_SLUG[p.slug] ?? p.slug;
     const newCategory = RECATEGORIZE[newSlug] ?? p.categorySlug;
     let newCollection = RECOLLECTION[newSlug] ?? p.collection;
@@ -500,7 +523,8 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
     if (newCollection === "Eternity") newCollection = "Line D Eternity";
     const newName = RENAME_NAME[newSlug] ?? p.name;
     const keep = KEEP_VARIANTS[p.slug];
-    const variants = (keep ? p.variants.filter((v) => keep.has(v.sku)) : p.variants).map((v) => ({
+    const sourceVariants = [...p.variants, ...(mergedExtra.get(p.slug) ?? [])];
+    const variants = (keep ? sourceVariants.filter((v) => keep.has(v.sku)) : sourceVariants).map((v) => ({
       ...v,
       name: {
         pt: rewriteDefi(rewriteLignePerfectCling(rewriteLeaguesText(v.name.pt))),
@@ -529,8 +553,12 @@ function transform(list: readonly SeedProduct[]): SeedProduct[] {
           return false;
         }).map((v) => {
           const colour = v.attributes?.color?.label;
+          // Pens: tag each variant with its size (from the SKU suffix) so the
+          // product page's size swatch can switch M/L/XL within one product.
+          const size = newCategory === "escrita" ? penSize(v.sku) : undefined;
           return {
             ...v,
+            attributes: size ? { ...v.attributes, size } : v.attributes,
             name: colour
               ? { pt: `${part.name.pt} — ${colour.pt}`, en: `${part.name.en} — ${colour.en}` }
               : part.name,

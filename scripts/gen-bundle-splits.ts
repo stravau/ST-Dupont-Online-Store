@@ -15,6 +15,18 @@
 import fs from "fs";
 import { products } from "../prisma/seed-data";
 import overlayJson from "../prisma/eci-overlay.generated.json";
+import { MERGE_INTO } from "../prisma/pen-groups";
+
+// Fold merge-source products' variants into their target so the target splits
+// over the full set (all Line D Eternity pens in one parent).
+const mergedExtra = new Map<string, (typeof products)[number]["variants"]>();
+for (const p of products) {
+  const t = MERGE_INTO[p.slug];
+  if (!t) continue;
+  const arr = mergedExtra.get(t) ?? [];
+  arr.push(...p.variants);
+  mergedExtra.set(t, arr);
+}
 const OVERLAY = overlayJson as Record<string, { ean: string | null; priceCents: number | null }>;
 
 const seedSrc = fs.readFileSync("prisma/seed.ts", "utf8");
@@ -44,7 +56,9 @@ function canon(title: string, cat: string): { en: string; pt: string } {
   t = t.replace(/foutain/g, "fountain").replace(/\bstylo roller\b|\broller pen\b|\broller\b(?! ?ball)/g, "rollerball pen");
 
   if (cat === "escrita") {
-    const size = sizeOf(t);
+    // Group pens by TYPE only (no size in the key) so every size of a type
+    // lands in one product; the size becomes a per-variant attribute (set in
+    // the seed from the SKU suffix M/L/XL) that drives the size swatch.
     const base = stripSize(t);
     let en = "", pt = "";
     if (/fountain/.test(base)) { en = "Fountain Pen"; pt = "Caneta de Tinta Permanente"; }
@@ -54,7 +68,6 @@ function canon(title: string, cat: string): { en: string; pt: string } {
     else if (/pencil/.test(base)) { en = "Pencil"; pt = "Lapiseira"; }
     else if (/set/.test(base)) { en = "Set"; pt = "Conjunto"; }
     else { en = cap(base); pt = cap(base); }
-    if (size) { en += " " + size; pt += " " + ptSize[size]; }
     return { en, pt };
   }
 
@@ -111,10 +124,13 @@ const summary: Record<string, number> = {};
 let lost = 0; const issues: string[] = [];
 
 for (const cat of CATS) {
-  const bundleProducts = products.filter((p) => p.categorySlug === cat && !DROP.has(p.slug) && p.slug !== "victoria");
+  const bundleProducts = products.filter(
+    (p) => p.categorySlug === cat && !DROP.has(p.slug) && p.slug !== "victoria" && !MERGE_INTO[p.slug],
+  );
   for (const p of bundleProducts) {
     const groups = new Map<string, { en: string; pt: string; minPrice: number; skus: string[] }>();
-    for (const v of p.variants) {
+    const allVariants = [...p.variants, ...(mergedExtra.get(p.slug) ?? [])];
+    for (const v of allVariants) {
       const w = wwwBySku.get(v.sku.toUpperCase());
       const c = SKU_OVERRIDE[v.sku] ?? (w ? canon(w.title, cat) : { en: "Other", pt: "Outros" });
       const ov = OVERLAY[v.sku];
@@ -141,7 +157,7 @@ for (const cat of CATS) {
     out.push(`  ${JSON.stringify(p.slug)}: [`, ...parts, `  ],`);
     summary[cat] = (summary[cat] ?? 0) + parts.length;
     const assigned = [...groups.values()].reduce((s, g) => s + g.skus.length, 0);
-    if (assigned !== p.variants.length) { issues.push(`${p.slug}: ${assigned}≠${p.variants.length}`); lost++; }
+    if (assigned !== allVariants.length) { issues.push(`${p.slug}: ${assigned}≠${allVariants.length}`); lost++; }
   }
 }
 
