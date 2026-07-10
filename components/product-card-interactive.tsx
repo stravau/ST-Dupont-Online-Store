@@ -130,26 +130,31 @@ export function ProductCardInteractive({
           link so tapping the photo still opens the product. */}
       {len > 1 && (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-30 aspect-[4/5] w-full">
-          <button
-            type="button"
-            aria-label="Previous image"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(-1); }}
-            className="pointer-events-auto absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-              <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            aria-label="Next image"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(1); }}
-            className="pointer-events-auto absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-              <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          {/* Bounded: hide prev on the first photo, next on the last. */}
+          {safeIdx > 0 && (
+            <button
+              type="button"
+              aria-label="Previous image"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(-1); }}
+              className="pointer-events-auto absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+          {safeIdx < len - 1 && (
+            <button
+              type="button"
+              aria-label="Next image"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(1); }}
+              className="pointer-events-auto absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
           <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-1.5">
             {gallery.map((_, i) => (
               <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, useEffect, useCallback, type ReactNode } from "react";
 
 // "You may also like" — horizontal-scroll slider at the bottom of every
 // product detail page. The page (server component) expands the related
@@ -23,8 +23,28 @@ export function SimilarProducts({
   minItems?: number;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
-
-  if (items.length < minItems) return null;
+  // Track scroll extent so the limit arrows hide: no prev at the start, no
+  // next at the end.
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+  const refresh = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanPrev(el.scrollLeft > 4);
+    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+  useEffect(() => {
+    refresh();
+    const el = trackRef.current;
+    if (!el) return;
+    const onScroll = () => refresh();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", refresh);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", refresh);
+    };
+  }, [refresh, items.length]);
 
   const scrollBy = (direction: 1 | -1) => {
     const el = trackRef.current;
@@ -35,6 +55,8 @@ export function SimilarProducts({
     const step = el.clientWidth * 0.4;
     el.scrollBy({ left: direction * step, behavior: "smooth" });
   };
+
+  if (items.length < minItems) return null;
 
   return (
     <section className="mt-10 border-t border-line pt-10">
@@ -48,26 +70,30 @@ export function SimilarProducts({
         {/* Prev / next chevrons — desktop only. On mobile, touch-swipe is
             faster than tapping a button, and the buttons would crowd the
             cards on a narrow screen. */}
-        <button
-          type="button"
-          onClick={() => scrollBy(-1)}
-          aria-label="Previous"
-          className="absolute -left-1 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/95 text-ink shadow-sm backdrop-blur transition-colors hover:border-gold hover:text-gold sm:flex lg:-left-3"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-            <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => scrollBy(1)}
-          aria-label="Next"
-          className="absolute -right-1 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/95 text-ink shadow-sm backdrop-blur transition-colors hover:border-gold hover:text-gold sm:flex lg:-right-3"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+        {canPrev && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); scrollBy(-1); }}
+            aria-label="Previous"
+            className="absolute -left-1 top-1/2 z-30 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/95 text-ink shadow-sm backdrop-blur transition-colors hover:border-gold hover:text-gold sm:flex lg:-left-3"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+        {canNext && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); scrollBy(1); }}
+            aria-label="Next"
+            className="absolute -right-1 top-1/2 z-30 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/95 text-ink shadow-sm backdrop-blur transition-colors hover:border-gold hover:text-gold sm:flex lg:-right-3"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
 
         {/* `-mx-6 px-6 scroll-px-6` lets the row bleed past the parent's
             padding so the first card snaps flush to the viewport edge while
