@@ -141,6 +141,11 @@ const DROP_SLUGS = new Set<string>([
   // orphans (not in www or the ECI control sheet, no EAN). Dropping the
   // whole parent rather than leave it empty after the orphan removal below.
   "firehead-keyring-pouch",
+  // Ligne 2 DC Comics lighters consolidated into one "Ligne 2 · DC Comics"
+  // product (ligne-2-catwoman) with per-character variants (Penguin C16180CL,
+  // Catwoman C16220CL, Wonder Woman C16221CL) — the Wonder Woman SKU moved
+  // there, so drop its old single-variant home.
+  "ligne-2-dc-comics",
   // www import scrap — placeholder collections with no salvage path.
   "misc",
   "x-2",

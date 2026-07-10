@@ -119,42 +119,50 @@ export function ProductCardInteractive({
             <ProductImage seed={seed} label={title} className="h-full w-full" />
           )}
         </div>
-        {len > 1 && (
-          <>
-            <button
-              type="button"
-              aria-label="Previous image"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(-1); }}
-              className="absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              aria-label="Next image"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(1); }}
-              className="absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <div className="absolute inset-x-0 bottom-2 z-20 flex items-center justify-center gap-1.5">
-              {gallery.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  aria-label={`Image ${i + 1}`}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIdx(i); }}
-                  className={`h-1.5 rounded-full transition-all ${i === safeIdx ? "w-4 bg-gold" : "w-1.5 bg-line"}`}
-                />
-              ))}
-            </div>
-          </>
-        )}
       </div>
+
+      {/* Gallery controls sit OUTSIDE the .lux-hover box. That box gets a
+          transform on hover, which would spawn a stacking context and trap
+          these controls beneath the full-card overlay link — so a click on
+          hover navigated instead of paging the photo (why the arrows "didn't
+          work"). Here they overlay the image area above the link (z-30) with
+          pointer-events only on the buttons; the rest passes through to the
+          link so tapping the photo still opens the product. */}
+      {len > 1 && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-30 aspect-[4/5] w-full">
+          <button
+            type="button"
+            aria-label="Previous image"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(-1); }}
+            className="pointer-events-auto absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Next image"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); slide(1); }}
+            className="pointer-events-auto absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-cream/80 text-ink backdrop-blur transition-colors hover:border-gold hover:text-gold"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-1.5">
+            {gallery.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Image ${i + 1}`}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIdx(i); }}
+                className={`pointer-events-auto h-1.5 rounded-full transition-all ${i === safeIdx ? "w-4 bg-gold" : "w-1.5 bg-line"}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col pt-2 text-left">
         <div className="flex items-center gap-1.5">
