@@ -121,7 +121,7 @@ export function MobileNav({
 
       {open && mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]">
+          <div className="mobile-nav-panel fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]">
             {/* Top bar: back button (only when drilled into a category) +
                 close button. */}
             <div className="flex items-center justify-between px-6 py-5">

@@ -142,6 +142,11 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   "apex-2": "pele",
   "firehead-3": "pele",
   "line-d-3": "escrita",
+  // Split children of line-d-2 (a pen line) that are NOT writing
+  // instruments — belts belong under Acessórios so the /c/escrita
+  // catalogue doesn't surface "Line D Eternity · Reversible Belt".
+  "line-d-2-belt": "acessorios",
+  "line-d-2-reversible-belt": "acessorios",
 };
 
 // Infer the pen-type localised label for a writing variant where the

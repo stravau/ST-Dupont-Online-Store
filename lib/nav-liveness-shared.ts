@@ -66,14 +66,17 @@ export function isNavPathLive(href: string, signals: LiveNavSignalsSerialized): 
   if (groupMatch) {
     const gid = groupMatch[1];
     const type = params.get("type");
-    const g = params.get("g");
     const key = type ? `${gid}:${type}` : gid;
     // We only prune known groups — if a group id isn't in the signals
     // at all (no ":typeKey" either) we treat it as unknown → live.
     const knownAtAll = s.types.has(gid) || [...s.types].some((t) => t.startsWith(`${gid}:`));
     if (!knownAtAll) return true;
     if (!s.types.has(key)) return false;
-    if (g && !s.genders.has(`${gid}:${g}`)) return false;
+    // Deliberately no gender filter: our slug-heuristic gender
+    // inference is unreliable (defaults to "men" so "-women" bag
+    // entries would disappear the moment a slug convention drifts).
+    // The category page renders empty gracefully when a gender has
+    // no matches, per editorial direction.
     return true;
   }
 

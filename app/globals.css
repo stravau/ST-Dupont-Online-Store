@@ -197,6 +197,19 @@ h1, h2, h3, .font-serif {
   }
 }
 
+/* Mobile navigation drawer — slide in from the left edge. */
+@keyframes mobileNavSlideIn {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0);     }
+}
+.mobile-nav-panel {
+  animation: mobileNavSlideIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-panel { animation: none; }
+}
+
 /* --- Global interactivity ------------------------------------------------ */
 
 /* Every interactive surface uses the pointer cursor. */
