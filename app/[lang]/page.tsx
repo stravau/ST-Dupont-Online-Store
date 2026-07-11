@@ -239,35 +239,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           invisible to anyone who stopped reading at the CTA.
           Two boutique blocks stack on mobile, sit side-by-side on md+.
           Each links directly to its own contact anchor on /loja. */}
-      <section className="reveal mx-auto max-w-4xl px-6 pt-32 pb-20 text-center">
+      <section className="reveal mx-auto max-w-7xl px-6 pt-32 pb-20 text-center">
         <p className="overline">{dict.sections.boutiqueEyebrow}</p>
         <h2 className="mt-6 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
         <div className="gold-rule mx-auto my-8" />
-        <p className="text-muted">{dict.sections.boutiqueBody}</p>
-        <div className="mt-10 grid gap-8 md:grid-cols-2 md:gap-10">
+        <p className="mx-auto max-w-2xl text-muted">{dict.sections.boutiqueBody}</p>
+        <div className="mt-12 grid gap-6 md:grid-cols-2 md:gap-8">
           {STORES.map((store) => (
             <Link
               key={store.key}
               href={`/${locale}/loja#${store.contactAnchor}`}
-              className="group flex flex-col items-center border border-line/60 bg-paper/40 px-6 py-7 transition-colors duration-300 hover:border-gold"
+              className="group flex flex-col items-center border border-line/60 bg-paper/40 px-8 py-10 transition-colors duration-300 hover:border-gold"
             >
               <p className="overline text-gold">{store.labels[locale].short}</p>
-              <p className="mt-3 font-serif text-lg text-ink md:text-xl">{store.venue}</p>
-              <p className="mt-2 text-sm text-muted">{store.street}</p>
-              <p className="text-sm text-muted">{store.postcode}</p>
-              <span className="mt-4 inline-block border-b border-line/60 pb-1 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors group-hover:border-gold group-hover:text-gold">
+              <p className="mt-4 font-serif text-xl text-ink md:text-2xl">{store.venue}</p>
+              <p className="mt-3 text-base text-muted">{store.street}</p>
+              <p className="text-base text-muted">{store.postcode}</p>
+              <span className="mt-6 inline-block border-b border-line/60 pb-1 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors group-hover:border-gold group-hover:text-gold">
                 {dict.footer.viewStore}
               </span>
             </Link>
           ))}
-        </div>
-        <div className="mt-10 flex justify-center">
-          <Link
-            href={`/${locale}/loja`}
-            className="inline-block bg-ink px-10 py-4 text-xs tracking-[0.22em] text-cream uppercase transition-colors duration-300 hover:bg-gold hover:text-ink"
-          >
-            {dict.footer.viewStore}
-          </Link>
         </div>
       </section>
     </>
