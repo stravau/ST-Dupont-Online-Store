@@ -5,6 +5,7 @@ import { getCategories, getCollections } from "@/lib/catalog";
 import { categoryArt } from "@/lib/category-art";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { MODEL_COLLECTIONS_BY_CATEGORY } from "@/lib/collection-order";
+import { getLiveNavSignals, isNavPathLive } from "@/lib/nav-liveness";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MegaMenu } from "@/components/mega-menu";
 import { MobileNav } from "@/components/mobile-nav";
@@ -15,6 +16,18 @@ import { HeaderShell } from "@/components/header-shell";
 export async function SiteHeader({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
   const categories = await getCategories();
+  // Liveness signals — hide nav entries whose destination has zero
+  // non-DESCONTINUADO variants with stock. Computed once per request
+  // and shared with the mobile drawer via a small serialisable prop.
+  const signals = await getLiveNavSignals();
+  const isLive = (href: string) => isNavPathLive(href, signals);
+  const liveSignals = {
+    collections: [...signals.collections],
+    types: [...signals.types],
+    genders: [...signals.genders],
+    usages: [...signals.usages],
+    categories: [...signals.categories],
+  };
   // Rewrites `/c/<canonical>` → `/c/<en-alias>` when on the EN locale so
   // every link the mega-menu / mobile nav emits respects the SEO-friendly
   // English category slugs (/en/c/lighters, /en/c/writing, …).
@@ -42,17 +55,21 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
         name: c.name[lang],
         tagline: c.tagline[lang],
         groups: (categoryArt[c.slug]?.groups ?? [])
+          .filter((g) => isLive(g.href))
           .map((g) => ({ label: g.label[lang], href: localizeHref(`/${lang}${g.href}`) }))
           .sort(byLabel),
         // Titled columns for the desktop mega-menu (Accessories).
-        sections: (categoryArt[c.slug]?.menuSections ?? []).map((s) => ({
-          title: s.title[lang],
-          items: s.items
-            .map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) }))
-            .sort(byLabel),
-        })),
+        sections: (categoryArt[c.slug]?.menuSections ?? [])
+          .map((s) => ({
+            title: s.title[lang],
+            items: s.items
+              .filter((it) => isLive(it.href))
+              .map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) }))
+              .sort(byLabel),
+          }))
+          .filter((s) => s.items.length > 0),
         collections: allowedModels
-          .filter((m) => availableCollections.has(m))
+          .filter((m) => availableCollections.has(m) && signals.collections.has(m))
           .sort((a, b) => a.localeCompare(b, lang)),
       };
     }),
@@ -80,6 +97,7 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
             { label: dict.nav.store, href: `/${lang}/loja` },
             { label: dict.nav.about, href: `/${lang}/historia` },
           ]}
+          liveSignals={liveSignals}
           labels={{
             viewAll: dict.nav.viewAll,
             collections: dict.nav.collections,

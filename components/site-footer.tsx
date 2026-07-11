@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
-import { STORE, CONTACT_ANCHOR } from "@/lib/store-info";
+import { STORE_LIS, STORE_VNG, CONTACT_ANCHOR, type StoreInfo } from "@/lib/store-info";
 import { Logo } from "@/components/logo";
 import { FooterMobileSection } from "@/components/footer-mobile-section";
 
@@ -17,7 +17,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
       <Logo variant="light" width={244} className="w-[176px] md:w-[244px]" />
       <p className="overline mt-3 md:mt-5">{dict.footer.tagline}</p>
       <a
-        href={STORE.officialUrl}
+        href={STORE_LIS.officialUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-3 text-xs text-cream/85 transition-colors hover:text-gold md:mt-5 md:text-sm"
@@ -27,32 +27,40 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     </div>
   );
 
-  // Contacts block — boutique address + phone + email + "view store" /
-  // official-site links. Anchor target preserved for /#contacto deep-links
-  // coming from the mobile-nav drawer.
-  const contactBlock = (
-    <div id={CONTACT_ANCHOR} className="scroll-mt-28">
-      <p className="overline mb-2.5 md:mb-5">{dict.footer.boutique}</p>
+  // Contacts blocks — one per boutique. Lisboa keeps the historic
+  // #contacto anchor for /#contacto deep-links coming from the mobile
+  // nav drawer; Gaia gets its own anchor. Both share the same visual
+  // shape so they can sit side-by-side on desktop and stack on mobile
+  // inside a single "Contacto" accordion tab.
+  const contactBlockFor = (store: StoreInfo, anchor: string) => (
+    <div id={anchor} className="scroll-mt-28">
+      <p className="overline mb-2.5 md:mb-5">
+        {dict.footer.boutique} · {store.labels[lang].short}
+      </p>
       <address className="space-y-0.5 text-xs leading-snug not-italic text-cream/85 md:space-y-1.5 md:text-sm md:leading-relaxed">
-        <p>{STORE.venue}</p>
-        <p>{STORE.street} · {floor}</p>
-        <p>{STORE.postcode}</p>
+        <p>{store.venue}</p>
+        <p>{store.street} · {floor}</p>
+        <p>{store.postcode}</p>
         <p className="pt-1 md:pt-2">
-          <a href={STORE.phoneHref} className="transition-colors hover:text-gold">
-            {STORE.phone}
+          <a href={store.phoneHref} className="transition-colors hover:text-gold">
+            {store.phone}
           </a>
         </p>
         <p>
-          <a href={`mailto:${STORE.email}`} className="transition-colors hover:text-gold">
-            {STORE.email}
+          <a href={`mailto:${store.email}`} className="transition-colors hover:text-gold">
+            {store.email}
           </a>
         </p>
       </address>
-      <div className="mt-3 flex flex-col items-center gap-1.5 text-xs text-cream/85 md:mt-5 md:items-start md:gap-3 md:text-sm">
-        <Link href={`/${lang}/loja`} className="transition-colors hover:text-gold">
-          {dict.footer.viewStore} →
-        </Link>
-      </div>
+    </div>
+  );
+  const contactBlockLis = contactBlockFor(STORE_LIS, CONTACT_ANCHOR);
+  const contactBlockVng = contactBlockFor(STORE_VNG, STORE_VNG.contactAnchor);
+  const viewStoreLink = (
+    <div className="mt-3 flex flex-col items-center gap-1.5 text-xs text-cream/85 md:mt-5 md:items-start md:gap-3 md:text-sm">
+      <Link href={`/${lang}/loja`} className="transition-colors hover:text-gold">
+        {dict.footer.viewStore} →
+      </Link>
     </div>
   );
 
@@ -90,16 +98,28 @@ export function SiteFooter({ lang }: { lang: Locale }) {
           {followBlock}
         </FooterMobileSection>
         <FooterMobileSection title={dict.footer.legal}>{legalBlock}</FooterMobileSection>
-        <FooterMobileSection title={dict.footer.contact}>{contactBlock}</FooterMobileSection>
+        <FooterMobileSection title={dict.footer.contact}>
+          {contactBlockLis}
+          <div className="mt-6 border-t border-cream/10 pt-6">
+            {contactBlockVng}
+          </div>
+          {viewStoreLink}
+        </FooterMobileSection>
       </div>
 
-      {/* Desktop: classic 3-column footer — follow sits under the brand column. */}
-      <div className="mx-auto hidden max-w-7xl gap-12 px-6 py-12 text-left md:grid md:grid-cols-3">
+      {/* Desktop: 4-column footer — brand · Lisboa · V.N. Gaia · legal.
+          The two boutique blocks live in adjacent columns so the two
+          contact channels get equal visual weight. */}
+      <div className="mx-auto hidden max-w-7xl gap-10 px-6 py-12 text-left md:grid md:grid-cols-4">
         <div>
           {brandBlock}
           {followBlock}
         </div>
-        {contactBlock}
+        <div>
+          {contactBlockLis}
+          {viewStoreLink}
+        </div>
+        {contactBlockVng}
         {legalBlock}
       </div>
 

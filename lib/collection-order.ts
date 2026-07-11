@@ -125,6 +125,11 @@ export interface MobileNavItem {
 export interface MobileNavSection {
   kind: "section";
   title: { pt: string; en: string };
+  /** Locale-relative path that shows every product in the section
+      (i.e. the filter that includes ALL items below). Optional — when
+      set, the sub-panel renders a "Ver tudo" row inside the expanded
+      section so users can jump straight to the union view. */
+  allHref?: string;
   items: MobileNavItem[];
 }
 export interface MobileNavFlat {
@@ -145,6 +150,7 @@ export const ACCESSORIES_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Acessórios para Fumadores", "Smoking Accessories"),
+    allHref: "/t/smoking",
     items: [
       { label: L("Cortador de Charuto", "Cigar Cutter"), collection: "Cigar cutter" },
       {
@@ -164,6 +170,7 @@ export const ACCESSORIES_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Acessórios de Escrita", "Writing Accessories"),
+    allHref: "/t/writing-accessories",
     items: [
       { label: L("Estojos para Caneta", "Pen Cases"), collection: "Pen Cases" },
       { label: L("Recargas de Caneta", "Pen Refills"), collection: "Pen Refills" },
@@ -184,6 +191,7 @@ export const LEATHER_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Homem", "Men"),
+    allHref: "/t/bags?g=men",
     items: [
       { label: L("Bolsas", "Pouches"),          href: "/t/bags?type=pouches&g=men" },
       { label: L("Malas de Viagem", "Travel"),  href: "/t/bags?type=travel&g=men" },
@@ -196,6 +204,7 @@ export const LEATHER_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Senhora", "Women"),
+    allHref: "/t/bags?g=women",
     items: [
       { label: L("Baguette", "Baguette"),         href: "/t/bags?type=baguette&g=women" },
       { label: L("Mala de Mão", "Hand Bag"),      href: "/t/bags?type=hand-bag&g=women" },
@@ -207,6 +216,7 @@ export const LEATHER_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Pequena Marroquinaria", "Small Leather Goods"),
+    allHref: "/t/small-leather",
     items: [
       { label: L("Carteiras", "Wallets"),           href: "/t/small-leather?type=wallets" },
       { label: L("Porta-Cartões", "Card Holders"),  href: "/t/small-leather?type=card-holders" },
@@ -230,6 +240,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Esferográfica", "Ballpoint"),
+    allHref: "/c/escrita?usage=ballpoint",
     items: [
       { label: L("Line D Eternity", "Line D Eternity"), href: wr("ballpoint", "Line D Eternity") },
       { label: L("Line D", "Line D"),                   href: wr("ballpoint", "Line D") },
@@ -243,6 +254,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Rollerball", "Rollerball"),
+    allHref: "/c/escrita?usage=rollerball",
     items: [
       { label: L("Line D Eternity", "Line D Eternity"), href: wr("rollerball", "Line D Eternity") },
       { label: L("Line D", "Line D"),                   href: wr("rollerball", "Line D") },
@@ -254,6 +266,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
   {
     kind: "section",
     title: L("Tinta Permanente", "Fountain Pen"),
+    allHref: "/c/escrita?usage=fountain",
     items: [
       { label: L("Line D Eternity", "Line D Eternity"), href: wr("fountain", "Line D Eternity") },
       { label: L("Line D", "Line D"),                   href: wr("fountain", "Line D") },

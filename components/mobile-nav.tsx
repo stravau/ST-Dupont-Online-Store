@@ -7,7 +7,8 @@ import { usePathname } from "next/navigation";
 import type { MenuCategory } from "@/components/mega-menu";
 import { Logo } from "@/components/logo";
 import { useHeaderTransparent } from "@/components/header-shell";
-import { ACCESSORIES_NAV, LEATHER_NAV, WRITING_NAV, type MobileNavEntry, type MobileNavItem } from "@/lib/collection-order";
+import { ACCESSORIES_NAV, LEATHER_NAV, WRITING_NAV, type MobileNavEntry, type MobileNavItem, type MobileNavSection } from "@/lib/collection-order";
+import { isNavPathLive, type LiveNavSignalsSerialized } from "@/lib/nav-liveness-shared";
 
 // Mobile menu: a full-screen panel that drills down per maison. The root
 // view shows the four maisons + About Us. Tapping a maison swaps to its
@@ -19,11 +20,13 @@ export function MobileNav({
   lang,
   items,
   links,
+  liveSignals,
   labels,
 }: {
   lang: string;
   items: MenuCategory[];
   links: { label: string; href: string }[];
+  liveSignals: LiveNavSignalsSerialized;
   labels: {
     viewAll: string;
     collections: string;
@@ -236,10 +239,36 @@ export function MobileNav({
                 };
                 // Structured sub-panel used by three of the four
                 // universes — same visual language, different data.
-                const nav: readonly MobileNavEntry[] | null =
+                const rawNav: readonly MobileNavEntry[] | null =
                   isAccessories ? ACCESSORIES_NAV :
                   isLeather     ? LEATHER_NAV     :
                   isWriting     ? WRITING_NAV     : null;
+                // Prune entries whose destinations have zero live products.
+                // Sections whose items all die drop out entirely; flat
+                // items drop individually.
+                const pruneItem = (it: MobileNavItem): MobileNavItem | null => {
+                  if (it.children && it.children.length > 0) {
+                    const kids = it.children.filter((c) => isNavPathLive(itemHref(c), liveSignals));
+                    if (kids.length === 0) return null;
+                    return { ...it, children: kids };
+                  }
+                  return isNavPathLive(itemHref(it), liveSignals) ? it : null;
+                };
+                const nav: MobileNavEntry[] | null = rawNav
+                  ? rawNav
+                      .map((entry): MobileNavEntry | null => {
+                        if (entry.kind === "item") {
+                          return isNavPathLive(itemHref(entry), liveSignals) ? entry : null;
+                        }
+                        const items = entry.items
+                          .map(pruneItem)
+                          .filter((x): x is MobileNavItem => x !== null);
+                        if (items.length === 0) return null;
+                        const section: MobileNavSection = { ...entry, items };
+                        return section;
+                      })
+                      .filter((x): x is MobileNavEntry => x !== null)
+                  : null;
                 if (nav) {
                   return (
                     <ul className="mx-auto flex w-full max-w-sm flex-col">
@@ -295,6 +324,17 @@ export function MobileNav({
                             </button>
                             {sectionOpen && (
                               <ul className="border-t border-line/40 pl-2">
+                                {entry.allHref && (
+                                  <li className="border-t border-line/40 first:border-t-0">
+                                    <Link
+                                      href={`/${lang}${entry.allHref}`}
+                                      onClick={close}
+                                      className="block py-3 pr-3 text-[0.75rem] tracking-[0.16em] text-gold uppercase transition-colors hover:text-ink"
+                                    >
+                                      {labels.viewAll}
+                                    </Link>
+                                  </li>
+                                )}
                                 {entry.items.map((it) => {
                                   const key = it.label.en;
                                   if (it.children) {
