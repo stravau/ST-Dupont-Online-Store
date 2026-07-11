@@ -198,27 +198,18 @@ h1, h2, h3, .font-serif {
 }
 
 /* Mobile navigation drawer — slides in from the left edge on open,
-   slides back out to the left on close. Both directions share the
-   same easing so the motion reads as a mirror. */
-@keyframes mobileNavSlideIn {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(0);     }
+   slides back out to the left on close. Transition-driven so React
+   drives the state (`--visible` on / off) and CSS handles the motion. */
+.mobile-nav-panel {
+  transform: translateX(-100%);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
-@keyframes mobileNavSlideOut {
-  from { transform: translateX(0);     }
-  to   { transform: translateX(-100%); }
-}
-.mobile-nav-panel { will-change: transform; }
-.mobile-nav-panel--open {
-  animation: mobileNavSlideIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.mobile-nav-panel--closing {
-  animation: mobileNavSlideOut 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
-  pointer-events: none;
+.mobile-nav-panel.mobile-nav-panel--visible {
+  transform: translateX(0);
 }
 @media (prefers-reduced-motion: reduce) {
-  .mobile-nav-panel--open,
-  .mobile-nav-panel--closing { animation: none; }
+  .mobile-nav-panel { transition: none; }
 }
 
 /* --- Global interactivity ------------------------------------------------ */
