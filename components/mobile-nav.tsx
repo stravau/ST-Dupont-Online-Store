@@ -38,16 +38,6 @@ export function MobileNav({
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  // Three-track visibility so CSS transitions can play cleanly:
-  //   rendered — portal is in the DOM.
-  //   visible — `.mobile-nav-panel--visible` class applied (drives the
-  //             translateX transition to 0).
-  // Open  → rendered=true immediately, then flip visible=true on the
-  //         next frame so the CSS transition triggers.
-  // Close → visible=false immediately, then unmount after the transition
-  //         completes (320 ms, matches the CSS).
-  const [rendered, setRendered] = useState(false);
-  const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
   // Inline-expand state for Accessories sub-items that hold nested
   // children (Cigar Cases → 1/2/3). Keyed by the item's EN label so PT/EN
@@ -83,31 +73,6 @@ export function MobileNav({
       document.body.style.overflow = "";
     };
   }, [open]);
-
-  // Drive the enter / exit CSS transition. The browser only animates
-  // a `transform` change when it has painted the previous value first;
-  // if React commits mount + `visible=true` (or `visible=true → false`)
-  // in the same tick, the intermediate frame never paints and the
-  // transition is skipped. rAFs on both directions guarantee a paint
-  // between the "before" and "after" states so the transition runs.
-  useEffect(() => {
-    if (open) {
-      setRendered(true);
-      const raf = requestAnimationFrame(() =>
-        requestAnimationFrame(() => setVisible(true))
-      );
-      return () => cancelAnimationFrame(raf);
-    }
-    if (!rendered) return;
-    const raf = requestAnimationFrame(() =>
-      requestAnimationFrame(() => setVisible(false))
-    );
-    const t = setTimeout(() => setRendered(false), 380);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(t);
-    };
-  }, [open, rendered]);
 
   // Reset to the root view only when the panel CLOSES — preserves the
   // drilled-in maison sub-panel while it's open. Previously this fired
@@ -154,15 +119,13 @@ export function MobileNav({
         )}
       </button>
 
-      {rendered && mounted &&
+      {mounted &&
         createPortal(
           <div
-            style={{
-              transform: visible ? "translateX(0)" : "translateX(-100%)",
-              transition: "transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)",
-              willChange: "transform",
-            }}
-            className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream"
+            className={`fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream transition-transform duration-300 ease-out ${
+              open ? "translate-x-0" : "-translate-x-full pointer-events-none"
+            }`}
+            style={{ willChange: "transform" }}
           >
           <div className="flex min-h-[100dvh] flex-1 flex-col [zoom:1.1112]">
             {/* Top bar: back button (only when drilled into a category) +
