@@ -4,7 +4,7 @@ import Image from "next/image";
 import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { getNovelties, expandProductCards } from "@/lib/catalog";
-import { STORE } from "@/lib/store-info";
+import { STORES } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { ScrollCue } from "@/components/scroll-cue";
 import { notFound } from "next/navigation";
@@ -232,19 +232,35 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* Boutique — pb-20 instead of pb-32 so the dark monogram-bg
+      {/* Boutiques — pb-20 instead of pb-32 so the dark monogram-bg
           footer peeks above the fold and tells the user there's more
           underneath the cream. The footer is position:sticky bottom-0
           z-0; without this trim the reveal effect on long pages was
-          invisible to anyone who stopped reading at the CTA. */}
-      <section className="reveal mx-auto max-w-3xl px-6 pt-32 pb-20 text-center">
+          invisible to anyone who stopped reading at the CTA.
+          Two boutique blocks stack on mobile, sit side-by-side on md+.
+          Each links directly to its own contact anchor on /loja. */}
+      <section className="reveal mx-auto max-w-4xl px-6 pt-32 pb-20 text-center">
         <p className="overline">{dict.sections.boutiqueEyebrow}</p>
         <h2 className="mt-6 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
         <div className="gold-rule mx-auto my-8" />
         <p className="text-muted">{dict.sections.boutiqueBody}</p>
-        <p className="mt-8 text-sm tracking-widest text-ink uppercase">
-          {STORE.venue} · {STORE.street} · {locale === "pt" ? "Piso 0" : "Floor 0"}
-        </p>
+        <div className="mt-10 grid gap-8 md:grid-cols-2 md:gap-10">
+          {STORES.map((store) => (
+            <Link
+              key={store.key}
+              href={`/${locale}/loja#${store.contactAnchor}`}
+              className="group flex flex-col items-center border border-line/60 bg-paper/40 px-6 py-7 transition-colors duration-300 hover:border-gold"
+            >
+              <p className="overline text-gold">{store.labels[locale].short}</p>
+              <p className="mt-3 font-serif text-lg text-ink md:text-xl">{store.venue}</p>
+              <p className="mt-2 text-sm text-muted">{store.street}</p>
+              <p className="text-sm text-muted">{store.postcode}</p>
+              <span className="mt-4 inline-block border-b border-line/60 pb-1 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors group-hover:border-gold group-hover:text-gold">
+                {dict.footer.viewStore}
+              </span>
+            </Link>
+          ))}
+        </div>
         <div className="mt-10 flex justify-center">
           <Link
             href={`/${locale}/loja`}
