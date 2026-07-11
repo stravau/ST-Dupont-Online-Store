@@ -67,26 +67,35 @@ export function MobileNav({
     });
   }, [pathname]);
 
+  // Body scroll lock + close-side cleanup live together so we can
+  // delay BOTH until after the 300 ms slide-out. Without the delay,
+  // `setSelected(null)` + `setExpanded(new Set())` (fresh reference
+  // → React can't Object.is-bail) fire in the same passive-effect
+  // flush as the transform change, both commits batch to the DOM
+  // before the compositor's next paint, and the transition has no
+  // "from" state to interpolate — the drawer snaps closed.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      return;
+    }
+    const t = setTimeout(() => {
       document.body.style.overflow = "";
-    };
+      setSelected(null);
+      setExpanded((prev) => (prev.size === 0 ? prev : new Set()));
+    }, 300);
+    return () => clearTimeout(t);
   }, [open]);
 
-  // Reset to the root view only when the panel CLOSES — preserves the
-  // drilled-in maison sub-panel while it's open. Previously this fired
-  // on every toggle of `open`, so closing then reopening lost the user's
-  // place; now backing out via the close (X) button explicitly returns
-  // to root for next time.
   useEffect(() => {
-    if (!open) {
-      setSelected(null);
-      setExpanded(new Set());
+    // Guarded: only refresh `expanded` when it actually has entries.
+    // A blind `setExpanded(new Set())` schedules a re-render even
+    // when the set is already empty, which would restart the
+    // batching problem the [open] effect above is designed to
+    // avoid.
+    if (!selected) {
+      setExpanded((prev) => (prev.size === 0 ? prev : new Set()));
     }
-  }, [open]);
-  useEffect(() => {
-    if (!selected) setExpanded(new Set());
   }, [selected]);
 
   // Root entries — the four maisons + About Us.
