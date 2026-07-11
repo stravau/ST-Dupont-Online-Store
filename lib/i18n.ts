@@ -116,7 +116,7 @@ const dictionaries = {
         "Desde 1872, a S.T. Dupont define o requinte francês — isqueiros, instrumentos de escrita e peças em pele concebidos como objetos de uma vida inteira, feitos à mão nas oficinas de Faverges.",
       heritageCta: "A Nossa História",
       boutiqueEyebrow: "Boutique",
-      boutiqueTitle: "Visite-nos em Lisboa",
+      boutiqueTitle: "Visite-nos",
       boutiqueBody: "Aconselhamento personalizado e serviços de personalização exclusivos.",
     },
     product: {
@@ -314,7 +314,7 @@ const dictionaries = {
         "Since 1872, S.T. Dupont has defined French refinement — lighters, writing instruments and leather pieces conceived as lifetime objects, handcrafted in the Faverges workshops.",
       heritageCta: "Our Story",
       boutiqueEyebrow: "Boutique",
-      boutiqueTitle: "Visit us in Lisbon",
+      boutiqueTitle: "Visit us",
       boutiqueBody: "Personalised advice and exclusive customisation services.",
     },
     product: {
