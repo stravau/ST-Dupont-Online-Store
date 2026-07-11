@@ -117,10 +117,12 @@ h1, h2, h3, .font-serif {
    Deliberately understated: quiet, premium, easy to miss unless you look. */
 .page-loader {
   display: flex;
-  flex: 1 1 auto; /* fill the main content area so the footer stays put */
   align-items: center;
   justify-content: center;
-  min-height: 60vh; /* fallback if an ancestor isn't a flex column */
+  /* Fill most of the viewport so the shimmer sits centre-ish and the footer
+     stays below — WITHOUT making the layout a flex column (that let pages
+     grow to their content width and broke the mobile viewport). */
+  min-height: 72vh;
 }
 .page-loader__bar {
   position: relative;

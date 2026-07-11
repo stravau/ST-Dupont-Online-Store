@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   return (
-    <div key={pathname} className="page-transition flex flex-1 flex-col">
+    <div key={pathname} className="page-transition">
       {children}
     </div>
   );
