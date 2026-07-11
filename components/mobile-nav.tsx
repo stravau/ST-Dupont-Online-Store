@@ -151,7 +151,12 @@ export function MobileNav({
       {rendered && mounted &&
         createPortal(
           <div
-            className={`mobile-nav-panel ${visible ? "mobile-nav-panel--visible" : ""} fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]`}
+            style={{
+              transform: visible ? "translateX(0)" : "translateX(-100%)",
+              transition: "transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)",
+              willChange: "transform",
+            }}
+            className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]"
           >
             {/* Top bar: back button (only when drilled into a category) +
                 close button. */}

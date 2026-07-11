@@ -197,20 +197,9 @@ h1, h2, h3, .font-serif {
   }
 }
 
-/* Mobile navigation drawer — slides in from the left edge on open,
-   slides back out to the left on close. Transition-driven so React
-   drives the state (`--visible` on / off) and CSS handles the motion. */
-.mobile-nav-panel {
-  transform: translateX(-100%);
-  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-.mobile-nav-panel.mobile-nav-panel--visible {
-  transform: translateX(0);
-}
-@media (prefers-reduced-motion: reduce) {
-  .mobile-nav-panel { transition: none; }
-}
+/* Mobile navigation drawer motion lives inline on the element so the
+   transition survives React's rapid state changes without CSS class
+   caching quirks. See components/mobile-nav.tsx. */
 
 /* --- Global interactivity ------------------------------------------------ */
 
