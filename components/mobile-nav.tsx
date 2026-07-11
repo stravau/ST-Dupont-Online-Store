@@ -122,10 +122,13 @@ export function MobileNav({
       {mounted &&
         createPortal(
           <div
-            className={`fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream transition-transform duration-300 ease-out ${
-              open ? "translate-x-0" : "-translate-x-full pointer-events-none"
-            }`}
-            style={{ willChange: "transform" }}
+            className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream"
+            style={{
+              transform: open ? "translateX(0)" : "translateX(-100%)",
+              transition: "transform 0.3s ease-out",
+              pointerEvents: open ? "auto" : "none",
+              willChange: "transform",
+            }}
           >
           <div className="flex min-h-[100dvh] flex-1 flex-col [zoom:1.1112]">
             {/* Top bar: back button (only when drilled into a category) +
