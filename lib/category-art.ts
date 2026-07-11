@@ -78,7 +78,6 @@ const SMOKING_ITEMS: ArtGroup[] = [
 // Writing accessory sub-types (reused under Writing and Accessories menus).
 const WRITING_ITEMS: ArtGroup[] = [
   { label: t("Estojos para Canetas", "Pen Cases"), href: typeHref("writing-accessories", "pen-cases") },
-  { label: t("Secretária", "Office Accessories"), href: typeHref("writing-accessories", "office") },
   { label: t("Cadernos", "Notebooks"), href: typeHref("writing-accessories", "notebooks") },
 ];
 

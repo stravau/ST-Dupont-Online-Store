@@ -1460,9 +1460,8 @@ export const products: SeedProduct[] = [
     description: { pt: `A S.T. Dupont une-se ao artista francês Richard Orlinski numa colecção exclusiva onde a força do gesto escultórico se encontra com a precisão do savoir-faire artesanal. Inspirada no icónico motivo «Kong» e na selvajaria da natureza, esta colaboração traz uma energia bruta e contemporânea às criações da Maison. Isqueiros e instrumentos de escrita tornam-se verdadeiras obras de arte, valorizados por linhas angulares, texturas contrastantes e cores vibrantes. Isqueiro Slimmy em laca laranja decorado com o motivo «Kong» em acabamento crómio. Equipado com chama maçarico azul de 2 cm, ideal para acender velas ou cigarros. Recarga de gás associada: preta (REF 900430). Isqueiro entregue sem gás; recarga vendida em separado. Descubra a colecção Orlinski completa.`, en: `S.T. Dupont partners with French artist Richard Orlinski for an exclusive collection where the power of sculptural gestures meets the precision of artisanal craftsmanship. Inspired by the iconic “Kong” motif and the wildness of nature, this collaboration brings a raw, contemporary energy to the Maison’s creations. Lighters and writing instruments become true works of art, enhanced by angular lines, contrasting textures, and vibrant colors. Slimmy lighter in orange lacquer decorated with the “Kong” motif in chrome finish. Equipped with a 2 cm blue torch flame, ideal for lighting candles or cigarettes. Associated gas refill: black (REF 900430) Lighter delivered without gas; refill sold separately. Discover the full Orlinski collection.` },
     collection: `Slimmy`,
     categorySlug: "isqueiros",
-    image: `/products/slimmy-orlinski/025063.webp`,
+    image: `/products/slimmy-orlinski/028063.webp`,
     variants: [
-      { sku: `025063`, name: { pt: `Slimmy · Orlinski — Laranja`, en: `Slimmy · Orlinski — Orange` }, priceCents: 50600, currency: "EUR", attributes: { color: { label: { pt: `Laranja`, en: `Orange` }, hex: ["#c4642d"] } }, image: `/products/slimmy-orlinski/025063.webp`, images: [`/products/slimmy-orlinski/025063.webp`, `/products/slimmy-orlinski/025063-2.webp`, `/products/slimmy-orlinski/025063-3.webp`, `/products/slimmy-orlinski/025063-4.webp`] },
       { sku: `028064`, name: { pt: `Slimmy · Orlinski — Azul`, en: `Slimmy · Orlinski — Blue` }, priceCents: 41400, currency: "EUR", attributes: { color: { label: { pt: `Azul`, en: `Blue` }, hex: ["#1f3c66"] } }, image: `/products/slimmy-orlinski/028064.webp`, images: [`/products/slimmy-orlinski/028064.webp`, `/products/slimmy-orlinski/028064-2.webp`, `/products/slimmy-orlinski/028064-3.webp`, `/products/slimmy-orlinski/028064-4.webp`] },
       { sku: `028063`, name: { pt: `Slimmy · Orlinski — Laranja`, en: `Slimmy · Orlinski — Orange` }, priceCents: 41400, currency: "EUR", attributes: { color: { label: { pt: `Laranja`, en: `Orange` }, hex: ["#c4642d"] } }, image: `/products/slimmy-orlinski/028063.webp`, images: [`/products/slimmy-orlinski/028063.webp`, `/products/slimmy-orlinski/028063-2.webp`, `/products/slimmy-orlinski/028063-3.webp`, `/products/slimmy-orlinski/028063-4.webp`] }
     ],
@@ -1475,7 +1474,8 @@ export const products: SeedProduct[] = [
     categorySlug: "isqueiros",
     image: `/products/biggy-orlinski/025064.webp`,
     variants: [
-      { sku: `025064`, name: { pt: `Biggy · Orlinski — Azul`, en: `Biggy · Orlinski — Blue` }, priceCents: 50600, currency: "EUR", attributes: { color: { label: { pt: `Azul`, en: `Blue` }, hex: ["#1f3c66"] } }, image: `/products/biggy-orlinski/025064.webp`, images: [`/products/biggy-orlinski/025064.webp`, `/products/biggy-orlinski/025064-2.webp`, `/products/biggy-orlinski/025064-3.webp`, `/products/biggy-orlinski/025064-4.webp`] }
+      { sku: `025064`, name: { pt: `Biggy · Orlinski — Azul`, en: `Biggy · Orlinski — Blue` }, priceCents: 50600, currency: "EUR", attributes: { color: { label: { pt: `Azul`, en: `Blue` }, hex: ["#1f3c66"] } }, image: `/products/biggy-orlinski/025064.webp`, images: [`/products/biggy-orlinski/025064.webp`, `/products/biggy-orlinski/025064-2.webp`, `/products/biggy-orlinski/025064-3.webp`, `/products/biggy-orlinski/025064-4.webp`] },
+      { sku: `025063`, name: { pt: `Biggy · Orlinski — Laranja`, en: `Biggy · Orlinski — Orange` }, priceCents: 50600, currency: "EUR", attributes: { color: { label: { pt: `Laranja`, en: `Orange` }, hex: ["#c4642d"] } }, image: `/products/slimmy-orlinski/025063.webp`, images: [`/products/slimmy-orlinski/025063.webp`, `/products/slimmy-orlinski/025063-2.webp`, `/products/slimmy-orlinski/025063-3.webp`, `/products/slimmy-orlinski/025063-4.webp`] }
     ],
   },
   {
@@ -4955,13 +4955,13 @@ export const products: SeedProduct[] = [
   },
   {
     slug: `cutter-420024l`,
-    name: { pt: `Caneta de Tinta Permanente Grande`, en: `Foutain Pen Large` },
+    name: { pt: `Line D Eternity · Graff'ty — Caneta de Tinta Permanente`, en: `Line D Eternity · Graff'ty — Fountain Pen` },
     description: { pt: `A colecção Graff'ty inspira-se na street art, transformando isqueiros e canetas em verdadeiras obras de arte. Cores vivas e mosaicos de vermelho, amarelo e azul irrompem nas peças Ligne 2, Biggy, Line D Eternity e nos acessórios para charutos (cinzeiro, corta-charutos, estojo). Esta colecção convida todos a acender a chama da criatividade. Caneta de tinta permanente Line D Eternity Large em laca Dupont multicolor brilhante com acabamento em paládio. Tampa de ourives em guilloché oblíquo. Bico em ouro maciço de 14 quilates. Êmbolo incluído. Disponível nas versões rollerball e tinta permanente. Recargas associadas: 040112 Azul - 040110 Preta - 040362 Vermelha - 040363 Verde - 040364 Turquesa. Esta caneta de tinta permanente é fornecida com um bico médio, para um traço de escrita de aproximadamente 0,55 mm.`, en: `The Graff'ty collection is inspired by street art, turning lighters and pens into veritable works of art. Bright colours and mosaics of red, yellow and blue burst forth on Ligne 2, Biggy, Line D Eternity and cigar accessories (ashtray, cigar cutter, case). This collection invites everyone to light the flame of creativity. Line D Eternity large fountain pen in glossy multicolour Dupont lacquer with palladium finish. Goldsmith's guilloche oblique cap. Solid 14-carat gold nib. Piston included. Available in rollerball and nib versions. Related refills: 040112 Blue - 040110 Black - 040362 Red - 040363 Green - 040364 Turquoise This fountain pen comes with a medium nib, for a writing size of apporox. 0.55 mm.` },
-    collection: `Cortador de Charuto`,
+    collection: `Line D Eternity`,
     categorySlug: "escrita",
     image: `/products/cutter-420024l/420024L.webp`,
     variants: [
-      { sku: `420024L`, name: { pt: `Foutain Pen Large — Multicor`, en: `Foutain Pen Large — Multicolor` }, priceCents: 94000, currency: "EUR", attributes: { color: { label: { pt: `Multicor`, en: `Multicolor` }, hex: ["#c8a24a"] } }, image: `/products/cutter-420024l/420024L.webp`, images: [`/products/cutter-420024l/420024L.webp`, `/products/cutter-420024l/420024L-2.webp`, `/products/cutter-420024l/420024L-3.webp`, `/products/cutter-420024l/420024L-4.webp`] },
+      { sku: `420024L`, name: { pt: `Line D Eternity · Graff'ty — Tinta Permanente`, en: `Line D Eternity · Graff'ty — Fountain Pen` }, priceCents: 94000, currency: "EUR", attributes: { color: { label: { pt: `Multicor`, en: `Multicolor` }, hex: ["#c8a24a"] }, type: { pt: `Tinta Permanente`, en: `Fountain Pen` } }, image: `/products/cutter-420024l/420024L.webp`, images: [`/products/cutter-420024l/420024L.webp`, `/products/cutter-420024l/420024L-2.webp`, `/products/cutter-420024l/420024L-3.webp`, `/products/cutter-420024l/420024L-4.webp`] },
     ],
   },
   {
@@ -5087,13 +5087,13 @@ export const products: SeedProduct[] = [
   },
   {
     slug: `cutter-422024l`,
-    name: { pt: `Rollerball Grande`, en: `Rollerball Pen Large` },
+    name: { pt: `Line D Eternity · Graff'ty — Rollerball`, en: `Line D Eternity · Graff'ty — Rollerball` },
     description: { pt: `A colecção Graff'ty inspira-se na street art, transformando isqueiros e canetas em verdadeiras obras de arte. Cores vivas e mosaicos de vermelho, amarelo e azul irrompem nas peças Ligne 2, Biggy, Line D Eternity e nos acessórios para charutos (cinzeiro, corta-charutos, estojo). Esta colecção convida todos a acender a chama da criatividade. Caneta rollerball Line D Eternity Large em laca Dupont multicolor brilhante com acabamento em paládio. Tampa de ourives com guilloché oblíquo. Disponível nas versões rollerball e tinta permanente. Recargas associadas: 040840 Azul - 040841 Preta`, en: `The Graff'ty collection is inspired by street art, turning lighters and pens into veritable works of art. Bright colours and mosaics of red, yellow and blue burst forth on Ligne 2, Biggy, Line D Eternity and cigar accessories (ashtray, cigar cutter, case). This collection invites everyone to light the flame of creativity. Line D Eternity large rollerball pen in glossy multicolour Dupont lacquer with palladium finish. Goldsmith's cap with oblique guilloche. Available in rollerball and fountain pen versions. Related refills: 040840 Blue - 040841 Black` },
-    collection: `Cortador de Charuto`,
+    collection: `Line D Eternity`,
     categorySlug: "escrita",
     image: `/products/cutter-422024l/422024L.webp`,
     variants: [
-      { sku: `422024L`, name: { pt: `Rollerball Pen Large — Multicor`, en: `Rollerball Pen Large — Multicolor` }, priceCents: 76500, currency: "EUR", attributes: { color: { label: { pt: `Multicor`, en: `Multicolor` }, hex: ["#c8a24a"] } }, image: `/products/cutter-422024l/422024L.webp`, images: [`/products/cutter-422024l/422024L.webp`, `/products/cutter-422024l/422024L-2.webp`, `/products/cutter-422024l/422024L-3.webp`, `/products/cutter-422024l/422024L-4.webp`] },
+      { sku: `422024L`, name: { pt: `Line D Eternity · Graff'ty — Rollerball`, en: `Line D Eternity · Graff'ty — Rollerball` }, priceCents: 76500, currency: "EUR", attributes: { color: { label: { pt: `Multicor`, en: `Multicolor` }, hex: ["#c8a24a"] }, type: { pt: `Rollerball`, en: `Rollerball` } }, image: `/products/cutter-422024l/422024L.webp`, images: [`/products/cutter-422024l/422024L.webp`, `/products/cutter-422024l/422024L-2.webp`, `/products/cutter-422024l/422024L-3.webp`, `/products/cutter-422024l/422024L-4.webp`] },
     ],
   },  // === END WWW CIGAR CUTTERS ===
 
