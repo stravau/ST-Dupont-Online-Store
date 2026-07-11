@@ -94,9 +94,12 @@ export function MobileNav({
   const contactLabel = labels.contactUs ?? (lang === "pt" ? "Contactar" : "Contact us");
   const findStoreLabel = labels.findStore ?? (lang === "pt" ? "Encontrar Loja" : "Find Store");
 
+  // Just flip `open` — the useEffect above already resets selected +
+  // expanded on close, and running setSelected here in the same tick
+  // would rip the drilled-in panel content out mid slide-out and read
+  // as a "flash close" instead of the intended left-to-right glide.
   function close() {
     setOpen(false);
-    setSelected(null);
   }
 
   return (
