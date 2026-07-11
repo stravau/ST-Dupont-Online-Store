@@ -142,11 +142,24 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   "apex-2": "pele",
   "firehead-3": "pele",
   "line-d-3": "escrita",
-  // Split children of line-d-2 (a pen line) that are NOT writing
-  // instruments — belts belong under Acessórios so the /c/escrita
-  // catalogue doesn't surface "Line D Eternity · Reversible Belt".
-  "line-d-2-belt": "acessorios",
+  // Split children of line-d-2 / line-d-3 (both pen lines in the seed)
+  // that are NOT writing instruments. The bundle-split machinery
+  // inherits the parent's category, dumping belts, wallets, card
+  // holders and desk goods into /c/escrita. Route each to its real
+  // métier so the writing catalogue only shows pens.
+  //
+  //   Acessórios — small desk / smoking-adjacent leather + paper goods.
+  "line-d-2-belt":            "acessorios",
   "line-d-2-reversible-belt": "acessorios",
+  "line-d-2-pen-case":        "acessorios",
+  "line-d-2-notebook-cover":  "acessorios",
+  "line-d-2-desk-pad":        "acessorios",
+  //   Pele — small & business leather goods.
+  "line-d-3-card-holder":     "pele",
+  "line-d-3-passport-holder": "pele",
+  "line-d-3-wallet":          "pele",
+  "line-d-3-document-holder": "pele",
+  "line-d-3-towel":           "pele",
 };
 
 // Infer the pen-type localised label for a writing variant where the

@@ -38,6 +38,10 @@ export function MobileNav({
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Two-track visibility: `rendered` keeps the drawer in the DOM long
+  // enough for its slide-out animation to play, while `open` drives the
+  // enter / exit direction of the CSS animation.
+  const [rendered, setRendered] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
   // Inline-expand state for Accessories sub-items that hold nested
   // children (Cigar Cases → 1/2/3). Keyed by the item's EN label so PT/EN
@@ -73,6 +77,19 @@ export function MobileNav({
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  // Keep the drawer mounted through its exit animation. Opening →
+  // mount immediately so the enter animation plays; closing → wait
+  // for the slide-out (matches the CSS duration) before unmounting.
+  useEffect(() => {
+    if (open) {
+      setRendered(true);
+      return;
+    }
+    if (!rendered) return;
+    const t = setTimeout(() => setRendered(false), 320);
+    return () => clearTimeout(t);
+  }, [open, rendered]);
 
   // Reset to the root view only when the panel CLOSES — preserves the
   // drilled-in maison sub-panel while it's open. Previously this fired
@@ -119,9 +136,11 @@ export function MobileNav({
         )}
       </button>
 
-      {open && mounted &&
+      {rendered && mounted &&
         createPortal(
-          <div className="mobile-nav-panel fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]">
+          <div
+            className={`mobile-nav-panel ${open ? "mobile-nav-panel--open" : "mobile-nav-panel--closing"} fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]`}
+          >
             {/* Top bar: back button (only when drilled into a category) +
                 close button. */}
             <div className="flex items-center justify-between px-6 py-5">
