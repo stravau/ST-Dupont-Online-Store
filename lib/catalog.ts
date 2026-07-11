@@ -154,6 +154,10 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   "line-d-2-pen-case":        "acessorios",
   "line-d-2-notebook-cover":  "acessorios",
   "line-d-2-desk-pad":        "acessorios",
+  // SKU 007110 was scraped as "Lapiseira" (mechanical pencil) — it is
+  // actually a desk pen cup (Copo de Secretária). Category shifts to
+  // Acessórios; the display name is fixed in fix-line-d-2-desk-cup.ts.
+  "line-d-2-pencil":          "acessorios",
   //   Pele — small & business leather goods.
   "line-d-3-card-holder":     "pele",
   "line-d-3-passport-holder": "pele",

@@ -240,7 +240,7 @@ export const BUNDLE_SPLITS: Record<string, GenSplitPart[]> = {
   "line-d-2": [
     { slug: "line-d-2-pen-case", name: { pt: "Line D Eternity · Pen Case", en: "Line D Eternity · Pen Case" }, skus: ["180016"] },
     { slug: "line-d-2-reversible-belt", name: { pt: "Line D Eternity · Reversible Belt", en: "Line D Eternity · Reversible Belt" }, skus: ["8200120","8210160","8300011","8300012","8300013","8350011","8350012","8350013"] },
-    { slug: "line-d-2-pencil", name: { pt: "Line D Eternity · Lapiseira", en: "Line D Eternity · Pencil" }, skus: ["007110"] },
+    { slug: "line-d-2-pencil", name: { pt: "Line D Eternity · Copo de Secretária", en: "Line D Eternity · Desk Cup" }, skus: ["007110"] },
     { slug: "line-d-2-notebook-cover", name: { pt: "Line D Eternity · Notebook Cover", en: "Line D Eternity · Notebook Cover" }, skus: ["007104"] },
     { slug: "line-d-2-belt", name: { pt: "Line D Eternity · Belt", en: "Line D Eternity · Belt" }, skus: ["8300000","8300001","8300002","8350000","8350001","8350002","8350100","8350200"] },
     { slug: "line-d-2-desk-pad", name: { pt: "Line D Eternity · Desk Pad", en: "Line D Eternity · Desk Pad" }, skus: ["007107"] },
