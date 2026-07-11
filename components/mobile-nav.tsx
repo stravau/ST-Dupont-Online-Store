@@ -84,11 +84,12 @@ export function MobileNav({
     };
   }, [open]);
 
-  // Drive the enter / exit CSS transition. Opening mounts the portal
-  // and — on the NEXT frame, after the browser has painted the initial
-  // translateX(-100%) state — flips `visible` on so the transition to
-  // translateX(0) actually runs. Closing flips `visible` off first and
-  // unmounts once the 320 ms transition finishes.
+  // Drive the enter / exit CSS transition. The browser only animates
+  // a `transform` change when it has painted the previous value first;
+  // if React commits mount + `visible=true` (or `visible=true → false`)
+  // in the same tick, the intermediate frame never paints and the
+  // transition is skipped. rAFs on both directions guarantee a paint
+  // between the "before" and "after" states so the transition runs.
   useEffect(() => {
     if (open) {
       setRendered(true);
@@ -98,9 +99,14 @@ export function MobileNav({
       return () => cancelAnimationFrame(raf);
     }
     if (!rendered) return;
-    setVisible(false);
-    const t = setTimeout(() => setRendered(false), 320);
-    return () => clearTimeout(t);
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setVisible(false))
+    );
+    const t = setTimeout(() => setRendered(false), 380);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
   }, [open, rendered]);
 
   // Reset to the root view only when the panel CLOSES — preserves the
@@ -156,8 +162,9 @@ export function MobileNav({
               transition: "transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)",
               willChange: "transform",
             }}
-            className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream [zoom:1.1112]"
+            className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream"
           >
+          <div className="flex min-h-[100dvh] flex-1 flex-col [zoom:1.1112]">
             {/* Top bar: back button (only when drilled into a category) +
                 close button. */}
             <div className="flex items-center justify-between px-6 py-5">
@@ -491,6 +498,7 @@ export function MobileNav({
                 </Link>
               </div>
             </div>
+          </div>
           </div>,
           document.body,
         )}
