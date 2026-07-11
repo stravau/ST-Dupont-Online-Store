@@ -148,9 +148,16 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   // holders and desk goods into /c/escrita. Route each to its real
   // métier so the writing catalogue only shows pens.
   //
-  //   Acessórios — small desk / smoking-adjacent leather + paper goods.
-  "line-d-2-belt":            "acessorios",
-  "line-d-2-reversible-belt": "acessorios",
+  //   Pele — the whole Line D leather line-up sits here so it can
+  //   surface under the "Line D" collection in Marroquinaria.
+  "line-d-2-belt":            "pele",
+  "line-d-2-reversible-belt": "pele",
+  "line-d-3-card-holder":     "pele",
+  "line-d-3-passport-holder": "pele",
+  "line-d-3-wallet":          "pele",
+  "line-d-3-document-holder": "pele",
+  "line-d-3-towel":           "pele",
+  //   Acessórios — desk / paper goods and the mis-scraped desk cup.
   "line-d-2-pen-case":        "acessorios",
   "line-d-2-notebook-cover":  "acessorios",
   "line-d-2-desk-pad":        "acessorios",
@@ -158,12 +165,6 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   // actually a desk pen cup (Copo de Secretária). Category shifts to
   // Acessórios; the display name is fixed in fix-line-d-2-desk-cup.ts.
   "line-d-2-pencil":          "acessorios",
-  //   Pele — small & business leather goods.
-  "line-d-3-card-holder":     "pele",
-  "line-d-3-passport-holder": "pele",
-  "line-d-3-wallet":          "pele",
-  "line-d-3-document-holder": "pele",
-  "line-d-3-towel":           "pele",
 };
 
 // Infer the pen-type localised label for a writing variant where the

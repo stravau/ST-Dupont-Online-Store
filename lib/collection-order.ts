@@ -321,6 +321,7 @@ export const MODEL_COLLECTIONS_BY_CATEGORY: Record<string, readonly string[]> = 
     "Neo Capsule",
     "Défi Explorer",
     "Classic",
+    "Line D",
     "Pen case",
     "Lighter Accessories",
   ],
