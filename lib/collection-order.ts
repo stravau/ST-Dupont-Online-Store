@@ -108,10 +108,17 @@ export function collectionRank(c: string): number {
 // the same visual weight as the section headers. An item can hold
 // `children` for one inline drill level, which is how Cigar Cases breaks
 // into 1 / 2 / 3 cigar case.
+//
+// Items link either via a `collection` (rendered as
+// /c/<category>?col=<collection>) or via an explicit locale-relative
+// `href` when the entry needs to target a /t/ group with type/gender
+// query params (leather nav) or a /c/escrita?usage= filter (writing nav).
 export interface MobileNavItem {
   label: { pt: string; en: string };
   /** Collection string to filter the category by — emits `?col=<value>`. */
   collection?: string;
+  /** Explicit locale-relative path (takes precedence over `collection`). */
+  href?: string;
   /** Inline nested items (one drill level — accessory sub-categories). */
   children?: MobileNavItem[];
 }
@@ -123,7 +130,8 @@ export interface MobileNavSection {
 export interface MobileNavFlat {
   kind: "item";
   label: { pt: string; en: string };
-  collection: string;
+  collection?: string;
+  href?: string;
 }
 export type MobileNavEntry = MobileNavSection | MobileNavFlat;
 
@@ -167,6 +175,93 @@ export const ACCESSORIES_NAV: readonly MobileNavEntry[] = [
   { kind: "item", label: L("Molas de Gravata", "Tie Clips"), collection: "Tie Clips" },
   { kind: "item", label: L("Porta-Chaves", "Key Holders"), collection: "Key Holders" },
   { kind: "item", label: L("Caixas de Oferta", "Gift Boxes"), collection: "Gift Boxes" },
+];
+
+// Leather goods — three sections by end-customer profile. Items point at
+// the /t/bags and /t/small-leather groups with type + gender filters
+// already understood by app/[lang]/t/[group]/page.tsx.
+export const LEATHER_NAV: readonly MobileNavEntry[] = [
+  {
+    kind: "section",
+    title: L("Homem", "Men"),
+    items: [
+      { label: L("Bolsas", "Pouches"),          href: "/t/bags?type=pouches&g=men" },
+      { label: L("Malas de Viagem", "Travel"),  href: "/t/bags?type=travel&g=men" },
+      { label: L("Mochilas", "Backpacks"),      href: "/t/bags?type=backpacks&g=men" },
+      { label: L("Tiracolo", "Crossbody"),      href: "/t/bags?type=crossbody&g=men" },
+      { label: L("Tote Bag", "Tote Bag"),       href: "/t/bags?type=tote&g=men" },
+      { label: L("Trabalho", "Business"),       href: "/t/bags?type=business&g=men" },
+    ],
+  },
+  {
+    kind: "section",
+    title: L("Senhora", "Women"),
+    items: [
+      { label: L("Baguette", "Baguette"),         href: "/t/bags?type=baguette&g=women" },
+      { label: L("Mala de Mão", "Hand Bag"),      href: "/t/bags?type=hand-bag&g=women" },
+      { label: L("Mala de Ombro", "Shoulder Bag"),href: "/t/bags?type=shoulder-bag&g=women" },
+      { label: L("Tiracolo", "Crossbody"),        href: "/t/bags?type=crossbody&g=women" },
+      { label: L("Tote Bag", "Tote Bag"),         href: "/t/bags?type=tote&g=women" },
+    ],
+  },
+  {
+    kind: "section",
+    title: L("Pequena Marroquinaria", "Small Leather Goods"),
+    items: [
+      { label: L("Carteiras", "Wallets"),           href: "/t/small-leather?type=wallets" },
+      { label: L("Porta-Cartões", "Card Holders"),  href: "/t/small-leather?type=card-holders" },
+      { label: L("Porta-Chaves", "Key Holders"),    href: "/t/small-leather?type=key-holders" },
+    ],
+  },
+];
+
+// Writing instruments — three sections by pen type. Each item is a
+// collection filter within that type, so the user sees only collections
+// that actually ship a pen of the chosen type. Category page reads
+// ?usage=<type>&col=<collection> — both filters compose.
+//
+// The collection list per type mirrors what the seed-data actually
+// carries: Classique and Marker Necklace are ballpoint-only lines; the
+// rest of the mainline collections ship in all three types.
+const wr = (usage: "ballpoint" | "rollerball" | "fountain", collection: string): string =>
+  `/c/escrita?usage=${usage}&col=${encodeURIComponent(collection)}`;
+
+export const WRITING_NAV: readonly MobileNavEntry[] = [
+  {
+    kind: "section",
+    title: L("Esferográfica", "Ballpoint"),
+    items: [
+      { label: L("Line D Eternity", "Line D Eternity"), href: wr("ballpoint", "Line D Eternity") },
+      { label: L("Line D", "Line D"),                   href: wr("ballpoint", "Line D") },
+      { label: L("Classique", "Classique"),             href: wr("ballpoint", "Classique") },
+      { label: L("Défi Millennium", "Défi Millennium"), href: wr("ballpoint", "Défi Millennium") },
+      { label: L("Liberté", "Liberté"),                 href: wr("ballpoint", "Liberté") },
+      { label: L("Eternity", "Eternity"),               href: wr("ballpoint", "Eternity") },
+      { label: L("Colar Marker", "Marker Necklace"),    href: wr("ballpoint", "Marker Necklace") },
+    ],
+  },
+  {
+    kind: "section",
+    title: L("Rollerball", "Rollerball"),
+    items: [
+      { label: L("Line D Eternity", "Line D Eternity"), href: wr("rollerball", "Line D Eternity") },
+      { label: L("Line D", "Line D"),                   href: wr("rollerball", "Line D") },
+      { label: L("Défi Millennium", "Défi Millennium"), href: wr("rollerball", "Défi Millennium") },
+      { label: L("Liberté", "Liberté"),                 href: wr("rollerball", "Liberté") },
+      { label: L("Eternity", "Eternity"),               href: wr("rollerball", "Eternity") },
+    ],
+  },
+  {
+    kind: "section",
+    title: L("Tinta Permanente", "Fountain Pen"),
+    items: [
+      { label: L("Line D Eternity", "Line D Eternity"), href: wr("fountain", "Line D Eternity") },
+      { label: L("Line D", "Line D"),                   href: wr("fountain", "Line D") },
+      { label: L("Défi Millennium", "Défi Millennium"), href: wr("fountain", "Défi Millennium") },
+      { label: L("Liberté", "Liberté"),                 href: wr("fountain", "Liberté") },
+      { label: L("Eternity", "Eternity"),               href: wr("fountain", "Eternity") },
+    ],
+  },
 ];
 
 // Explicit allow-list of model lines per category — used by the mobile

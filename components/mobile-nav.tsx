@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import type { MenuCategory } from "@/components/mega-menu";
 import { Logo } from "@/components/logo";
 import { useHeaderTransparent } from "@/components/header-shell";
-import { ACCESSORIES_NAV } from "@/lib/collection-order";
+import { ACCESSORIES_NAV, LEATHER_NAV, WRITING_NAV, type MobileNavEntry, type MobileNavItem } from "@/lib/collection-order";
 
 // Mobile menu: a full-screen panel that drills down per maison. The root
 // view shows the four maisons + About Us. Tapping a maison swaps to its
@@ -221,9 +221,26 @@ export function MobileNav({
               {selected && (() => {
                 const isAccessories =
                   selected.slug === "acessorios" || selected.slug === "accessories";
+                const isLeather =
+                  selected.slug === "pele" || selected.slug === "leather";
+                const isWriting =
+                  selected.slug === "escrita" || selected.slug === "writing";
                 const tt = (l: { pt: string; en: string }) =>
                   lang === "pt" ? l.pt : l.en;
-                if (isAccessories) {
+                // Resolve an item's href: prefer the explicit /t/... or
+                // /c/escrita?... path when supplied (leather + writing
+                // navs); fall back to the accessory-style ?col= URL.
+                const itemHref = (it: MobileNavItem | { collection?: string; href?: string }) => {
+                  if (it.href) return `/${lang}${it.href}`;
+                  return `/${lang}/c/${selected.slug}?col=${encodeURIComponent(it.collection ?? "")}`;
+                };
+                // Structured sub-panel used by three of the four
+                // universes — same visual language, different data.
+                const nav: readonly MobileNavEntry[] | null =
+                  isAccessories ? ACCESSORIES_NAV :
+                  isLeather     ? LEATHER_NAV     :
+                  isWriting     ? WRITING_NAV     : null;
+                if (nav) {
                   return (
                     <ul className="mx-auto flex w-full max-w-sm flex-col">
                       <li className="border-b border-line/60">
@@ -235,12 +252,12 @@ export function MobileNav({
                           {labels.viewAll}
                         </Link>
                       </li>
-                      {ACCESSORIES_NAV.map((entry, i) => {
+                      {nav.map((entry, i) => {
                         if (entry.kind === "item") {
                           return (
                             <li key={`flat-${i}`} className="border-b border-line/60">
                               <Link
-                                href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(entry.collection)}`}
+                                href={itemHref(entry)}
                                 onClick={close}
                                 className="block py-3.5 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                               >
@@ -308,7 +325,7 @@ export function MobileNav({
                                             {it.children.map((child) => (
                                               <li key={child.label.en}>
                                                 <Link
-                                                  href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(child.collection ?? "")}`}
+                                                  href={itemHref(child)}
                                                   onClick={close}
                                                   className="block py-2 text-[0.7rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
                                                 >
@@ -324,7 +341,7 @@ export function MobileNav({
                                   return (
                                     <li key={key} className="border-t border-line/40 first:border-t-0">
                                       <Link
-                                        href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(it.collection ?? "")}`}
+                                        href={itemHref(it)}
                                         onClick={close}
                                         className="block py-3 pr-3 text-[0.75rem] tracking-[0.16em] text-ink uppercase transition-colors hover:text-gold"
                                       >
