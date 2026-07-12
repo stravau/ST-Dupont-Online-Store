@@ -60,23 +60,23 @@ export default async function CollectionPage({
   return (
     <div>
       {/* Header */}
-      <header className="mx-auto max-w-7xl px-6 pb-10 pt-20 text-center">
-        <Crest className="mb-6" />
+      <header className="mx-auto max-w-7xl px-6 pb-6 pt-12 text-center md:pb-8 md:pt-14">
+        <Crest className="mb-4" />
         <p className="overline">{dict.collection.subtitle}</p>
-        <h1 className="mt-5 font-serif text-5xl text-ink md:text-6xl">
+        <h1 className="mt-4 font-serif text-4xl text-ink md:text-5xl">
           {dict.collection.title}
         </h1>
-        <div className="gold-rule mx-auto mt-7" />
-        <div className="mt-8 flex justify-center">
+        <div className="gold-rule mx-auto mt-5" />
+        <div className="mt-5 flex justify-center">
           <SortSelect value={sort} labels={dict.sort} />
         </div>
       </header>
 
       {/* Sticky in-page navigation through the categories, in order */}
       <nav className="sticky top-[73px] z-40 border-y border-line bg-cream/95 backdrop-blur">
-        <ol className="mx-auto flex max-w-7xl items-center justify-center gap-8 overflow-x-auto px-6 py-4">
+        <ol className="mx-auto flex max-w-7xl items-center justify-center gap-6 overflow-x-auto px-6 py-3">
           {sections.map(({ category }, i) => (
-            <li key={category.slug} className="flex items-center gap-8">
+            <li key={category.slug} className="flex items-center gap-6">
               {i > 0 && <span className="text-line">·</span>}
               <a
                 href={`#${category.slug}`}
@@ -96,18 +96,18 @@ export default async function CollectionPage({
           id={category.slug}
           className={`scroll-mt-36 ${i % 2 === 1 ? "bg-paper" : ""}`}
         >
-          <div className="mx-auto max-w-7xl px-6 py-24">
+          <div className="mx-auto max-w-7xl px-6 py-12 md:py-14">
             <div className="flex flex-col items-center text-center">
               <p className="overline">
                 {String(i + 1).padStart(2, "0")} — {category.tagline[locale]}
               </p>
-              <h2 className="mt-4 font-serif text-4xl text-ink md:text-5xl">
+              <h2 className="mt-3 font-serif text-3xl text-ink md:text-4xl">
                 {category.name[locale]}
               </h2>
-              <div className="gold-rule mx-auto mt-6" />
+              <div className="gold-rule mx-auto mt-4" />
             </div>
 
-            <div className="mt-14">
+            <div className="mt-8">
               {(() => {
                 // Group this category's products by model line, title each.
                 const groups: { line: string; items: Product[] }[] = [];
@@ -120,8 +120,8 @@ export default async function CollectionPage({
                   groups[at.get(p.collection)!].items.push(p);
                 }
                 return groups.map((g) => (
-                  <div key={g.line} className="mt-16 first:mt-0">
-                    <div className="mb-7 flex items-center gap-5">
+                  <div key={g.line} className="mt-10 first:mt-0">
+                    <div className="mb-5 flex items-center gap-5">
                       <h3 className="min-w-0 font-serif text-xl break-words text-ink md:text-2xl">
                         {g.line}
                       </h3>
@@ -142,7 +142,7 @@ export default async function CollectionPage({
               })()}
             </div>
 
-            <div className="mt-12 text-center">
+            <div className="mt-8 text-center">
               <Link
                 href={`/${locale}/c/${localeCategorySlug(locale, category.slug)}`}
                 className="inline-block border border-ink px-10 py-4 text-xs tracking-[0.22em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-cream"

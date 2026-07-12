@@ -117,10 +117,10 @@ export default async function SearchPage({
   const showingFiltered = filtered.length !== raw.length;
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
-      <Crest className="mb-6" />
-      <h1 className="text-center font-serif text-5xl text-ink">{s.title}</h1>
-      <div className="gold-rule mx-auto my-8" />
+    <section className="mx-auto max-w-7xl px-6 py-10 md:py-12">
+      <Crest className="mb-4" />
+      <h1 className="text-center font-serif text-4xl text-ink md:text-5xl">{s.title}</h1>
+      <div className="gold-rule mx-auto my-5" />
 
       <form action={pathname} method="get" className="mx-auto max-w-xl">
         <div className="flex border border-line bg-paper">
@@ -143,7 +143,7 @@ export default async function SearchPage({
       </form>
 
       {query && (
-        <p className="mt-10 text-center text-sm text-muted">
+        <p className="mt-6 text-center text-sm text-muted">
           {s.resultsFor} <span className="text-ink">“{query}”</span> ·{" "}
           {showingFiltered ? (
             <>
@@ -188,20 +188,20 @@ export default async function SearchPage({
       )}
 
       {query && filtered.length > 0 && (
-        <div className="mt-8 flex justify-end">
+        <div className="mt-5 flex justify-end">
           <SortSelect value={sort} labels={dict.sort} />
         </div>
       )}
 
       {query && raw.length === 0 ? (
-        <p className="mt-10 text-center text-muted">{s.noResults}</p>
+        <p className="mt-8 text-center text-muted">{s.noResults}</p>
       ) : query && filtered.length === 0 ? (
-        <p className="mt-10 text-center text-muted">{s.noResults}</p>
+        <p className="mt-8 text-center text-muted">{s.noResults}</p>
       ) : query ? (
         <>
           <PagedGrid
             items={nodes}
-            className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8"
+            className="product-grid mt-8 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8"
             showAllLabel={dict.common.showAll}
             showAllHref={(() => {
               const p = new URLSearchParams();
