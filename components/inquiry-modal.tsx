@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 // Pre-mailto reassurance modal. The original CTA opened the user's
 // OS mail client straight away — silently nothing happened for
@@ -38,6 +39,10 @@ export function InquiryModal({
   useEffect(() => {
     queueMicrotask(() => setMounted(true));
   }, []);
+  // Traps Tab / Shift-Tab inside the dialog while open and restores
+  // focus to the trigger button on close (managed by the hook via
+  // document.activeElement snapshot).
+  const dialogRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -63,6 +68,7 @@ export function InquiryModal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-md border border-line bg-cream p-7 shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out]"
         style={{ color: "var(--ink)" }}

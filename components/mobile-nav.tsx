@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MenuCategory } from "@/components/mega-menu";
@@ -39,6 +40,12 @@ export function MobileNav({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  // Focus trap engages while `open` is true. Focus is restored to the
+  // hamburger trigger on close. This does NOT interfere with the
+  // deferred state reset that fixed the slide-out (commits 27bfaec /
+  // f111b73) — the trap only manages Tab movement, not open state.
+  const panelRef = useFocusTrap<HTMLDivElement>(open, triggerRef);
   // Inline-expand state for Accessories sub-items that hold nested
   // children (Cigar Cases → 1/2/3). Keyed by the item's EN label so PT/EN
   // share one toggle target.
@@ -111,12 +118,25 @@ export function MobileNav({
     setOpen(false);
   }
 
+  // Escape closes the drawer. Focus return is handled by useFocusTrap
+  // — it snapshots document.activeElement on activate and restores.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") close();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <div className="xl:hidden">
       <button
+        ref={triggerRef}
         type="button"
         aria-label="Menu"
         aria-expanded={open}
+        aria-controls="mobile-nav-panel"
         onClick={() => setOpen((v) => !v)}
         className={`${triggerClasses} transition-colors hover:text-gold`}
       >
@@ -134,6 +154,12 @@ export function MobileNav({
       {mounted &&
         createPortal(
           <div
+            ref={panelRef}
+            id="mobile-nav-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={labels.close ?? "Menu"}
+            aria-hidden={!open}
             className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream"
             style={{
               transform: open ? "translateX(0)" : "translateX(-100%)",

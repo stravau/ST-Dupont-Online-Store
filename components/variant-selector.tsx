@@ -50,6 +50,38 @@ function uniq<T>(arr: T[]): T[] {
   return [...new Set(arr)];
 }
 
+// Roving-tabindex helper for a radiogroup of buttons. Only the
+// currently-selected radio participates in Tab order (tabIndex=0);
+// arrow keys move focus AND selection through the options.
+// Home/End jump to the ends. Wraps around at both edges.
+function rovingProps<T extends string>(
+  values: T[],
+  activeValue: T | undefined,
+  value: T,
+  onSelect: (v: T) => void,
+): { tabIndex: 0 | -1; onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void } {
+  const idx = values.indexOf(value);
+  const activeIdx = activeValue ? values.indexOf(activeValue) : 0;
+  return {
+    tabIndex: idx === activeIdx ? 0 : -1,
+    onKeyDown: (e) => {
+      let nextIdx = idx;
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") nextIdx = (idx - 1 + values.length) % values.length;
+      else if (e.key === "ArrowRight" || e.key === "ArrowDown") nextIdx = (idx + 1) % values.length;
+      else if (e.key === "Home") nextIdx = 0;
+      else if (e.key === "End") nextIdx = values.length - 1;
+      else return;
+      e.preventDefault();
+      onSelect(values[nextIdx]);
+      const container = e.currentTarget.parentElement;
+      if (container) {
+        const btns = container.querySelectorAll<HTMLButtonElement>('button[role="radio"]');
+        btns[nextIdx]?.focus();
+      }
+    },
+  };
+}
+
 export function VariantSelector({
   variants,
   labels,
@@ -158,6 +190,7 @@ export function VariantSelector({
                   type="button"
                   role="radio"
                   aria-checked={on}
+                  {...rovingProps(types, active.type, t, (v) => choose({ type: v }))}
                   onClick={() => choose({ type: t })}
                   className={`border px-4 py-3 text-xs tracking-[0.12em] uppercase transition-all duration-300 ${
                     on ? "border-gold bg-paper text-ink" : "border-line text-muted hover:border-gold/60 hover:text-ink"
@@ -198,6 +231,12 @@ export function VariantSelector({
                     aria-checked={on}
                     aria-label={c.label}
                     title={c.label}
+                    {...rovingProps(
+                      colorList.map((cc) => cc.label),
+                      active.color?.label,
+                      c.label,
+                      (v) => choose({ color: v }),
+                    )}
                     onClick={() => choose({ color: c.label })}
                     className={`relative aspect-square h-16 w-16 shrink-0 overflow-hidden bg-paper transition-all duration-300 sm:h-20 sm:w-20 sm:border ${
                       on
@@ -239,6 +278,7 @@ export function VariantSelector({
                     type="button"
                     role="radio"
                     aria-checked={on}
+                    {...rovingProps(finishes, active.finish, f, (v) => choose({ finish: v }))}
                     onClick={() => choose({ finish: f })}
                     className={`border px-4 py-3 text-xs tracking-[0.12em] uppercase transition-all duration-300 ${
                       on ? "border-gold bg-paper text-ink" : "border-line text-muted hover:border-gold/60 hover:text-ink"
@@ -269,6 +309,7 @@ export function VariantSelector({
                     type="button"
                     role="radio"
                     aria-checked={on}
+                    {...rovingProps(sizes, active.size, s, (v) => choose({ size: v }))}
                     onClick={() => choose({ size: s })}
                     className={`border px-4 py-3 text-xs tracking-[0.12em] uppercase transition-all duration-300 ${
                       on ? "border-gold bg-paper text-ink" : "border-line text-muted hover:border-gold/60 hover:text-ink"

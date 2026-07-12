@@ -57,6 +57,24 @@ export function MegaMenu({
     timer.current = setTimeout(() => setOpen(null), 220);
   }, [cancelClose]);
 
+  // Escape closes any open panel and returns focus to the trigger
+  // link so the keyboard user isn't stranded inside a phantom row.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      cancelClose();
+      setOpen(null);
+      // Return focus to the top-level nav item that opened this panel.
+      const trigger = document.querySelector<HTMLElement>(
+        `nav[aria-label] a[aria-expanded="true"], nav a[aria-expanded="true"]`,
+      );
+      trigger?.focus();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, cancelClose]);
+
   return (
     <nav className="hidden xl:block" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
       <ul className="flex items-center justify-center gap-5 2xl:gap-7">
