@@ -113,32 +113,32 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </video>
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/40 via-ink/10 to-ink/60" />
 
-        {/* Cohiba CTA — desktop only. Pinned to the bottom-left corner of
-            the video with the Maison-style minimal cue: the wordmark in
-            the display serif, an understated DISCOVER link below. */}
+        {/* SS26 hero CTA — desktop only. Pinned to the bottom-left of
+            the video with the Maison-style minimal cue: seasonal
+            wordmark, understated DISCOVER link below. */}
         <div className="reveal reveal-d2 absolute bottom-32 left-12 z-20 hidden text-cream sm:block lg:bottom-40 lg:left-16">
-          <Link href={`/${locale}/colecao/cohiba`}>
+          <Link href={`/${locale}/colecao/ss26`}>
             <h1 className="font-serif text-4xl uppercase tracking-wide md:text-5xl lg:text-6xl">
-              {dict.hero.cohibaWordmark}
+              {dict.hero.ss26Wordmark}
             </h1>
             <span className="mt-3 inline-block border-b border-cream/60 pb-1 text-xs tracking-[0.22em] uppercase transition-colors hover:border-gold-soft hover:text-gold-soft">
-              {dict.hero.discover}
+              {dict.hero.discoverSs26}
             </span>
           </Link>
         </div>
 
-        {/* Mobile-only Cohiba CTA — sits OVER the video, centred, just above
-            the scroll cue, hidden on sm+ (desktop has its own copy pinned
-            bottom-left of the video). */}
+        {/* Mobile-only SS26 CTA — sits OVER the video, centred, just
+            above the scroll cue, hidden on sm+ (desktop has its own
+            copy pinned bottom-left of the video). */}
         <Link
-          href={`/${locale}/colecao/cohiba`}
+          href={`/${locale}/colecao/ss26`}
           className="reveal reveal-d2 absolute bottom-32 left-1/2 z-20 -translate-x-1/2 text-center text-cream sm:hidden"
         >
           <h2 className="font-serif text-xl whitespace-nowrap uppercase tracking-wide">
-            {dict.hero.cohibaWordmark}
+            {dict.hero.ss26Wordmark}
           </h2>
           <span className="mt-2 inline-block border-b border-cream/60 pb-1 text-[0.65rem] tracking-[0.22em] uppercase">
-            {dict.hero.discover}
+            {dict.hero.discoverSs26}
           </span>
         </Link>
 

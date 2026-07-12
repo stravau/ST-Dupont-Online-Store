@@ -128,6 +128,11 @@ const dictionaries = {
       subtitle: "Toda a maison, casa a casa.",
       jumpTo: "Navegar",
     },
+    ss26: {
+      eyebrow: "Selecção da Estação",
+      title: "S.T. Dupont Spring Summer Selection",
+      lede: "A selecção que a maison publicou para a primavera / verão 2026 — instrumentos de escrita, isqueiros e pele reunidos numa única leitura.",
+    },
     categoryStory: "A Arte da Casa",
     sort: {
       label: "Ordenar por",
@@ -159,6 +164,8 @@ const dictionaries = {
       cta: "Descobrir a Coleção",
       discoverCohiba: "Descobrir a Coleção Cohiba",
       cohibaWordmark: "ST DUPONT X COHIBA",
+      ss26Wordmark: "SPRING SUMMER SEASON 26",
+      discoverSs26: "Descobrir",
       discover: "Descobrir",
     },
     home: {
@@ -388,6 +395,11 @@ const dictionaries = {
       subtitle: "The entire maison, house by house.",
       jumpTo: "Jump to",
     },
+    ss26: {
+      eyebrow: "Seasonal Selection",
+      title: "S.T. Dupont Spring Summer Selection",
+      lede: "The selection the Maison published for Spring / Summer 2026 — writing instruments, lighters and leather goods gathered in a single edit.",
+    },
     categoryStory: "The House's Craft",
     sort: {
       label: "Sort by",
@@ -419,6 +431,8 @@ const dictionaries = {
       cta: "Discover the Collection",
       discoverCohiba: "Discover the Cohiba Collection",
       cohibaWordmark: "ST DUPONT X COHIBA",
+      ss26Wordmark: "SPRING SUMMER SEASON 26",
+      discoverSs26: "Discover",
       discover: "Discover",
     },
     home: {
