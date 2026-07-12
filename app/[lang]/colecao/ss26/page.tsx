@@ -108,12 +108,10 @@ export default async function SS26Page({
     <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
       <header className="mx-auto max-w-3xl text-center">
         <Crest className="mb-4 mx-auto" />
-        <p className="overline">{dict.ss26.eyebrow}</p>
-        <h1 className="mt-3 font-serif text-3xl leading-tight text-ink md:text-5xl">
+        <h1 className="font-serif text-3xl leading-tight text-ink md:text-5xl">
           {dict.ss26.title}
         </h1>
         <div className="gold-rule mx-auto my-5" />
-        <p className="text-sm text-muted md:text-base">{dict.ss26.lede}</p>
       </header>
 
       {/* Single 2-col / 4-col grid — banners are col-span-2 row-span-2
