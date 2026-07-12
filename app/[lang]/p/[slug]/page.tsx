@@ -21,6 +21,7 @@ import { SimilarProducts } from "@/components/similar-products";
 import { TrackProductView } from "@/components/track-product-view";
 import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR, STORE_LIS, STORE_VNG } from "@/lib/store-info";
+import { buildProductJsonLd } from "@/lib/product-jsonld";
 
 export async function generateMetadata({
   params,
@@ -159,29 +160,26 @@ export default async function ProductPage({
     )
     .slice(0, 15);
 
-  // Product JSON-LD — Schema.org Product with AggregateOffer over the
-  // variants. Tells Google this is a real catalogue item with price
-  // range and powers rich PDP cards in search results.
-  const prices = product.variants.map((v) => v.priceCents / 100);
-  const productLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name[locale],
-    description: product.description[locale],
-    sku: product.variants[0].sku,
-    brand: { "@type": "Brand", name: "S.T. Dupont" },
-    category: cat.name[locale],
-    ...(product.image ? { image: [product.image] } : {}),
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: product.variants[0].currency,
-      lowPrice: Math.min(...prices).toFixed(2),
-      highPrice: Math.max(...prices).toFixed(2),
-      offerCount: product.variants.length,
-      availability: "https://schema.org/InStock",
-      seller: { "@type": "Organization", name: "S.T. Dupont · El Corte Inglés Lisboa" },
-    },
-  };
+  // Resolve the active variant from ?v= (preferred, per-SKU) or the
+  // first variant matching ?t= (type slice) — otherwise the first
+  // variant on the product. Used by JSON-LD, OG image and Live-
+  // inventory strip so every SSR surface stays in sync.
+  const activeVariant =
+    product.variants.find((v) => v.sku === skuParam) ??
+    (typeParam
+      ? product.variants.find((v) => v.attributes.type?.[locale] === typeParam)
+      : undefined) ??
+    product.variants[0];
+
+  // Product JSON-LD — one Offer per SKU (flat, not AggregateOffer).
+  // Google Rich Results renders per-variant prices cleanly this way.
+  const productLd = buildProductJsonLd({
+    product,
+    activeVariant,
+    productUrl: `/${locale}/p/${product.slug}`,
+    categoryLabel: cat.name[locale],
+    lang: locale,
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
