@@ -267,16 +267,39 @@ a[href][class*="bg-ink"]:active,
   border-color: var(--gold);
 }
 
-/* Light (cream / paper) buttons → press flips to ink with gold type. */
-button.bg-cream:not(:disabled):active,
-button.bg-paper:not(:disabled):active,
-a[href].bg-cream:active,
-a[href].bg-paper:active,
-[role="button"].bg-cream:not([aria-disabled="true"]):active,
-[role="button"].bg-paper:not([aria-disabled="true"]):active {
+/* Light (cream / paper) buttons → press flips to ink with gold type.
+   The attribute-substring form catches Tailwind opacity modifiers
+   (bg-paper/40, bg-cream/95, …) which the bare class selector skips. */
+button[class*="bg-cream"]:not(:disabled):active,
+button[class*="bg-paper"]:not(:disabled):active,
+a[href][class*="bg-cream"]:active,
+a[href][class*="bg-paper"]:active,
+[role="button"][class*="bg-cream"]:not([aria-disabled="true"]):active,
+[role="button"][class*="bg-paper"]:not([aria-disabled="true"]):active {
   background-color: var(--ink);
   color: var(--gold);
   border-color: var(--ink);
+}
+
+/* Descendant text override — nested <p>, <span>, <svg> inside a
+   pressed card carry their own text-ink / text-muted / text-gold
+   utilities that would otherwise stay dark on the newly-dark bg.
+   Flash-invert them all so the whole card reads pressed for the
+   ~100 ms tap window. Same pattern for both variants. */
+button[class*="bg-ink"]:not(:disabled):active *,
+a[href][class*="bg-ink"]:active *,
+[role="button"][class*="bg-ink"]:not([aria-disabled="true"]):active * {
+  color: var(--ink) !important;
+  border-color: color-mix(in oklab, var(--ink) 50%, transparent) !important;
+}
+button[class*="bg-cream"]:not(:disabled):active *,
+button[class*="bg-paper"]:not(:disabled):active *,
+a[href][class*="bg-cream"]:active *,
+a[href][class*="bg-paper"]:active *,
+[role="button"][class*="bg-cream"]:not([aria-disabled="true"]):active *,
+[role="button"][class*="bg-paper"]:not([aria-disabled="true"]):active * {
+  color: var(--gold) !important;
+  border-color: color-mix(in oklab, var(--gold) 50%, transparent) !important;
 }
 
 /* Transparent / bare buttons and links (no background utility) —
