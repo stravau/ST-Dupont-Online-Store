@@ -1313,7 +1313,7 @@ export const products: SeedProduct[] = [
     slug: `initial-2`,
     name: { pt: `Initial`, en: `Initial` },
     description: { pt: `Isqueiro Initial, decoração em guilloché cinético, acabamentos dourados. Com dupla chama amarela. Pedra de isqueiro associada: vermelha (REF 900650) Recarga de gás associada: azul (REF 900434) Isqueiro entregue sem gás, recarga vendida em separado.`, en: `Initial lighter, cinatic guilloche decor, golden finishes. With a double yellow flame. Associated lighter stone: red (REF 900650) Associated gas recharge: blue (REF 900434) Lighter delivered empty of gas, refill sold separately.` },
-    collection: `Initial`,
+    collection: `Initial Cinatic`,
     categorySlug: "isqueiros",
     image: `/products/initial-2/020845.webp`,
     variants: [
@@ -2836,8 +2836,8 @@ export const products: SeedProduct[] = [
     slug: `initial-3`,
     name: { pt: `Initial`, en: `Initial` },
     description: { pt: `Isqueiro Initial, decoração em guilloché cinético, acabamentos em paládio. Com dupla chama amarela. Pedra de isqueiro associada: vermelha (REF 900650) Recarga de gás associada: azul (REF 900434) Isqueiro entregue sem gás, recarga vendida em separado.`, en: `Initial lighter, cinatic guilloche decor, palladium finishes. With a double yellow flame. Associated lighter stone: red (REF 900650) Associated gas recharge: blue (REF 900434) Lighter delivered empty of gas, refill sold separately.` },
-    collection: `Initial`,
-    categorySlug: "escrita",
+    collection: `Initial Cinatic`,
+    categorySlug: "isqueiros",
     image: `/products/initial-3/020840.webp`,
     variants: [
       { sku: `020840`, name: { pt: `Initial — Prateado`, en: `Initial — Silver` }, priceCents: 9900, currency: "EUR", attributes: { color: { label: { pt: `Prateado`, en: `Silver` }, hex: ["#b9bcc2"] } }, image: `/products/initial-3/020840.webp`, images: [`/products/initial-3/020840.webp`, `/products/initial-3/020840-2.webp`, `/products/initial-3/020840-3.webp`, `/products/initial-3/020840-4.webp`] },

@@ -134,7 +134,13 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   "eternity-2": "escrita",
   "eternity-dragon": "escrita",
   "d-initial-dragon": "escrita",
-  "initial-3": "escrita",
+  // initial-3 / initial-2 are Initial *lighters* (the Cinetic guilloche
+  // line) — description clearly says "Isqueiro". Seed had them as
+  // escrita; override to isqueiros so /c/isqueiros surfaces them and
+  // /c/escrita doesn't. Sync script pushes the collection rename
+  // "Initial" → "Initial Cinatic" onto Neon.
+  "initial-3": "isqueiros",
+  "initial-2": "isqueiros",
   // Mis-named by the catalogue scrape — slug says cutter, name says pen
   "cutter-420024l": "escrita", // "Fountain Pen Large"
   "cutter-422024l": "escrita", // "Rollerball Pen Large"
@@ -462,6 +468,18 @@ export async function getCollections(categorySlug: string): Promise<string[]> {
   // collection too (and incorrectly-stored ones drop out).
   const products = await getProductsByCategory(categorySlug);
   const seen = new Set(products.map((p) => p.collection).filter((c) => c.length > 0));
+  // Also surface theme labels whose slug substring pattern matches at
+  // least one product in this category — otherwise the category page's
+  // `activeCol` validator (which only accepts stored `collection`
+  // values) silently drops filters like ?col=Fender / ?col=Maki-e /
+  // ?col=Montecristo, and the page renders the whole category. The
+  // widened-where in getProductsByCategory already knows how to honour
+  // these labels; the validator was the missing piece.
+  for (const [label, pattern] of Object.entries(COLLECTION_SLUG_PATTERNS)) {
+    if (products.some((p) => p.slug.toLowerCase().includes(pattern))) {
+      seen.add(label);
+    }
+  }
   // Mirror the catalogue grid order (and the editorial intent) — themed
   // sub-lines first, then base lines in the user-specified sequence.
   return [...seen].sort(
