@@ -1,43 +1,40 @@
-// S.T. Dupont Spring / Summer Selection 26 (SS26) — 111-SKU catalogue
-// pulled from the paginated Shopify products.json at
-// https://www.st-dupont.com/collections/spring-animation/products.json
-// (2026-07-12 crawl). Order mirrors the Maison's manual sort exactly.
+// S.T. Dupont Spring / Summer Selection 26 (SS26) — 111 SKU replica
+// of the Maison's own /collections/spring-animation page.
 //
-// Cross-referenced against our own seed-data.ts: 109 of 111 SKUs are
-// present. Two gaps (045078N — Slimmy Fender variant not seeded;
-// 003472 — LGD Padron variant we never scraped) are silently skipped
-// by the page loader; the grid tightens on those slots.
+// Layout of the Maison page (verified via DOM inspection of the
+// server-rendered HTML): NO editorial hero pairing above the grid,
+// just a plain 4-tile row followed by lifestyle banners injected
+// every ~8 tiles into the flow. Banners are 2×2 tiles inside the
+// same 4-col grid, and they alternate LEFT / RIGHT visually
+// (Nosto's rendered layout — the SSR class is always
+// `grille-to-left`, but the actual placement swings sides).
 //
-// Historical note: an earlier version of this file listed 45 SKUs
-// with a "50-piece curated" description. That was based on the
-// first HTML page render only; the products.json paginated crawl
-// captures the full 111-piece line-up. The five SKUs the earlier
-// note flagged as missing (C14020, C14021, C14120, C23780CL,
-// C23790CL) are actually all in the catalogue and included below.
+// If a SKU isn't in our own catalogue, the page falls back to
+// `SS26_SHOPIFY_FALLBACK` (below) so the tile still renders with
+// the Maison's own product photo + name + price + a link out to
+// their PDP. That way "no product gets left behind" regardless of
+// where our seed happens to be relative to theirs.
 
 export interface Ss26LifestyleImage {
-  /** Local /public asset — served by next/image. */
+  /** /public asset served by next/image. */
   src: string;
-  /** Position in SS26_SKUS AFTER which the banner slots into the
-      grid. 0 = the hero pairing that sits above the tail grid; the
-      other five interleave inside the tail grid at these anchors. */
-  insertAfterSkuIndex: number;
-  /** Aspect-ratio hint so the layout can reserve the right slot. */
-  aspect: "4/5" | "9/16";
-  /** Alt text for a11y. */
+  /** Insert this banner AFTER the Nth product tile (1-indexed
+      position in the rendered flow). Matches the ~every-8-tiles
+      cadence Nosto uses. */
+  insertAfterProductPosition: number;
+  /** Which half of the 4-col grid the banner sits in. Alternates
+      L/R exactly like the Maison. */
+  side: "left" | "right";
   alt: string;
 }
 
-// Editorial banners captured verbatim from st-dupont.com's Nosto
-// window.Lobst.visual_merchandising array. The hero is the collection
-// image; the other five inject at every ~8th tile down the page.
 export const SS26_LIFESTYLE: readonly Ss26LifestyleImage[] = [
-  { src: "/ss26/hero.jpg",   insertAfterSkuIndex: 0,  aspect: "4/5",  alt: "S.T. Dupont Ligne 2 · Spring Summer 26" },
-  { src: "/ss26/shot-16.jpg", insertAfterSkuIndex: 8,  aspect: "9/16", alt: "S.T. Dupont Spring Summer 26 · shot 16" },
-  { src: "/ss26/shot-10.jpg", insertAfterSkuIndex: 16, aspect: "9/16", alt: "S.T. Dupont Spring Summer 26 · shot 10" },
-  { src: "/ss26/shot-19.jpg", insertAfterSkuIndex: 24, aspect: "9/16", alt: "S.T. Dupont Spring Summer 26 · shot 19" },
-  { src: "/ss26/shot-03.jpg", insertAfterSkuIndex: 32, aspect: "9/16", alt: "S.T. Dupont Spring Summer 26 · shot 03" },
-  { src: "/ss26/shot-20.jpg", insertAfterSkuIndex: 40, aspect: "9/16", alt: "S.T. Dupont Spring Summer 26 · shot 20" },
+  { src: "/ss26/hero.jpg",   insertAfterProductPosition: 4,  side: "left",  alt: "Ligne 2 · Spring Summer 26" },
+  { src: "/ss26/shot-16.jpg", insertAfterProductPosition: 12, side: "right", alt: "Spring Summer 26 · shot 16" },
+  { src: "/ss26/shot-10.jpg", insertAfterProductPosition: 20, side: "left",  alt: "Spring Summer 26 · shot 10" },
+  { src: "/ss26/shot-19.jpg", insertAfterProductPosition: 28, side: "right", alt: "Spring Summer 26 · shot 19" },
+  { src: "/ss26/shot-03.jpg", insertAfterProductPosition: 36, side: "left",  alt: "Spring Summer 26 · shot 03" },
+  { src: "/ss26/shot-20.jpg", insertAfterProductPosition: 44, side: "right", alt: "Spring Summer 26 · shot 20" },
 ] as const;
 
 export const SS26_SKUS = [
@@ -61,3 +58,32 @@ export const SS26_SKUS = [
   "010836", "010835", "007158", "007157", "160028S", "160016C",
   "160023C", "160014C", "160025B",
 ] as const;
+
+// Data-only shim for SKUs that aren't in prisma/seed-data.ts (or
+// aren't upserted onto Neon yet). Page renders one of these as an
+// "external tile" — same rectangle as a real card, image + name +
+// price, click-through to st-dupont.com's PDP.
+export interface Ss26ExternalTile {
+  name: string;
+  priceEur: number;
+  /** Local /public path if we've mirrored the image, else Shopify
+      CDN URL (allowed because /public served next/image via
+      next.config remotePatterns is broad enough). */
+  image: string;
+  externalHref: string;
+}
+
+export const SS26_SHOPIFY_FALLBACK: Record<string, Ss26ExternalTile> = {
+  "003472": {
+    name: "Perfect cut · Cohiba",
+    priceEur: 245,
+    image: "/products/cigar-cutter-cohiba-003472/003472.webp",
+    externalHref: "https://www.st-dupont.com/products/cigar-cutter-cohiba-003472",
+  },
+  "045078N": {
+    name: "Classique · Yellow Gold",
+    priceEur: 425,
+    image: "/products/ballpoint-classique-golden-045078n/045078N.webp",
+    externalHref: "https://www.st-dupont.com/products/ballpoint-pen-classique-golden-045078n",
+  },
+};

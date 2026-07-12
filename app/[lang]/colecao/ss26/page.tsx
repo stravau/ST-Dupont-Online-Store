@@ -2,25 +2,29 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
-import {
-  getProductsByVariantSkus,
-  expandProductCards,
-  type Product,
-} from "@/lib/catalog";
+import { getProductsByVariantSkus, type Product } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
+import { Ss26ExternalTileCard } from "@/components/ss26-external-tile";
 import { Crest } from "@/components/crest";
-import { SS26_SKUS, SS26_LIFESTYLE } from "@/lib/ss26";
+import {
+  SS26_SKUS,
+  SS26_LIFESTYLE,
+  SS26_SHOPIFY_FALLBACK,
+} from "@/lib/ss26";
 
-// Spring / Summer Selection 26 — replica of st-dupont.com's own
-// /collections/spring-animation page. 111 SKUs in the Maison's
-// authored order (products.json paginated crawl on 2026-07-12);
-// six editorial lifestyle images interleave the grid at positions
-// 0 / 8 / 16 / 24 / 32 / 40 — the same cadence Nosto renders on
-// their site via window.Lobst.visual_merchandising.
+// Spring / Summer Selection 26 — replica of st-dupont.com's
+// /collections/spring-animation page (2026-07-12 crawl).
 //
-// Layout choices per user brief: banners live INSIDE the main grid
-// as col-span-2 row-span-2 tiles, so they share the same gutter as
-// product cards — no extra vertical padding under each image.
+// Layout matches the Maison: no top pairing, no editorial header
+// block. Straight into the 4-col grid (2 on mobile). Six 2×2
+// lifestyle banners slot into the flow after every ~8 product tiles
+// (positions 4 / 12 / 20 / 28 / 36 / 44) and alternate LEFT / RIGHT
+// via lg:col-start-1 / lg:col-start-3. grid-auto-flow: dense lets
+// the smaller product tiles wrap around each banner.
+//
+// SKUs that aren't in our Prisma catalogue fall back to an external
+// tile (Ss26ExternalTileCard) driven by SS26_SHOPIFY_FALLBACK so the
+// grid stays complete regardless of catalogue state.
 
 export async function generateMetadata({
   params,
@@ -33,6 +37,11 @@ export async function generateMetadata({
   return { title: dict.ss26.title, description: dict.ss26.lede };
 }
 
+interface ProductTile { kind: "product"; product: Product; sku: string; }
+interface ExternalTile { kind: "external"; sku: string; }
+interface BannerTile { kind: "banner"; src: string; alt: string; side: "left" | "right"; }
+type Tile = ProductTile | ExternalTile | BannerTile;
+
 export default async function SS26Page({
   params,
 }: {
@@ -44,74 +53,34 @@ export default async function SS26Page({
   const dict = getDictionary(locale);
 
   const products = await getProductsByVariantSkus([...SS26_SKUS]);
-  // Index by every variant SKU so the SS26 ordering can look up the
-  // owning product even when the SKU isn't the product's primary.
   const productBySku = new Map<string, Product>();
   for (const p of products) {
     for (const v of p.variants) productBySku.set(v.sku, p);
   }
 
-  // Walk SS26_SKUS in order. For each SKU that resolves to a real
-  // product (once — dedupe by slug), emit ONE card pinned to that
-  // exact SKU. Missing SKUs are silently dropped so the grid
-  // tightens.
-  interface RenderTile {
-    kind: "product";
-    product: Product;
-    sku: string;
-  }
-  interface RenderBanner {
-    kind: "banner";
-    src: string;
-    alt: string;
-  }
-  type Tile = RenderTile | RenderBanner;
-
+  // Walk SS26_SKUS in Maison-authored order. For each SKU: emit a
+  // real product tile if we own it, otherwise an external fallback,
+  // otherwise skip. Track the position count so lifestyle banners
+  // slot in at fixed absolute positions.
+  const tiles: Tile[] = [];
   const seenSlug = new Set<string>();
-  const productTiles: RenderTile[] = [];
-  // Map SS26_SKUS absolute index → the resulting productTiles index
-  // AFTER which a banner should slot. Banners live "after position N"
-  // in the Maison's authoring, so we count product SKUs up to and
-  // including that absolute index (regardless of catalog gaps).
-  const bannerAfterProductTile: Map<number, RenderBanner[]> = new Map();
-  let productTilesUpToIdx = -1;
-
-  for (let i = 0; i < SS26_SKUS.length; i++) {
-    const sku = SS26_SKUS[i];
+  const nextBanner = new Map(
+    SS26_LIFESTYLE.map((b) => [b.insertAfterProductPosition, b]),
+  );
+  let productPosition = 0;
+  for (const sku of SS26_SKUS) {
     const product = productBySku.get(sku);
     if (product && !seenSlug.has(product.slug)) {
       seenSlug.add(product.slug);
-      productTiles.push({ kind: "product", product, sku });
-      productTilesUpToIdx = productTiles.length - 1;
+      tiles.push({ kind: "product", product, sku });
+      productPosition++;
+    } else if (SS26_SHOPIFY_FALLBACK[sku]) {
+      tiles.push({ kind: "external", sku });
+      productPosition++;
     }
-    // Any banner whose insertAfterSkuIndex === (i + 1) fires here,
-    // so it lands immediately after the last product tile in the
-    // productTiles array — regardless of whether SKU (i+1) actually
-    // resolved to a product.
-    const bannersHere = SS26_LIFESTYLE.filter(
-      (b) => b.insertAfterSkuIndex === i + 1,
-    );
-    if (bannersHere.length) {
-      const arr = bannerAfterProductTile.get(productTilesUpToIdx) ?? [];
-      for (const b of bannersHere) {
-        arr.push({ kind: "banner", src: b.src, alt: b.alt });
-      }
-      bannerAfterProductTile.set(productTilesUpToIdx, arr);
-    }
-  }
-
-  // Position 0's banner is the hero — always shown as the top card
-  // in the header pairing, NOT interleaved into the grid. Pull it
-  // out here so the map only contains interleaved banners.
-  const hero = SS26_LIFESTYLE.find((b) => b.insertAfterSkuIndex === 0);
-
-  // Compose the final ordered tile stream — product then any banners
-  // scheduled after it.
-  const tiles: Tile[] = [];
-  for (let i = 0; i < productTiles.length; i++) {
-    tiles.push(productTiles[i]);
-    const after = bannerAfterProductTile.get(i);
-    if (after) for (const b of after) tiles.push(b);
+    // Banner scheduled after THIS product position?
+    const b = nextBanner.get(productPosition);
+    if (b) tiles.push({ kind: "banner", src: b.src, alt: b.alt, side: b.side });
   }
 
   return (
@@ -126,65 +95,44 @@ export default async function SS26Page({
         <p className="text-sm text-muted md:text-base">{dict.ss26.lede}</p>
       </header>
 
-      {/* Editorial pairing — hero image left, first four products in a
-          2×2 on the right (md+). Stacks on mobile. */}
-      {hero && tiles.length >= 4 && (
-        <div className="mt-10 grid gap-5 md:grid-cols-2 md:gap-7 lg:gap-8">
-          <div className="relative aspect-[4/5] w-full overflow-hidden border border-line bg-paper">
-            <Image
-              src={hero.src}
-              alt={hero.alt}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-              className="object-cover object-center"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-5 sm:gap-7">
-            {tiles.slice(0, 4).map((t) =>
-              t.kind === "product" ? (
-                <ProductCard
-                  key={`${t.product.slug}-${t.sku}`}
-                  product={t.product}
-                  lang={locale}
-                  variantSku={t.sku}
-                />
-              ) : null,
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Main grid — remaining tiles + interleaved lifestyle banners.
-          Each banner spans 2 cols × 2 rows so it fills the same slot
-          as four product cards, sharing the same gap as the grid. */}
-      {tiles.length > 4 && (
-        <div className="mt-5 grid auto-rows-auto grid-cols-2 gap-5 sm:mt-7 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-          {tiles.slice(4).map((t, i) =>
-            t.kind === "product" ? (
+      {/* Single 2-col / 4-col grid — banners are col-span-2 row-span-2
+          tiles with an explicit lg:col-start to alternate sides.
+          `grid-flow-dense` lets product tiles fill any gap. */}
+      <div className="mt-10 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8 lg:[grid-auto-flow:dense]">
+        {tiles.map((t, i) => {
+          if (t.kind === "product") {
+            return (
               <ProductCard
                 key={`${t.product.slug}-${t.sku}-${i}`}
                 product={t.product}
                 lang={locale}
                 variantSku={t.sku}
               />
-            ) : (
-              <div
-                key={`banner-${i}-${t.src}`}
-                className="relative col-span-2 row-span-2 overflow-hidden border border-line bg-paper"
-              >
-                <Image
-                  src={t.src}
-                  alt={t.alt}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover object-center"
-                />
-              </div>
-            ),
-          )}
-        </div>
-      )}
+            );
+          }
+          if (t.kind === "external") {
+            const fallback = SS26_SHOPIFY_FALLBACK[t.sku]!;
+            return <Ss26ExternalTileCard key={`ext-${t.sku}-${i}`} tile={fallback} lang={locale} />;
+          }
+          const sideClass =
+            t.side === "left" ? "lg:col-start-1" : "lg:col-start-3";
+          return (
+            <div
+              key={`banner-${i}-${t.src}`}
+              className={`relative col-span-2 row-span-2 overflow-hidden border border-line bg-paper ${sideClass}`}
+            >
+              <Image
+                src={t.src}
+                alt={t.alt}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover object-center"
+                priority={i < 6}
+              />
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
