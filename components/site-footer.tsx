@@ -4,6 +4,7 @@ import { getDictionary } from "@/lib/i18n";
 import { STORE_LIS, STORE_VNG, CONTACT_ANCHOR, type StoreInfo } from "@/lib/store-info";
 import { Logo } from "@/components/logo";
 import { FooterMobileSection } from "@/components/footer-mobile-section";
+import { CookiePreferencesLink } from "@/components/cookie-preferences-link";
 
 export function SiteFooter({ lang }: { lang: Locale }) {
   const dict = getDictionary(lang);
@@ -64,7 +65,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     </div>
   );
 
-  // Legal block — privacy / terms / returns links.
+  // Legal block — privacy / terms / returns links + cookie prefs.
   const legalBlock = (
     <div>
       <p className="overline mb-2.5 md:mb-5">{dict.footer.legal}</p>
@@ -72,6 +73,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
         <li><Link href={`/${lang}/legal/privacidade`} className="transition-colors hover:text-gold">{dict.footer.privacy}</Link></li>
         <li><Link href={`/${lang}/legal/termos`} className="transition-colors hover:text-gold">{dict.footer.terms}</Link></li>
         <li><Link href={`/${lang}/legal/devolucoes`} className="transition-colors hover:text-gold">{dict.footer.returns}</Link></li>
+        <li><CookiePreferencesLink label={dict.cookies.preferences} /></li>
       </ul>
     </div>
   );
