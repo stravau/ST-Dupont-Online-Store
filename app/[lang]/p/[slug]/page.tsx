@@ -20,7 +20,7 @@ import { ProductDetail } from "@/components/product-detail";
 import { SimilarProducts } from "@/components/similar-products";
 import { TrackProductView } from "@/components/track-product-view";
 import { buildSpecs } from "@/lib/specs";
-import { CONTACT_ANCHOR } from "@/lib/store-info";
+import { CONTACT_ANCHOR, STORE_LIS, STORE_VNG } from "@/lib/store-info";
 
 export async function generateMetadata({
   params,
@@ -253,7 +253,20 @@ export default async function ProductPage({
         extras={
           <>
             <p className="mt-6 text-center text-xs tracking-widest text-muted uppercase">
-              {dict.product.visitBoutique}
+              {dict.product.visitBoutiquesPrefix}{" "}
+              <Link
+                href={`/${locale}/loja#${STORE_LIS.contactAnchor}`}
+                className="text-ink underline-offset-4 transition-colors hover:text-gold hover:underline"
+              >
+                {STORE_LIS.labels[locale].short}
+              </Link>{" "}
+              {dict.product.visitBoutiquesConnector}{" "}
+              <Link
+                href={`/${locale}/loja#${STORE_VNG.contactAnchor}`}
+                className="text-ink underline-offset-4 transition-colors hover:text-gold hover:underline"
+              >
+                {STORE_VNG.labels[locale].short}
+              </Link>
             </p>
 
             {/* Lifetime-service reassurance — a luxury cue st-dupont.com buries */}
@@ -263,6 +276,9 @@ export default async function ProductPage({
               </p>
               <p className="flex items-start gap-3">
                 <span className="mt-0.5 text-gold">—</span> {dict.product.personalisation}
+              </p>
+              <p className="flex items-start gap-3">
+                <span className="mt-0.5 text-gold">—</span> {dict.product.personalAdvice}
               </p>
             </div>
 

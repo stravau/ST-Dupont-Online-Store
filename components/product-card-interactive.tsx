@@ -96,7 +96,7 @@ export function ProductCardInteractive({
       onMouseLeave={() => setHover(false)}
       className="reveal group relative flex h-full flex-col"
     >
-      <Link href={href} aria-label={title} className="absolute inset-0 z-10" />
+      <Link href={href} aria-label={title} className="card-tap absolute inset-0 z-10" />
 
       {noveltyLabel && (
         <span className="absolute left-2.5 top-2.5 z-20 overline min-w-0 max-w-[60%] truncate bg-ink/85 px-2.5 py-1 text-[0.6rem] text-paper">

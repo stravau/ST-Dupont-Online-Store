@@ -135,13 +135,17 @@ const dictionaries = {
       deliveryBy: "Entrega em Portugal até",
       returns: "Devoluções gratuitas em 14 dias",
       lifetime: "Serviço e manutenção vitalícios",
-      personalisation: "Personalização e gravação na boutique",
+      personalisation: "Personalização e gravação",
+      personalAdvice: "Aconselhamento personalizado",
       needHelp: "Precisa de ajuda?",
       findStore: "Encontrar loja",
       // Inquiry — single mailto to the boutique. We invite the customer to
       // visit; we don't book appointments / consultations any more.
       inquire: "Pedir Informação",
-      visitBoutique: "Visite-nos na boutique · atendimento personalizado em Lisboa",
+      // Rendered as JSX so we can wire the two boutique names to
+       // their #contacto-lis / #contacto-vng anchors on /loja.
+      visitBoutiquesPrefix: "Visite-nos nas nossas boutiques em",
+      visitBoutiquesConnector: "e",
       priceNote: "Preço indicativo · confirmado na boutique",
       inquireSubject: "Pedido de informação · {title}",
       inquireBody:
@@ -333,13 +337,17 @@ const dictionaries = {
       deliveryBy: "Delivered in Portugal by",
       returns: "Free 14-day returns",
       lifetime: "Lifetime service & maintenance",
-      personalisation: "Personalisation & engraving at the boutique",
+      personalisation: "Personalisation & engraving",
+      personalAdvice: "Personal advice",
       needHelp: "Need help?",
       findStore: "Find a store",
       // Inquiry — single mailto to the boutique. We invite the customer to
       // visit; we don't book appointments / consultations any more.
       inquire: "Inquire",
-      visitBoutique: "Visit us at the boutique · personal advice in Lisbon",
+      // Rendered as JSX so we can wire the two boutique names to
+       // their #contacto-lis / #contacto-vng anchors on /loja.
+      visitBoutiquesPrefix: "Visit us at our boutiques in",
+      visitBoutiquesConnector: "and",
       priceNote: "Indicative price · confirmed at the boutique",
       inquireSubject: "Information request · {title}",
       inquireBody:

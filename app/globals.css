@@ -243,14 +243,16 @@ a[href],
 /* Baseline press: scale + micro drop + gold outer ring for every
    clickable that hasn't opted out via `.tap-none`. The outer ring is
    the "gold outline" the user asked for on cards / accordions where
-   we DON'T want the full bg swap — small enough to disappear on tiny
-   buttons but visible on large tap areas. */
+   we DON'T want the full bg swap. Press-in uses ~0.14 s so even a
+   fast finger sees the animation start, while release inherits the
+   default 0.22 s for a slow gold fade-out — that's the "afterglow"
+   that reassures the user their tap landed on cards. */
 button:not(:disabled):not(.tap-none):active,
 a[href]:not(.tap-none):active,
 [role="button"]:not([aria-disabled="true"]):not(.tap-none):active {
-  transform: translateY(1px) scale(0.985);
-  transition-duration: 0.09s;
-  box-shadow: 0 0 0 1.5px var(--gold);
+  transform: translateY(1px) scale(0.98);
+  transition-duration: 0.14s;
+  box-shadow: 0 0 0 2px var(--gold);
 }
 
 /* Primary (dark ink) buttons → press flips to gold with ink type.
@@ -316,6 +318,18 @@ footer a[href]:active,
 footer [role="button"]:active {
   transform: none !important;
   box-shadow: none !important;
+}
+
+/* Item-card afterglow — opt-in on product card overlays. Release
+   transition drops to 0.4 s so the gold ring lingers noticeably after
+   a quick tap, and the outline is thicker (3 px) since the card is
+   large and needs the extra weight to read. */
+.card-tap {
+  transition-duration: 0.4s !important;
+}
+.card-tap:active {
+  box-shadow: 0 0 0 3px var(--gold) !important;
+  transition-duration: 0.15s !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
