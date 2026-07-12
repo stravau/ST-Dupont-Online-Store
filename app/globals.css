@@ -221,23 +221,79 @@ select:disabled {
   cursor: not-allowed;
 }
 
-/* Subtle press feedback for buttons & links (mobile + desktop). */
-button:not(:disabled):active,
-a[href]:active,
-[role="button"]:not([aria-disabled="true"]):active {
-  transform: translateY(1px) scale(0.985);
+/* --- Interactive press feedback ---------------------------------------- */
+/* Kill iOS's default grey tap-highlight so our own colour swap reads
+   as intentional rather than an OS overlay. */
+button, a[href], [role="button"] {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Default colour-transition for hover where the component didn't define one. */
+/* Default colour-transition for hover where the component didn't
+   define one — includes box-shadow so the press-in glow has something
+   to cross-fade. Transform is a hair snappier than colour so the
+   scale-down leads the palette swap. */
 button:not(:disabled),
 a[href],
 [role="button"]:not([aria-disabled="true"]) {
   transition: color 0.22s ease, background-color 0.22s ease,
-    border-color 0.22s ease, transform 0.08s ease;
+    border-color 0.22s ease, box-shadow 0.22s ease,
+    transform 0.08s ease;
+}
+
+/* Baseline press: scale + micro drop for every clickable. Transition
+   duration on :active is shortened so the press-in reads tactile,
+   while release relaxes with the default 0.22s for a "premium settle".
+   The box-shadow is a barely-there inset gold ring — reads as a
+   focused push rather than the harsh browser default. */
+button:not(:disabled):active,
+a[href]:active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 0.09s;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--gold) 45%, transparent);
+}
+
+/* Primary (dark ink) buttons → press flips to gold with ink type.
+   Covers Tailwind's bg-ink AND anything the Header set with
+   .bg-ink/95 utilities. */
+button.bg-ink:not(:disabled):active,
+button[class*="bg-ink"]:not(:disabled):active,
+a[href].bg-ink:active,
+a[href][class*="bg-ink"]:active,
+[role="button"].bg-ink:not([aria-disabled="true"]):active,
+[role="button"][class*="bg-ink"]:not([aria-disabled="true"]):active {
+  background-color: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+}
+
+/* Light (cream / paper) buttons → press flips to ink with gold type. */
+button.bg-cream:not(:disabled):active,
+button.bg-paper:not(:disabled):active,
+a[href].bg-cream:active,
+a[href].bg-paper:active,
+[role="button"].bg-cream:not([aria-disabled="true"]):active,
+[role="button"].bg-paper:not([aria-disabled="true"]):active {
+  background-color: var(--ink);
+  color: var(--gold);
+  border-color: var(--ink);
+}
+
+/* Transparent / bare buttons and links (no background utility) —
+   flash a soft gold tint underneath so touch still lands somewhere
+   without importing a full colour swap. */
+button:not(:disabled):not([class*="bg-"]):active,
+a[href]:not([class*="bg-"]):active,
+[role="button"]:not([aria-disabled="true"]):not([class*="bg-"]):active {
+  background-color: color-mix(in oklab, var(--gold) 14%, transparent);
+  color: var(--gold);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button:active, a[href]:active, [role="button"]:active { transform: none; }
+  button:active, a[href]:active, [role="button"]:active {
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 /* --- Scroll-triggered reveal -------------------------------------------- */
