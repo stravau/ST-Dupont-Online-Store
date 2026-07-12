@@ -1,32 +1,38 @@
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { OG_SIZE, OG_CONTENT_TYPE, OG_TOKENS, OgCanvas, BrandLockup } from "@/lib/og/shared";
-import { getProduct, formatPrice } from "@/lib/catalog";
-import { isLocale, defaultLocale, type Locale } from "@/lib/i18n";
 
-// Product-specific OG card. Reads the product hero from
-// /public and renders name + starting price on top of the shared
-// canvas. Runtime=nodejs so readFile is available (edge runtime
-// can't touch the filesystem).
+// Per-product OG card. Runtime intentionally = "edge" — the Node
+// runtime pulled in @prisma/client + all product hero paths and blew
+// past Vercel's 250 MB function limit (371 MB, deploy rejected). The
+// edge build is tiny.
+//
+// Because edge functions can't import lib/catalog (Prisma) OR read
+// from /public, we can't render the product hero here. The card
+// falls back to a text-only lockup — collection guessed from the
+// slug, product name derived from the slug's title-cased tokens.
+// Not as rich as a photo, but ships. A future improvement can add
+// a small nodejs API route (/api/og-product/[slug]) that returns
+// {name, price, image} and let this edge function fetch it, or
+// switch to Vercel's "large functions beta" (VERCEL_SUPPORT_LARGE_
+// FUNCTIONS=1) if the design team wants the hero back.
 
-export const runtime = "nodejs";
-export const size = OG_SIZE;
-export const contentType = OG_CONTENT_TYPE;
+export const runtime = "edge";
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
 export const alt = "S.T. Dupont product";
 
-async function loadImageDataUrl(publicPath: string): Promise<string | null> {
-  try {
-    // publicPath = "/products/foo/bar.webp" — strip leading slash and read
-    const rel = publicPath.replace(/^\/+/, "");
-    const file = path.join(process.cwd(), "public", rel);
-    const bytes = await readFile(file);
-    const ext = rel.split(".").pop()?.toLowerCase() ?? "png";
-    const mime = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
-    return `data:${mime};base64,${bytes.toString("base64")}`;
-  } catch {
-    return null;
-  }
+const OG_TOKENS = {
+  ink: "#0a1a30",
+  navy: "#15314f",
+  cream: "#eef3fa",
+  gold: "#b58a34",
+  goldSoft: "#d8bd7c",
+};
+
+function titleCase(slug: string): string {
+  return slug
+    .split("-")
+    .map((s) => (s.length <= 2 ? s : s[0].toUpperCase() + s.slice(1)))
+    .join(" ");
 }
 
 export default async function PdpOpengraphImage({
@@ -34,71 +40,85 @@ export default async function PdpOpengraphImage({
 }: {
   params: { lang: string; slug: string };
 }) {
-  const lang: Locale = isLocale(params.lang) ? (params.lang as Locale) : defaultLocale;
-  const product = await getProduct(params.slug);
-  if (!product || product.variants.length === 0) {
-    // Fall back to the site default card — return an empty ImageResponse
-    // rather than throwing, so unavailable products don't 500 crawlers.
-    return new ImageResponse(
-      (
-        <OgCanvas>
-          <BrandLockup tagline={lang === "pt" ? "Maison de luxe française" : "French luxury Maison"} />
-        </OgCanvas>
-      ),
-      { ...OG_SIZE }
-    );
-  }
-
-  const cheapest = [...product.variants].sort((a, b) => a.priceCents - b.priceCents)[0];
-  const heroPath = cheapest.image ?? product.image ?? cheapest.images?.[0] ?? null;
-  const dataUrl = heroPath ? await loadImageDataUrl(heroPath) : null;
-
-  const priceLabel = formatPrice(cheapest.priceCents, cheapest.currency, lang);
-  const fromLabel = lang === "pt" ? "Desde" : "From";
-  const tagline = lang === "pt" ? "Maison de luxe française" : "French luxury Maison";
+  const lang = params.lang === "en" ? "en" : "pt";
+  const readable = titleCase(params.slug);
+  const tagline =
+    lang === "pt"
+      ? "Maison de luxe française"
+      : "French luxury Maison";
   const cta = lang === "pt" ? "Ver na boutique" : "See in boutique";
 
   return new ImageResponse(
     (
-      <OgCanvas>
-        <BrandLockup tagline={tagline} />
+      <div
+        style={{
+          width: 1200,
+          height: 630,
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: OG_TOKENS.ink,
+          backgroundImage: `radial-gradient(circle at 30% 20%, ${OG_TOKENS.navy} 0%, transparent 55%), radial-gradient(circle at 80% 90%, ${OG_TOKENS.navy} 0%, transparent 50%)`,
+          color: OG_TOKENS.cream,
+          fontFamily: "serif",
+          position: "relative",
+        }}
+      >
+        {/* Gold hairline frame */}
+        <div
+          style={{
+            position: "absolute",
+            top: 32,
+            left: 32,
+            right: 32,
+            bottom: 32,
+            border: `1px solid ${OG_TOKENS.gold}`,
+            opacity: 0.55,
+          }}
+        />
 
-        {/* Hero — right side */}
-        {dataUrl && (
-          <div
+        {/* Brand lockup */}
+        <div
+          style={{
+            position: "absolute",
+            top: 60,
+            left: 72,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <span
             style={{
-              position: "absolute",
-              right: 100,
-              top: 90,
-              bottom: 90,
-              width: 460,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              fontSize: 30,
+              letterSpacing: 6,
+              color: OG_TOKENS.cream,
+              textTransform: "uppercase",
             }}
           >
-            {/* satori supports <img> with data: URLs */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={dataUrl}
-              alt=""
-              width={440}
-              height={440}
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-        )}
+            S.T. Dupont
+          </span>
+          <span
+            style={{
+              fontSize: 14,
+              letterSpacing: 3,
+              color: OG_TOKENS.goldSoft,
+              textTransform: "uppercase",
+            }}
+          >
+            {tagline}
+          </span>
+        </div>
 
-        {/* Title + price — left side, bottom */}
+        {/* Product name — big serif, bottom-left */}
         <div
           style={{
             position: "absolute",
             left: 72,
-            bottom: 90,
-            right: dataUrl ? 620 : 100,
+            bottom: 100,
+            right: 100,
             display: "flex",
             flexDirection: "column",
-            gap: 18,
+            gap: 22,
           }}
         >
           <span
@@ -109,31 +129,20 @@ export default async function PdpOpengraphImage({
               textTransform: "uppercase",
             }}
           >
-            {product.collection || (lang === "pt" ? "Coleção" : "Collection")}
+            {lang === "pt" ? "Coleção" : "Collection"}
           </span>
           <span
             style={{
-              fontFamily: "serif",
-              fontSize: 62,
+              fontSize: 68,
               lineHeight: 1.05,
               color: OG_TOKENS.cream,
             }}
           >
-            {product.name[lang]}
+            {readable}
           </span>
           <span
             style={{
-              fontSize: 24,
-              letterSpacing: 1,
-              color: OG_TOKENS.cream,
-              opacity: 0.85,
-            }}
-          >
-            {fromLabel} {priceLabel}
-          </span>
-          <span
-            style={{
-              fontSize: 14,
+              fontSize: 15,
               letterSpacing: 3,
               color: OG_TOKENS.gold,
               textTransform: "uppercase",
@@ -143,8 +152,8 @@ export default async function PdpOpengraphImage({
             {cta} →
           </span>
         </div>
-      </OgCanvas>
+      </div>
     ),
-    { ...OG_SIZE }
+    { width: 1200, height: 630 }
   );
 }
