@@ -14,15 +14,19 @@ import { notFound } from "next/navigation";
 // /public/categories-home) and routes to the right place in our catalogue.
 function homeCategories(locale: Locale) {
   const c = (canonical: string) => `/${locale}/c/${localeCategorySlug(locale, canonical)}`;
+  // Order + titles mirror the current st-dupont.com homepage grid so
+  // returning visitors read the same taxonomy across both properties.
+  // Images are the same water-reflection captures shipped by the
+  // Maison; downloaded to /public/categories-home/*.jpg.
   return [
     { key: "lighters", labelPt: "Isqueiros", labelEn: "Lighters", href: c("isqueiros"), img: "/categories-home/lighters.jpg" },
     { key: "writing", labelPt: "Instrumentos de Escrita", labelEn: "Writing Instruments", href: c("escrita"), img: "/categories-home/writing.jpg" },
-    { key: "cigar-cases", labelPt: "Estojos de Charuto", labelEn: "Cigar Cases", href: `/${locale}/t/smoking?type=cases`, img: "/categories-home/cigar-cases.jpg" },
+    { key: "ashtrays", labelPt: "Cinzeiros", labelEn: "Ashtrays", href: `/${locale}/t/smoking?type=ashtrays`, img: "/categories-home/ashtrays.jpg" },
     { key: "cigar-accessories", labelPt: "Acessórios de Charuto", labelEn: "Cigar Accessories", href: `/${locale}/t/smoking`, img: "/categories-home/cigar-accessories.jpg" },
     { key: "small-leather", labelPt: "Pequena Marroquinaria", labelEn: "Small Leather Goods", href: `/${locale}/t/small-leather`, img: "/categories-home/small-leather.jpg" },
     { key: "leather", labelPt: "Marroquinaria", labelEn: "Leather Goods", href: c("pele"), img: "/categories-home/leather.jpg" },
-    { key: "cufflinks", labelPt: "Botões de Punho", labelEn: "Cufflinks", href: `/${locale}/t/cufflinks`, img: "/categories-home/cufflinks.jpg" },
     { key: "belts", labelPt: "Cintos", labelEn: "Belts", href: `/${locale}/t/belts`, img: "/categories-home/belts.jpg" },
+    { key: "bags", labelPt: "Malas", labelEn: "Bags", href: `/${locale}/t/bags`, img: "/categories-home/bags.jpg" },
   ];
 }
 
