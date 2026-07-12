@@ -41,7 +41,6 @@ const isAshtray = re(/^ashtray/);
 const isHumidor = re(/humidor/);
 
 const isPenCase = re(/^pen-case/);
-const isOffice = re(/^(?:desk-blotter|pen-tray)$/);
 const isNotebook = re(/^notebook/);
 
 const isGasOrStone = re(/^(?:gas-refill|stones|box-\d+-refills)/);
@@ -81,7 +80,6 @@ export const ACC_SECTION_ORDER: string[] = [
   "smoking-humidors",
   "refill-stones",
   "writing-accessories-pen-cases",
-  "writing-accessories-office",
   "writing-accessories-notebooks",
   "refills-inks",
   "cufflinks",
@@ -142,7 +140,6 @@ export const productGroups: Record<string, ProductGroup> = {
     categorySlug: "acessorios",
     types: [
       { key: "pen-cases", label: t("Estojos para Canetas", "Pen Cases"), match: isPenCase },
-      { key: "office", label: t("Secretária", "Office"), match: isOffice },
       { key: "notebooks", label: t("Cadernos", "Notebooks"), match: isNotebook },
     ],
   },
