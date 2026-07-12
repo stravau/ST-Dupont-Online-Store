@@ -94,6 +94,8 @@ export default async function ProductPage({
     image: v.image,
     images: v.images,
     status: v.status,
+    stockLis: v.stockLis,
+    stockVng: v.stockVng,
   }));
 
   // Parse the marketing description for (REF NNNNNN) callouts —
@@ -235,6 +237,13 @@ export default async function ProductPage({
           unavailableNote: locale === "pt"
             ? "Contacte a boutique para mais informações sobre disponibilidade."
             : "Contact the boutique for more information on availability.",
+          availability: {
+            title: dict.product.availabilityTitle,
+            available: dict.product.stockAvailable,
+            lastOne: dict.product.stockLastOne,
+            outOfStock: dict.product.stockOutOfStock,
+          },
+          lang: locale,
         }}
         header={
           <>

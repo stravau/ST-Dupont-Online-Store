@@ -38,6 +38,12 @@ export interface Variant {
                          // badge + disabled CTA on INDISPONIVEL.
   promoPriceCents?: number | null; // active when promoEndDate >= now
   promoEndDate?: Date | null;
+  // Live per-boutique stock — surfaced on the PDP availability strip
+  // and by the "em stock" chip on category pages. Aggregate `stock`
+  // is app-maintained == stockLis + stockVng on every write.
+  stock?: number;
+  stockLis?: number;
+  stockVng?: number;
 }
 
 export interface Product {
@@ -234,6 +240,9 @@ function mapProduct(p: ProductRow): Product {
         status: ((v as { status?: VariantStatus }).status ?? "DISPONIVEL") as VariantStatus,
         promoPriceCents: (v as { promoPriceCents?: number | null }).promoPriceCents ?? null,
         promoEndDate: (v as { promoEndDate?: Date | null }).promoEndDate ?? null,
+        stock: (v as { stock?: number }).stock ?? 0,
+        stockLis: (v as { stockLis?: number }).stockLis ?? 0,
+        stockVng: (v as { stockVng?: number }).stockVng ?? 0,
       };
     }),
   };

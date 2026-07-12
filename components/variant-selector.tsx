@@ -7,6 +7,8 @@ import { inquiryMailto } from "@/lib/inquiry";
 import { imgSrc } from "@/lib/img";
 import { InquiryModal } from "@/components/inquiry-modal";
 import { STORE } from "@/lib/store-info";
+import { AvailabilityStrip, type AvailabilityLabels } from "@/components/availability-strip";
+import type { Locale } from "@/lib/i18n";
 
 export interface VariantOption {
   sku: string;
@@ -18,6 +20,8 @@ export interface VariantOption {
   image?: string | null;
   images?: string[]; // full gallery for the slideshow
   status?: "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
+  stockLis?: number;
+  stockVng?: number;
 }
 
 export interface SelectorLabels {
@@ -44,6 +48,8 @@ export interface SelectorLabels {
   close?: string;
   unavailable?: string;
   unavailableNote?: string;
+  availability?: AvailabilityLabels;
+  lang?: Locale;
 }
 
 function uniq<T>(arr: T[]): T[] {
@@ -357,6 +363,15 @@ export function VariantSelector({
         >
           {labels.inquire}
         </button>
+      )}
+
+      {labels.availability && labels.lang && (active.stockLis != null || active.stockVng != null) && (
+        <AvailabilityStrip
+          stockLis={active.stockLis}
+          stockVng={active.stockVng}
+          labels={labels.availability}
+          lang={labels.lang}
+        />
       )}
 
       <InquiryModal
