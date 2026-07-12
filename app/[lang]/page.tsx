@@ -113,6 +113,16 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </video>
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-ink/40 via-ink/10 to-ink/60" />
 
+        {/* Whole-video click target — same destination as the Discover
+            CTA below. Sits at z-[15], between the gradient overlay
+            (z-10) and the CTA / scroll cue (z-20), so those keep
+            their own click zones without nested anchors. */}
+        <Link
+          href={`/${locale}/colecao/ss26`}
+          aria-label={dict.hero.discoverSs26}
+          className="absolute inset-0 z-[15]"
+        />
+
         {/* SS26 hero CTA — desktop only. Pinned to the bottom-left of
             the video with the Maison-style minimal cue: seasonal
             wordmark, understated DISCOVER link below. */}
