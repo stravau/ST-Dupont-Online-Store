@@ -58,41 +58,33 @@ export default async function SS26Page({
     for (const v of p.variants) productBySku.set(v.sku, p);
   }
 
-  // Walk SS26_SKUS in Maison-authored order. For each SKU: emit a
-  // real product tile if we own it, otherwise an external fallback,
-  // otherwise skip. Track the position count so lifestyle banners
-  // slot in at fixed absolute positions.
-  //
-  // CRITICAL: only check for a banner when productPosition ACTUALLY
-  // advanced this iteration. Otherwise a skipped duplicate SKU
-  // (same slug as an already-emitted product) would re-fire the
-  // banner check at the unchanged position — every subsequent skip
-  // would push another copy of the last banner.
+  // Walk SS26_SKUS in Maison-authored order. Each SKU renders its
+  // own tile — including sibling colour variants of the same
+  // product, since each SKU has its own hero photo + colour label
+  // and the Maison presents them as distinct tiles. Only genuine
+  // absences (SKU not in Prisma AND not in the fallback map) are
+  // skipped, and only a real emission advances the banner cadence.
   const tiles: Tile[] = [];
-  const seenSlug = new Set<string>();
   const nextBanner = new Map(
     SS26_LIFESTYLE.map((b) => [b.insertAfterProductPosition, b]),
   );
   let productPosition = 0;
   for (const sku of SS26_SKUS) {
     const product = productBySku.get(sku);
-    let advanced = false;
-    if (product && !seenSlug.has(product.slug)) {
-      seenSlug.add(product.slug);
+    if (product) {
       tiles.push({ kind: "product", product, sku });
       productPosition++;
-      advanced = true;
     } else if (SS26_SHOPIFY_FALLBACK[sku]) {
       tiles.push({ kind: "external", sku });
       productPosition++;
-      advanced = true;
+    } else {
+      continue;
     }
-    if (!advanced) continue;
     const b = nextBanner.get(productPosition);
     if (b) {
       tiles.push({ kind: "banner", src: b.src, alt: b.alt, side: b.side });
-      // Belt-and-braces — remove the entry so even a bug in the
-      // advance guard above can't fire the same banner twice.
+      // Delete after firing — no chance of the same banner
+      // re-emitting even under a future refactor.
       nextBanner.delete(productPosition);
     }
   }
