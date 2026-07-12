@@ -72,11 +72,15 @@ export default async function CollectionPage({
         </div>
       </header>
 
-      {/* Sticky in-page navigation through the categories, in order */}
-      <nav className="sticky top-[73px] z-40 border-y border-line bg-cream/95 backdrop-blur">
-        <ol className="mx-auto flex max-w-7xl items-center justify-center gap-6 overflow-x-auto px-6 py-3">
+      {/* Sticky in-page navigation through the categories, in order.
+          top-* per breakpoint clears the site header (~68 px on
+          phones, ~85 px on md+). Scrolls horizontally on mobile
+          (justify-start) so every category stays reachable even when
+          "Isqueiros" would otherwise get centred off-screen. */}
+      <nav className="sticky top-16 z-40 border-y border-line bg-cream/95 backdrop-blur md:top-[85px]">
+        <ol className="mx-auto flex max-w-7xl items-center justify-start gap-4 overflow-x-auto px-6 py-3 md:justify-center md:gap-6">
           {sections.map(({ category }, i) => (
-            <li key={category.slug} className="flex items-center gap-6">
+            <li key={category.slug} className="flex items-center gap-4 md:gap-6">
               {i > 0 && <span className="text-line">·</span>}
               <a
                 href={`#${category.slug}`}
@@ -98,12 +102,10 @@ export default async function CollectionPage({
         >
           <div className="mx-auto max-w-7xl px-6 py-12 md:py-14">
             <div className="flex flex-col items-center text-center">
-              <p className="overline">
-                {String(i + 1).padStart(2, "0")} — {category.tagline[locale]}
-              </p>
-              <h2 className="mt-3 font-serif text-3xl text-ink md:text-4xl">
+              <h2 className="font-serif text-3xl text-ink md:text-4xl">
                 {category.name[locale]}
               </h2>
+              <p className="overline mt-3">{category.tagline[locale]}</p>
               <div className="gold-rule mx-auto mt-4" />
             </div>
 
