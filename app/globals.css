@@ -221,6 +221,51 @@ select:disabled {
   cursor: not-allowed;
 }
 
+/* --- Global focus ring ------------------------------------------------- */
+/* One consistent 2 px gold outline for keyboard users. `:focus:not(:focus-visible)`
+   reset silences it for mouse/touch users so a click doesn't leave a ring
+   hanging around. Border-radius inherits from the focused element so the
+   ring hugs pill-shaped buttons cleanly. */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --- Skeleton primitives ---------------------------------------------- */
+/* Used by components/skeletons.tsx and the loading.tsx files. Gold-tinted
+   left-to-right sheen that reads as a luxury shimmer rather than a
+   loading spinner. Motion is stripped under prefers-reduced-motion. */
+@keyframes stdSkeletonSheen {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--line) 55%, var(--paper));
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--gold-soft) 22%, transparent) 45%,
+    color-mix(in oklab, var(--gold-soft) 32%, transparent) 55%,
+    transparent 100%
+  );
+  animation: stdSkeletonSheen 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}
+
 /* --- Interactive press feedback ---------------------------------------- */
 /* Kill iOS's default grey tap-highlight so our own feedback reads as
    intentional rather than an OS overlay. */
