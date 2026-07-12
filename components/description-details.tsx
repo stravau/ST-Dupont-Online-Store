@@ -16,7 +16,7 @@ export function DescriptionDetails({ title, body }: { title: string; body: strin
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center justify-between py-4 text-left"
+          className="tap-none flex w-full items-center justify-between py-4 text-left"
         >
           <span className="text-sm tracking-[0.18em] text-ink uppercase">{title}</span>
           <span

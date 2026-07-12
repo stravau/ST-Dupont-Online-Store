@@ -222,14 +222,14 @@ select:disabled {
 }
 
 /* --- Interactive press feedback ---------------------------------------- */
-/* Kill iOS's default grey tap-highlight so our own colour swap reads
-   as intentional rather than an OS overlay. */
+/* Kill iOS's default grey tap-highlight so our own feedback reads as
+   intentional rather than an OS overlay. */
 button, a[href], [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
 
 /* Default colour-transition for hover where the component didn't
-   define one — includes box-shadow so the press-in glow has something
+   define one — includes box-shadow so the press-in ring has something
    to cross-fade. Transform is a hair snappier than colour so the
    scale-down leads the palette swap. */
 button:not(:disabled),
@@ -240,76 +240,82 @@ a[href],
     transform 0.08s ease;
 }
 
-/* Baseline press: scale + micro drop for every clickable. Transition
-   duration on :active is shortened so the press-in reads tactile,
-   while release relaxes with the default 0.22s for a "premium settle".
-   The box-shadow is a barely-there inset gold ring — reads as a
-   focused push rather than the harsh browser default. */
-button:not(:disabled):active,
-a[href]:active,
-[role="button"]:not([aria-disabled="true"]):active {
-  transform: translateY(1px) scale(0.97);
+/* Baseline press: scale + micro drop + gold outer ring for every
+   clickable that hasn't opted out via `.tap-none`. The outer ring is
+   the "gold outline" the user asked for on cards / accordions where
+   we DON'T want the full bg swap — small enough to disappear on tiny
+   buttons but visible on large tap areas. */
+button:not(:disabled):not(.tap-none):active,
+a[href]:not(.tap-none):active,
+[role="button"]:not([aria-disabled="true"]):not(.tap-none):active {
+  transform: translateY(1px) scale(0.985);
   transition-duration: 0.09s;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--gold) 45%, transparent);
+  box-shadow: 0 0 0 1.5px var(--gold);
 }
 
 /* Primary (dark ink) buttons → press flips to gold with ink type.
-   Covers Tailwind's bg-ink AND anything the Header set with
-   .bg-ink/95 utilities. */
-button.bg-ink:not(:disabled):active,
-button[class*="bg-ink"]:not(:disabled):active,
-a[href].bg-ink:active,
-a[href][class*="bg-ink"]:active,
-[role="button"].bg-ink:not([aria-disabled="true"]):active,
-[role="button"][class*="bg-ink"]:not([aria-disabled="true"]):active {
+   Covers Tailwind's bg-ink AND opacity variants (bg-ink/95).
+   `.tap-none` opts an element out entirely; `.tap-outline` keeps only
+   the outer ring + scale without swapping the palette. */
+button[class*="bg-ink"]:not(:disabled):not(.tap-none):not(.tap-outline):active,
+a[href][class*="bg-ink"]:not(.tap-none):not(.tap-outline):active,
+[role="button"][class*="bg-ink"]:not([aria-disabled="true"]):not(.tap-none):not(.tap-outline):active {
   background-color: var(--gold);
   color: var(--ink);
   border-color: var(--gold);
 }
 
-/* Light (cream / paper) buttons → press flips to ink with gold type.
-   The attribute-substring form catches Tailwind opacity modifiers
-   (bg-paper/40, bg-cream/95, …) which the bare class selector skips. */
-button[class*="bg-cream"]:not(:disabled):active,
-button[class*="bg-paper"]:not(:disabled):active,
-a[href][class*="bg-cream"]:active,
-a[href][class*="bg-paper"]:active,
-[role="button"][class*="bg-cream"]:not([aria-disabled="true"]):active,
-[role="button"][class*="bg-paper"]:not([aria-disabled="true"]):active {
+/* Light (cream / paper) buttons → press flips to ink with gold type. */
+button[class*="bg-cream"]:not(:disabled):not(.tap-none):not(.tap-outline):active,
+button[class*="bg-paper"]:not(:disabled):not(.tap-none):not(.tap-outline):active,
+a[href][class*="bg-cream"]:not(.tap-none):not(.tap-outline):active,
+a[href][class*="bg-paper"]:not(.tap-none):not(.tap-outline):active,
+[role="button"][class*="bg-cream"]:not([aria-disabled="true"]):not(.tap-none):not(.tap-outline):active,
+[role="button"][class*="bg-paper"]:not([aria-disabled="true"]):not(.tap-none):not(.tap-outline):active {
   background-color: var(--ink);
   color: var(--gold);
   border-color: var(--ink);
 }
 
+/* Outline buttons (border-ink, no fill) — the border + text flip to
+   gold. Mirrors the hover:border-gold hover:text-gold pattern used
+   across modals and secondary CTAs so the tap reads the same. */
+button[class*="border-ink"]:not(:disabled):not([class*="bg-"]):not(.tap-none):not(.tap-outline):active,
+a[href][class*="border-ink"]:not([class*="bg-"]):not(.tap-none):not(.tap-outline):active,
+[role="button"][class*="border-ink"]:not([aria-disabled="true"]):not([class*="bg-"]):not(.tap-none):not(.tap-outline):active {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
 /* Descendant text override — nested <p>, <span>, <svg> inside a
-   pressed card carry their own text-ink / text-muted / text-gold
-   utilities that would otherwise stay dark on the newly-dark bg.
-   Flash-invert them all so the whole card reads pressed for the
-   ~100 ms tap window. Same pattern for both variants. */
-button[class*="bg-ink"]:not(:disabled):active *,
-a[href][class*="bg-ink"]:active *,
-[role="button"][class*="bg-ink"]:not([aria-disabled="true"]):active * {
+   pressed solid-bg card carry their own text-ink / text-muted /
+   text-gold utilities that would otherwise stay dark on the newly-dark
+   bg. Flash-invert them so the whole card reads pressed for the
+   ~100 ms tap window. Skipped for `.tap-outline` since no bg swap. */
+button[class*="bg-ink"]:not(:disabled):not(.tap-none):not(.tap-outline):active *,
+a[href][class*="bg-ink"]:not(.tap-none):not(.tap-outline):active *,
+[role="button"][class*="bg-ink"]:not([aria-disabled="true"]):not(.tap-none):not(.tap-outline):active * {
   color: var(--ink) !important;
   border-color: color-mix(in oklab, var(--ink) 50%, transparent) !important;
 }
-button[class*="bg-cream"]:not(:disabled):active *,
-button[class*="bg-paper"]:not(:disabled):active *,
-a[href][class*="bg-cream"]:active *,
-a[href][class*="bg-paper"]:active *,
-[role="button"][class*="bg-cream"]:not([aria-disabled="true"]):active *,
-[role="button"][class*="bg-paper"]:not([aria-disabled="true"]):active * {
+button[class*="bg-cream"]:not(:disabled):not(.tap-none):not(.tap-outline):active *,
+button[class*="bg-paper"]:not(:disabled):not(.tap-none):not(.tap-outline):active *,
+a[href][class*="bg-cream"]:not(.tap-none):not(.tap-outline):active *,
+a[href][class*="bg-paper"]:not(.tap-none):not(.tap-outline):active *,
+[role="button"][class*="bg-cream"]:not([aria-disabled="true"]):not(.tap-none):not(.tap-outline):active *,
+[role="button"][class*="bg-paper"]:not([aria-disabled="true"]):not(.tap-none):not(.tap-outline):active * {
   color: var(--gold) !important;
   border-color: color-mix(in oklab, var(--gold) 50%, transparent) !important;
 }
 
-/* Transparent / bare buttons and links (no background utility) —
-   flash a soft gold tint underneath so touch still lands somewhere
-   without importing a full colour swap. */
-button:not(:disabled):not([class*="bg-"]):active,
-a[href]:not([class*="bg-"]):active,
-[role="button"]:not([aria-disabled="true"]):not([class*="bg-"]):active {
-  background-color: color-mix(in oklab, var(--gold) 14%, transparent);
-  color: var(--gold);
+/* Footer opts out entirely — every link there is a text link paired
+   with a chevron / arrow indicator, so the palette flash + gold
+   outline is redundant and reads as noise. */
+footer button:active,
+footer a[href]:active,
+footer [role="button"]:active {
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
