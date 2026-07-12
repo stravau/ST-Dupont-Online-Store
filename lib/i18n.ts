@@ -130,7 +130,7 @@ const dictionaries = {
     },
     ss26: {
       eyebrow: "Selecção da Estação",
-      title: "S.T. Dupont Spring Summer Selection",
+      title: "S.T. Dupont Spring Summer Selection 2026",
       lede: "A selecção que a maison publicou para a primavera / verão 2026 — instrumentos de escrita, isqueiros e pele reunidos numa única leitura.",
     },
     categoryStory: "A Arte da Casa",
@@ -397,7 +397,7 @@ const dictionaries = {
     },
     ss26: {
       eyebrow: "Seasonal Selection",
-      title: "S.T. Dupont Spring Summer Selection",
+      title: "S.T. Dupont Spring Summer Selection 2026",
       lede: "The selection the Maison published for Spring / Summer 2026 — writing instruments, lighters and leather goods gathered in a single edit.",
     },
     categoryStory: "The House's Craft",
