@@ -62,6 +62,12 @@ export default async function SS26Page({
   // real product tile if we own it, otherwise an external fallback,
   // otherwise skip. Track the position count so lifestyle banners
   // slot in at fixed absolute positions.
+  //
+  // CRITICAL: only check for a banner when productPosition ACTUALLY
+  // advanced this iteration. Otherwise a skipped duplicate SKU
+  // (same slug as an already-emitted product) would re-fire the
+  // banner check at the unchanged position — every subsequent skip
+  // would push another copy of the last banner.
   const tiles: Tile[] = [];
   const seenSlug = new Set<string>();
   const nextBanner = new Map(
@@ -70,17 +76,25 @@ export default async function SS26Page({
   let productPosition = 0;
   for (const sku of SS26_SKUS) {
     const product = productBySku.get(sku);
+    let advanced = false;
     if (product && !seenSlug.has(product.slug)) {
       seenSlug.add(product.slug);
       tiles.push({ kind: "product", product, sku });
       productPosition++;
+      advanced = true;
     } else if (SS26_SHOPIFY_FALLBACK[sku]) {
       tiles.push({ kind: "external", sku });
       productPosition++;
+      advanced = true;
     }
-    // Banner scheduled after THIS product position?
+    if (!advanced) continue;
     const b = nextBanner.get(productPosition);
-    if (b) tiles.push({ kind: "banner", src: b.src, alt: b.alt, side: b.side });
+    if (b) {
+      tiles.push({ kind: "banner", src: b.src, alt: b.alt, side: b.side });
+      // Belt-and-braces — remove the entry so even a bug in the
+      // advance guard above can't fire the same banner twice.
+      nextBanner.delete(productPosition);
+    }
   }
 
   return (
