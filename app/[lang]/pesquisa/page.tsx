@@ -11,6 +11,7 @@ import { SortSelect } from "@/components/sort-select";
 import { SearchFilters, type FacetOption } from "@/components/search-filters";
 import { FiltersDisclosure } from "@/components/filters-disclosure";
 import { Crest } from "@/components/crest";
+import { EditorialEmptyState, type EmptyStateSuggestion } from "@/components/editorial-empty-state";
 
 export async function generateMetadata({
   params,
@@ -193,10 +194,49 @@ export default async function SearchPage({
         </div>
       )}
 
-      {query && raw.length === 0 ? (
-        <p className="mt-8 text-center text-muted">{s.noResults}</p>
-      ) : query && filtered.length === 0 ? (
-        <p className="mt-8 text-center text-muted">{s.noResults}</p>
+      {query && (raw.length === 0 || filtered.length === 0) ? (
+        (() => {
+          const isFiltered = raw.length > 0 && filtered.length === 0;
+          // No-filter empty (raw=0) → suggest the four maisons.
+          // Filtered empty → suggest the other category facets so
+          // clearing one lands on something.
+          const suggestions: EmptyStateSuggestion[] = isFiltered
+            ? categoryFacets
+                .filter((f) => f.value !== activeCategory)
+                .slice(0, 4)
+                .map((f) => ({
+                  label: f.label,
+                  href: `${pathname}?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(f.value)}`,
+                }))
+            : (
+                [
+                  { slug: "isqueiros", label: dict.nav.lighters },
+                  { slug: "escrita", label: dict.nav.writing },
+                  { slug: "pele", label: dict.nav.leather },
+                  { slug: "acessorios", label: dict.nav.accessories },
+                ] as const
+              ).map((c) => ({
+                label: c.label,
+                href: `/${locale}/c/${c.slug}`,
+              }));
+          const clearHref = isFiltered
+            ? `${pathname}?q=${encodeURIComponent(query)}`
+            : undefined;
+          return (
+            <EditorialEmptyState
+              variant="search"
+              query={query}
+              isFiltered={isFiltered}
+              clearFiltersHref={clearHref}
+              suggestions={suggestions}
+              suggestionsHeading={
+                isFiltered ? dict.emptyState.suggestionsMaison : dict.emptyState.suggestionsHouses
+              }
+              lang={locale}
+              labels={dict.emptyState}
+            />
+          );
+        })()
       ) : query ? (
         <>
           <PagedGrid

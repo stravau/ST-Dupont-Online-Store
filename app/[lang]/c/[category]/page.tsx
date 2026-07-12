@@ -25,6 +25,7 @@ import { isSortKey, type SortKey } from "@/lib/sort";
 import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { CategoryPaged } from "@/components/category-paged";
+import { EditorialEmptyState } from "@/components/editorial-empty-state";
 import { CategoryHeroSlider } from "@/components/category-hero-slider";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
@@ -492,17 +493,35 @@ export default async function CategoryPage({
       </div>
 
       {allCards.length === 0 ? (
-        <div className="mx-auto mt-16 max-w-md text-center">
-          <p className="font-serif text-2xl text-ink">{dict.common.noResultsTitle}</p>
-          <div className="gold-rule mx-auto my-6" />
-          <p className="text-sm text-muted">{dict.common.noResultsBody}</p>
-          <Link
-            href={base}
-            className="mt-7 inline-block border-b border-ink pb-1 text-xs tracking-[0.2em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
-          >
-            {dict.common.clearFilters}
-          </Link>
-        </div>
+        (() => {
+          const isFiltered =
+            !!activeCol ||
+            !!activeGender ||
+            !!activeUsage ||
+            activeMin !== undefined ||
+            activeMax !== undefined ||
+            activeStock !== "all";
+          // Category empty → suggest other groups in the same maison
+          // so the visitor can pivot laterally (Ligne 2 → Ligne 1).
+          const suggestions = (art?.groups ?? [])
+            .filter((g) => g.href !== `/c/${category}`)
+            .slice(0, 4)
+            .map((g) => ({
+              label: g.label[locale],
+              href: `/${locale}${g.href}`,
+            }));
+          return (
+            <EditorialEmptyState
+              variant="category"
+              isFiltered={isFiltered}
+              clearFiltersHref={isFiltered ? base : undefined}
+              suggestions={suggestions}
+              suggestionsHeading={dict.emptyState.suggestionsOtherLines}
+              lang={locale}
+              labels={dict.emptyState}
+            />
+          );
+        })()
       ) : (
         <>
           <CategoryPaged
