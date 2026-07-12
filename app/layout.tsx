@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, EB_Garamond } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 // Root layout — sole owner of <html>, <body> and the global CSS /
@@ -46,6 +48,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} h-full motion-safe:scroll-smooth`}>
       <body className="min-h-full bg-cream text-ink">
         {children}
+        {/* Analytics is mounted at the ROOT (not the locale layout) so
+            /admin and any non-localised route get pageviews too.
+            beforeSend gates on the localStorage consent cookie set by
+            lib/consent.tsx — analytics events don't fire until the
+            user accepts. We can't call useConsent() here because
+            <Analytics /> is above <ConsentProvider>, so we read the
+            same storage key directly. Speed Insights only transmits
+            anonymised CWV numbers (no identifiers) and stays
+            ungated for now. */}
+        <Analytics
+          beforeSend={(event) => {
+            if (typeof window === "undefined") return event;
+            try {
+              const raw = window.localStorage.getItem("stdupont-consent-v1");
+              if (!raw) return null;
+              const parsed = JSON.parse(raw) as { version?: string; analytics?: boolean };
+              return parsed.version === "v1" && parsed.analytics === true ? event : null;
+            } catch {
+              return null;
+            }
+          }}
+        />
+        <SpeedInsights />
       </body>
     </html>
   );
