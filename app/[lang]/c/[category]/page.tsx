@@ -26,6 +26,7 @@ import { paginate, paginateAll, readPage, isShowAll } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { CategoryPaged } from "@/components/category-paged";
 import { EditorialEmptyState } from "@/components/editorial-empty-state";
+import { AgeGate } from "@/components/age-gate";
 import { CategoryHeroSlider } from "@/components/category-hero-slider";
 import { Paginator } from "@/components/paginator";
 import { SortSelect } from "@/components/sort-select";
@@ -280,6 +281,18 @@ export default async function CategoryPage({
 
   return (
     <div>
+      {category === "isqueiros" && (
+        <AgeGate
+          lang={locale}
+          labels={{
+            title: dict.ageGate.title,
+            body: dict.ageGate.body,
+            confirm: dict.ageGate.confirm,
+            decline: dict.ageGate.decline,
+            ariaLabel: dict.ageGate.ariaLabel,
+          }}
+        />
+      )}
       {modelThumbs.length > 0 ? (
         /* Horizontal model line-up slider — replaces the static hero image at
            the top of the category page. Each card filters the catalogue to

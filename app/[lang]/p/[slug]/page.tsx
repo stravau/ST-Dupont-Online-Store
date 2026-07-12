@@ -22,6 +22,7 @@ import { TrackProductView } from "@/components/track-product-view";
 import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR, STORE_LIS, STORE_VNG } from "@/lib/store-info";
 import { buildProductJsonLd } from "@/lib/product-jsonld";
+import { AgeGate } from "@/components/age-gate";
 
 export async function generateMetadata({
   params,
@@ -189,6 +190,18 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
       />
+      {product.categorySlug === "isqueiros" && (
+        <AgeGate
+          lang={locale}
+          labels={{
+            title: dict.ageGate.title,
+            body: dict.ageGate.body,
+            confirm: dict.ageGate.confirm,
+            decline: dict.ageGate.decline,
+            ariaLabel: dict.ageGate.ariaLabel,
+          }}
+        />
+      )}
       <Breadcrumbs
         items={[
           { label: dict.common.home, href: `/${locale}` },
