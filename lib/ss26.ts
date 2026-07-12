@@ -28,13 +28,17 @@ export interface Ss26LifestyleImage {
   alt: string;
 }
 
+// Exactly 5 lifestyle banners — one per shot number in the Maison's
+// window.Lobst.visual_merchandising array. SHOT_16 previously
+// appeared twice (once as a 4/5-crop hero, once as its 9/16 tile);
+// the 4/5 version is gone. Positions + sides mirror the Maison's
+// rendered cadence: after every 8 tiles, alternating LEFT / RIGHT.
 export const SS26_LIFESTYLE: readonly Ss26LifestyleImage[] = [
-  { src: "/ss26/hero.jpg",   insertAfterProductPosition: 4,  side: "left",  alt: "Ligne 2 · Spring Summer 26" },
-  { src: "/ss26/shot-16.jpg", insertAfterProductPosition: 12, side: "right", alt: "Spring Summer 26 · shot 16" },
-  { src: "/ss26/shot-10.jpg", insertAfterProductPosition: 20, side: "left",  alt: "Spring Summer 26 · shot 10" },
-  { src: "/ss26/shot-19.jpg", insertAfterProductPosition: 28, side: "right", alt: "Spring Summer 26 · shot 19" },
-  { src: "/ss26/shot-03.jpg", insertAfterProductPosition: 36, side: "left",  alt: "Spring Summer 26 · shot 03" },
-  { src: "/ss26/shot-20.jpg", insertAfterProductPosition: 44, side: "right", alt: "Spring Summer 26 · shot 20" },
+  { src: "/ss26/shot-16.jpg", insertAfterProductPosition: 4,  side: "left",  alt: "Ligne 2 lacquered lighter on beige towel · SS26" },
+  { src: "/ss26/shot-10.jpg", insertAfterProductPosition: 12, side: "right", alt: "Line D Eternity rollerballs on shoulder · SS26" },
+  { src: "/ss26/shot-19.jpg", insertAfterProductPosition: 20, side: "left",  alt: "Le Grand Dupont black lighter, blue flame poolside · SS26" },
+  { src: "/ss26/shot-03.jpg", insertAfterProductPosition: 28, side: "right", alt: "Line D Eternity fountain pen close-up · SS26" },
+  { src: "/ss26/shot-20.jpg", insertAfterProductPosition: 36, side: "left",  alt: "Classique pen and Ligne 1 gold lighter poolside · SS26" },
 ] as const;
 
 export const SS26_SKUS = [
