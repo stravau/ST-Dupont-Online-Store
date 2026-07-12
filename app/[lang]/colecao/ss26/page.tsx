@@ -3,14 +3,20 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { getProductsByVariantSkus, type Product } from "@/lib/catalog";
+import { paginate, readPage } from "@/lib/paginate";
 import { ProductCard } from "@/components/product-card";
 import { Ss26ExternalTileCard } from "@/components/ss26-external-tile";
+import { Paginator } from "@/components/paginator";
 import { Crest } from "@/components/crest";
 import {
   SS26_SKUS,
   SS26_LIFESTYLE,
   SS26_SHOPIFY_FALLBACK,
 } from "@/lib/ss26";
+
+// 50 products per page, matching the Maison's own /collections/spring-
+// animation page 1 and mirroring the "load per page" cadence.
+const SS26_PER_PAGE = 50;
 
 // Spring / Summer Selection 26 — replica of st-dupont.com's
 // /collections/spring-animation page (2026-07-12 crawl).
@@ -37,6 +43,8 @@ export async function generateMetadata({
   return { title: dict.ss26.title, description: dict.ss26.lede };
 }
 
+export const dynamic = "force-dynamic";
+
 interface ProductTile { kind: "product"; product: Product; sku: string; }
 interface ExternalTile { kind: "external"; sku: string; }
 interface BannerTile { kind: "banner"; src: string; alt: string; side: "left" | "right"; }
@@ -44,10 +52,13 @@ type Tile = ProductTile | ExternalTile | BannerTile;
 
 export default async function SS26Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { lang } = await params;
+  const { page: pageParam } = await searchParams;
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
@@ -58,18 +69,20 @@ export default async function SS26Page({
     for (const v of p.variants) productBySku.set(v.sku, p);
   }
 
-  // Walk SS26_SKUS in Maison-authored order. Each SKU renders its
-  // own tile — including sibling colour variants of the same
-  // product, since each SKU has its own hero photo + colour label
-  // and the Maison presents them as distinct tiles. Only genuine
-  // absences (SKU not in Prisma AND not in the fallback map) are
-  // skipped, and only a real emission advances the banner cadence.
+  // Paginate the SKU list FIRST — 50 per page — then walk the slice.
+  // The Maison ships the same 50-per-page cadence on their
+  // /collections/spring-animation grid. Banners only appear on
+  // page 1 because that's where their positions (4/12/20/28/36)
+  // fall inside the slice; pages 2+ are pure product tiles.
+  const paginated = paginate([...SS26_SKUS], readPage(pageParam), SS26_PER_PAGE);
+  const currentPage = paginated.page;
+
   const tiles: Tile[] = [];
   const nextBanner = new Map(
     SS26_LIFESTYLE.map((b) => [b.insertAfterProductPosition, b]),
   );
   let productPosition = 0;
-  for (const sku of SS26_SKUS) {
+  for (const sku of paginated.slice) {
     const product = productBySku.get(sku);
     if (product) {
       tiles.push({ kind: "product", product, sku });
@@ -80,12 +93,14 @@ export default async function SS26Page({
     } else {
       continue;
     }
-    const b = nextBanner.get(productPosition);
-    if (b) {
-      tiles.push({ kind: "banner", src: b.src, alt: b.alt, side: b.side });
-      // Delete after firing — no chance of the same banner
-      // re-emitting even under a future refactor.
-      nextBanner.delete(productPosition);
+    // Banners only interleave on page 1 (the Maison's own layout —
+    // pages 2 + 3 are pure product listings).
+    if (currentPage === 1) {
+      const b = nextBanner.get(productPosition);
+      if (b) {
+        tiles.push({ kind: "banner", src: b.src, alt: b.alt, side: b.side });
+        nextBanner.delete(productPosition);
+      }
     }
   }
 
@@ -139,6 +154,15 @@ export default async function SS26Page({
           );
         })}
       </div>
+
+      <Paginator
+        pathname={`/${locale}/colecao/ss26`}
+        query={{}}
+        page={currentPage}
+        totalPages={paginated.totalPages}
+        prevLabel={dict.common.prev}
+        nextLabel={dict.common.next}
+      />
     </section>
   );
 }
