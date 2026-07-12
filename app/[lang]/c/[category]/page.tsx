@@ -84,6 +84,8 @@ export default async function CategoryPage({
     priceMin?: string;
     priceMax?: string;
     all?: string;
+    inStock?: string;
+    inBoutique?: string;
   }>;
 }) {
   const { lang, category: categoryParam } = await params;
@@ -96,7 +98,20 @@ export default async function CategoryPage({
     priceMin: priceMinParam,
     priceMax: priceMaxParam,
     all: allParam,
+    inStock: inStockParam,
+    inBoutique: inBoutiqueParam,
   } = await searchParams;
+  // Availability chips are mutually exclusive: `all` (default) /
+  // `any` (in stock in either boutique) / `lis` / `vng`. Wired as
+  // ?inStock=1 (== any) and ?inBoutique=lis|vng — canonicalise here.
+  const activeStock: "all" | "any" | "lis" | "vng" =
+    inBoutiqueParam === "lis"
+      ? "lis"
+      : inBoutiqueParam === "vng"
+        ? "vng"
+        : inStockParam === "1"
+          ? "any"
+          : "all";
   const sort: SortKey = isSortKey(sortParam) ? sortParam : "featured";
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
@@ -136,10 +151,26 @@ export default async function CategoryPage({
       })
     : fetched;
   const afterUsage = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
+  // Stock filter — keep products whose at least ONE non-DESCONTINUADO
+  // variant qualifies for the chosen boutique's stock. "any" means
+  // Lis + Vng combined > 0. Uses the same field the PDP strip reads.
+  const stockOk = (v: (typeof afterUsage)[number]["variants"][number]): boolean => {
+    if (v.status === "DESCONTINUADO") return false;
+    const lis = v.stockLis ?? 0;
+    const vng = v.stockVng ?? 0;
+    if (activeStock === "lis") return lis > 0;
+    if (activeStock === "vng") return vng > 0;
+    if (activeStock === "any") return lis + vng > 0;
+    return true;
+  };
+  const afterStock =
+    activeStock === "all"
+      ? afterUsage
+      : afterUsage.filter((p) => p.variants.some(stockOk));
   // Slider bounds — computed from products visible after col / gender /
   // usage filters but BEFORE the price filter, so the slider always
   // represents what's actually on the page.
-  const prices = afterUsage.map(productMinEur).filter((n) => n > 0);
+  const prices = afterStock.map(productMinEur).filter((n) => n > 0);
   const catMin = prices.length ? Math.min(...prices) : 0;
   const catMax = prices.length ? Math.max(...prices) : 0;
   // Round to a friendly step (€10) — the slider snaps to the same grid.
@@ -160,8 +191,8 @@ export default async function CategoryPage({
   const activeMax = userMax !== undefined ? Math.min(ceiledMax, userMax) : undefined;
   const filtered =
     activeMin !== undefined || activeMax !== undefined
-      ? afterUsage.filter((p) => priceInRange(p, activeMin, activeMax))
-      : afterUsage;
+      ? afterStock.filter((p) => priceInRange(p, activeMin, activeMax))
+      : afterStock;
   const sortedItems = sortProducts(filtered, sort, locale);
   // Keep the URL-emitting `base` in the locale-appropriate form so chip
   // links + paginator never bounce the user back to a PT slug on EN.
@@ -223,6 +254,15 @@ export default async function CategoryPage({
     if (activeUsage && !("usage" in overrides)) params.set("usage", activeUsage);
     if (activeMin !== undefined && !("priceMin" in overrides)) params.set("priceMin", String(activeMin));
     if (activeMax !== undefined && !("priceMax" in overrides)) params.set("priceMax", String(activeMax));
+    // Availability chips are mutually exclusive and share two URL
+    // params: ?inStock=1 (== "any") OR ?inBoutique=lis|vng. Preserve
+    // whichever one is currently active unless it's being overridden.
+    if (activeStock === "any" && !("inStock" in overrides) && !("inBoutique" in overrides)) {
+      params.set("inStock", "1");
+    }
+    if ((activeStock === "lis" || activeStock === "vng") && !("inStock" in overrides) && !("inBoutique" in overrides)) {
+      params.set("inBoutique", activeStock);
+    }
     for (const [k, v] of Object.entries(overrides)) {
       if (v) params.set(k, v);
       else params.delete(k);
@@ -313,7 +353,8 @@ export default async function CategoryPage({
           (activeCol ? 1 : 0) +
           (activeGender ? 1 : 0) +
           (activeUsage ? 1 : 0) +
-          (activeMin !== undefined || activeMax !== undefined ? 1 : 0)
+          (activeMin !== undefined || activeMax !== undefined ? 1 : 0) +
+          (activeStock !== "all" ? 1 : 0)
         }
       >
         {art && art.groups.length > 0 && (
@@ -403,9 +444,47 @@ export default async function CategoryPage({
             sort: sort !== "featured" ? sort : undefined,
             g: activeGender,
             usage: activeUsage,
+            inStock: activeStock === "any" ? "1" : undefined,
+            inBoutique: activeStock === "lis" || activeStock === "vng" ? activeStock : undefined,
           }}
           label={dict.common.priceLabel}
         />
+
+        {/* Availability chips — mutually exclusive: all / any /
+            Lisboa / V.N. Gaia. Clicking one overrides both URL
+            params so the four-state radio never leaves you with a
+            stale ?inStock=1 dangling next to ?inBoutique=lis. */}
+        <div>
+          <p className="mb-3 text-center text-[11px] tracking-[0.2em] text-muted uppercase">
+            {dict.common.stockLabel}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href={buildChipLink({ inStock: undefined, inBoutique: undefined })}
+              className={chipClass(activeStock === "all")}
+            >
+              {dict.common.stockAll}
+            </Link>
+            <Link
+              href={buildChipLink({ inStock: "1", inBoutique: undefined })}
+              className={chipClass(activeStock === "any")}
+            >
+              {dict.common.stockAny}
+            </Link>
+            <Link
+              href={buildChipLink({ inBoutique: "lis", inStock: undefined })}
+              className={chipClass(activeStock === "lis")}
+            >
+              {dict.common.stockLis}
+            </Link>
+            <Link
+              href={buildChipLink({ inBoutique: "vng", inStock: undefined })}
+              className={chipClass(activeStock === "vng")}
+            >
+              {dict.common.stockVng}
+            </Link>
+          </div>
+        </div>
       </FiltersDisclosure>
 
       <div className="mt-10 flex justify-end">
@@ -442,6 +521,8 @@ export default async function CategoryPage({
               usage: activeUsage,
               priceMin: activeMin !== undefined ? String(activeMin) : undefined,
               priceMax: activeMax !== undefined ? String(activeMax) : undefined,
+              inStock: activeStock === "any" ? "1" : undefined,
+              inBoutique: activeStock === "lis" || activeStock === "vng" ? activeStock : undefined,
             }}
             page={page}
             totalPages={totalPages}
