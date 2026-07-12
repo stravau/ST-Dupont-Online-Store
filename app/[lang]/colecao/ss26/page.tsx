@@ -137,10 +137,16 @@ export default async function SS26Page({
           }
           const sideClass =
             t.side === "left" ? "lg:col-start-1" : "lg:col-start-3";
+          // Mobile (< lg): banner spans both columns (full page width)
+          // and uses aspect-[9/10] to give it ~1.5 tile heights, so
+          // it reads as a proper editorial break without dominating.
+          // Desktop (>= lg): aspect resets and row-span-2 kicks in so
+          // the banner keeps the 2x2 slot it needs inside the 4-col
+          // grid. Grid gap is shared with product tiles either way.
           return (
             <div
               key={`banner-${i}-${t.src}`}
-              className={`relative col-span-2 row-span-2 overflow-hidden border border-line bg-paper ${sideClass}`}
+              className={`relative col-span-2 aspect-[9/10] overflow-hidden border border-line bg-paper lg:aspect-auto lg:row-span-2 ${sideClass}`}
             >
               <Image
                 src={t.src}
