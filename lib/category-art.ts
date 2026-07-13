@@ -67,8 +67,9 @@ const A = {
 
 // Smoking accessory sub-types (reused under Lighters and Accessories menus).
 const SMOKING_ITEMS: ArtGroup[] = [
+  { label: t("Estojos 2 Charutos", "2-Cigar Cases"), href: typeHref("smoking", "2-cigar-cases") },
+  { label: t("Estojos 3 Charutos", "3-Cigar Cases"), href: typeHref("smoking", "3-cigar-cases") },
   { label: t("Estojos de Charuto e Cigarro", "Cigar & Cigarette Cases"), href: typeHref("smoking", "cases") },
-  { label: t("Estojos para Isqueiros", "Lighter Cases"), href: "/t/smoking" },
   { label: t("Cortadores de Charuto", "Cigar Cutters"), href: typeHref("smoking", "cutters") },
   { label: t("Cinzeiros", "Ashtrays"), href: typeHref("smoking", "ashtrays") },
   { label: t("Humidores", "Humidors"), href: typeHref("smoking", "humidors") },
@@ -129,7 +130,7 @@ export const categoryArt: Record<string, CategoryArt> = {
           { label: t("Initial", "Initial"), href: col("isqueiros", "Initial") },
           { label: t("Ligne 1", "Ligne 1"), href: col("isqueiros", "Ligne 1") },
           { label: t("Twiggy", "Twiggy"), href: col("isqueiros", "Twiggy") },
-          { label: t("Colar Isqueiro", "Lighter Necklace"), href: col("isqueiros", "Colar Isqueiro") },
+          { label: t("Colar Isqueiro", "Lighter Necklace"), href: "/t/lighter-necklace" },
           { label: t("Maxijet, Minijet & Slim 7", "Maxijet, Minijet & Slim 7"), href: col("isqueiros", "Maxijet") },
           { label: t("Windproof & Défi Extrême", "Windproof & Défi Extrême"), href: col("isqueiros", "Défi Extreme") },
           { label: t("Table Lighter & Torch", "Table Lighter & Torch"), href: col("isqueiros", "Table lighter") },
@@ -324,33 +325,35 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Homem", "Men"),
-        // Pouches / Tote etc. don't have dedicated bag-type slugs in our
-        // catalogue; the Maison stores those variants under model lines
-        // (Neo Capsule, X-bag, Firehead). Point each item at the line where
-        // the variants live so users land on populated pages.
+        // Travel / Business / Backpacks resolve to genuinely men-gendered
+        // products (briefcases, document holders, travel bags, Défi Explorer).
+        // Crossbody & Tote have no men-only pieces in our catalogue — they're
+        // unisex bag types, so link to the whole type (no &g=men) rather than
+        // an empty gendered page. Pouches point at Neo Capsule, where they live.
         items: [
           { label: t("Ver tudo", "View all"), href: "/c/pele?g=men" },
           { label: t("Malas de Viagem", "Travel bags"), href: typeHref("bags", "travel", "men") },
           { label: t("Trabalho", "Business"), href: typeHref("bags", "business", "men") },
           { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "men") },
-          { label: t("Tiracolo", "Crossbody"), href: typeHref("bags", "crossbody", "men") },
+          { label: t("Tiracolo", "Crossbody"), href: typeHref("bags", "crossbody") },
           { label: t("Bolsas", "Pouches"), href: col("pele", "Neo Capsule") },
-          { label: t("Tote Bag", "Tote bag"), href: typeHref("bags", "tote", "men") },
+          { label: t("Tote Bag", "Tote bag"), href: typeHref("bags", "tote") },
         ],
       },
       {
         title: t("Senhora", "Women"),
-        // Hand bag / Shoulder bag / Baguette aren't dedicated types in our
-        // data — they live under X-bag (handbags, baguette) and Firehead
-        // (shoulder, pouch). Point at the umbrella collection so each link
-        // lands on relevant products.
+        // The women's bag lines are Riviera and Victoria; the umbrella X-bag
+        // (hand bags, baguette) and Firehead (shoulder bags) collections round
+        // out the offer. Baguette points at the women-gendered Riviera
+        // baguettes. There are no women-only crossbody/tote pieces beyond
+        // victoria-tote (covered by the Victoria link), so those are omitted.
         items: [
           { label: t("Ver tudo", "View all"), href: "/c/pele?g=women" },
+          { label: t("Riviera", "Riviera"), href: col("pele", "Riviera") },
+          { label: t("Victoria", "Victoria"), href: col("pele", "Victoria") },
           { label: t("Mala de Mão", "Hand bag"), href: col("pele", "X-bag") },
           { label: t("Mala de Ombro", "Shoulder bag"), href: col("pele", "Firehead") },
-          { label: t("Tiracolo", "Cross body bag"), href: typeHref("bags", "crossbody", "women") },
-          { label: t("Tote Bag", "Tote Bag"), href: typeHref("bags", "tote", "women") },
-          { label: t("Baguette", "Baguette bag"), href: col("pele", "X-bag") },
+          { label: t("Baguette", "Baguette bag"), href: typeHref("bags", "baguette", "women") },
         ],
       },
       {

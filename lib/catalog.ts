@@ -164,6 +164,9 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   //   surface under the "Line D" collection in Marroquinaria.
   "line-d-2-belt":            "pele",
   "line-d-2-reversible-belt": "pele",
+  // Keep every belt in one place so /t/belts (categorySlug: pele) shows them all.
+  "line-d-reversible-belt":   "pele",
+  "autolock":                 "pele",
   "line-d-3-card-holder":     "pele",
   "line-d-3-passport-holder": "pele",
   "line-d-3-wallet":          "pele",

@@ -36,24 +36,42 @@ const re = (pattern: RegExp): GroupMatch => (p) => pattern.test(p.slug);
 // scrape's raw `cutter-NNNNN` IDs. Cases use "cigar-case" / "N-cigar-case" /
 // "cigarette-case"; excluded from cutters to avoid double-counting.
 const isCutter = re(/^cigar-cutter|^cutter-\d/);
-const isCigarCase = re(/^(?:\d+-)?cigar-case|^cigarette-case|^cigar-case-/);
+// Split the cases by capacity so the "2 / 3 Cigar Case" buttons list EVERY
+// case of that capacity regardless of theme (Dragon, Cohiba, Monogram, Koi…).
+// These are checked BEFORE the general `cases` type (first match wins), so the
+// remaining `isCigarCase` only needs to cover single cigar cases (cigar-case-N)
+// and cigarette cases — NOT the 2-/3-/double- capacity slugs.
+const is2CigarCase = re(/^(?:2-cigar-case|double-cigar-case)/);
+const is3CigarCase = re(/^3-cigar-case/);
+const isCigarCase = re(/^cigar-case|^cigarette-case/);
 const isAshtray = re(/^ashtray/);
 const isHumidor = re(/humidor/);
 
 const isPenCase = re(/^pen-case/);
 const isNotebook = re(/^notebook/);
 
-const isGasOrStone = re(/^(?:gas-refill|stones|box-\d+-refills)/);
-const isInkOrRefill = re(/^(?:ink-bottle|inkwell|rollerball-refill|pen-refill)/);
+// Refills & Stones (L'Art du Feu) is GAS refills + flints/stones ONLY. The box
+// collections are mostly mislabelled "Gas Refills" in the data, but the slug is
+// reliable: box-12 + gas-refill = gas; box-8 = flints/stones (col "Refills &
+// Stones"); box-10/5/7 = rollerball/lead/ink/ballpoint pen refills, which
+// belong under Refills & Inks (writing), not here.
+const isGasOrStone = re(/^(?:gas-refill|stones|box-(?:8|12)-refills)/);
+const isInkOrRefill = re(/^(?:ink-bottle|inkwell|rollerball-refill|pen-refill|box-(?:5|7|10)-refills)/);
 
 const isCufflink = re(/^cufflink/);
-const isBelt = re(/^belt$|^classic-belt$/);
+// Belts: match "belt" as a slug segment (line-d-2-belt, line-d-2-reversible-
+// belt, line-d-reversible-belt, classic-belt) plus the Autolock line.
+const isBelt = re(/(?:^|-)belt(?:$|-)|autolock/);
 const isMoneyClip = re(/money-clip/);
 const isKeyHolder = re(/^(?:key-ring|keyring|leather-key-holder)|^keyrings/);
 const isTieClip = re(/tie-clip/);
 
-const isTravelBag = re(/^(?:travel-bag|travel-bags|weekend-bag)/);
-const isBusinessBag = re(/^(?:briefcase|defi-explorer-document-holder|document-holders)/);
+// These keywords appear mid-slug (atelier-3-travel-bag, classic-briefcase,
+// neo-capsule-2-document-holder), so match the segment anywhere, not just at
+// the start — otherwise Travel/Business surface only the handful of slugs that
+// happen to lead with the keyword (e.g. travel-bags-fender).
+const isTravelBag = re(/travel-bag|weekend-bag/);
+const isBusinessBag = re(/briefcase|document-holder|conference-pad|messenger/);
 const isBackpack = re(/backpack/);
 const isCrossbody = re(/crossbody|camera-bag/);
 // New bag types added to mirror the official navbar's MEN / WOMEN columns.
@@ -68,13 +86,17 @@ const isBaguetteBag = re(/baguette/);
 
 const isWallet = re(/wallet/);
 const isCardHolder = re(/card-holder/);
-const isLeatherKeyHolder = re(/^(?:leather-key-holder|key-ring)$/);
+// key-ring appears mid-slug (atelier-2-key-ring, neo-capsule-2-key-ring), so
+// match the segment anywhere rather than as a whole-slug anchor.
+const isLeatherKeyHolder = re(/key-ring|key-holder/);
 
 // Display order for accessory-type sections on the /c/acessorios page. The
 // category groups by detected type (so all cigar cases sit together regardless
 // of their `collection`); this list dictates which header comes first.
 export const ACC_SECTION_ORDER: string[] = [
   "smoking-cutters",
+  "smoking-2-cigar-cases",
+  "smoking-3-cigar-cases",
   "smoking-cases",
   "smoking-ashtrays",
   "smoking-humidors",
@@ -119,6 +141,8 @@ export const productGroups: Record<string, ProductGroup> = {
     categorySlug: "acessorios",
     types: [
       { key: "cutters", label: t("Cortadores de Charuto", "Cigar Cutters"), match: isCutter },
+      { key: "2-cigar-cases", label: t("Estojos 2 Charutos", "2-Cigar Cases"), match: is2CigarCase },
+      { key: "3-cigar-cases", label: t("Estojos 3 Charutos", "3-Cigar Cases"), match: is3CigarCase },
       { key: "cases", label: t("Estojos de Charuto", "Cigar Cases"), match: isCigarCase },
       { key: "ashtrays", label: t("Cinzeiros", "Ashtrays"), match: isAshtray },
       { key: "humidors", label: t("Humidores", "Humidors"), match: isHumidor },
@@ -130,6 +154,16 @@ export const productGroups: Record<string, ProductGroup> = {
     eyebrow: "L'Art du Feu",
     categorySlug: "acessorios",
     match: isGasOrStone,
+  },
+  // Lighter necklaces live under /c/isqueiros but sit in different collections
+  // (lighter-necklace → "Colar Isqueiro", dc-comics-necklace → "DC Comics").
+  // A slug matcher surfaces them all under one "Lighter Necklace" destination.
+  "lighter-necklace": {
+    id: "lighter-necklace",
+    title: t("Colar Isqueiro", "Lighter Necklace"),
+    eyebrow: "L'Art du Feu",
+    categorySlug: "isqueiros",
+    match: re(/necklace/),
   },
 
   // ---- L'Art de l'Écriture ----
@@ -193,7 +227,9 @@ export const productGroups: Record<string, ProductGroup> = {
     id: "belts",
     title: t("Cintos", "Belts"),
     eyebrow: "L'Art de la Séduction",
-    categorySlug: "acessorios",
+    // Belts are leather goods — the Line D belts route to /c/pele; autolock +
+    // line-d-reversible-belt are forced there too (see CATEGORY_OVERRIDES).
+    categorySlug: "pele",
     match: isBelt,
   },
   "money-clips": {
