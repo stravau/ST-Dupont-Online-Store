@@ -278,7 +278,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
 ];
 
 // Explicit allow-list of model lines per category — used by the mobile
-// nav's sub-panel to show ONLY the base-line models for a maison
+// nav's sub-panel to show ONLY the base-line models for a Maison
 // (Le Grand Dupont / Ligne 2 / …) and keep the themed sub-collections
 // (Géode / Cohiba / DC Comics / …) out of that list. Themed groups
 // already live in the desktop mega-menu's Collections column and the

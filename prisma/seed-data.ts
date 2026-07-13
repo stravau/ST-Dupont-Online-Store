@@ -60,8 +60,8 @@ export const categories: SeedCategory[] = [
     name: { pt: "Escrita", en: "Writing Instruments" },
     tagline: { pt: "Instrumentos de uma vida", en: "Instruments for a lifetime" },
     history: {
-      pt: "A história da escrita da maison começou em 1973, quando Jacqueline Kennedy pediu um instrumento a condizer com o seu isqueiro: nasceu o Classique, a primeira esferográfica de luxo assinada S.T. Dupont. Seguiram-se aparos em ouro, lacas e metais preciosos.",
-      en: "The maison's writing story began in 1973, when Jacqueline Kennedy asked for an instrument to match her lighter: the Classique was born, S.T. Dupont's first signed luxury ballpoint. Gold nibs, lacquers and precious metals followed.",
+      pt: "A história da escrita da Maison começou em 1973, quando Jacqueline Kennedy pediu um instrumento a condizer com o seu isqueiro: nasceu o Classique, a primeira esferográfica de luxo assinada S.T. Dupont. Seguiram-se aparos em ouro, lacas e metais preciosos.",
+      en: "The Maison's writing story began in 1973, when Jacqueline Kennedy asked for an instrument to match her lighter: the Classique was born, S.T. Dupont's first signed luxury ballpoint. Gold nibs, lacquers and precious metals followed.",
     },
   },
   {
@@ -78,8 +78,8 @@ export const categories: SeedCategory[] = [
     name: { pt: "Acessórios", en: "Accessories" },
     tagline: { pt: "Os detalhes mais raros", en: "The rarest details" },
     history: {
-      pt: "Dos botões de punho aos cortadores de charutos, os acessórios prolongam o saber-fazer da maison em metal e pele — os detalhes mais raros, com a assinatura S.T. Dupont desde 1872.",
-      en: "From cufflinks to cigar cutters, accessories extend the maison's savoir-faire in metal and leather — the rarest details, bearing the S.T. Dupont signature since 1872.",
+      pt: "Dos botões de punho aos cortadores de charutos, os acessórios prolongam o saber-fazer da Maison em metal e pele — os detalhes mais raros, com a assinatura S.T. Dupont desde 1872.",
+      en: "From cufflinks to cigar cutters, accessories extend the Maison's savoir-faire in metal and leather — the rarest details, bearing the S.T. Dupont signature since 1872.",
     },
   },
 ];
@@ -216,8 +216,8 @@ const MONO_GS: { code: string; pt: string; en: string; hex: string[] }[] = [
   { code: "SLV", pt: "Prata", en: "Silver", hex: ["#b9bcc2"] },
 ];
 const MONO_DESC = {
-  pt: "Edição Monograma 1872 — o motivo emblemático da maison, gravado em toda a peça.",
-  en: "Monogram 1872 edition — the maison's emblematic motif, engraved across the piece.",
+  pt: "Edição Monograma 1872 — o motivo emblemático da Maison, gravado em toda a peça.",
+  en: "Monogram 1872 edition — the Maison's emblematic motif, engraved across the piece.",
 };
 
 // Colourway with a full photo gallery (front/back/close-ups/open).
@@ -245,16 +245,16 @@ export const historyByCollection: Record<string, L> = {
     en: "Introduced in 1973 and developed with jeweller Jean Dinh Van, the Ligne 2 was born from proportions inspired by the golden ratio. A soft double flame and the unmistakable crystalline 'cling' on opening made it one of the world's most coveted luxury lighters — still hand-made today.",
   },
   "Ligne 1": {
-    pt: "O primeiro isqueiro de tampa articulada e chama suave da maison, concebido por Lucien Tissot-Dupont e originalmente trabalhado em alumínio. Esguio e clássico, é o antepassado de toda a linha Ligne.",
-    en: "The maison's first flip-top, soft-flame lighter, conceived by Lucien Tissot-Dupont and originally crafted in aluminium. Slender and classic, it is the forefather of the entire Ligne family.",
+    pt: "O primeiro isqueiro de tampa articulada e chama suave da Maison, concebido por Lucien Tissot-Dupont e originalmente trabalhado em alumínio. Esguio e clássico, é o antepassado de toda a linha Ligne.",
+    en: "The Maison's first flip-top, soft-flame lighter, conceived by Lucien Tissot-Dupont and originally crafted in aluminium. Slender and classic, it is the forefather of the entire Ligne family.",
   },
   "Le Grand": {
     pt: "Uma evolução contemporânea de maior porte dos ícones de chama suave da casa, com chama dupla regulável — presença e desempenho para o colecionador moderno.",
     en: "A contemporary, larger-format evolution of the house's soft-flame icons, with an adjustable double flame — presence and performance for the modern collector.",
   },
   "Défi Extreme": {
-    pt: "Lançado em 2010 e concebido para o uso exigente — duplo maçarico, corpo resistente ao choque e fiável em condições extremas. A afirmação ousada e desportiva da maison.",
-    en: "Launched in 2010 and built for demanding use — double torch flame, shock-resistant body and reliability in extreme conditions. The maison's bold, sporting statement.",
+    pt: "Lançado em 2010 e concebido para o uso exigente — duplo maçarico, corpo resistente ao choque e fiável em condições extremas. A afirmação ousada e desportiva da Maison.",
+    en: "Launched in 2010 and built for demanding use — double torch flame, shock-resistant body and reliability in extreme conditions. The Maison's bold, sporting statement.",
   },
   Twiggy: {
     pt: "Uma nova era para os isqueiros a jato da S.T. Dupont: silhueta ultrafina e alongada em lacas coloridas, inspirada no icónico Ligne 2 e equipada com a tecnologia do Slim 7 e do Megajet.",
@@ -265,44 +265,44 @@ export const historyByCollection: Record<string, L> = {
     en: "Launched in 2016, a minimalist lighter just 7 mm thick with a jet flame — portability and contemporary aesthetics.",
   },
   "Line D Eternity": {
-    pt: "Da Line D, a coleção de escrita emblemática da maison, reconhecível pela assinatura em brasão no clip. Eternity é a sua expressão premium, em laca e metais preciosos.",
-    en: "From Line D, the maison's flagship writing collection, recognisable by the blazon signature on the clip. Eternity is its premium expression, in lacquer and precious metals.",
+    pt: "Da Line D, a coleção de escrita emblemática da Maison, reconhecível pela assinatura em brasão no clip. Eternity é a sua expressão premium, em laca e metais preciosos.",
+    en: "From Line D, the Maison's flagship writing collection, recognisable by the blazon signature on the clip. Eternity is its premium expression, in lacquer and precious metals.",
   },
   Initial: {
     pt: "Anteriormente D-Initial, o ponto de entrada contemporâneo na escrita Dupont — silhueta depurada, equilíbrio de formas e trabalho meticuloso do material.",
     en: "Formerly D-Initial, the contemporary entry to Dupont writing — a sleek silhouette, balanced shapes and meticulous material work.",
   },
   Classique: {
-    pt: "Nascida em 1973 do pedido de Jacqueline Kennedy por um instrumento de escrita a condizer com o seu isqueiro S.T. Dupont — a primeira esferográfica de luxo da maison e o início da sua história na escrita.",
-    en: "Born in 1973 from Jacqueline Kennedy's request for a writing instrument to match her S.T. Dupont lighter — the maison's first luxury ballpoint and the start of its writing story.",
+    pt: "Nascida em 1973 do pedido de Jacqueline Kennedy por um instrumento de escrita a condizer com o seu isqueiro S.T. Dupont — a primeira esferográfica de luxo da Maison e o início da sua história na escrita.",
+    en: "Born in 1973 from Jacqueline Kennedy's request for a writing instrument to match her S.T. Dupont lighter — the Maison's first luxury ballpoint and the start of its writing story.",
   },
   "Défi Millenium": {
     pt: "Da família Défi, a coleção que afirmou a audácia criativa da casa na escrita — um desenho fluido que reflete a modernidade.",
     en: "From the Défi family, the collection that asserted the house's creative audacity in writing — a fluid design that reflects modernity.",
   },
   Liberté: {
-    pt: "Curvas suaves e voluptuosas que combinam paládio e laca natural — uma demonstração do saber-fazer artesanal da maison.",
-    en: "Smooth, voluptuous curves blending palladium and natural lacquer — a showcase of the maison's artisanal know-how.",
+    pt: "Curvas suaves e voluptuosas que combinam paládio e laca natural — uma demonstração do saber-fazer artesanal da Maison.",
+    en: "Smooth, voluptuous curves blending palladium and natural lacquer — a showcase of the Maison's artisanal know-how.",
   },
   Apex: {
     pt: "Uma linha contemporânea de pequena marroquinaria em pele com curtimenta diamante e costura selada à mão — essenciais modernos no primeiro métier histórico da casa, a pele, desde 1872.",
     en: "A contemporary small-leather line in diamond-tanned leather with hand-sealed stitching — modern essentials in the house's first historic métier, leather, since 1872.",
   },
   "Défi Explorer": {
-    pt: "A linha de marroquinaria de viagem e utilidade da maison — peças resistentes em pele e materiais técnicos, levando o espírito Défi à viagem.",
-    en: "The maison's travel and utility leather line — resilient pieces in leather and technical materials, carrying the Défi spirit to the journey.",
+    pt: "A linha de marroquinaria de viagem e utilidade da Maison — peças resistentes em pele e materiais técnicos, levando o espírito Défi à viagem.",
+    en: "The Maison's travel and utility leather line — resilient pieces in leather and technical materials, carrying the Défi spirit to the journey.",
   },
   Montecristo: {
-    pt: "Da colaboração S.T. Dupont × Montecristo, o capítulo L'Aurore assinala os 150 anos da maison (2022) e os 220 anos de Alexandre Dumas, autor de O Conde de Monte Cristo.",
-    en: "From the S.T. Dupont × Montecristo collaboration, the L'Aurore chapter marks the maison's 150th anniversary (2022) and the 220th of Alexandre Dumas, author of The Count of Monte Cristo.",
+    pt: "Da colaboração S.T. Dupont × Montecristo, o capítulo L'Aurore assinala os 150 anos da Maison (2022) e os 220 anos de Alexandre Dumas, autor de O Conde de Monte Cristo.",
+    en: "From the S.T. Dupont × Montecristo collaboration, the L'Aurore chapter marks the Maison's 150th anniversary (2022) and the 220th of Alexandre Dumas, author of The Count of Monte Cristo.",
   },
   "Fire X": {
     pt: "Uma coleção inspirada na X-Bag da marroquinaria S.T. Dupont, reinterpretando a icónica ponta de chama nos clássicos da casa.",
     en: "A collection inspired by the X-Bag from S.T. Dupont leather goods, reinterpreting the iconic flame tip across the house's classics.",
   },
   Accessories: {
-    pt: "Os detalhes do quotidiano da maison — pele e metal trabalhados com a assinatura S.T. Dupont, extensão do saber-fazer da casa desde 1872.",
-    en: "The maison's everyday details — leather and metal crafted with the S.T. Dupont signature, an extension of the house's savoir-faire since 1872.",
+    pt: "Os detalhes do quotidiano da Maison — pele e metal trabalhados com a assinatura S.T. Dupont, extensão do saber-fazer da casa desde 1872.",
+    en: "The Maison's everyday details — leather and metal crafted with the S.T. Dupont signature, an extension of the house's savoir-faire since 1872.",
   },
   "Refill & Stones": {
     pt: "A S.T. Dupont serve os seus objetos para toda a vida: gás e pedras de sílex codificados por cor consoante o modelo, para que cada isqueiro mantenha a chama e a faísca perfeitas durante décadas.",
@@ -317,8 +317,8 @@ export const products: SeedProduct[] = [
     name: { pt: "Ligne 2", en: "Ligne 2" },
     collection: "Ligne 2",
     description: {
-      pt: "O isqueiro emblemático da maison, desenhado com o joalheiro Jean Dinh Van — silhueta retangular intemporal e o inconfundível som cristalino de abertura.",
-      en: "The maison's iconic lighter, designed with jeweller Jean Dinh Van — a timeless rectangular silhouette and the unmistakable crystalline 'cling' on opening.",
+      pt: "O isqueiro emblemático da Maison, desenhado com o joalheiro Jean Dinh Van — silhueta retangular intemporal e o inconfundível som cristalino de abertura.",
+      en: "The Maison's iconic lighter, designed with jeweller Jean Dinh Van — a timeless rectangular silhouette and the unmistakable crystalline 'cling' on opening.",
     },
     categorySlug: "isqueiros",
     image: "/products/ligne-2/C16601N.jpg",
@@ -482,8 +482,8 @@ export const products: SeedProduct[] = [
     name: { pt: "Line D Eternity", en: "Line D Eternity" },
     collection: "Line D Eternity",
     description: {
-      pt: "A coleção premium de escrita da maison, em laca e metais preciosos. Aparo gravável a pedido.",
-      en: "The maison's premium writing collection, in lacquer and precious metals. Nib engravable on request.",
+      pt: "A coleção premium de escrita da Maison, em laca e metais preciosos. Aparo gravável a pedido.",
+      en: "The Maison's premium writing collection, in lacquer and precious metals. Nib engravable on request.",
     },
     categorySlug: "escrita",
     image: null,
@@ -769,7 +769,7 @@ export const products: SeedProduct[] = [
     slug: "money-clip",
     name: { pt: "Clip de Notas", en: "Money Clip" },
     collection: "Accessories",
-    description: { pt: "Simplicidade afiada, com a assinatura gravada da maison.", en: "Sharp simplicity, with the maison's engraved signature." },
+    description: { pt: "Simplicidade afiada, com a assinatura gravada da Maison.", en: "Sharp simplicity, with the Maison's engraved signature." },
     categorySlug: "acessorios",
     image: null,
     variants: [fin("MC-CHR", "Crómio Polido", "Polished Chrome", 18000)],
@@ -834,7 +834,7 @@ export const products: SeedProduct[] = [
     slug: "belt",
     name: { pt: "Cinto", en: "Belt" },
     collection: "Accessories",
-    description: { pt: "Pele de vitela com fivela gravada da maison, reversível.", en: "Calfskin with the maison's engraved buckle, reversible." },
+    description: { pt: "Pele de vitela com fivela gravada da Maison, reversível.", en: "Calfskin with the Maison's engraved buckle, reversible." },
     categorySlug: "acessorios",
     image: null,
     variants: [clr("BT-REV", COLOR.blackBrown, 28000)],

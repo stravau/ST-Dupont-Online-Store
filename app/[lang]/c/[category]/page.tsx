@@ -514,7 +514,7 @@ export default async function CategoryPage({
             activeMin !== undefined ||
             activeMax !== undefined ||
             activeStock !== "all";
-          // Category empty → suggest other groups in the same maison
+          // Category empty → suggest other groups in the same Maison
           // so the visitor can pivot laterally (Ligne 2 → Ligne 1).
           const suggestions = (art?.groups ?? [])
             .filter((g) => g.href !== `/c/${category}`)

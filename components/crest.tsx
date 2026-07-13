@@ -1,4 +1,4 @@
-// A small, refined maison emblem — a guilloché-style diamond lozenge in
+// A small, refined Maison emblem — a guilloché-style diamond lozenge in
 // gold, flanked by thin rules. Gives page headers a sense of "support"
 // without shouting. Decorative only.
 export function Crest({ className = "" }: { className?: string }) {

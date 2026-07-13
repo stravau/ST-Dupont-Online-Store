@@ -1,5 +1,5 @@
 // S.T. Dupont heritage content. Facts verified against public sources
-// (Wikipedia "S. T. Dupont" and the maison's own savoir-faire pages):
+// (Wikipedia "S. T. Dupont" and the Maison's own savoir-faire pages):
 // founding 1872, Grands Magasins du Louvre 1884, sons take over 1919,
 // move to Faverges 1924, post-1929 luxury pivot, first serial lighter 1941
 // (aluminium, wartime brass restriction), Gillette stake 1971, acquisition
@@ -66,7 +66,7 @@ export const history: {
       year: "1924",
       title: { pt: "Regresso a Faverges", en: "Return to Faverges" },
       body: {
-        pt: "As oficinas transferem-se de Paris para Faverges, na Sabóia, terra natal da família — onde a manufatura permanece até hoje.",
+        pt: "As oficinas transferem-se de Paris para Faverges, na Sabóia, terra natal da família — onde a fábrica permanece até hoje.",
         en: "The workshops move from Paris to Faverges, in Savoy, the family's hometown — where the manufacture remains to this day.",
       },
     },
@@ -98,7 +98,7 @@ export const history: {
   craftTitle: { pt: "O Savoir-Faire", en: "The Savoir-Faire" },
   craft: [
     {
-      pt: "Cada isqueiro é montado à mão na manufatura de Faverges e percorre centenas de operações de precisão antes de ser considerado digno do nome da casa.",
+      pt: "Cada isqueiro é montado à mão na fábrica de Faverges e percorre centenas de operações de precisão antes de ser considerado digno do nome da casa.",
       en: "Each lighter is hand-assembled at the Faverges manufacture and passes through hundreds of precision operations before it is deemed worthy of the house's name.",
     },
     {
@@ -114,7 +114,7 @@ export const history: {
     },
   ],
   closing: {
-    pt: "Uma maison francesa, fiel a um só princípio: o tempo só tem valor quando é bem feito.",
-    en: "A French maison, faithful to a single principle: time is only worth something when it is well made.",
+    pt: "Uma Maison francesa, fiel a um só princípio: o tempo só tem valor quando é bem feito.",
+    en: "A French Maison, faithful to a single principle: time is only worth something when it is well made.",
   },
 };

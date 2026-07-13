@@ -11,8 +11,8 @@ import { useHeaderTransparent } from "@/components/header-shell";
 import { ACCESSORIES_NAV, LEATHER_NAV, WRITING_NAV, type MobileNavEntry, type MobileNavItem, type MobileNavSection } from "@/lib/collection-order";
 import { isNavPathLive, type LiveNavSignalsSerialized } from "@/lib/nav-liveness-shared";
 
-// Mobile menu: a full-screen panel that drills down per maison. The root
-// view shows the four maisons + About Us. Tapping a maison swaps to its
+// Mobile menu: a full-screen panel that drills down per Maison. The root
+// view shows the four maisons + About Us. Tapping a Maison swaps to its
 // own panel listing every sub-collection (Géode / Popote / Maki-e / …)
 // plus a "View all" link. A back button on the second panel returns to
 // the root view. Bottom of every panel: Contact Us + Find Store icons
@@ -212,7 +212,7 @@ export function MobileNav({
 
               {/* Shared item style — every button reads as the same
                   caps-lock chip with a thin bottom border, regardless of
-                  whether it's a maison, a model line or "View all". */}
+                  whether it's a Maison, a model line or "View all". */}
               {(() => null)()}
 
               {!selected && (

@@ -614,7 +614,7 @@ export async function getProductsByVariantSkus(skus: string[]): Promise<Product[
 
 export async function getNovelties(limit = 6): Promise<Product[]> {
   // "New Releases by the Maison" — bias toward exclusive, higher-end
-  // lighters so the home grid leads with the maison's signature pieces
+  // lighters so the home grid leads with the Maison's signature pieces
   // (Maki-e, Architecture, Fuente, Orlinski, Le Grand Dupont, …) rather
   // than entry-level SKUs. Pulls a slightly wider pool, sorts each
   // product by its priciest variant, takes the top `limit`. Reuses

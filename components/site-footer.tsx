@@ -53,6 +53,14 @@ export function SiteFooter({ lang }: { lang: Locale }) {
           </a>
         </p>
       </address>
+      <a
+        href={store.mapDirectionsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2.5 inline-block text-xs text-cream/85 transition-colors hover:text-gold md:mt-3.5 md:text-sm"
+      >
+        {dict.store.directions} →
+      </a>
     </div>
   );
   const contactBlockLis = contactBlockFor(STORE_LIS, CONTACT_ANCHOR);
@@ -84,7 +92,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
     <div className="mt-6 flex flex-col items-center md:mt-7 md:items-start">
       <p className="overline mb-1.5 md:mb-4">{dict.footer.follow}</p>
       <div className="flex gap-5 text-xs text-cream/85 md:text-sm">
-        <a href="https://www.instagram.com/stdupontofficial/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Instagram</a>
+        <a href="https://www.instagram.com/stdupont/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Instagram</a>
         <a href="https://www.facebook.com/STDUPONTOFFICIAL/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Facebook</a>
       </div>
     </div>
@@ -112,7 +120,7 @@ export function SiteFooter({ lang }: { lang: Locale }) {
       {/* Desktop: 4-column footer — brand · Lisboa · V.N. Gaia · legal.
           The two boutique blocks live in adjacent columns so the two
           contact channels get equal visual weight. */}
-      <div className="mx-auto hidden max-w-7xl gap-10 px-6 py-12 text-left md:grid md:grid-cols-4">
+      <div className="mx-auto hidden max-w-7xl gap-10 px-6 py-8 text-left md:grid md:grid-cols-4">
         <div>
           {brandBlock}
           {followBlock}

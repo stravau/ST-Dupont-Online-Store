@@ -74,7 +74,7 @@ export default async function AdminHome() {
     <div className="space-y-10">
       <PageHeader
         eyebrow="Painel"
-        title="Resumo da maison"
+        title="Resumo da Maison"
         subtitle="KPIs ao vivo e atalhos para as operações que mais usas."
       />
 
