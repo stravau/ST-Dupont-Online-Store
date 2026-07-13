@@ -50,15 +50,10 @@ export default async function GroupPage({
   // URL: /t/bags?type=travel&g=men. Only meaningful on the leather groups.
   const activeGender: Gender | undefined =
     gParam === "men" || gParam === "women" || gParam === "unisex" ? gParam : undefined;
-  // Men / Women filters INCLUDE unisex pieces — a gender-neutral wallet or
-  // crossbody bag should appear under both columns rather than being hidden
-  // from both. The explicit "Unisex" filter is unisex-only.
+  // Each gender filter is strict — Men shows only men's pieces, Women only
+  // women's — so the MEN / WOMEN navbar columns stay cleanly gendered.
   const filtered = activeGender
-    ? filteredByType.filter((p) => {
-        const g = inferGender(p);
-        if (activeGender === "unisex") return g === "unisex";
-        return g === activeGender || g === "unisex";
-      })
+    ? filteredByType.filter((p) => inferGender(p) === activeGender)
     : filteredByType;
   const items = sortProducts(filtered, sort, locale);
   const cards = items.flatMap(expandProductCards);

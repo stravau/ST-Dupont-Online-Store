@@ -331,7 +331,7 @@ export const categoryArt: Record<string, CategoryArt> = {
         // unisex bag types, so link to the whole type (no &g=men) rather than
         // an empty gendered page. Pouches point at Neo Capsule, where they live.
         items: [
-          { label: t("Ver tudo", "View all"), href: "/c/pele?g=men" },
+          { label: t("Ver todos os produtos de Homem", "See all Men products"), href: "/c/pele?g=men" },
           { label: t("Malas de Viagem", "Travel bags"), href: typeHref("bags", "travel", "men") },
           { label: t("Trabalho", "Business"), href: typeHref("bags", "business", "men") },
           { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "men") },
@@ -348,7 +348,7 @@ export const categoryArt: Record<string, CategoryArt> = {
         // baguettes. There are no women-only crossbody/tote pieces beyond
         // victoria-tote (covered by the Victoria link), so those are omitted.
         items: [
-          { label: t("Ver tudo", "View all"), href: "/c/pele?g=women" },
+          { label: t("Ver todos os produtos de Senhora", "See all Women products"), href: "/c/pele?g=women" },
           { label: t("Riviera", "Riviera"), href: col("pele", "Riviera") },
           { label: t("Victoria", "Victoria"), href: col("pele", "Victoria") },
           { label: t("Mala de Mão", "Hand bag"), href: col("pele", "X-bag") },

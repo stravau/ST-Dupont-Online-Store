@@ -144,13 +144,11 @@ export default async function CategoryPage({
   const activeUsage: Usage | undefined =
     supportsUsage && isUsage(usageParam) ? usageParam : undefined;
   const fetched = await getProductsByCategory(category, activeCol);
-  // Men / Women include unisex pieces (the explicit Unisex filter is strict).
+  // Each gender filter is strict — Men shows only men's pieces, Women only
+  // women's, Unisex only unisex — so "See all Men/Women products" lands on a
+  // cleanly gendered page instead of the full unisex catalogue.
   const afterGender = activeGender
-    ? fetched.filter((p) => {
-        const g = inferGender(p);
-        if (activeGender === "unisex") return g === "unisex";
-        return g === activeGender || g === "unisex";
-      })
+    ? fetched.filter((p) => inferGender(p) === activeGender)
     : fetched;
   const afterUsage = activeUsage ? afterGender.filter((p) => hasUsage(p, activeUsage)) : afterGender;
   // Stock filter — keep products whose at least ONE non-DESCONTINUADO
