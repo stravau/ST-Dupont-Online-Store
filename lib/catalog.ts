@@ -743,6 +743,17 @@ export function inferGender(p: Product): Gender {
   if (/victoria|riviera/.test(c)) return "women";
   if (/explorer/.test(c)) return "men";
   if (/briefcase|document-holder|weekend-bag|travel-bag/.test(s)) return "men";
+  // Women's lines & pieces: the whole X-bag line, plus the Apex trunk family
+  // (nano / mini / full trunk) and the Apex pouches.
+  if (/^x-bag/.test(s)) return "women";
+  if (/^apex-(?:nano-trunk|mini-trunk|trunk|pouch)/.test(s)) return "women";
+  // Pink colourways skew women's — any variant carrying a pink colour label
+  // (e.g. Apex card holder / wallet offered in Light Pink).
+  const hasPink = p.variants.some((v) => {
+    const l = v.attributes.color?.label;
+    return !!l && (/pink|rosa/i.test(l.en) || /pink|rosa/i.test(l.pt));
+  });
+  if (hasPink) return "women";
   return "unisex";
 }
 
