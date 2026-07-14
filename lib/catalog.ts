@@ -737,23 +737,19 @@ export type Gender = "men" | "women" | "unisex";
 // men's items (briefcase, document holder, weekend / travel bag). Crossbody,
 // camera bag, cabas, x-bag etc. are unisex — both Men and Women columns now
 // include unisex, so this is the right default.
+// Gender follows the Maison's own taxonomy on st-dupont.com. The official
+// "Leather goods woman" collection is exactly four lines: Victoria, Riviera,
+// X-bag and the Apex trunk family (nano / mini / full trunk) — 40 SKUs, nothing
+// else. The site's MEN leather section is the business/travel pieces: Défi
+// Explorer, briefcases, document holders and travel bags. Everything else is
+// unisex (card holders, wallets, pouches, Neo Capsule, Firehead, Atelier, …).
 export function inferGender(p: Product): Gender {
   const s = p.slug.toLowerCase();
   const c = p.collection.toLowerCase();
-  if (/victoria|riviera/.test(c)) return "women";
+  if (/victoria|riviera|x-bag/.test(c)) return "women";
+  if (/^apex-(?:nano-trunk|mini-trunk|trunk)/.test(s)) return "women";
   if (/explorer/.test(c)) return "men";
   if (/briefcase|document-holder|weekend-bag|travel-bag/.test(s)) return "men";
-  // Women's lines & pieces: the whole X-bag line, plus the Apex trunk family
-  // (nano / mini / full trunk) and the Apex pouches.
-  if (/^x-bag/.test(s)) return "women";
-  if (/^apex-(?:nano-trunk|mini-trunk|trunk|pouch)/.test(s)) return "women";
-  // Pink colourways skew women's — any variant carrying a pink colour label
-  // (e.g. Apex card holder / wallet offered in Light Pink).
-  const hasPink = p.variants.some((v) => {
-    const l = v.attributes.color?.label;
-    return !!l && (/pink|rosa/i.test(l.en) || /pink|rosa/i.test(l.pt));
-  });
-  if (hasPink) return "women";
   return "unisex";
 }
 

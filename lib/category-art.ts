@@ -341,13 +341,14 @@ export const categoryArt: Record<string, CategoryArt> = {
         // Gender-filtered type links — every entry lands on a women-only page
         // that pulls from ALL collections (X-bag, Riviera, Apex…) rather than
         // a single one, so "Hand Bags" shows every women's hand bag, not one line.
+        // Matches st-dupont.com's women's leather: Victoria, Riviera, X-bag and
+        // the Apex trunks (hand bags / baguettes / trunks / totes).
         items: [
           { label: t("Ver todos os produtos de Senhora", "See all Women products"), href: "/c/pele?g=women" },
           { label: t("Malas de Mão", "Hand Bags"), href: typeHref("bags", "hand-bag", "women") },
           { label: t("Trunks", "Trunks"), href: typeHref("bags", "trunk", "women") },
           { label: t("Baguette", "Baguette"), href: typeHref("bags", "baguette", "women") },
           { label: t("Tote", "Tote"), href: typeHref("bags", "tote", "women") },
-          { label: t("Bolsas", "Pouches"), href: typeHref("bags", "pouches", "women") },
         ],
       },
       {
