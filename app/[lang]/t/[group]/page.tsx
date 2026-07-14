@@ -39,22 +39,26 @@ export default async function GroupPage({
   const g = productGroups[group];
   if (!g) notFound();
 
-  const activeType = g.types?.find((x) => x.key === type) ?? g.types?.[0];
-  // Fetch every product in the group's base category, then keep the ones the
-  // active type's matcher accepts. Flat groups apply the group's own matcher.
+  // Fetch every product in the group's base category once, then derive the
+  // type tabs and the active selection from it.
   const all = await getProductsByCategory(g.categorySlug);
-  const matcher = g.types ? activeType?.match : g.match;
-  const filteredByType = matcher ? all.filter(matcher) : [];
   // Optional gender filter — composes with the type matcher so the navbar's
-  // MEN > Travel bags / WOMEN > Cross body bag entries resolve as a single
-  // URL: /t/bags?type=travel&g=men. Only meaningful on the leather groups.
+  // MEN / WOMEN entries resolve as a single URL: /t/bags?type=hand-bag&g=women.
+  // Each gender filter is strict (Men = men only, Women = women only), so the
+  // columns stay cleanly gendered. Only meaningful on the leather groups.
   const activeGender: Gender | undefined =
     gParam === "men" || gParam === "women" || gParam === "unisex" ? gParam : undefined;
-  // Each gender filter is strict — Men shows only men's pieces, Women only
-  // women's — so the MEN / WOMEN navbar columns stay cleanly gendered.
-  const filtered = activeGender
-    ? filteredByType.filter((p) => inferGender(p) === activeGender)
-    : filteredByType;
+  const byGender = (list: typeof all) =>
+    activeGender ? list.filter((p) => inferGender(p) === activeGender) : list;
+  // Only surface type tabs that actually hold products for the active gender —
+  // so the women view never shows an empty "Business" tab, and vice versa. If a
+  // gender leaves nothing at all, fall back to the full list to stay sane.
+  const liveTypes = (g.types ?? []).filter((ty) => byGender(all.filter(ty.match)).length > 0);
+  const visibleTypes = liveTypes.length > 0 ? liveTypes : g.types ?? [];
+  const activeType = visibleTypes.find((x) => x.key === type) ?? visibleTypes[0];
+  const matcher = g.types ? activeType?.match : g.match;
+  const filteredByType = matcher ? all.filter(matcher) : [];
+  const filtered = byGender(filteredByType);
   const items = sortProducts(filtered, sort, locale);
   const cards = items.flatMap(expandProductCards);
   const showAll = isShowAll(allParam);
@@ -74,9 +78,9 @@ export default async function GroupPage({
         <div className="gold-rule mx-auto mt-7" />
       </header>
 
-      {g.types && (
+      {visibleTypes.length > 0 && (
         <nav className="mt-12 flex flex-wrap justify-center gap-3">
-          {g.types.map((s) => {
+          {visibleTypes.map((s) => {
             const qs = new URLSearchParams();
             qs.set("type", s.key);
             if (activeGender) qs.set("g", activeGender);

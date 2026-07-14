@@ -325,35 +325,29 @@ export const categoryArt: Record<string, CategoryArt> = {
       },
       {
         title: t("Homem", "Men"),
-        // Travel / Business / Backpacks resolve to genuinely men-gendered
-        // products (briefcases, document holders, travel bags, Défi Explorer).
-        // Crossbody & Tote have no men-only pieces in our catalogue — they're
-        // unisex bag types, so link to the whole type (no &g=men) rather than
-        // an empty gendered page. Pouches point at Neo Capsule, where they live.
+        // Gender-filtered type links — every entry lands on a men-only page.
+        // Only Travel / Business / Backpacks hold men's pieces in the
+        // catalogue; crossbody, tote and pouches are unisex or women's, so
+        // they appear under those genders instead of a padded Men column.
         items: [
           { label: t("Ver todos os produtos de Homem", "See all Men products"), href: "/c/pele?g=men" },
-          { label: t("Malas de Viagem", "Travel bags"), href: typeHref("bags", "travel", "men") },
+          { label: t("Malas de Viagem", "Travel"), href: typeHref("bags", "travel", "men") },
           { label: t("Trabalho", "Business"), href: typeHref("bags", "business", "men") },
           { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "men") },
-          { label: t("Tiracolo", "Crossbody"), href: typeHref("bags", "crossbody") },
-          { label: t("Bolsas", "Pouches"), href: col("pele", "Neo Capsule") },
-          { label: t("Tote Bag", "Tote bag"), href: typeHref("bags", "tote") },
         ],
       },
       {
         title: t("Senhora", "Women"),
-        // The women's bag lines are Riviera and Victoria; the umbrella X-bag
-        // (hand bags, baguette) and Firehead (shoulder bags) collections round
-        // out the offer. Baguette points at the women-gendered Riviera
-        // baguettes. There are no women-only crossbody/tote pieces beyond
-        // victoria-tote (covered by the Victoria link), so those are omitted.
+        // Gender-filtered type links — every entry lands on a women-only page
+        // that pulls from ALL collections (X-bag, Riviera, Apex…) rather than
+        // a single one, so "Hand Bags" shows every women's hand bag, not one line.
         items: [
           { label: t("Ver todos os produtos de Senhora", "See all Women products"), href: "/c/pele?g=women" },
-          { label: t("Riviera", "Riviera"), href: col("pele", "Riviera") },
-          { label: t("Victoria", "Victoria"), href: col("pele", "Victoria") },
-          { label: t("Mala de Mão", "Hand bag"), href: col("pele", "X-bag") },
-          { label: t("Mala de Ombro", "Shoulder bag"), href: col("pele", "Firehead") },
-          { label: t("Baguette", "Baguette bag"), href: typeHref("bags", "baguette", "women") },
+          { label: t("Malas de Mão", "Hand Bags"), href: typeHref("bags", "hand-bag", "women") },
+          { label: t("Trunks", "Trunks"), href: typeHref("bags", "trunk", "women") },
+          { label: t("Baguette", "Baguette"), href: typeHref("bags", "baguette", "women") },
+          { label: t("Tote", "Tote"), href: typeHref("bags", "tote", "women") },
+          { label: t("Bolsas", "Pouches"), href: typeHref("bags", "pouches", "women") },
         ],
       },
       {

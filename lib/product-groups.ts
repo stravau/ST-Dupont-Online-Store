@@ -80,9 +80,14 @@ const isCrossbody = re(/crossbody|camera-bag/);
 // gracefully until the catalogue expands to cover these.
 const isToteBag = re(/^cabas|tote/);
 const isPouch = re(/pouch/);
-const isHandBag = re(/handbag|hand-bag/);
+// Hand bags = the structured X-bag and Riviera bags (small / mini / medium).
+// They carry no "handbag" keyword in the slug, so match the two women's lines
+// that are handbags directly. Baguettes are excluded (their own type below).
+const isHandBag = re(/^(?:x-bag|riviera)-(?:small|mini|medium)/);
 const isShoulderBag = re(/shoulder/);
 const isBaguetteBag = re(/baguette/);
+// Trunks = the Apex trunk family (nano / mini / full trunk).
+const isTrunk = re(/trunk/);
 
 const isWallet = re(/wallet/);
 const isCardHolder = re(/card-holder/);
@@ -196,11 +201,12 @@ export const productGroups: Record<string, ProductGroup> = {
       { key: "business", label: t("Trabalho", "Business"), match: isBusinessBag },
       { key: "backpacks", label: t("Mochilas", "Backpacks"), match: isBackpack },
       { key: "crossbody", label: t("Tiracolo", "Crossbody"), match: isCrossbody },
-      { key: "tote", label: t("Tote", "Tote"), match: isToteBag },
-      { key: "pouches", label: t("Bolsas", "Pouches"), match: isPouch },
-      { key: "hand-bag", label: t("Mala de Mão", "Hand Bag"), match: isHandBag },
       { key: "shoulder-bag", label: t("Mala de Ombro", "Shoulder Bag"), match: isShoulderBag },
+      { key: "tote", label: t("Tote", "Tote"), match: isToteBag },
+      { key: "hand-bag", label: t("Mala de Mão", "Hand Bags"), match: isHandBag },
       { key: "baguette", label: t("Baguette", "Baguette"), match: isBaguetteBag },
+      { key: "trunk", label: t("Trunks", "Trunks"), match: isTrunk },
+      { key: "pouches", label: t("Bolsas", "Pouches"), match: isPouch },
     ],
   },
   "small-leather": {
