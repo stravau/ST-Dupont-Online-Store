@@ -17,6 +17,10 @@ type L = Record<Locale, string>;
 export interface ArtGroup {
   label: L;
   href: string; // locale-relative path → smart button
+  // Marks a "View all …" link. In the desktop mega-menu these are pinned to
+  // the bottom of their column (below the alphabetical items) and given a gold
+  // underline so they read as an action, not another title.
+  viewAll?: boolean;
 }
 
 export interface MenuSection {
@@ -42,7 +46,7 @@ const col = (cat: string, name: string): string =>
   `/c/${cat}?col=${encodeURIComponent(name)}`;
 
 // /t/<group>?type=<key>[&g=<gender>]
-const typeHref = (group: string, type: string, g?: "men" | "women"): string => {
+const typeHref = (group: string, type: string, g?: "men" | "women" | "unisex"): string => {
   const params = new URLSearchParams({ type });
   if (g) params.set("g", g);
   return `/t/${group}?${params.toString()}`;
@@ -73,7 +77,7 @@ const SMOKING_ITEMS: ArtGroup[] = [
   { label: t("Cortadores de Charuto", "Cigar Cutters"), href: typeHref("smoking", "cutters") },
   { label: t("Cinzeiros", "Ashtrays"), href: typeHref("smoking", "ashtrays") },
   { label: t("Humidores", "Humidors"), href: typeHref("smoking", "humidors") },
-  { label: t("Ver tudo", "View all"), href: "/t/smoking" },
+  { label: t("Ver tudo", "View all"), href: "/t/smoking", viewAll: true },
 ];
 
 // Writing accessory sub-types (reused under Writing and Accessories menus).
@@ -330,10 +334,10 @@ export const categoryArt: Record<string, CategoryArt> = {
         // catalogue; crossbody, tote and pouches are unisex or women's, so
         // they appear under those genders instead of a padded Men column.
         items: [
-          { label: t("Ver todos os produtos de Homem", "See all Men products"), href: "/c/pele?g=men" },
           { label: t("Malas de Viagem", "Travel"), href: typeHref("bags", "travel", "men") },
           { label: t("Trabalho", "Business"), href: typeHref("bags", "business", "men") },
           { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "men") },
+          { label: t("Ver todos os produtos de Homem", "View all Men products"), href: "/c/pele?g=men", viewAll: true },
         ],
       },
       {
@@ -344,20 +348,33 @@ export const categoryArt: Record<string, CategoryArt> = {
         // Matches st-dupont.com's women's leather: Victoria, Riviera, X-bag and
         // the Apex trunks (hand bags / baguettes / trunks / totes).
         items: [
-          { label: t("Ver todos os produtos de Senhora", "See all Women products"), href: "/c/pele?g=women" },
           { label: t("Malas de Mão", "Hand Bags"), href: typeHref("bags", "hand-bag", "women") },
           { label: t("Trunks", "Trunks"), href: typeHref("bags", "trunk", "women") },
           { label: t("Baguette", "Baguette"), href: typeHref("bags", "baguette", "women") },
           { label: t("Tote", "Tote"), href: typeHref("bags", "tote", "women") },
+          { label: t("Ver todos os produtos de Senhora", "View all Women products"), href: "/c/pele?g=women", viewAll: true },
+        ],
+      },
+      {
+        title: t("Unissexo", "Unisex"),
+        // Bag types that are neither men-only nor women-only in the catalogue —
+        // gender-filtered to unisex so they don't repeat the men/women columns.
+        items: [
+          { label: t("Mochilas", "Backpacks"), href: typeHref("bags", "backpacks", "unisex") },
+          { label: t("Tiracolo", "Crossbody"), href: typeHref("bags", "crossbody", "unisex") },
+          { label: t("Mala de Ombro", "Shoulder Bags"), href: typeHref("bags", "shoulder-bag", "unisex") },
+          { label: t("Tote", "Tote"), href: typeHref("bags", "tote", "unisex") },
+          { label: t("Bolsas", "Pouches"), href: typeHref("bags", "pouches", "unisex") },
+          { label: t("Ver todos os produtos Unissexo", "View all Unisex products"), href: "/c/pele?g=unisex", viewAll: true },
         ],
       },
       {
         title: t("Pequena Marroquinaria", "Small Leather Goods"),
         items: [
-          { label: t("Ver tudo", "View all"), href: "/t/small-leather" },
           { label: t("Porta-Cartões", "Card Holders"), href: typeHref("small-leather", "card-holders") },
           { label: t("Carteiras", "Wallets"), href: typeHref("small-leather", "wallets") },
           { label: t("Porta-Chaves", "Key Holders"), href: typeHref("small-leather", "key-holders") },
+          { label: t("Ver toda a Pequena Marroquinaria", "View all Small Leather Goods"), href: "/t/small-leather", viewAll: true },
         ],
       },
       {
@@ -412,7 +429,7 @@ export const categoryArt: Record<string, CategoryArt> = {
           A.keyHolders,
           A.moneyClips,
           A.tieClips,
-          { label: t("Ver tudo", "View all"), href: "/c/acessorios" },
+          { label: t("Ver tudo", "View all"), href: "/c/acessorios", viewAll: true },
         ],
       },
       { title: t("Acessórios para Fumadores", "Smoking Accessories"), items: SMOKING_ITEMS },

@@ -60,13 +60,20 @@ export async function SiteHeader({ lang }: { lang: Locale }) {
           .sort(byLabel),
         // Titled columns for the desktop mega-menu (Accessories).
         sections: (categoryArt[c.slug]?.menuSections ?? [])
-          .map((s) => ({
-            title: s.title[lang],
-            items: s.items
+          .map((s) => {
+            const live = s.items
               .filter((it) => isLive(it.href))
-              .map((it) => ({ label: it.label[lang], href: localizeHref(`/${lang}${it.href}`) }))
-              .sort(byLabel),
-          }))
+              .map((it) => ({
+                label: it.label[lang],
+                href: localizeHref(`/${lang}${it.href}`),
+                viewAll: it.viewAll ?? false,
+              }));
+            // Alphabetical items first; any "View all …" link is pinned last so
+            // the mega-menu can render it as a gold-underlined footer action.
+            const regular = live.filter((it) => !it.viewAll).sort(byLabel);
+            const viewAlls = live.filter((it) => it.viewAll);
+            return { title: s.title[lang], items: [...regular, ...viewAlls] };
+          })
           .filter((s) => s.items.length > 0),
         collections: allowedModels
           .filter((m) => availableCollections.has(m) && signals.collections.has(m))

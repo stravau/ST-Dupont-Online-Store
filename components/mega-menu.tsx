@@ -13,7 +13,7 @@ export interface MenuCategory {
   // Titled columns (e.g. Accessories: New Products / Collections / Smoking /
   // Writing). When present, the panel renders these instead of the generic
   // groups + collections layout.
-  sections?: { title: string; items: { label: string; href: string }[] }[];
+  sections?: { title: string; items: { label: string; href: string; viewAll?: boolean }[] }[];
 }
 
 export function MegaMenu({
@@ -143,20 +143,35 @@ export function MegaMenu({
                             {sec.title}
                           </p>
                           <ul className="space-y-1">
-                            {sec.items.map((it, i) => (
-                              <li
-                                key={`${it.href}${it.label}`}
-                                className="menu-item leading-tight"
-                                style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
-                              >
-                                <Link
-                                  href={it.href}
-                                  className="menu-item-hover text-[0.8rem] leading-tight text-ink"
+                            {sec.items.map((it, i) =>
+                              it.viewAll ? (
+                                <li
+                                  key={`${it.href}${it.label}`}
+                                  className="menu-item mt-3 leading-tight"
+                                  style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
                                 >
-                                  {it.label}
-                                </Link>
-                              </li>
-                            ))}
+                                  <Link
+                                    href={it.href}
+                                    className="inline-block border-b border-gold pb-0.5 text-[0.8rem] font-medium leading-tight text-ink transition-colors hover:text-gold"
+                                  >
+                                    {it.label}
+                                  </Link>
+                                </li>
+                              ) : (
+                                <li
+                                  key={`${it.href}${it.label}`}
+                                  className="menu-item leading-tight"
+                                  style={{ animationDelay: `${0.12 + si * 0.05 + i * 0.03}s` }}
+                                >
+                                  <Link
+                                    href={it.href}
+                                    className="menu-item-hover text-[0.8rem] leading-tight text-ink"
+                                  >
+                                    {it.label}
+                                  </Link>
+                                </li>
+                              ),
+                            )}
                           </ul>
                         </div>
                       ))}
