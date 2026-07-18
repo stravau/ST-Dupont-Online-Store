@@ -178,11 +178,19 @@ async function main() {
     const data: {
       ean?: string | null;
       stock?: number;
+      stockLis?: number;
       priceCents?: number;
       pvpStartDate?: Date;
     } = {};
     if (m.excel.ean) data.ean = m.excel.ean;
-    if (m.excel.stock !== null && m.excel.stock >= 0) data.stock = m.excel.stock;
+    if (m.excel.stock !== null && m.excel.stock >= 0) {
+      // ECI_LIS_Controlo is the Lisboa boutique's control sheet;
+      // every stock number here belongs to Lisboa. Mirror onto
+      // stockLis so the PDP availability strip + the /c/<cat>
+      // in-stock chips pick it up correctly.
+      data.stock = m.excel.stock;
+      data.stockLis = m.excel.stock;
+    }
     if (m.excel.pvpCents !== null) {
       data.priceCents = m.excel.pvpCents;
       data.pvpStartDate = new Date();
