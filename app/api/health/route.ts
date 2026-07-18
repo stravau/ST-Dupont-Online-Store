@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
-// Diagnostic endpoint — never throws. Reports env-var presence (booleans
-// only, no values) and a live DB connectivity test, with the password
-// stripped from any error message. Visit /api/health and read the JSON.
+const STAFF_ROLES = new Set(["ADMIN", "LOJA_LIS", "LOJA_VNG"]);
+
+// Diagnostic endpoint — never throws. Public callers (uptime monitors) get a
+// bare liveness `{ ok: true }`; the env-presence booleans, product count and
+// DB error detail are staff-only, so the endpoint stops advertising the app's
+// internals to anonymous visitors.
 export async function GET() {
+  const session = await auth();
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!role || !STAFF_ROLES.has(role)) {
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
   const env = {
     DATABASE_URL: Boolean(process.env.DATABASE_URL),
     AUTH_SECRET: Boolean(process.env.AUTH_SECRET),

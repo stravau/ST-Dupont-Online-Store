@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { publicRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/product-view  — diagnostic. Returns the top 20 most-viewed
-// slugs with their counts and the total impressions logged. Useful
-// before the admin panel exists to confirm tracking is wired.
+const STAFF_ROLES = new Set(["ADMIN", "LOJA_LIS", "LOJA_VNG"]);
+
+// GET /api/product-view — diagnostic (top-viewed slugs + counts). This leaks
+// the catalogue's popularity data, so it's staff-only now that the admin panel
+// exists (the dashboard covers the same ground). Non-staff get a bare 404 so
+// the endpoint's existence isn't advertised.
 export async function GET() {
+  const session = await auth();
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!role || !STAFF_ROLES.has(role)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   try {
     const top = await prisma.product.findMany({
       where: { viewCount: { gt: 0 } },
@@ -31,6 +41,12 @@ export async function GET() {
 // slug. Failures swallow silently — a missed view is acceptable, breaking
 // the page isn't.
 export async function POST(req: Request) {
+  // Unauthenticated + writes to the DB on every call — throttle per IP so it
+  // can't be scripted to bloat ProductView or skew the "Most viewed" carousel.
+  // 60/min/IP is well above one shopper browsing distinct PDPs.
+  const limited = publicRateLimit(req, "product-view", 60);
+  if (limited) return limited;
+
   try {
     const { slug } = await req.json();
     if (typeof slug !== "string" || !slug) {

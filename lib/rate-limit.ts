@@ -58,3 +58,32 @@ export function maybeGcRateLimitBuckets(): void {
     else b.stamps = fresh;
   }
 }
+
+// Client IP for public rate-limiting. Trusts the platform's x-forwarded-for
+// (Vercel sets it); falls back to a shared "unknown" bucket so a missing
+// header can't slip past the limit entirely.
+export function clientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0]!.trim();
+  return req.headers.get("x-real-ip") ?? "unknown";
+}
+
+// Public, IP-keyed guard for the unauthenticated API surface. Returns a ready
+// 429 Response when the caller is over budget, or null to proceed. Same
+// in-memory, per-instance trade-off as the admin limiter — limits are set
+// generously so a real shopper (even several behind one boutique/NAT IP)
+// never hits them, but a scripted flood does.
+export function publicRateLimit(
+  req: Request,
+  name: string,
+  limit: number,
+  windowMs = DEFAULT_WINDOW,
+): Response | null {
+  maybeGcRateLimitBuckets();
+  const res = checkRateLimit(`${name}:${clientIp(req)}`, limit, windowMs);
+  if (res.ok) return null;
+  return Response.json(
+    { ok: false, error: "Too many requests" },
+    { status: 429, headers: { "Retry-After": String(res.retryAfterSec) } },
+  );
+}
