@@ -6,6 +6,7 @@ import { localeCategorySlug } from "@/lib/category-slugs";
 import { getNovelties, expandProductCards } from "@/lib/catalog";
 import { STORES } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
+import { LatestCarousel } from "@/components/latest-carousel";
 import { ScrollCue } from "@/components/scroll-cue";
 import { notFound } from "next/navigation";
 
@@ -67,8 +68,17 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   if (!isLocale(lang)) notFound();
   const locale = lang as Locale;
   const dict = getDictionary(locale);
-  const novelties = await getNovelties(8);
+  const novelties = await getNovelties(14);
   const tiles = homeCategories(locale);
+  // The "Latest creations" rail shows one card per product (dedup by slug),
+  // up to 10 — the carousel then rotates through them 4 (desktop) at a time.
+  const byProduct = new Map<string, { product: (typeof novelties)[number]; sku: string }>();
+  for (const c of novelties.flatMap(expandProductCards)) {
+    if (!byProduct.has(c.product.slug)) byProduct.set(c.product.slug, c);
+  }
+  const latest = [...byProduct.values()].slice(0, 10).map(({ product, sku }) => (
+    <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
+  ));
 
   return (
     <>
@@ -205,15 +215,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>
           <div className="gold-rule mx-auto mt-7" />
         </div>
-        <div className="product-grid mt-14 grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-4 lg:gap-8">
-          {novelties.flatMap(expandProductCards).slice(0, 8).map(({ product, sku }, i) => (
-            <div
-              key={`${product.slug}-${sku}`}
-              className={`reveal reveal-d${i % 4} ${i >= 6 ? "hidden lg:block" : ""}`}
-            >
-              <ProductCard product={product} lang={locale} variantSku={sku} />
-            </div>
-          ))}
+        <div className="reveal mt-14">
+          <LatestCarousel
+            items={latest}
+            prevLabel={dict.common.prev}
+            nextLabel={dict.common.next}
+          />
         </div>
       </section>
 
