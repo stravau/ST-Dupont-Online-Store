@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconDashboard, IconList, IconUpload, IconAudit, IconSignOut } from "@/components/admin/icons";
+import { IconDashboard, IconList, IconUpload, IconAudit, IconPos, IconSignOut } from "@/components/admin/icons";
 
 interface NavItem {
   href: string;
@@ -14,6 +14,10 @@ const SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: "Geral",
     items: [{ href: "/admin", label: "Dashboard", Icon: IconDashboard }],
+  },
+  {
+    title: "Loja",
+    items: [{ href: "/admin/pos", label: "Ponto de Venda", Icon: IconPos }],
   },
   {
     title: "Catálogo",

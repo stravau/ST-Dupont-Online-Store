@@ -39,6 +39,14 @@ export function IconUpload(props: { className?: string }) {
   );
 }
 
+export function IconPos(props: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" {...stroke(props)}>
+      <path d="M4 6v12M7.5 6v12M11 6v12M14 6v12M17 6v12M20 6v12" />
+    </svg>
+  );
+}
+
 export function IconAudit(props: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" {...stroke(props)}>

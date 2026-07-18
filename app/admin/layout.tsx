@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth, signOut } from "@/auth";
 import { AdminSidebar, AdminMobileBar } from "@/components/admin/sidebar";
 import { ToastProvider } from "@/components/admin/toast";
@@ -7,6 +8,12 @@ import { ToastProvider } from "@/components/admin/toast";
 // chrome (no session yet) — the children-only branch handles it.
 
 export const dynamic = "force-dynamic";
+
+// Keep the whole panel out of search engines. (It's already behind the
+// proxy.ts auth gate; this stops the URL surfacing in results at all.)
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
