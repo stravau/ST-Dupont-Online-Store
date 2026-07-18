@@ -51,6 +51,38 @@ enum PaymentStatus {
   REFUNDED
 }
 
+// ----- In-store operations (internal POS — mirrors the ECI control Excel) -----
+
+// Which boutique a sale / movement / operator belongs to. Matches the
+// stockLis / stockVng split and the LOJA_LIS / LOJA_VNG staff roles.
+enum Boutique {
+  LIS // Lisboa
+  VNG // V. N. de Gaia
+}
+
+// The Excel's V/D column: a sale (venda) or a return (devolução).
+enum SaleType {
+  VENDA
+  DEVOLUCAO
+}
+
+// Every stock-affecting event. Theoretical stock for a variant in a boutique =
+// SUM(StockMovement.quantity) over these, exactly like the Excel's DB sheet
+// (initial + entries/exits − sales − reservas − danificados). quantity is
+// SIGNED: positive increases stock, negative decreases it.
+enum MovementType {
+  STOCK_INICIAL // opening balance load
+  ENTRADA // goods received (Ent)
+  SAIDA // goods out (Sai)
+  TRANSFER_IN // received from the other boutique / warehouse
+  TRANSFER_OUT // sent to the other boutique / warehouse
+  VENDA // sold (created from a SaleItem)
+  DEVOLUCAO // customer return (reverses a sale)
+  RESERVA // held for a client (Reservas)
+  DANIFICADO // damaged / warranty pull ((Danificados))
+  AJUSTE // manual correction
+}
+
 // ---------------------------------------------------------------------------
 // Auth (Auth.js / NextAuth-compatible) + users
 // ---------------------------------------------------------------------------
@@ -256,9 +288,11 @@ model ProductVariant {
   promoStartDate       DateTime?
   promoEndDate         DateTime?
 
-  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  cartItems  CartItem[]
-  orderItems OrderItem[]
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  saleItems      SaleItem[]
+  stockMovements StockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -410,4 +444,115 @@ model Payment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// In-store operations (internal POS) — replaces the ECI control Excel.
+// Money is integer cents. Two derived amounts mirror the Excel: net = gross /
+// 1.23 (PT VAT 23%), and the ECI concession commission = net * 0.19. These
+// factors live in lib as constants so a rate change is one edit.
+// ---------------------------------------------------------------------------
+
+// Salespeople — the Excel "Operadores" sheet (PR, MA, CD, LR, AC, JM). The
+// store login is shared, so the operator is chosen per sale, not derived from
+// the session. Each belongs to one boutique.
+model Operator {
+  id               String    @id @default(cuid())
+  initials         String // PR, MA, …
+  name             String?
+  eciCode          String? // ECI employee number
+  boutique         Boutique
+  monthlyGoalCents Int? // optional monthly sales target
+  active           Boolean   @default(true)
+
+  sales     Sale[]
+  movements StockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([boutique, initials])
+  @@index([boutique])
+}
+
+// One transaction (a basket) — groups its SaleItem lines. The Excel is
+// line-per-row (Mov_POS_Loja); we group into a sale so the terminal can ring
+// up several items at once. Date/time are system-stamped (soldAt).
+model Sale {
+  id                 String   @id @default(cuid())
+  boutique           Boutique
+  operatorId         String
+  type               SaleType @default(VENDA)
+  soldAt             DateTime @default(now())
+  // Totals denormalised from items for fast reporting (all cents).
+  grossCents         Int      @default(0) // Σ ValorVend (incl. VAT)
+  netCents           Int      @default(0) // Σ V.Rec (gross / 1.23, ex-VAT)
+  eciCommissionCents Int      @default(0) // netCents * 0.19 (ECI concession fee)
+  note               String?
+  // For a DEVOLUCAO, the original sale being reversed (optional).
+  originalSaleId     String?
+
+  operator     Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
+  originalSale Sale?      @relation("SaleReturns", fields: [originalSaleId], references: [id], onDelete: SetNull)
+  returns      Sale[]     @relation("SaleReturns")
+  items        SaleItem[]
+
+  createdAt DateTime @default(now())
+
+  @@index([boutique, soldAt])
+  @@index([operatorId])
+  @@index([soldAt])
+  @@index([type])
+}
+
+// A sale line — one row of Mov_POS_Loja. Snapshots sku/desc/price/brand (like
+// OrderItem) so the record is stable even if the catalogue changes later.
+model SaleItem {
+  id             String  @id @default(cuid())
+  saleId         String
+  variantId      String? // link to our catalogue (null if EAN not in catalogue)
+  sku            String
+  ean            String?
+  descSnapshot   String
+  brand          String? // Marca
+  quantity       Int
+  unitPriceCents Int // PVP at time of sale
+  discountPct    Float   @default(0) // Desc % as 0..1
+  grossCents     Int // quantity * unitPriceCents * (1 - discountPct)
+  netCents       Int // grossCents / 1.23
+
+  sale    Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([saleId])
+  @@index([variantId])
+  @@index([sku])
+}
+
+// The stock ledger — every event that changes stock, per boutique. Theoretical
+// stock = SUM(quantity) grouped by (variantId, boutique); the variant's
+// stockLis / stockVng columns are kept as a cache of those sums (recomputed on
+// each write, exactly like the existing stock = stockLis + stockVng pattern).
+model StockMovement {
+  id         String       @id @default(cuid())
+  boutique   Boutique
+  variantId  String?
+  sku        String
+  ean        String?
+  type       MovementType
+  quantity   Int // SIGNED: +in / -out
+  operatorId String?
+  saleItemId String? // set when the movement came from a sale line
+  note       String?
+  movedAt    DateTime     @default(now())
+
+  variant  ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  operator Operator?       @relation(fields: [operatorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([boutique, variantId])
+  @@index([variantId])
+  @@index([movedAt])
+  @@index([type])
 }
