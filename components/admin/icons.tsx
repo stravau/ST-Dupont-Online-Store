@@ -56,6 +56,15 @@ export function IconReports(props: { className?: string }) {
   );
 }
 
+export function IconCalendar(props: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" {...stroke(props)}>
+      <rect x="3" y="4.5" width="18" height="16.5" rx="2" />
+      <path d="M3 9h18M8 2.5v4M16 2.5v4" />
+    </svg>
+  );
+}
+
 export function IconAudit(props: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" {...stroke(props)}>
