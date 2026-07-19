@@ -38,9 +38,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <ToastProvider>
       <div className="flex min-h-screen bg-cream text-ink">
-        <AdminSidebar email={email} signOutAction={signOutAction} />
+        <AdminSidebar email={email} role={role} signOutAction={signOutAction} />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <AdminMobileBar email={email} signOutAction={signOutAction} />
+          <AdminMobileBar email={email} role={role} signOutAction={signOutAction} />
           <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-8 sm:py-10">
             {children}
           </main>

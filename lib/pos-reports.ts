@@ -108,6 +108,49 @@ export async function topOperators(
     .sort((a, b) => b.grossCents - a.grossCents);
 }
 
+export interface SaleLogEntry {
+  id: string;
+  soldAt: Date;
+  boutique: BoutiqueCode;
+  type: "VENDA" | "DEVOLUCAO";
+  operator: string; // initials
+  grossCents: number;
+  netCents: number;
+  eciCommissionCents: number;
+  items: { sku: string; desc: string; quantity: number }[];
+}
+
+// Chronological log of individual sales for the window — one row per sale,
+// newest first, with who registered it and what. The reports page groups these
+// by day. Capped so a long window can't pull unbounded rows.
+export async function salesLog(
+  boutiques: BoutiqueCode[],
+  from: Date,
+  to: Date,
+  limit = 500,
+): Promise<SaleLogEntry[]> {
+  const rows = await prisma.sale.findMany({
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    orderBy: { soldAt: "desc" },
+    take: limit,
+    include: {
+      operator: { select: { initials: true } },
+      items: { select: { sku: true, descSnapshot: true, quantity: true } },
+    },
+  });
+  return rows.map((s) => ({
+    id: s.id,
+    soldAt: s.soldAt,
+    boutique: s.boutique as BoutiqueCode,
+    type: s.type as "VENDA" | "DEVOLUCAO",
+    operator: s.operator.initials,
+    grossCents: s.grossCents,
+    netCents: s.netCents,
+    eciCommissionCents: s.eciCommissionCents,
+    items: s.items.map((i) => ({ sku: i.sku, desc: i.descSnapshot, quantity: i.quantity })),
+  }));
+}
+
 // Convenience window: the current calendar month [1st 00:00, now].
 export function monthWindow(now: Date): { from: Date; to: Date } {
   const from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);

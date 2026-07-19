@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { unstable_cache } from "next/cache";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -60,6 +62,11 @@ function JumpCard({ href, eyebrow, title, body, Icon }: { href: string; eyebrow:
 }
 
 export default async function AdminHome() {
+  // The dashboard is the boss's cross-store overview — store logins land on
+  // Registar Venda instead.
+  const session = await auth();
+  if ((session?.user as { role?: string } | undefined)?.role !== "ADMIN") redirect("/admin/pos");
+
   const [stats, recentActions] = await Promise.all([
     getDashboardStats(),
     prisma.adminAction.findMany({
