@@ -98,7 +98,7 @@ export default async function DailyReportPage({ searchParams }: { searchParams: 
               <thead>
                 <tr className="border-b border-line text-left text-[0.58rem] tracking-[0.12em] text-muted uppercase">
                   <th className="py-2 pr-3">Hora</th>
-                  <th className="py-2 px-2">Quem</th>
+                  <th className="py-2 px-2">Operador</th>
                   {multi && <th className="py-2 px-2">Loja</th>}
                   <th className="py-2 px-2">Registado</th>
                   <th className="py-2 px-2 text-right">Bruto</th>
