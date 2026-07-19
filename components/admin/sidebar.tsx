@@ -45,7 +45,7 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
   sections.push({
     title: "Catálogo",
     items: [
-      { href: "/admin/variants", label: "Artigos & Stock", hint: "Preços, stock e estado", Icon: IconList },
+      { href: "/admin/variants", label: "Consultar Stock", hint: "Preços, stock e estado", Icon: IconList },
       ...(isAdmin
         ? [{ href: "/admin/uploads", label: "Importar Ficheiros", hint: "Excel de PVP, stock e promoções", Icon: IconUpload }]
         : []),
