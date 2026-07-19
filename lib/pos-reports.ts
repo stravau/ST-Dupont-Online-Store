@@ -200,3 +200,11 @@ export function monthWindow(now: Date): { from: Date; to: Date } {
   const from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
   return { from, to: now };
 }
+
+// Full calendar month for a "YYYY-MM" string — [1st 00:00, last day 23:59].
+export function monthRange(ym: string): { from: Date; to: Date; label: string } {
+  const [y, m] = ym.split("-").map(Number);
+  const from = new Date(y, m - 1, 1, 0, 0, 0, 0);
+  const to = new Date(y, m, 0, 23, 59, 59, 999);
+  return { from, to, label: from.toLocaleDateString("pt-PT", { month: "long", year: "numeric" }) };
+}

@@ -228,6 +228,8 @@ const dictionaries = {
       // Live per-boutique inventory strip — appears under Pedir Informação.
       availabilityTitle: "Disponibilidade em boutique",
       availabilityOnRequest: "Disponibilidade sob confirmação",
+      availabilityBoth: "Disponível",
+      availabilityInStore: "Disponível em {store}",
       stockAvailable: "{n} disponíveis",
       stockLastOne: "Última unidade",
       stockOutOfStock: "Esgotado",
@@ -495,6 +497,8 @@ const dictionaries = {
       compatibleRefillsSub: "The recommended consumables for this item",
       availabilityTitle: "Availability in boutique",
       availabilityOnRequest: "Availability on request",
+      availabilityBoth: "Available",
+      availabilityInStore: "Available at {store}",
       stockAvailable: "{n} available",
       stockLastOne: "Last piece",
       stockOutOfStock: "Sold out",

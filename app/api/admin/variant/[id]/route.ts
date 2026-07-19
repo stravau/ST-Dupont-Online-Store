@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, isValidEan, safeError } from "@/lib/admin-api";
 
 export const dynamic = "force-dynamic";
@@ -25,29 +25,21 @@ export async function PATCH(
   if (rl) return rl;
 
   const { id } = await params;
-  const session = await auth();
-  const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
-  const role   = (session?.user as { role?: string } | undefined)?.role ?? null;
+  const staff = await currentStaff();
+  const userId = staff?.id ?? null;
+  const role = staff?.role ?? null;
+
+  // Catalogue editing is boss-only. The boutiques used to edit their own stock
+  // column, but with sales handled by the POS the article list is read-only for
+  // them now — only ADMIN may write here. (DB role, so a stale ADMIN session
+  // from before a downgrade can't slip through.)
+  if (role !== "ADMIN") {
+    return NextResponse.json({ ok: false, error: "apenas o administrador pode editar" }, { status: 403 });
+  }
 
   let body: Record<string, unknown>;
   try { body = await req.json(); }
   catch { return NextResponse.json({ ok: false, error: "bad json" }, { status: 400 }); }
-
-  // Boutique roles can only touch their own stock column. Reject any
-  // payload that tries to write a forbidden field with 403, before any
-  // DB read.
-  if (role === "LOJA_LIS" || role === "LOJA_VNG") {
-    const allowed = role === "LOJA_LIS" ? "stockLis" : "stockVng";
-    const editable = ["stockLis", "stockVng", "expectedUpdatedAt"]; // only the allowed key + the optimistic-concurrency marker
-    const submitted = Object.keys(body).filter((k) => k !== "expectedUpdatedAt");
-    if (submitted.some((k) => k !== allowed)) {
-      return NextResponse.json(
-        { ok: false, error: `role ${role} can only edit ${allowed}` },
-        { status: 403 },
-      );
-    }
-    void editable;
-  }
 
   const current = await prisma.productVariant.findUnique({
     where: { id },

@@ -59,9 +59,12 @@ export function VariantRow({
   const [savedUpdatedAt, setSavedUpdatedAt] = useState<string>(updatedAtInit);
   const [, startTransition] = useTransition();
 
+  // With the POS handling stock via sales, the boutiques no longer edit the
+  // catalogue at all — this list is read-only for them ("Consultar Stock").
+  // Only the boss (ADMIN) can edit anything here.
   const isAdmin    = role === "ADMIN";
-  const canEditLis = isAdmin || role === "LOJA_LIS";
-  const canEditVng = isAdmin || role === "LOJA_VNG";
+  const canEditLis = isAdmin;
+  const canEditVng = isAdmin;
 
   async function patch(body: Record<string, unknown>, label: string): Promise<boolean> {
     try {

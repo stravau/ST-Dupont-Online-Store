@@ -252,6 +252,8 @@ export default async function ProductPage({
             : "Contact the boutique for more information on availability.",
           availability: {
             title: dict.product.availabilityTitle,
+            available: dict.product.availabilityBoth,
+            availableAt: dict.product.availabilityInStore,
             onRequest: dict.product.availabilityOnRequest,
           },
           lang: locale,

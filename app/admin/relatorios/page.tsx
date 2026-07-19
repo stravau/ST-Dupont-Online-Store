@@ -1,6 +1,7 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
-import { salesByStore, bestSellers, salesLog, monthWindow, type SaleLogEntry } from "@/lib/pos-reports";
+import { MonthPicker } from "@/components/admin/month-picker";
+import { salesByStore, bestSellers, salesLog, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +19,17 @@ const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const dayLabel = (d: Date) =>
   d.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
 
-export default async function ReportsPage() {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
+  const { month } = await searchParams;
   const staff = await currentStaff();
   const boutiques = boutiquesForRole(staff?.role ?? null);
   const multi = boutiques.length > 1;
 
   const now = new Date();
-  const { from, to } = monthWindow(now);
-  const monthName = now.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
-  const todayYmd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const ym = month && /^\d{4}-\d{2}$/.test(month)
+    ? month
+    : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const { from, to, label: monthName } = monthRange(ym);
 
   const [stores, best, log] = await Promise.all([
     salesByStore(boutiques, from, to),
@@ -62,15 +65,7 @@ export default async function ReportsPage() {
         eyebrow="Operações"
         title="Relatórios"
         subtitle={`Vendas de ${monthName} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
-        action={
-          <a
-            href={`/api/admin/reports/export?date=${todayYmd}`}
-            download
-            className="inline-flex items-center gap-2 border border-line bg-paper px-4 py-2.5 text-[0.7rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
-          >
-            Exportar Excel · hoje ↓
-          </a>
-        }
+        action={<MonthPicker month={ym} />}
       />
 
       {/* Two independent columns: the report on the left, the best-sellers rail

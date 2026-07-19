@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/app/generated/prisma/client";
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { IconSearch } from "@/components/admin/icons";
@@ -26,8 +26,8 @@ interface SearchProps {
 }
 
 export default async function AdminVariantsPage({ searchParams }: SearchProps) {
-  const session = await auth();
-  const rawRole = (session?.user as { role?: string } | undefined)?.role;
+  const staff = await currentStaff();
+  const rawRole = staff?.role;
   // Default to ADMIN locally (no session) so the page is testable in
   // dev without seeding a user; in prod the proxy gate already
   // enforces one of the three valid roles before the page renders.
