@@ -365,14 +365,7 @@ export function VariantSelector({
         </button>
       )}
 
-      {labels.availability && labels.lang && (active.stockLis != null || active.stockVng != null) && (
-        <AvailabilityStrip
-          stockLis={active.stockLis}
-          stockVng={active.stockVng}
-          labels={labels.availability}
-          lang={labels.lang}
-        />
-      )}
+      {labels.availability && <AvailabilityStrip labels={labels.availability} />}
 
       <InquiryModal
         open={inquiryOpen}
