@@ -151,6 +151,50 @@ export async function salesLog(
   }));
 }
 
+export interface SaleLine {
+  soldAt: Date;
+  boutique: BoutiqueCode;
+  type: "VENDA" | "DEVOLUCAO";
+  operator: string;
+  ean: string | null;
+  sku: string;
+  desc: string;
+  quantity: number;
+  unitPriceCents: number;
+  discountPct: number;
+}
+
+// One row per sale line (mirrors the Excel Mov_POS_Loja layout) for a window —
+// used by the daily Excel export. Ordered chronologically.
+export async function saleLines(boutiques: BoutiqueCode[], from: Date, to: Date): Promise<SaleLine[]> {
+  const items = await prisma.saleItem.findMany({
+    where: { sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } } },
+    include: {
+      sale: { select: { soldAt: true, type: true, boutique: true, operator: { select: { initials: true } } } },
+    },
+    orderBy: { sale: { soldAt: "asc" } },
+  });
+  return items.map((i) => ({
+    soldAt: i.sale.soldAt,
+    boutique: i.sale.boutique as BoutiqueCode,
+    type: i.sale.type as "VENDA" | "DEVOLUCAO",
+    operator: i.sale.operator.initials,
+    ean: i.ean,
+    sku: i.sku,
+    desc: i.descSnapshot,
+    quantity: i.quantity,
+    unitPriceCents: i.unitPriceCents,
+    discountPct: i.discountPct,
+  }));
+}
+
+// A calendar day [00:00, 23:59:59.999] for the export.
+export function dayWindow(d: Date): { from: Date; to: Date } {
+  const from = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  const to = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+  return { from, to };
+}
+
 // Convenience window: the current calendar month [1st 00:00, now].
 export function monthWindow(now: Date): { from: Date; to: Date } {
   const from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);

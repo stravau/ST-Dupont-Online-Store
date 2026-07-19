@@ -26,6 +26,7 @@ export default async function ReportsPage() {
   const now = new Date();
   const { from, to } = monthWindow(now);
   const monthName = now.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+  const todayYmd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const [stores, best, log] = await Promise.all([
     salesByStore(boutiques, from, to),
@@ -61,6 +62,15 @@ export default async function ReportsPage() {
         eyebrow="Operações"
         title="Relatórios"
         subtitle={`Vendas de ${monthName} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
+        action={
+          <a
+            href={`/api/admin/reports/export?date=${todayYmd}`}
+            download
+            className="inline-flex items-center gap-2 border border-line bg-paper px-4 py-2.5 text-[0.7rem] tracking-[0.18em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+          >
+            Exportar Excel · hoje ↓
+          </a>
+        }
       />
 
       {/* Two independent columns: the report on the left, the best-sellers rail
@@ -102,7 +112,16 @@ export default async function ReportsPage() {
               <div className="mt-4 space-y-7">
                 {days.map((d) => (
                   <div key={d.key}>
-                    <p className="overline text-[0.58rem] text-gold">{d.label}</p>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="overline text-[0.58rem] text-gold">{d.label}</p>
+                      <a
+                        href={`/api/admin/reports/export?date=${d.key}`}
+                        download
+                        className="shrink-0 text-[0.62rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
+                      >
+                        Exportar Excel ↓
+                      </a>
+                    </div>
                     <div className="mt-2 overflow-x-auto">
                       <table className="w-full min-w-[44rem] border-collapse text-sm">
                         <thead>
