@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { salesByStore, bestSellers, salesLog, monthWindow, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
@@ -19,9 +19,8 @@ const dayLabel = (d: Date) =>
   d.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
 
 export default async function ReportsPage() {
-  const session = await auth();
-  const role = (session?.user as { role?: string } | undefined)?.role ?? null;
-  const boutiques = boutiquesForRole(role);
+  const staff = await currentStaff();
+  const boutiques = boutiquesForRole(staff?.role ?? null);
   const multi = boutiques.length > 1;
 
   const now = new Date();

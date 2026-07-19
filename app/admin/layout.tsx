@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { auth, signOut } from "@/auth";
+import { signOut } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { AdminSidebar, AdminMobileBar } from "@/components/admin/sidebar";
 import { ToastProvider } from "@/components/admin/toast";
 
@@ -16,9 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  const email = session?.user?.email ?? "";
-  const role = (session?.user as { role?: string } | undefined)?.role;
+  const staff = await currentStaff();
+  const email = staff?.email ?? "";
+  const role = staff?.role ?? undefined;
 
   // Defence-in-depth: proxy.ts already rejects sessions that aren't
   // ADMIN / LOJA_LIS / LOJA_VNG, but if that gate is ever removed by

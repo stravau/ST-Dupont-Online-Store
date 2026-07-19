@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { unstable_cache } from "next/cache";
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
@@ -63,9 +63,10 @@ function JumpCard({ href, eyebrow, title, body, Icon }: { href: string; eyebrow:
 
 export default async function AdminHome() {
   // The dashboard is the boss's cross-store overview — store logins land on
-  // Registar Venda instead.
-  const session = await auth();
-  if ((session?.user as { role?: string } | undefined)?.role !== "ADMIN") redirect("/admin/pos");
+  // Registar Venda instead. Role read from the DB so it's not fooled by a
+  // stale session minted before the account was changed to a store login.
+  const staff = await currentStaff();
+  if (staff?.role !== "ADMIN") redirect("/admin/pos");
 
   const [stats, recentActions] = await Promise.all([
     getDashboardStats(),

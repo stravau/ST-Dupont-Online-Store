@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { boutiqueFromRole, isStaffRole, type BoutiqueCode } from "@/lib/pos";
 import { createSale, PosError, type SaleLineInput } from "@/lib/pos-service";
@@ -18,9 +18,9 @@ export async function POST(req: Request) {
   const rl = await assertRateLimit(req, "pos-sale", 120, 60_000);
   if (rl) return rl;
 
-  const session = await auth();
-  const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
-  const role = (session?.user as { role?: string } | undefined)?.role ?? null;
+  const staff = await currentStaff();
+  const userId = staff?.id ?? null;
+  const role = staff?.role ?? null;
   if (!isStaffRole(role)) return NextResponse.json({ ok: false }, { status: 403 });
 
   let body: Record<string, unknown>;

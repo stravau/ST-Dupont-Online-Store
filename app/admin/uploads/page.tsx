@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { UploadCard } from "./upload-client";
 
@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminUploadsPage() {
   // Bulk imports are boss-only — store logins can't reach this page.
-  const session = await auth();
-  if ((session?.user as { role?: string } | undefined)?.role !== "ADMIN") redirect("/admin/pos");
+  const staff = await currentStaff();
+  if (staff?.role !== "ADMIN") redirect("/admin/pos");
 
   return (
     <div className="space-y-8">

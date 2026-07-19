@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/page-header";
 import { PosTerminal } from "@/components/admin/pos-terminal";
@@ -15,9 +15,8 @@ function boutiquesForRole(role: string | null): BoutiqueCode[] {
 }
 
 export default async function PosPage() {
-  const session = await auth();
-  const role = (session?.user as { role?: string } | undefined)?.role ?? null;
-  const boutiques = boutiquesForRole(role);
+  const staff = await currentStaff();
+  const boutiques = boutiquesForRole(staff?.role ?? null);
 
   const operators = await prisma.operator.findMany({
     where: { boutique: { in: boutiques }, active: true },
