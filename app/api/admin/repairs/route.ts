@@ -7,12 +7,14 @@ import { boutiqueFromRole, isStaffRole, type BoutiqueCode } from "@/lib/pos";
 export const dynamic = "force-dynamic";
 
 const STATUSES = [
-  "ABERTO",
-  "EM_ANALISE",
-  "EM_ESPANHA",
-  "ORCAMENTO_ENVIADO",
-  "A_AGUARDAR_CLIENTE",
+  "AGUARDANDO_CLIENTE",
+  "AGUARDANDO_STD",
+  "AGUARDANDO_JM",
+  "AGUARDANDO_PR",
+  "ART_EM_REPARACAO",
   "RESOLVIDO",
+  "POR_DAR_RESPOSTA",
+  "POR_VERIFICAR",
 ] as const;
 type RepairStatus = (typeof STATUSES)[number];
 const isStatus = (v: unknown): v is RepairStatus => typeof v === "string" && (STATUSES as readonly string[]).includes(v);
@@ -69,7 +71,7 @@ export async function POST(req: Request) {
         boutique,
         firstVisitAt: day(body.firstVisit) ?? undefined,
         staff: staffInitials,
-        status: isStatus(body.status) ? body.status : "ABERTO",
+        status: isStatus(body.status) ? body.status : "POR_VERIFICAR",
         customerName,
         reference,
         subject,

@@ -19,17 +19,29 @@ const APPLY = process.argv.includes("--apply");
 const RESET = process.argv.includes("--reset");
 const BOUTIQUE = "LIS" as const;
 
-type RepairStatus = "ABERTO" | "EM_ANALISE" | "EM_ESPANHA" | "ORCAMENTO_ENVIADO" | "A_AGUARDAR_CLIENTE" | "RESOLVIDO";
+type RepairStatus =
+  | "AGUARDANDO_CLIENTE"
+  | "AGUARDANDO_STD"
+  | "AGUARDANDO_JM"
+  | "AGUARDANDO_PR"
+  | "ART_EM_REPARACAO"
+  | "RESOLVIDO"
+  | "POR_DAR_RESPOSTA"
+  | "POR_VERIFICAR";
 
-// Free-text "Estado" → enum. Almost every historical row is "Resolvido".
+// The Excel "Estado" values map 1:1 to the enum. Kept tolerant (substring) in
+// case of trailing spaces / minor variants; unknown → "Por Verificar !!".
 function mapStatus(raw: unknown): RepairStatus {
-  const s = String(raw ?? "").toLowerCase();
-  if (s.includes("resolv") || s.includes("entreg") || s.includes("conclu")) return "RESOLVIDO";
-  if (s.includes("espanha")) return "EM_ESPANHA";
-  if (s.includes("orçam") || s.includes("orcam")) return "ORCAMENTO_ENVIADO";
-  if (s.includes("aguard") || s.includes("cliente")) return "A_AGUARDAR_CLIENTE";
-  if (s.includes("anális") || s.includes("analis") || s.includes("loja")) return "EM_ANALISE";
-  return "ABERTO";
+  const s = String(raw ?? "").toLowerCase().trim();
+  if (s.includes("resolv")) return "RESOLVIDO";
+  if (s.includes("std")) return "AGUARDANDO_STD";
+  if (s.includes("jm")) return "AGUARDANDO_JM";
+  if (s.includes("aguardando pr")) return "AGUARDANDO_PR";
+  if (s.includes("cliente")) return "AGUARDANDO_CLIENTE";
+  if (s.includes("repara")) return "ART_EM_REPARACAO";
+  if (s.includes("resposta")) return "POR_DAR_RESPOSTA";
+  if (s.includes("verific")) return "POR_VERIFICAR";
+  return "POR_VERIFICAR";
 }
 
 // Parse a date cell: a real Date (cellDates), or free text containing dd/mm/yyyy.

@@ -6,23 +6,28 @@ import type { BoutiqueCode } from "@/lib/pos";
 
 // ----- shared vocab (mirrors the Excel Reparações dropdowns) -----
 
+// Exactly the "Estado" dropdown from the Excel Reparações sheet, same order.
 export const REPAIR_STATUSES = [
-  { value: "ABERTO", label: "Aberto" },
-  { value: "EM_ANALISE", label: "Em análise" },
-  { value: "EM_ESPANHA", label: "Em Espanha" },
-  { value: "ORCAMENTO_ENVIADO", label: "Orçamento enviado" },
-  { value: "A_AGUARDAR_CLIENTE", label: "A aguardar cliente" },
+  { value: "AGUARDANDO_CLIENTE", label: "Aguardando Cliente" },
+  { value: "AGUARDANDO_STD", label: "Aguardando STD" },
+  { value: "AGUARDANDO_JM", label: "Aguardando JM" },
+  { value: "AGUARDANDO_PR", label: "Aguardando PR" },
+  { value: "ART_EM_REPARACAO", label: "Art. em Reparação" },
   { value: "RESOLVIDO", label: "Resolvido" },
+  { value: "POR_DAR_RESPOSTA", label: "Por dar Resposta !" },
+  { value: "POR_VERIFICAR", label: "Por Verificar !!" },
 ] as const;
 
 const STATUS_LABEL: Record<string, string> = Object.fromEntries(REPAIR_STATUSES.map((s) => [s.value, s.label]));
 const STATUS_TONE: Record<string, string> = {
-  ABERTO: "bg-[#d4a017]/12 text-[#8a6d0f]",
-  EM_ANALISE: "bg-[#3b6ea5]/12 text-[#2c5580]",
-  EM_ESPANHA: "bg-[#7a5cc0]/12 text-[#5a3fa0]",
-  ORCAMENTO_ENVIADO: "bg-[#c07a2c]/12 text-[#8a5518]",
-  A_AGUARDAR_CLIENTE: "bg-[#b94a3a]/12 text-[#8a2f22]",
+  AGUARDANDO_CLIENTE: "bg-[#d4a017]/12 text-[#8a6d0f]",
+  AGUARDANDO_STD: "bg-[#3b6ea5]/12 text-[#2c5580]",
+  AGUARDANDO_JM: "bg-[#7a5cc0]/12 text-[#5a3fa0]",
+  AGUARDANDO_PR: "bg-[#2c8a8a]/12 text-[#1c6060]",
+  ART_EM_REPARACAO: "bg-[#5c6cc0]/12 text-[#3f4fa0]",
   RESOLVIDO: "bg-[#2bb673]/14 text-[#1c8a54]",
+  POR_DAR_RESPOSTA: "bg-[#c07a2c]/12 text-[#8a5518]",
+  POR_VERIFICAR: "bg-[#b94a3a]/12 text-[#8a2f22]",
 };
 
 // Contact methods seen in the Excel "Último_Contato" column.
@@ -56,7 +61,7 @@ const emptyForm = (boutique: BoutiqueCode, today: string): FormState => ({
   boutique,
   firstVisit: today,
   staff: "",
-  status: "ABERTO",
+  status: "POR_VERIFICAR",
   customerName: "",
   reference: "",
   subject: "",
@@ -206,7 +211,7 @@ export function RepairsManager({
           <thead>
             <tr className="border-b border-line text-left text-[0.56rem] tracking-[0.1em] text-muted uppercase">
               <th className="py-2 pr-3">1ª Visita</th>
-              <th className="py-2 px-2">Staff</th>
+              <th className="py-2 px-2">Operador</th>
               <th className="py-2 px-2">Estado</th>
               {multi && <th className="py-2 px-2">Loja</th>}
               <th className="py-2 px-2">Cliente</th>
@@ -283,7 +288,7 @@ export function RepairsManager({
                 <Field label="1ª Visita (data)">
                   <input type="date" value={form.firstVisit} onChange={(e) => set("firstVisit", e.target.value)} className={inputCls} />
                 </Field>
-                <Field label="Staff">
+                <Field label="Operador">
                   <input list="repair-staff" value={form.staff} onChange={(e) => set("staff", e.target.value.toUpperCase())} placeholder="PR" className={inputCls} />
                   <datalist id="repair-staff">{staffOptions.map((s) => <option key={s} value={s} />)}</datalist>
                 </Field>
@@ -318,7 +323,7 @@ export function RepairsManager({
                 <Field label="Data">
                   <input type="date" value={form.lastContactAt ?? ""} onChange={(e) => set("lastContactAt", e.target.value)} className={inputCls} />
                 </Field>
-                <Field label="Staff do contacto">
+                <Field label="Operador do contacto">
                   <input list="repair-staff" value={form.lastContactStaff ?? ""} onChange={(e) => set("lastContactStaff", e.target.value.toUpperCase())} className={inputCls} />
                 </Field>
                 <Field label="Via">

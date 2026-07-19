@@ -66,16 +66,19 @@ enum SaleType {
   DEVOLUCAO
 }
 
-// Repair-ticket lifecycle (Excel "Estado [Ir atualizando]"). Free text in the
-// sheet ("Resolvido", "Em curso", …) is normalised to these states; the UI
-// shows PT labels.
+// Repair-ticket lifecycle — the exact "Estado" dropdown from the Excel
+// Reparações sheet. UI labels: Aguardando Cliente · Aguardando STD ·
+// Aguardando JM · Aguardando PR · Art. em Reparação · Resolvido ·
+// Por dar Resposta ! · Por Verificar !!
 enum RepairStatus {
-  ABERTO // acabou de dar entrada
-  EM_ANALISE // em análise em loja
-  EM_ESPANHA // enviado para o técnico (Espanha)
-  ORCAMENTO_ENVIADO // orçamento comunicado, a aguardar resposta
-  A_AGUARDAR_CLIENTE // aguarda levantamento / decisão do cliente
+  AGUARDANDO_CLIENTE // aguarda levantamento / decisão do cliente
+  AGUARDANDO_STD // aguarda resposta da S.T. Dupont (técnico / Espanha)
+  AGUARDANDO_JM // aguarda tratamento por JM
+  AGUARDANDO_PR // aguarda tratamento por PR
+  ART_EM_REPARACAO // artigo em reparação
   RESOLVIDO // concluído / entregue
+  POR_DAR_RESPOSTA // falta dar resposta ao cliente
+  POR_VERIFICAR // acabou de dar entrada, por verificar
 }
 
 // Every stock-affecting event. Theoretical stock for a variant in a boutique =
@@ -583,7 +586,7 @@ model Repair {
   // porque o histórico importado tem linhas com data desconhecida ("??").
   firstVisitAt DateTime?    @default(now())
   staff        String // Staff — iniciais do operador (PR, MA, …)
-  status       RepairStatus @default(ABERTO) // Estado [Ir atualizando]
+  status       RepairStatus @default(POR_VERIFICAR) // Estado [Ir atualizando]
   customerName String // Cli_Nome
   reference    String // Ref. — artigo / referência
   subject      String // Assunto — descrição do problema/pedido
