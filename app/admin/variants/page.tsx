@@ -5,7 +5,7 @@ import type { Prisma } from "@/app/generated/prisma/client";
 import { auth } from "@/auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
-import { IconSearch, IconUpload } from "@/components/admin/icons";
+import { IconSearch } from "@/components/admin/icons";
 import { VariantRow } from "./row-client";
 
 export const dynamic = "force-dynamic";
@@ -124,14 +124,6 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
         eyebrow="Catálogo"
         title="Artigos"
         subtitle={`${total.toLocaleString("pt-PT")} variants${total > PAGE_SIZE ? ` · página ${page} / ${totalPages}` : ""}.`}
-        action={
-          <Link
-            href="/admin/uploads"
-            className="inline-flex items-center gap-2 border border-line bg-paper px-4 py-2.5 text-xs tracking-[0.2em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
-          >
-            <IconUpload className="h-3.5 w-3.5" /> Uploads
-          </Link>
-        }
       />
 
       <form method="get" className="space-y-3 border border-line bg-paper p-5">
