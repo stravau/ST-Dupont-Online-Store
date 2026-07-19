@@ -99,6 +99,11 @@ export default async function ProductPage({
     stockVng: v.stockVng,
   }));
 
+  // Product-level stock for the status pill near the title — in stock in a
+  // boutique if ANY colourway has stock there.
+  const pillLis = product.variants.reduce((m, v) => Math.max(m, v.stockLis ?? 0), 0);
+  const pillVng = product.variants.reduce((m, v) => Math.max(m, v.stockVng ?? 0), 0);
+
   // Parse the marketing description for (REF NNNNNN) callouts —
   // Dupont's standard "Associated gas refill / flint / ink refill"
   // pattern — and resolve them to catalogue products. Surfaces in
@@ -264,7 +269,7 @@ export default async function ProductPage({
               <p className="overline">
                 {cat.name[locale]} · {product.collection}
               </p>
-              <StatusPill lang={locale} />
+              <StatusPill lang={locale} stockLis={pillLis} stockVng={pillVng} />
             </div>
             <h1 className="mt-4 font-serif text-4xl text-ink md:text-5xl">{product.name[locale]}</h1>
             <div className="gold-rule my-7" />
