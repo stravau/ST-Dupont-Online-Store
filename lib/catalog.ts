@@ -240,7 +240,10 @@ function mapProduct(p: ProductRow): Product {
         attributes: attrs,
         image: v.images?.[0] ?? null,
         images: v.images ?? [],
-        status: ((v as { status?: VariantStatus }).status ?? "DISPONIVEL") as VariantStatus,
+        status: effectiveStatus(
+          ((v as { status?: VariantStatus }).status ?? "DISPONIVEL") as VariantStatus,
+          ((v as { stockLis?: number }).stockLis ?? 0) + ((v as { stockVng?: number }).stockVng ?? 0),
+        ),
         promoPriceCents: (v as { promoPriceCents?: number | null }).promoPriceCents ?? null,
         promoEndDate: (v as { promoEndDate?: Date | null }).promoEndDate ?? null,
         stock: (v as { stock?: number }).stock ?? 0,
@@ -249,6 +252,16 @@ function mapProduct(p: ProductRow): Product {
       };
     }),
   };
+}
+
+// Stock is the source of truth for availability: a variant with no stock in
+// either boutique is treated as INDISPONIVEL across the whole site (the PDP
+// "unavailable" box + disabled Pedir-Informação, the card chip), regardless of
+// its stored status. DESCONTINUADO always wins (stays hidden). This is derived
+// on read so it stays correct automatically as stock moves — no status writes.
+export function effectiveStatus(status: VariantStatus, totalStock: number): VariantStatus {
+  if (status === "DESCONTINUADO") return "DESCONTINUADO";
+  return totalStock <= 0 ? "INDISPONIVEL" : status;
 }
 
 const productInclude = {

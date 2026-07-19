@@ -142,10 +142,12 @@ export function ProductCard({
     }
   }
 
-  // INDISPONIVEL → "Temporariamente indisponível". Otherwise mirror the PDP
-  // status pill: reflect the product's real stock per boutique across every
-  // colourway ("Disponível em <loja>", "Disponível" in both, else on request).
-  const isIndisponivel = base.status === "INDISPONIVEL";
+  // "Indisponível" only when EVERY sellable colourway is unavailable — the
+  // catalog already derives INDISPONIVEL for any variant with no stock, so this
+  // covers both a fully out-of-stock product and a manually-hidden one, while a
+  // product with stock in even one colourway stays available.
+  const sellable = product.variants.filter((v) => v.status !== "DESCONTINUADO");
+  const isIndisponivel = sellable.length === 0 || sellable.every((v) => v.status === "INDISPONIVEL");
   const cardLis = product.variants.reduce((m, v) => Math.max(m, v.stockLis ?? 0), 0);
   const cardVng = product.variants.reduce((m, v) => Math.max(m, v.stockVng ?? 0), 0);
   const stockLabel =

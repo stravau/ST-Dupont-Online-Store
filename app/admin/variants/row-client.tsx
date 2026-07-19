@@ -170,10 +170,16 @@ export function VariantRow({
     total <= 5 ? "text-[#7e5e00]" :
                   "text-ink";
 
+  // Stock is the source of truth (same rule as the site): no stock anywhere →
+  // Indisponível, whatever the stored status says, except DESCONTINUADO which
+  // stays hidden. Adding stock re-derives back to the stored status.
+  const effectiveStatus: Status =
+    status === "DESCONTINUADO" ? "DESCONTINUADO" : total <= 0 ? "INDISPONIVEL" : status;
+
   const statusTone =
-    status === "DISPONIVEL"   ? "border-[#2bb673]/60 bg-[#2bb673]/15 text-[#155f3a]" :
-    status === "INDISPONIVEL" ? "border-[#d4a017]/70 bg-[#d4a017]/15 text-[#6a4f00]" :
-                                 "border-[#8b95a6]/70 bg-[#8b95a6]/15 text-[#3a4452]";
+    effectiveStatus === "DISPONIVEL"   ? "border-[#2bb673]/60 bg-[#2bb673]/15 text-[#155f3a]" :
+    effectiveStatus === "INDISPONIVEL" ? "border-[#d4a017]/70 bg-[#d4a017]/15 text-[#6a4f00]" :
+                                          "border-[#8b95a6]/70 bg-[#8b95a6]/15 text-[#3a4452]";
 
   // Per-cell editability cosmetics — read-only cells render as muted
   // text without an input border so it's instantly clear what a
@@ -214,7 +220,7 @@ export function VariantRow({
       <td className="px-4 py-2 align-middle">
         {isAdmin ? (
           <select
-            value={status}
+            value={effectiveStatus}
             onChange={(e) => commitStatus(e.target.value as Status)}
             aria-label={`Estado de ${sku}`}
             className={`appearance-none rounded-sm border px-2.5 py-1.5 pr-6 text-[0.65rem] tracking-[0.12em] uppercase outline-none transition-colors focus:border-gold ${statusTone}`}
@@ -226,7 +232,7 @@ export function VariantRow({
           </select>
         ) : (
           <span className={`inline-block rounded-sm border px-2.5 py-1.5 text-[0.65rem] tracking-[0.12em] uppercase ${statusTone}`}>
-            {status === "DISPONIVEL" ? "Disponível" : status === "INDISPONIVEL" ? "Indisponível" : "Descontinuado"}
+            {effectiveStatus === "DISPONIVEL" ? "Disponível" : effectiveStatus === "INDISPONIVEL" ? "Indisponível" : "Descontinuado"}
           </span>
         )}
       </td>

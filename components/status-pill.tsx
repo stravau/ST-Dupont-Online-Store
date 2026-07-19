@@ -28,7 +28,8 @@ export function StatusPill({
   else if (lis) label = dict.product.availabilityInStore.replace("{store}", STORE_LIS.labels[lang].short);
   else if (vng) label = dict.product.availabilityInStore.replace("{store}", STORE_VNG.labels[lang].short);
   else {
-    label = dict.product.availabilityOnRequest;
+    // No stock in either boutique → treated as unavailable everywhere.
+    label = dict.common.unavailable;
     inStock = false;
   }
   const color = inStock ? "#2bb673" : "#9c7a26";
