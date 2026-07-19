@@ -14,7 +14,7 @@ function boutiquesForRole(role: string | null): BoutiqueCode[] {
 
 const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
 const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
-const hhmm = (d: Date) => d.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+const hhmm = (d: Date) => d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });
 const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const dayLabel = (d: Date) =>
   d.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });

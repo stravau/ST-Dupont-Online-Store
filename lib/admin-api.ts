@@ -5,9 +5,10 @@
 //   2. A consistent way to fail without leaking Prisma error text
 //   3. Audit-log helpers for image uploads
 //
-// Auth itself is enforced by `proxy.ts` — every /api/admin/* call has
-// already been gated against an ADMIN session before it reaches the
-// route handler.
+// proxy.ts gates /api/admin/* to STAFF only — but that includes the LOJA_*
+// store logins (they need the POS), so it does NOT enforce ADMIN-only. Any
+// route that WRITES to the catalogue (price, stock, promo, images, new
+// articles) MUST gate itself with requireAdmin() from lib/admin-auth.
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";

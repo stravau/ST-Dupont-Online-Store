@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { put } from "@vercel/blob";
 import { assertRateLimit, assertSameOrigin, isValidImageUrl, safeError, validateImageUpload } from "@/lib/admin-api";
 
@@ -25,10 +25,11 @@ export async function PUT(
   if (csrf) return csrf;
   const rl = await assertRateLimit(req, "images-put", 60, 60_000);
   if (rl) return rl;
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate.response;
+  const userId = gate.userId;
 
   const { id: sku } = await params;
-  const session = await auth();
-  const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
 
   let body: { images?: unknown };
   try { body = await req.json(); }
@@ -91,6 +92,9 @@ export async function POST(
   // admin clicking five times should NOT replace five copies.
   const rl = await assertRateLimit(req, "images-upload", 20, 60_000);
   if (rl) return rl;
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate.response;
+  const userId = gate.userId;
 
   const { id: sku } = await params;
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -99,8 +103,6 @@ export async function POST(
       { status: 501 },
     );
   }
-  const session = await auth();
-  const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
 
   const form = await req.formData();
   const file = form.get("file");

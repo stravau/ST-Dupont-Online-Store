@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -22,4 +23,22 @@ export async function currentStaff(): Promise<StaffIdentity | null> {
   if (!email) return null;
   const u = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
   return { email, id: u?.id ?? null, role: u?.role ?? null };
+}
+
+// Gate for catalogue-mutation routes: returns { userId } for an ADMIN, or a
+// ready 403 Response for anyone else. IMPORTANT: proxy.ts admits the store
+// logins (LOJA_LIS/LOJA_VNG) into /api/admin/* because they need the POS, so it
+// does NOT enforce ADMIN-only — every route that writes to the catalogue MUST
+// call this itself. Role comes from the DB (not the possibly-stale JWT).
+export async function requireAdmin(): Promise<
+  { ok: true; userId: string | null } | { ok: false; response: NextResponse }
+> {
+  const staff = await currentStaff();
+  if (staff?.role !== "ADMIN") {
+    return {
+      ok: false,
+      response: NextResponse.json({ ok: false, error: "apenas o administrador pode fazer esta operação" }, { status: 403 }),
+    };
+  }
+  return { ok: true, userId: staff.id };
 }

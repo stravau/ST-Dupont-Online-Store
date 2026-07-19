@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { readUploadedSheet, pick, asString, asInt, batchResolveVariants } from "@/lib/admin-upload";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 
@@ -16,8 +16,9 @@ export async function POST(req: Request) {
   const rl = await assertRateLimit(req, "upload-stock", 5, 60_000);
   if (rl) return rl;
 
-  const session = await auth();
-  const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate.response;
+  const userId = gate.userId;
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return NextResponse.json({ ok: false, error: "no file" }, { status: 400 });
