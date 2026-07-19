@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -35,20 +36,20 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
   }
 
   sections.push({
-    title: "Loja",
-    items: [
-      { href: "/admin/pos", label: "Registar Venda", hint: "Vender por código de barras", Icon: IconPos },
-      { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports },
-    ],
-  });
-
-  sections.push({
     title: "Catálogo",
     items: [
       { href: "/admin/variants", label: "Consultar Stock", hint: "Preços, stock e estado", Icon: IconList },
       ...(isAdmin
         ? [{ href: "/admin/uploads", label: "Importar Ficheiros", hint: "Excel de PVP, stock e promoções", Icon: IconUpload }]
         : []),
+    ],
+  });
+
+  sections.push({
+    title: "Loja",
+    items: [
+      { href: "/admin/pos", label: "Registar Venda", hint: "Vender por código de barras", Icon: IconPos },
+      { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports },
     ],
   });
 
@@ -74,6 +75,15 @@ export function AdminSidebar({
   const pathname = usePathname();
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
   const sections = sectionsFor(role);
+
+  // Day picker for the sales-report export. Set on the client (avoids an
+  // SSR/local-time hydration mismatch); an empty date still exports today,
+  // since the endpoint defaults to now.
+  const [reportDate, setReportDate] = useState("");
+  useEffect(() => {
+    const d = new Date();
+    setReportDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+  }, []);
 
   return (
     <aside className="hidden w-72 shrink-0 flex-col border-r border-line bg-paper md:flex">
@@ -116,6 +126,25 @@ export function AdminSidebar({
             </ul>
           </div>
         ))}
+
+        {/* Sales report — pick a day and export it as Excel. */}
+        <div className="mt-2 border-t border-line px-3 pt-5">
+          <p className="overline text-[0.6rem] text-muted">Relatório de Vendas</p>
+          <input
+            type="date"
+            value={reportDate}
+            onChange={(e) => setReportDate(e.target.value)}
+            aria-label="Dia do relatório"
+            className="mt-2.5 w-full rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-gold"
+          />
+          <a
+            href={`/api/admin/reports/export?date=${reportDate}`}
+            download
+            className="mt-2.5 inline-flex w-full items-center justify-center gap-2 rounded-md border border-line bg-paper px-3 py-2.5 text-[0.68rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+          >
+            Exportar Excel ↓
+          </a>
+        </div>
       </nav>
 
       <form action={signOutAction} className="border-t border-line px-6 py-5">
