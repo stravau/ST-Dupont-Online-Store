@@ -236,7 +236,7 @@ export function PosTerminal({
         </div>
 
         <label className="mt-4 block">
-          <span className="overline text-[0.55rem] text-muted">Quem vendeu</span>
+          <span className="overline text-[0.55rem] text-muted">Operador</span>
           <select value={operator} onChange={(e) => setOperator(e.target.value)}
             className="mt-2 w-full border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-gold">
             <option value="">— escolher —</option>
