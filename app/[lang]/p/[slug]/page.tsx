@@ -258,8 +258,8 @@ export default async function ProductPage({
           availability: {
             title: dict.product.availabilityTitle,
             available: dict.product.availabilityBoth,
-            availableAt: dict.product.availabilityInStore,
-            onRequest: dict.product.availabilityOnRequest,
+            fewLeft: dict.product.stockFewLeft,
+            outOfStock: dict.product.stockOutOfStock,
           },
           lang: locale,
         }}

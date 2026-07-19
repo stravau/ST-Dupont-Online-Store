@@ -1,16 +1,14 @@
-// Availability line under "Pedir Informação" on the PDP. Now that real per-
-// boutique stock is loaded, it reflects it: in stock in one boutique → shows
-// which one; in stock in both → simply "Disponível"; in stock in neither →
-// "Disponibilidade sob confirmação" (a showcase, not a live shop, so we never
-// scream "Esgotado"). Real stock still drives admin / POS / reports.
-import { STORE_LIS, STORE_VNG } from "@/lib/store-info";
+// Per-boutique stock rows under "Pedir Informação" on the PDP. One row each for
+// Lisboa and V. N. de Gaia: >= 2 units → "Disponível" (green), 1 unit → "Poucas
+// unidades" (amber), 0 → "Esgotado" (grey).
+import { STORE_LIS, STORE_VNG, type StoreInfo } from "@/lib/store-info";
 import type { Locale } from "@/lib/i18n";
 
 export interface AvailabilityLabels {
   title: string; // "Disponibilidade em boutique"
-  available: string; // both boutiques: "Disponível"
-  availableAt: string; // one boutique: "Disponível em {store}"
-  onRequest: string; // neither: "Disponibilidade sob confirmação"
+  available: string; // >= 2: "Disponível"
+  fewLeft: string; // == 1: "Poucas unidades"
+  outOfStock: string; // == 0: "Esgotado"
 }
 
 export function AvailabilityStrip({
@@ -24,26 +22,36 @@ export function AvailabilityStrip({
   labels: AvailabilityLabels;
   lang: Locale;
 }) {
-  const lis = (stockLis ?? 0) > 0;
-  const vng = (stockVng ?? 0) > 0;
-
-  let message: string;
-  let inStock = true;
-  if (lis && vng) message = labels.available;
-  else if (lis) message = labels.availableAt.replace("{store}", STORE_LIS.labels[lang].short);
-  else if (vng) message = labels.availableAt.replace("{store}", STORE_VNG.labels[lang].short);
-  else {
-    message = labels.onRequest;
-    inStock = false;
-  }
-
   return (
     <div className="border-t border-line pt-6">
       <p className="overline">{labels.title}</p>
-      <p className="mt-3 flex items-center gap-2.5">
-        <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${inStock ? "bg-[#2bb673]" : "bg-gold"}`} />
-        <span className="text-xs tracking-[0.14em] text-ink uppercase">{message}</span>
-      </p>
+      <ul className="mt-3 flex flex-col gap-2 text-sm">
+        <Row store={STORE_LIS} count={Number(stockLis ?? 0)} labels={labels} lang={lang} />
+        <Row store={STORE_VNG} count={Number(stockVng ?? 0)} labels={labels} lang={lang} />
+      </ul>
     </div>
+  );
+}
+
+function Row({
+  store,
+  count,
+  labels,
+  lang,
+}: {
+  store: StoreInfo;
+  count: number;
+  labels: AvailabilityLabels;
+  lang: Locale;
+}) {
+  const dot = count >= 2 ? "bg-[#2bb673]" : count === 1 ? "bg-[#d4a017]" : "bg-line";
+  const status = count >= 2 ? labels.available : count === 1 ? labels.fewLeft : labels.outOfStock;
+  const tone = count > 0 ? "text-ink" : "text-muted";
+  return (
+    <li className="flex items-center gap-3">
+      <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${dot}`} />
+      <span className="w-28 shrink-0 text-xs tracking-[0.14em] text-muted uppercase">{store.labels[lang].short}</span>
+      <span className={`text-xs tracking-[0.14em] uppercase ${tone}`}>{status}</span>
+    </li>
   );
 }

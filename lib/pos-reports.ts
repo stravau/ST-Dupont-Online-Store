@@ -108,6 +108,53 @@ export async function topOperators(
     .sort((a, b) => b.grossCents - a.grossCents);
 }
 
+// Cumulative (all-time) totals per operator — reproduces the Excel Estat_Calc
+// "Sum of Valor Vend / QTD / Count of V/D by operator" pivot. Signed by V/D so
+// returns net out exactly like the pivot. Ordered by value sold, descending.
+export interface OperatorLifetime {
+  initials: string;
+  boutique: BoutiqueCode;
+  movements: number; // Count of V/D (# vendas + # devoluções)
+  units: number; // Σ QTD, signed (venda + / devolução −)
+  grossCents: number; // Σ Valor Vend, signed (incl. VAT)
+  netCents: number; // Σ ex-VAT, signed
+}
+
+export async function operatorLifetimeTotals(boutiques: BoutiqueCode[]): Promise<OperatorLifetime[]> {
+  const sales = await prisma.sale.findMany({
+    where: { boutique: { in: boutiques } },
+    select: {
+      type: true,
+      grossCents: true,
+      netCents: true,
+      operator: { select: { initials: true, boutique: true } },
+      items: { select: { quantity: true } },
+    },
+  });
+  const map = new Map<string, OperatorLifetime>();
+  for (const s of sales) {
+    const key = `${s.operator.boutique}·${s.operator.initials}`;
+    let t = map.get(key);
+    if (!t) {
+      t = {
+        initials: s.operator.initials,
+        boutique: s.operator.boutique as BoutiqueCode,
+        movements: 0,
+        units: 0,
+        grossCents: 0,
+        netCents: 0,
+      };
+      map.set(key, t);
+    }
+    const sign = s.type === "DEVOLUCAO" ? -1 : 1;
+    t.movements += 1;
+    t.units += sign * s.items.reduce((a, i) => a + i.quantity, 0);
+    t.grossCents += sign * s.grossCents;
+    t.netCents += sign * s.netCents;
+  }
+  return [...map.values()].sort((a, b) => b.grossCents - a.grossCents);
+}
+
 export interface SaleLogEntry {
   id: string;
   soldAt: Date;

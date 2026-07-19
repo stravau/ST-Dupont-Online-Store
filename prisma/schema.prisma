@@ -66,6 +66,18 @@ enum SaleType {
   DEVOLUCAO
 }
 
+// Repair-ticket lifecycle (Excel "Estado [Ir atualizando]"). Free text in the
+// sheet ("Resolvido", "Em curso", …) is normalised to these states; the UI
+// shows PT labels.
+enum RepairStatus {
+  ABERTO // acabou de dar entrada
+  EM_ANALISE // em análise em loja
+  EM_ESPANHA // enviado para o técnico (Espanha)
+  ORCAMENTO_ENVIADO // orçamento comunicado, a aguardar resposta
+  A_AGUARDAR_CLIENTE // aguarda levantamento / decisão do cliente
+  RESOLVIDO // concluído / entregue
+}
+
 // Every stock-affecting event. Theoretical stock for a variant in a boutique =
 // SUM(StockMovement.quantity) over these, exactly like the Excel's DB sheet
 // (initial + entries/exits − sales − reservas − danificados). quantity is
@@ -555,4 +567,40 @@ model StockMovement {
   @@index([variantId])
   @@index([movedAt])
   @@index([type])
+}
+
+// After-sales / repair ticket — mirrors the Excel "Reparações" sheet. The
+// first-visit date is system-stamped on creation (data automática); every
+// other field is filled in and kept up to date as the case progresses (the
+// sheet's "Ir atualizando" columns). Column order in the admin table follows
+// the Excel: 1ª Visita · Staff · Estado · Cliente · Ref. · Assunto ·
+// Atualizações · Último contacto (data/staff/via/obs.) · Outras obs. · Tlm ·
+// Outros contactos.
+model Repair {
+  id           String       @id @default(cuid())
+  boutique     Boutique     @default(LIS) // qual loja acompanha o processo
+  // 1ª_Visita — data automática em novos processos (default now()); nullable
+  // porque o histórico importado tem linhas com data desconhecida ("??").
+  firstVisitAt DateTime?    @default(now())
+  staff        String // Staff — iniciais do operador (PR, MA, …)
+  status       RepairStatus @default(ABERTO) // Estado [Ir atualizando]
+  customerName String // Cli_Nome
+  reference    String // Ref. — artigo / referência
+  subject      String // Assunto — descrição do problema/pedido
+  updates      String? // Atualizações — notas do processo
+  // Último_Contato — data & staff / via / observação
+  lastContactAt    DateTime? // Último_Contato_Data
+  lastContactStaff String? // & Staff que fez o contacto
+  lastContactVia   String? // Último_Contato (Whatsapp, Chamada tlf., Em loja, E-mail, SMS…)
+  lastContactNote  String? // Último_Contato_Obs.
+  otherObs         String? // Outras_Obs._Contatos (ex.: "Não ligar! Enviar msg")
+  phone            String? // Tlm_WhatsApp
+  otherContacts    String? // Outros_Contatos (e-mail / outro telefone)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([boutique, firstVisitAt])
+  @@index([status])
+  @@index([firstVisitAt])
 }

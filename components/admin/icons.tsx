@@ -75,6 +75,14 @@ export function IconAudit(props: { className?: string }) {
   );
 }
 
+export function IconRepair(props: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" {...stroke(props)}>
+      <path d="M14.7 6.3a3.5 3.5 0 0 0-4.6 4.6l-6 6a1.6 1.6 0 0 0 2.3 2.3l6-6a3.5 3.5 0 0 0 4.6-4.6l-2.1 2.1-2.1-.6-.6-2.1 2.1-2.1Z" />
+    </svg>
+  );
+}
+
 export function IconSearch(props: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" {...stroke(props)}>

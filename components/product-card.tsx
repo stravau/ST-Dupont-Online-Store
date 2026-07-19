@@ -3,6 +3,7 @@ import { getDictionary } from "@/lib/i18n";
 import { type Product, formatPrice } from "@/lib/catalog";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 import { compareSwatch } from "@/lib/swatch-order";
+import { STORE_LIS, STORE_VNG } from "@/lib/store-info";
 
 export function ProductCard({
   product,
@@ -141,10 +142,21 @@ export function ProductCard({
     }
   }
 
-  // INDISPONIVEL → user sees a Temporarily unavailable chip;
-  // DISPONIVEL → the normal Disponível na boutique chip.
+  // INDISPONIVEL → "Temporariamente indisponível". Otherwise mirror the PDP
+  // status pill: reflect the product's real stock per boutique across every
+  // colourway ("Disponível em <loja>", "Disponível" in both, else on request).
   const isIndisponivel = base.status === "INDISPONIVEL";
-  const availableLabel = isIndisponivel ? dict.common.unavailable : dict.common.available;
+  const cardLis = product.variants.reduce((m, v) => Math.max(m, v.stockLis ?? 0), 0);
+  const cardVng = product.variants.reduce((m, v) => Math.max(m, v.stockVng ?? 0), 0);
+  const stockLabel =
+    cardLis > 0 && cardVng > 0
+      ? dict.product.availabilityBoth
+      : cardLis > 0
+        ? dict.product.availabilityInStore.replace("{store}", STORE_LIS.labels[lang].short)
+        : cardVng > 0
+          ? dict.product.availabilityInStore.replace("{store}", STORE_VNG.labels[lang].short)
+          : dict.product.availabilityOnRequest;
+  const availableLabel = isIndisponivel ? dict.common.unavailable : stockLabel;
 
   return (
     <ProductCardInteractive

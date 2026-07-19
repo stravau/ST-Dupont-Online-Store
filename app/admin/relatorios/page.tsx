@@ -1,7 +1,7 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { MonthPicker } from "@/components/admin/month-picker";
-import { salesByStore, bestSellers, salesLog, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
+import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 
 export const dynamic = "force-dynamic";
@@ -31,11 +31,17 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const { from, to, label: monthName } = monthRange(ym);
 
-  const [stores, best, log] = await Promise.all([
+  const [stores, best, log, operators] = await Promise.all([
     salesByStore(boutiques, from, to),
     bestSellers(boutiques, from, to, 12),
     salesLog(boutiques, from, to, 500),
+    operatorLifetimeTotals(boutiques),
   ]);
+
+  const operatorsTotal = operators.reduce(
+    (a, o) => ({ movements: a.movements + o.movements, units: a.units + o.units, grossCents: a.grossCents + o.grossCents }),
+    { movements: 0, units: 0, grossCents: 0 },
+  );
 
   const combined = stores.reduce(
     (a, s) => ({
@@ -98,8 +104,54 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             )}
           </div>
 
-          {/* Registration log — grouped by day; each row is one sale. */}
+          {/* Vendas por operador — cumulative (all-time) totals, mirroring the
+              Excel Estat_Calc pivot. Independent of the month filter above. */}
           <section className="mt-8">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="font-serif text-lg text-ink">Vendas por operador</h2>
+              <span className="text-[0.62rem] tracking-[0.14em] text-muted uppercase">Total histórico · líquido de devoluções</span>
+            </div>
+            {operators.length === 0 ? (
+              <p className="mt-3 text-sm text-muted">Ainda sem vendas registadas.</p>
+            ) : (
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full min-w-[34rem] border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-line text-left text-[0.58rem] tracking-[0.12em] text-muted uppercase">
+                      <th className="py-2 pr-3">Operador</th>
+                      {multi && <th className="py-2 px-2">Loja</th>}
+                      <th className="py-2 px-2 text-right">Movimentos</th>
+                      <th className="py-2 px-2 text-right">Unidades</th>
+                      <th className="py-2 pl-2 text-right">Valor vendido</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {operators.map((o) => (
+                      <tr key={`${o.boutique}-${o.initials}`} className="border-b border-line/60">
+                        <td className="py-2.5 pr-3 font-medium text-ink">{o.initials}</td>
+                        {multi && <td className="py-2.5 px-2 text-[0.72rem] text-muted">{BOUTIQUE_LABEL[o.boutique]}</td>}
+                        <td className="py-2.5 px-2 text-right tabular-nums text-muted">{o.movements}</td>
+                        <td className="py-2.5 px-2 text-right tabular-nums text-muted">{o.units}</td>
+                        <td className="py-2.5 pl-2 text-right font-medium text-ink tabular-nums">{eur(o.grossCents)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-ink/20 text-[0.82rem]">
+                      <td className="py-2.5 pr-3 font-semibold text-ink uppercase tracking-wide text-[0.6rem]">Total</td>
+                      {multi && <td />}
+                      <td className="py-2.5 px-2 text-right tabular-nums text-ink">{operatorsTotal.movements}</td>
+                      <td className="py-2.5 px-2 text-right tabular-nums text-ink">{operatorsTotal.units}</td>
+                      <td className="py-2.5 pl-2 text-right font-semibold text-gold tabular-nums">{eur(operatorsTotal.grossCents)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </section>
+
+          {/* Registration log — grouped by day; each row is one sale. */}
+          <section className="mt-10">
             <h2 className="font-serif text-lg text-ink">Registo de vendas</h2>
             {days.length === 0 ? (
               <p className="mt-3 text-sm text-muted">Ainda sem vendas registadas este mês.</p>

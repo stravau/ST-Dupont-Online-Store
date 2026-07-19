@@ -10,6 +10,7 @@ import {
   IconPos,
   IconReports,
   IconCalendar,
+  IconRepair,
   IconSignOut,
 } from "@/components/admin/icons";
 
@@ -51,6 +52,7 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
       { href: "/admin/pos", label: "Registar Venda", hint: "Vender por código de barras", Icon: IconPos },
       { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports },
       { href: "/admin/relatorio-vendas", label: "Relatório de Vendas", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar },
+      { href: "/admin/reparacoes", label: "Reparações", hint: "Assistência e pós-venda", Icon: IconRepair },
     ],
   });
 
