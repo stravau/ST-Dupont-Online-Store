@@ -62,103 +62,95 @@ export default async function AdminLoginPage({
   }
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 bg-cream lg:grid-cols-[1.1fr_1fr]">
-      {/* Brand pane — full-height showcase on large screens, mirrors the
-          storefront monogram-bg / cream palette so the admin feels of-a-piece.
-          Type scales fluidly with the viewport (clamp) so it never looks tiny
-          on a big monitor nor cramped on a laptop. */}
-      <aside className="monogram-bg relative hidden flex-col justify-between overflow-hidden p-10 text-cream lg:flex xl:p-16">
-        <div>
-          <p className="overline text-gold-soft">Admin</p>
-          <p className="mt-3 font-serif leading-none text-[clamp(2.5rem,3.4vw,4rem)]">S.T. Dupont</p>
-          <p className="mt-3 text-[0.75rem] tracking-[0.22em] text-cream/70 uppercase">
-            El Corte Inglés · Lisboa &amp; V. N. Gaia
-          </p>
-        </div>
-        <div className="space-y-5">
-          <div className="gold-rule" />
-          <p className="max-w-xl font-serif leading-relaxed text-cream/90 text-[clamp(1.5rem,2vw,2.25rem)]">
-            “A arte francesa do luxo — desde o gesto mais íntimo ao detalhe mais raro.”
-          </p>
-          <p className="text-[0.7rem] tracking-[0.22em] text-cream/60 uppercase">
-            Painel restrito · acesso autenticado
-          </p>
-        </div>
-      </aside>
+    // Full-bleed navy monogram background covering the whole page; the white
+    // form card floats over it. Brand pinned top-left, maxim pinned
+    // bottom-left (single line). overflow-hidden guarantees no horizontal
+    // scrollbar from the nowrap maxim on any width.
+    <div className="monogram-bg relative flex min-h-[calc(100dvh/0.9)] items-center justify-center overflow-hidden px-5 py-10 text-cream sm:px-8 lg:justify-end lg:px-0 lg:pr-[7vw] xl:pr-[9vw]">
+      {/* Brand — top-left */}
+      <div className="absolute left-0 top-0 z-10 p-8 sm:p-12 xl:p-16">
+        <p className="overline text-gold-soft">Admin</p>
+        <p className="mt-3 font-serif font-semibold leading-none text-[clamp(2.25rem,3.4vw,4rem)]">
+          S.T. Dupont
+        </p>
+        <p className="mt-3 text-[0.72rem] tracking-[0.22em] text-cream/70 uppercase sm:text-[0.78rem]">
+          El Corte Inglés · Lisboa &amp; V. N. Gaia
+        </p>
+      </div>
 
-      {/* Form pane — always vertically centred, fluid padding + type so it
-          reads well from small phones to ultra-wide displays. */}
-      <main className="flex min-h-dvh items-center justify-center px-5 py-10 sm:px-8 sm:py-14">
-        <div className="w-full max-w-md">
-          {/* Compact brand — shown only when the showcase pane is hidden
-              (below lg) so the form is never bare on phones/tablets. */}
-          <div className="mb-10 text-center lg:hidden">
-            <p className="overline text-gold">Admin</p>
-            <p className="mt-2 font-serif leading-none text-ink text-[clamp(2rem,9vw,2.75rem)]">S.T. Dupont</p>
-            <p className="mt-2 text-[0.7rem] tracking-[0.22em] text-muted uppercase">El Corte Inglés</p>
-          </div>
+      {/* Maxim — pinned bottom-left, always one line (hidden on very small
+          phones where a single line can't fit gracefully). */}
+      <div className="absolute bottom-0 left-0 z-10 hidden p-8 sm:block sm:p-12 xl:p-16">
+        <div className="gold-rule mb-4" />
+        <p className="font-serif font-medium leading-none whitespace-nowrap text-cream/90 text-[clamp(0.85rem,1.5vw,1.55rem)]">
+          “A arte francesa do luxo — desde o gesto mais íntimo ao detalhe mais raro.”
+        </p>
+        <p className="mt-3 text-[0.7rem] tracking-[0.22em] text-cream/55 uppercase">
+          Painel restrito · acesso autenticado
+        </p>
+      </div>
 
-          <form action={action} className="w-full border border-line bg-paper p-7 shadow-lg sm:p-10">
-            <p className="overline text-gold">Entrar</p>
-            <h1 className="mt-3 font-serif leading-tight text-ink text-[clamp(1.75rem,4vw,2.5rem)]">
-              Painel de gestão
-            </h1>
-            <p className="mt-3 text-sm text-muted sm:text-[0.95rem]">
-              Sessão restrita à equipa da boutique.
+      {/* Form card — vertically centred; sits to the right on desktop so it
+          never collides with the brand/maxim, centred on phones/tablets. */}
+      <form action={action} className="relative z-20 w-full max-w-md border border-line bg-paper p-7 shadow-2xl sm:p-10">
+          <p className="overline text-gold">Entrar</p>
+          <h1 className="mt-3 font-serif font-semibold leading-tight text-ink text-[clamp(1.75rem,4vw,2.5rem)]">
+            Painel de gestão
+          </h1>
+          <p className="mt-3 text-sm text-muted sm:text-[0.95rem]">
+            Sessão restrita à equipa da boutique.
+          </p>
+
+          {error === "invalid" && (
+            <p className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Credenciais inválidas.
             </p>
+          )}
+          {error === "locked" && (
+            <p className="mt-6 border border-[#d4a017]/50 bg-[#d4a017]/10 px-4 py-3 text-sm text-[#6a4f00]">
+              Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
+            </p>
+          )}
 
-            {error === "invalid" && (
-              <p className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-                Credenciais inválidas.
-              </p>
-            )}
-            {error === "locked" && (
-              <p className="mt-6 border border-[#d4a017]/50 bg-[#d4a017]/10 px-4 py-3 text-sm text-[#6a4f00]">
-                Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
-              </p>
-            )}
+          <input
+            type="hidden"
+            name="callbackUrl"
+            value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
+          />
 
+          <label className="mt-8 block">
+            <span className="overline mb-2 block text-[0.62rem] text-muted">Email</span>
             <input
-              type="hidden"
-              name="callbackUrl"
-              value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
+              name="email"
+              type="email"
+              required
+              autoComplete="username"
+              className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
             />
+          </label>
 
-            <label className="mt-8 block">
-              <span className="overline mb-2 block text-[0.62rem] text-muted">Email</span>
-              <input
-                name="email"
-                type="email"
-                required
-                autoComplete="username"
-                className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
-              />
-            </label>
+          <label className="mt-5 block">
+            <span className="overline mb-2 block text-[0.62rem] text-muted">Password</span>
+            <input
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
+            />
+          </label>
 
-            <label className="mt-5 block">
-              <span className="overline mb-2 block text-[0.62rem] text-muted">Password</span>
-              <input
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
-              />
-            </label>
+          <button
+            type="submit"
+            className="mt-9 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
+          >
+            Entrar
+          </button>
 
-            <button
-              type="submit"
-              className="mt-9 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
-            >
-              Entrar
-            </button>
-
-            <p className="mt-8 text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
-              S.T. Dupont · 1872
-            </p>
-          </form>
-        </div>
-      </main>
+          <p className="mt-8 text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
+            S.T. Dupont · 1872
+          </p>
+      </form>
     </div>
   );
 }
