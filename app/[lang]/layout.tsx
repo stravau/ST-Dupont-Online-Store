@@ -8,6 +8,7 @@ import { RevealRoot } from "@/components/reveal-root";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { ConsentProvider } from "@/lib/consent";
 import { CookieBanner } from "@/components/cookie-banner";
+import { HtmlLang } from "@/components/html-lang";
 
 // Nested locale layout — html/body/CSS/fonts live in the root
 // app/layout.tsx so /admin (which sits outside [lang]) also inherits
@@ -34,6 +35,7 @@ export default async function LocaleLayout({
   const dict = getDictionary(locale);
   return (
     <ConsentProvider>
+      <HtmlLang lang={locale} />
       <div className="flex min-h-screen flex-col bg-cream">
         <a
           href="#main"

@@ -163,8 +163,11 @@ export function MobileNav({
             className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col bg-cream"
             style={{
               transform: open ? "translateX(0)" : "translateX(-100%)",
-              transition: "transform 0.3s ease-out",
+              transition: "transform 0.3s ease-out, visibility 0.3s ease-out",
               pointerEvents: open ? "auto" : "none",
+              // Remove the off-screen panel's ~30 links from the tab/AT tree
+              // when closed — transform alone leaves them keyboard-focusable.
+              visibility: open ? "visible" : "hidden",
               willChange: "transform",
             }}
           >

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import {
   getProductsByTheme,
   sortProducts,
@@ -56,7 +56,17 @@ export async function generateMetadata({
   const t = THEMES[theme];
   if (!isLocale(lang) || !t) return {};
   const locale = lang as Locale;
-  return { title: locale === "pt" ? t.titlePt : t.titleEn };
+  const title = locale === "pt" ? t.titlePt : t.titleEn;
+  const eyebrow = locale === "pt" ? t.eyebrowPt : t.eyebrowEn;
+  return {
+    title,
+    description: `${title} — S.T. Dupont. ${eyebrow}.`,
+    alternates: {
+      canonical: `/${locale}/colecao/${theme}`,
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}/colecao/${theme}`])),
+    },
+    openGraph: { title, url: `/${locale}/colecao/${theme}`, locale: locale === "pt" ? "pt_PT" : "en_GB" },
+  };
 }
 
 export default async function ThemePage({

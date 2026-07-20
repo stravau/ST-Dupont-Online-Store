@@ -2,11 +2,15 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { locales } from "@/lib/i18n";
 import { localeCategorySlug } from "@/lib/category-slugs";
+import { productGroups } from "@/lib/product-groups";
 
 const SITE = "https://st-dupont-online-store.vercel.app";
 const CANONICAL_CATEGORIES = ["isqueiros", "escrita", "pele", "acessorios"] as const;
-const STATIC_PATHS = ["", "/historia", "/loja", "/colecao", "/pesquisa"] as const;
+const STATIC_PATHS = ["", "/historia", "/loja", "/colecao", "/colecao/ss26", "/novidades", "/pesquisa"] as const;
 const LEGAL_PATHS = ["/legal/privacidade", "/legal/termos", "/legal/devolucoes"] as const;
+// Cross-category collection themes — mirrors the THEMES map in
+// app/[lang]/colecao/[theme]/page.tsx.
+const COLLECTION_THEMES = ["cohiba", "monogram", "popote"] as const;
 
 // Emit every public URL the Maison wants Google to crawl, per locale,
 // with hreflang alternates pointing at the sibling locale. Filtered /
@@ -46,6 +50,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           languages: Object.fromEntries(
             locales.map((l) => [l, `${SITE}/${l}/c/${localeCategorySlug(l, canonical)}`]),
           ),
+        },
+      });
+    }
+  }
+
+  // Collection theme pages (/pt/colecao/cohiba …).
+  for (const theme of COLLECTION_THEMES) {
+    for (const lang of locales) {
+      items.push({
+        url: `${SITE}/${lang}/colecao/${theme}`,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.6,
+        alternates: {
+          languages: Object.fromEntries(locales.map((l) => [l, `${SITE}/${l}/colecao/${theme}`])),
+        },
+      });
+    }
+  }
+
+  // Product-group line-ups (/pt/t/bags …) — every key in lib/product-groups.
+  for (const group of Object.keys(productGroups)) {
+    for (const lang of locales) {
+      items.push({
+        url: `${SITE}/${lang}/t/${group}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+        alternates: {
+          languages: Object.fromEntries(locales.map((l) => [l, `${SITE}/${l}/t/${group}`])),
         },
       });
     }

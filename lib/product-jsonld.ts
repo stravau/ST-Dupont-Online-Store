@@ -18,6 +18,17 @@ import { STORE_LIS } from "@/lib/store-info";
 
 const FALLBACK_ORIGIN = "https://st-dupont-online-store.vercel.app";
 
+// Safely serialize a JSON-LD object for injection into an inline <script>.
+// Escapes the characters that could break out of the <script> element so
+// admin-entered product names/descriptions can never inject markup: `<`, `>`
+// and `&` neutralise any `</script>` sequence while keeping valid JSON-LD.
+export function serializeJsonLd(obj: unknown): string {
+  return JSON.stringify(obj)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
 function siteOrigin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || FALLBACK_ORIGIN;
 }

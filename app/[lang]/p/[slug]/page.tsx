@@ -21,7 +21,7 @@ import { SimilarProducts } from "@/components/similar-products";
 import { TrackProductView } from "@/components/track-product-view";
 import { buildSpecs } from "@/lib/specs";
 import { CONTACT_ANCHOR, STORE_LIS, STORE_VNG } from "@/lib/store-info";
-import { buildProductJsonLd } from "@/lib/product-jsonld";
+import { buildProductJsonLd, serializeJsonLd } from "@/lib/product-jsonld";
 import { AgeGate } from "@/components/age-gate";
 
 export async function generateMetadata({
@@ -193,7 +193,7 @@ export default async function ProductPage({
     <div className="mx-auto max-w-6xl px-6 py-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productLd) }}
       />
       {product.categorySlug === "isqueiros" && (
         <AgeGate

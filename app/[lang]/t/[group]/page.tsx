@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isLocale, getDictionary, type Locale } from "@/lib/i18n";
+import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import { getProductsByCategory, sortProducts, expandProductCards, inferGender, type Gender } from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isSortKey, type SortKey } from "@/lib/sort";
@@ -20,7 +20,17 @@ export async function generateMetadata({
   const { lang, group } = await params;
   const g = productGroups[group];
   if (!isLocale(lang) || !g) return {};
-  return { title: g.title[lang as Locale] };
+  const locale = lang as Locale;
+  const title = g.title[locale];
+  return {
+    title,
+    description: `${title} — S.T. Dupont. ${g.eyebrow}.`,
+    alternates: {
+      canonical: `/${locale}/t/${group}`,
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}/t/${group}`])),
+    },
+    openGraph: { title, url: `/${locale}/t/${group}`, locale: locale === "pt" ? "pt_PT" : "en_GB" },
+  };
 }
 
 export default async function GroupPage({

@@ -28,7 +28,7 @@ export function CookieBanner({
   if (decided || consent !== null) return null;
   return (
     <div
-      role="dialog"
+      role="region"
       aria-label={labels.title}
       className="fixed inset-x-0 bottom-0 z-[90] border-t border-cream/20 bg-ink text-cream shadow-[0_-16px_40px_-24px_rgba(6,16,32,0.55)]"
     >
