@@ -1,47 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { unstable_cache } from "next/cache";
 import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
+import { SalesPulse, SalesTrend } from "@/components/admin/dashboard-widgets";
+import { salesByStore, dailySalesSeries, dayWindow, monthWindow } from "@/lib/pos-reports";
+import type { BoutiqueCode } from "@/lib/pos";
 
 export const dynamic = "force-dynamic";
-
-// Stat counts are aggregated server-side and only need to be fresh-ish —
-// 60s of cache means a hot dashboard pull doesn't run 6 Postgres counts
-// per refresh. `recentActions` lives outside the cache so the activity
-// feed still shows new audit rows the moment they land.
-const getDashboardStats = unstable_cache(
-  async () => {
-    const [variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo] = await Promise.all([
-      prisma.productVariant.count(),
-      prisma.productVariant.count({ where: { stock: { lte: 0 } } }),
-      prisma.productVariant.count({ where: { status: "INDISPONIVEL" } }),
-      prisma.productVariant.count({ where: { status: "DESCONTINUADO" } }),
-      prisma.product.count({ where: { slug: "unmapped-inventory" } }),
-      prisma.productVariant.count({ where: { promoEndDate: { gte: new Date() } } }),
-    ]);
-    return { variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo };
-  },
-  ["admin-dashboard-stats-v1"],
-  { revalidate: 60 },
-);
-
-function StatTile({ label, value, hint, intent = "default" }: { label: string; value: string | number; hint?: string; intent?: "default" | "warning" | "danger" }) {
-  const accent =
-    intent === "warning" ? "border-l-[3px] border-l-[#d4a017]" :
-    intent === "danger"  ? "border-l-[3px] border-l-[#b94a3a]" :
-                            "border-l-[3px] border-l-gold";
-  return (
-    <div className={`border border-line bg-paper ${accent} p-5`}>
-      <p className="overline text-[0.55rem] text-muted">{label}</p>
-      <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{value}</p>
-      {hint && <p className="mt-1 text-[0.65rem] text-muted">{hint}</p>}
-    </div>
-  );
-}
 
 function JumpCard({ href, eyebrow, title, body, Icon }: { href: string; eyebrow: string; title: string; body: string; Icon: (p: { className?: string }) => React.ReactElement }) {
   return (
@@ -75,32 +43,36 @@ export default async function AdminHome() {
   const firstName = me?.name?.trim().split(/\s+/)[0];
   const greeting = firstName ? `Bem-vindo, ${firstName}!` : "Bem-vindo!";
 
-  const [stats, recentActions] = await Promise.all([
-    getDashboardStats(),
+  // Business pulse — boss sees both boutiques. Today + this-month + a 30-day trend.
+  const now = new Date();
+  const today = dayWindow(now);
+  const month = monthWindow(now);
+  const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+  const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
+  const monthName = now.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+
+  const [recentActions, todayStores, monthStores, trend] = await Promise.all([
     prisma.adminAction.findMany({
       orderBy: { createdAt: "desc" },
       take: 8,
       include: { user: { select: { email: true } } },
     }),
+    salesByStore(BOTH, today.from, today.to),
+    salesByStore(BOTH, month.from, month.to),
+    dailySalesSeries(BOTH, trendFrom, today.to),
   ]);
-  const { variants, outOfStock, indisponiveis, descontinuados, orphans, withPromo } = stats;
 
   return (
     <div className="space-y-10">
       <PageHeader
         eyebrow="Painel"
         title={greeting}
-        subtitle="Resumo da Maison — KPIs ao vivo e atalhos para as operações que mais usas."
+        subtitle="Resumo da Maison — vendas ao vivo, tendência e o estado do catálogo."
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatTile label="Artigos"        value={variants.toLocaleString("pt-PT")} />
-        <StatTile label="Stock = 0"      value={outOfStock.toLocaleString("pt-PT")}      hint="esgotados" intent={outOfStock > 0 ? "warning" : "default"} />
-        <StatTile label="Indisponíveis"  value={indisponiveis.toLocaleString("pt-PT")}   hint="visíveis com badge" intent={indisponiveis > 0 ? "warning" : "default"} />
-        <StatTile label="Descontinuados" value={descontinuados.toLocaleString("pt-PT")}  hint="ocultos do site" />
-        <StatTile label="Em promoção"    value={withPromo.toLocaleString("pt-PT")}       hint="janela activa" />
-        <StatTile label="Lotes não mapeados" value={orphans.toLocaleString("pt-PT")} hint="placeholder" />
-      </section>
+      {/* Business pulse — the first thing the boss sees: how are sales doing? */}
+      <SalesPulse today={todayStores} month={monthStores} monthName={monthName} />
+      <SalesTrend points={trend} />
 
       <section className="grid gap-5 md:grid-cols-2">
         <JumpCard

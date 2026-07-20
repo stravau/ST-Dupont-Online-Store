@@ -71,7 +71,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
     sort === "stock-asc" ? { stock: "asc" } :
                             { updatedAt: "desc" };
 
-  const [total, rows] = await Promise.all([
+  const [total, rows, kpi] = await Promise.all([
     prisma.productVariant.count({ where }),
     prisma.productVariant.findMany({
       where,
@@ -82,6 +82,18 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
         product: { select: { slug: true, name: true } },
       },
     }),
+    // Catalogue KPIs for the header cluster — always the full totals,
+    // independent of the current filter, so the numbers are stable.
+    Promise.all([
+      prisma.productVariant.count(),
+      prisma.productVariant.count({ where: { stock: { lte: 0 } } }),
+      prisma.productVariant.count({ where: { status: "INDISPONIVEL" } }),
+      prisma.productVariant.count({ where: { status: "DESCONTINUADO" } }),
+      prisma.productVariant.count({ where: { promoEndDate: { gte: new Date() } } }),
+      prisma.productVariant.count({ where: { product: { slug: "unmapped-inventory" } } }),
+    ]).then(([variants, outOfStock, indisponiveis, descontinuados, withPromo, orphans]) => ({
+      variants, outOfStock, indisponiveis, descontinuados, withPromo, orphans,
+    })),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -122,8 +134,9 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
     <div className="space-y-8">
       <PageHeader
         eyebrow="Catálogo"
-        title="Artigos"
+        title="Consultar Stock"
         subtitle={`${total.toLocaleString("pt-PT")} variants${total > PAGE_SIZE ? ` · página ${page} / ${totalPages}` : ""}.`}
+        action={<StockKpis counts={kpi} />}
       />
 
       <form method="get" className="space-y-3 border border-line bg-paper p-5">
@@ -246,6 +259,36 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
           ) : <span />}
         </div>
       )}
+    </div>
+  );
+}
+
+// Compact catalogue KPIs embedded in the header (right side). Each chip links
+// to the matching filtered view. Wraps below the title on narrow screens.
+function StockKpis({ counts }: {
+  counts: { variants: number; outOfStock: number; indisponiveis: number; descontinuados: number; withPromo: number; orphans: number };
+}) {
+  const items: { n: number; label: string; href: string; tone?: string }[] = [
+    { n: counts.variants, label: "Artigos", href: "/admin/variants" },
+    { n: counts.outOfStock, label: "Esgotados", href: "/admin/variants?stock=zero", tone: counts.outOfStock > 0 ? "text-[#b94a3a]" : undefined },
+    { n: counts.indisponiveis, label: "Indisp.", href: "/admin/variants?status=INDISPONIVEL", tone: counts.indisponiveis > 0 ? "text-[#7e5e00]" : undefined },
+    { n: counts.descontinuados, label: "Descont.", href: "/admin/variants?status=DESCONTINUADO" },
+    { n: counts.withPromo, label: "Promoção", href: "/admin/variants?promo=active" },
+    { n: counts.orphans, label: "Não-map.", href: "/admin/variants?unmapped=only" },
+  ];
+  return (
+    <div className="flex flex-wrap items-stretch divide-x divide-line overflow-hidden rounded-sm border border-line bg-paper">
+      {items.map((it) => (
+        <Link
+          key={it.label}
+          href={it.href}
+          title={`Ver ${it.label.toLowerCase()}`}
+          className="group px-3.5 py-1.5 text-center transition-colors hover:bg-cream/60"
+        >
+          <p className={`font-serif text-xl leading-none tabular-nums ${it.tone ?? "text-ink"}`}>{it.n.toLocaleString("pt-PT")}</p>
+          <p className="mt-1 text-[0.52rem] tracking-[0.1em] text-muted uppercase group-hover:text-gold">{it.label}</p>
+        </Link>
+      ))}
     </div>
   );
 }

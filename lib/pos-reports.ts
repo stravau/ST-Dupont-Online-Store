@@ -235,6 +235,47 @@ export async function saleLines(boutiques: BoutiqueCode[], from: Date, to: Date)
   }));
 }
 
+export interface DayPoint {
+  day: string; // YYYY-MM-DD (local)
+  label: string; // DD/MM
+  grossCents: number; // venda − devolução (incl. VAT)
+}
+
+// Daily net sales (venda − devolução) for every calendar day in [from, to],
+// INCLUDING days with zero sales — feeds the dashboard trend chart. Buckets in
+// JS by local day so it matches how the rest of the app renders dates.
+export async function dailySalesSeries(
+  boutiques: BoutiqueCode[],
+  from: Date,
+  to: Date,
+): Promise<DayPoint[]> {
+  const sales = await prisma.sale.findMany({
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    select: { soldAt: true, type: true, grossCents: true },
+  });
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const keyOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  const totals = new Map<string, number>();
+  for (const s of sales) {
+    const k = keyOf(s.soldAt);
+    totals.set(k, (totals.get(k) ?? 0) + (s.type === "DEVOLUCAO" ? -s.grossCents : s.grossCents));
+  }
+
+  const out: DayPoint[] = [];
+  const cursor = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  const end = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+  while (cursor <= end) {
+    out.push({
+      day: keyOf(cursor),
+      label: `${pad(cursor.getDate())}/${pad(cursor.getMonth() + 1)}`,
+      grossCents: totals.get(keyOf(cursor)) ?? 0,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return out;
+}
+
 // A calendar day [00:00, 23:59:59.999] for the export.
 export function dayWindow(d: Date): { from: Date; to: Date } {
   const from = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
