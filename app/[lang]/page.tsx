@@ -59,6 +59,10 @@ export async function generateMetadata({
       description,
       url: `/${lang}`,
       locale: lang === "pt" ? "pt_PT" : "en_GB",
+      // Home overrides openGraph (for url/locale), so it must re-declare the
+      // share image — otherwise it inherits none and links to the homepage
+      // show no preview thumbnail on WhatsApp/Facebook. Matches the site default.
+      images: ["/hero/homepage-bg.jpg"],
     },
   };
 }
