@@ -8,9 +8,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // Block parameterised duplicates and the legal/admin surfaces.
-        // /api stays open for OG image fetching by social cards.
-        disallow: ["/*?*sort=", "/*?*page=", "/*?*priceMin=", "/*?*priceMax=", "/*?*all="],
+        // Keep the admin panel out of search results, and block parameterised
+        // catalogue duplicates. /api stays open for OG image fetching by social
+        // cards.
+        disallow: ["/admin", "/admin/", "/*?*sort=", "/*?*page=", "/*?*priceMin=", "/*?*priceMax=", "/*?*all="],
       },
     ],
     sitemap: `${SITE}/sitemap.xml`,
