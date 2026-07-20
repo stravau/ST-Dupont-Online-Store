@@ -62,84 +62,102 @@ export default async function AdminLoginPage({
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-cream lg:grid-cols-2">
-      {/* Brand pane — mirrors the public-site monogram-bg / cream palette
-          so the admin landing feels of-a-piece with the storefront. */}
-      <aside className="monogram-bg relative hidden flex-col justify-between p-12 text-cream lg:flex">
+    <div className="grid min-h-dvh grid-cols-1 bg-cream lg:grid-cols-[1.1fr_1fr]">
+      {/* Brand pane — full-height showcase on large screens, mirrors the
+          storefront monogram-bg / cream palette so the admin feels of-a-piece.
+          Type scales fluidly with the viewport (clamp) so it never looks tiny
+          on a big monitor nor cramped on a laptop. */}
+      <aside className="monogram-bg relative hidden flex-col justify-between overflow-hidden p-10 text-cream lg:flex xl:p-16">
         <div>
           <p className="overline text-gold-soft">Admin</p>
-          <p className="mt-2 font-serif text-3xl">S.T. Dupont</p>
-          <p className="mt-1 text-[0.65rem] tracking-[0.18em] text-cream/70 uppercase">
-            El Corte Inglés · Lisboa
+          <p className="mt-3 font-serif leading-none text-[clamp(2.5rem,3.4vw,4rem)]">S.T. Dupont</p>
+          <p className="mt-3 text-[0.75rem] tracking-[0.22em] text-cream/70 uppercase">
+            El Corte Inglés · Lisboa &amp; V. N. Gaia
           </p>
         </div>
-        <div className="space-y-3 text-sm text-cream/80">
+        <div className="space-y-5">
           <div className="gold-rule" />
-          <p className="font-serif text-xl leading-relaxed">
+          <p className="max-w-xl font-serif leading-relaxed text-cream/90 text-[clamp(1.5rem,2vw,2.25rem)]">
             “A arte francesa do luxo — desde o gesto mais íntimo ao detalhe mais raro.”
           </p>
-          <p className="text-[0.65rem] tracking-[0.18em] text-cream/60 uppercase">
+          <p className="text-[0.7rem] tracking-[0.22em] text-cream/60 uppercase">
             Painel restrito · acesso autenticado
           </p>
         </div>
       </aside>
 
-      <main className="flex items-center justify-center px-6 py-16">
-        <form action={action} className="w-full max-w-sm border border-line bg-paper p-8">
-          <p className="overline text-[0.55rem] text-gold">Admin</p>
-          <h1 className="mt-2 font-serif text-2xl text-ink">Entrar no painel</h1>
-          <p className="mt-2 text-xs text-muted">Sessão restrita à equipa da boutique.</p>
+      {/* Form pane — always vertically centred, fluid padding + type so it
+          reads well from small phones to ultra-wide displays. */}
+      <main className="flex min-h-dvh items-center justify-center px-5 py-10 sm:px-8 sm:py-14">
+        <div className="w-full max-w-md">
+          {/* Compact brand — shown only when the showcase pane is hidden
+              (below lg) so the form is never bare on phones/tablets. */}
+          <div className="mb-10 text-center lg:hidden">
+            <p className="overline text-gold">Admin</p>
+            <p className="mt-2 font-serif leading-none text-ink text-[clamp(2rem,9vw,2.75rem)]">S.T. Dupont</p>
+            <p className="mt-2 text-[0.7rem] tracking-[0.22em] text-muted uppercase">El Corte Inglés</p>
+          </div>
 
-          {error === "invalid" && (
-            <p className="mt-5 border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
-              Credenciais inválidas.
+          <form action={action} className="w-full border border-line bg-paper p-7 shadow-lg sm:p-10">
+            <p className="overline text-gold">Entrar</p>
+            <h1 className="mt-3 font-serif leading-tight text-ink text-[clamp(1.75rem,4vw,2.5rem)]">
+              Painel de gestão
+            </h1>
+            <p className="mt-3 text-sm text-muted sm:text-[0.95rem]">
+              Sessão restrita à equipa da boutique.
             </p>
-          )}
-          {error === "locked" && (
-            <p className="mt-5 border border-[#d4a017]/50 bg-[#d4a017]/10 px-3 py-2 text-xs text-[#6a4f00]">
-              Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
+
+            {error === "invalid" && (
+              <p className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                Credenciais inválidas.
+              </p>
+            )}
+            {error === "locked" && (
+              <p className="mt-6 border border-[#d4a017]/50 bg-[#d4a017]/10 px-4 py-3 text-sm text-[#6a4f00]">
+                Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
+              </p>
+            )}
+
+            <input
+              type="hidden"
+              name="callbackUrl"
+              value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
+            />
+
+            <label className="mt-8 block">
+              <span className="overline mb-2 block text-[0.62rem] text-muted">Email</span>
+              <input
+                name="email"
+                type="email"
+                required
+                autoComplete="username"
+                className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
+              />
+            </label>
+
+            <label className="mt-5 block">
+              <span className="overline mb-2 block text-[0.62rem] text-muted">Password</span>
+              <input
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="mt-9 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
+            >
+              Entrar
+            </button>
+
+            <p className="mt-8 text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
+              S.T. Dupont · 1872
             </p>
-          )}
-
-          <input
-            type="hidden"
-            name="callbackUrl"
-            value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
-          />
-
-          <label className="mt-6 block">
-            <span className="overline mb-1.5 block text-[0.55rem] text-muted">Email</span>
-            <input
-              name="email"
-              type="email"
-              required
-              autoComplete="username"
-              className="w-full border border-line bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-gold"
-            />
-          </label>
-
-          <label className="mt-4 block">
-            <span className="overline mb-1.5 block text-[0.55rem] text-muted">Password</span>
-            <input
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full border border-line bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-gold"
-            />
-          </label>
-
-          <button
-            type="submit"
-            className="mt-7 block w-full bg-ink py-3.5 text-center text-xs tracking-[0.22em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
-          >
-            Entrar
-          </button>
-
-          <p className="mt-6 text-center text-[0.55rem] tracking-[0.18em] text-muted uppercase">
-            S.T. Dupont · 1872
-          </p>
-        </form>
+          </form>
+        </div>
       </main>
     </div>
   );

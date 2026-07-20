@@ -66,6 +66,14 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
   return sections;
 }
 
+// The boutique label under the "S.T. Dupont" wordmark, per login. The boss
+// (ADMIN) oversees both concessions; each store login shows only its own.
+function locationFor(role?: string): string {
+  if (role === "LOJA_VNG") return "El Corte Inglés · Vila Nova de Gaia";
+  if (role === "ADMIN") return "El Corte Inglés Lisboa e Vila Nova de Gaia";
+  return "El Corte Inglés · Lisboa";
+}
+
 export function AdminSidebar({
   email,
   role,
@@ -78,6 +86,7 @@ export function AdminSidebar({
   const pathname = usePathname();
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
   const sections = sectionsFor(role);
+  const location = locationFor(role);
 
   return (
     <aside className="hidden w-72 shrink-0 flex-col border-r border-line bg-paper md:flex">
@@ -85,7 +94,7 @@ export function AdminSidebar({
         <Link href={role === "ADMIN" ? "/admin" : "/admin/pos"} className="block">
           <p className="overline text-[0.55rem] text-gold">Gestão</p>
           <p className="mt-1 font-serif text-lg text-ink">S.T. Dupont</p>
-          <p className="mt-1 text-[0.62rem] tracking-[0.16em] text-muted uppercase">El Corte Inglés · Lisboa</p>
+          <p className="mt-1 text-[0.62rem] tracking-[0.16em] text-muted uppercase">{location}</p>
         </Link>
       </div>
 

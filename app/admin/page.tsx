@@ -68,6 +68,13 @@ export default async function AdminHome() {
   const staff = await currentStaff();
   if (staff?.role !== "ADMIN") redirect("/admin/pos");
 
+  // Personalised greeting — first name of the logged-in boss.
+  const me = staff.email
+    ? await prisma.user.findUnique({ where: { email: staff.email }, select: { name: true } })
+    : null;
+  const firstName = me?.name?.trim().split(/\s+/)[0];
+  const greeting = firstName ? `Bem-vindo, ${firstName}!` : "Bem-vindo!";
+
   const [stats, recentActions] = await Promise.all([
     getDashboardStats(),
     prisma.adminAction.findMany({
@@ -82,8 +89,8 @@ export default async function AdminHome() {
     <div className="space-y-10">
       <PageHeader
         eyebrow="Painel"
-        title="Resumo da Maison"
-        subtitle="KPIs ao vivo e atalhos para as operações que mais usas."
+        title={greeting}
+        subtitle="Resumo da Maison — KPIs ao vivo e atalhos para as operações que mais usas."
       />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
