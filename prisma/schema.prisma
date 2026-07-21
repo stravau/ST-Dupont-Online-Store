@@ -572,6 +572,29 @@ model StockMovement {
   @@index([type])
 }
 
+// Stock master for the OTHER brands sold only at V. N. de Gaia — Lamy,
+// Kaweco, Filofax, Parker, Pelikan, Caran d'Ache, etc. These items are
+// NOT sold on the website (no Product/Variant), they're only rung up
+// in-store, so we keep a flat table with just the fields the POS terminal
+// and the boss's "Consultar Stock" tab need. Boutique is implicit (VNG).
+// One row per SKU ("Ref" column in the ECI_VNG_Controlo Excel).
+model OtherBrandItem {
+  id        String  @id @default(cuid())
+  brand     String  // Marca — LAMY, KAWECO, PARKER, …
+  sku       String  @unique // Ref column — internal SKU (always present)
+  ean       String? @unique // barcode; sparse (some internal SKUs lack one)
+  descricao String  // free-text description from the Excel
+  pvpCents  Int? // PVP in cents; null when the Excel has no price
+  stock     Int     @default(0) // theoretical stock (Stock Teórico)
+  active    Boolean @default(true) // soft-disable without deleting history
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brand])
+  @@index([active])
+}
+
 // After-sales / repair ticket — mirrors the Excel "Reparações" sheet. The
 // first-visit date is system-stamped on creation (data automática); every
 // other field is filled in and kept up to date as the case progresses (the

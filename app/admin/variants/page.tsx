@@ -6,7 +6,9 @@ import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { IconSearch } from "@/components/admin/icons";
+import { StockTabs, type StockTab } from "@/components/admin/stock-tabs";
 import { VariantRow } from "./row-client";
+import { OtherBrandsView } from "./other-brands-view";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +16,15 @@ const PAGE_SIZE = 50;
 
 interface SearchProps {
   searchParams: Promise<{
+    tab?: string;
     q?: string;
     status?: string;
     stock?: string;
     ean?: string;
     promo?: string;
     unmapped?: string;
+    published?: string;
+    brand?: string;
     sort?: string;
     page?: string;
   }>;
@@ -34,14 +39,40 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
   const role: "ADMIN" | "LOJA_LIS" | "LOJA_VNG" =
     rawRole === "LOJA_LIS" || rawRole === "LOJA_VNG" ? rawRole : "ADMIN";
   const sp = await searchParams;
+  const tab: StockTab = sp.tab === "outras" ? "outras" : "stdupont";
   const q = (sp.q ?? "").trim();
   const status = sp.status;
   const stock = sp.stock;
   const ean = sp.ean;
   const promo = sp.promo;
   const unmapped = sp.unmapped;
+  const published = sp.published;
+  const brand = (sp.brand ?? "").trim();
   const sort = sp.sort ?? "updated";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
+
+  // Only ADMIN + LOJA_VNG can see the "Outras marcas" tab — LOJA_LIS has no
+  // non-Dupont inventory to inspect, so we hide the tab and force them back
+  // to the S.T. Dupont view if they land on ?tab=outras via a stale bookmark.
+  const showOutras = role === "ADMIN" || role === "LOJA_VNG";
+  const activeTab: StockTab = tab === "outras" && showOutras ? "outras" : "stdupont";
+
+  // Short-circuit: if the boss picked the Outras Marcas tab, delegate the
+  // filtering / listing to OtherBrandsView so the two views stay decoupled
+  // (they share no filter shape — different table, different facets).
+  if (activeTab === "outras") {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="Catálogo"
+          title="Consultar Stock"
+          subtitle="Vista analítica das marcas vendidas em V. N. de Gaia (sem ligação ao site)."
+        />
+        <StockTabs active="outras" showOutras />
+        <OtherBrandsView q={q} brand={brand} stock={stock ?? ""} sort={sort} page={page} />
+      </div>
+    );
+  }
 
   const where: Prisma.ProductVariantWhereInput = {};
   if (q) {
@@ -63,6 +94,31 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
   }
   if (unmapped === "only") where.product = { slug: "unmapped-inventory" };
   else if (unmapped === "exclude") where.product = { slug: { not: "unmapped-inventory" } };
+  // "Publicação" — variant that would appear in the store. Published means
+  // active, has a real product mapping (not the unmapped bucket), and isn't
+  // marked DESCONTINUADO. Not published = the inverse. Composed via AND so
+  // it doesn't clobber any earlier status/product/OR clauses the operator
+  // may have combined with it.
+  const publishedAnd: Prisma.ProductVariantWhereInput[] = [];
+  if (published === "yes") {
+    publishedAnd.push(
+      { active: true },
+      { NOT: { status: "DESCONTINUADO" } },
+      { product: { slug: { not: "unmapped-inventory" } } },
+    );
+  } else if (published === "no") {
+    publishedAnd.push({
+      OR: [
+        { active: false },
+        { status: "DESCONTINUADO" },
+        { product: { slug: "unmapped-inventory" } },
+      ],
+    });
+  }
+  if (publishedAnd.length) {
+    const existing = where.AND ? (Array.isArray(where.AND) ? where.AND : [where.AND]) : [];
+    where.AND = [...existing, ...publishedAnd];
+  }
 
   const orderBy: Prisma.ProductVariantOrderByWithRelationInput =
     sort === "sku" ? { sku: "asc" } :
@@ -97,47 +153,48 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const hasFilters = q || status || stock || ean || promo || unmapped;
+  const hasFilters = q || status || stock || ean || promo || unmapped || published;
+
+  // Builds a query string for the S.T. Dupont tab. `tab` is only echoed
+  // when it differs from the default so the URL stays clean.
+  function buildStdupontQs(overrides?: { page?: number }) {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (status) params.set("status", status);
+    if (stock) params.set("stock", stock);
+    if (ean) params.set("ean", ean);
+    if (promo) params.set("promo", promo);
+    if (unmapped) params.set("unmapped", unmapped);
+    if (published) params.set("published", published);
+    if (sort && sort !== "updated") params.set("sort", sort);
+    const p = overrides?.page ?? page;
+    if (p > 1) params.set("page", String(p));
+    return params.toString();
+  }
 
   // Clamp page overflow — `?page=999` on a 2-page result previously
   // showed an "empty" page instead of clamping. Redirect to the last
   // real page so the admin lands on actual data.
   if (page > totalPages && total > 0) {
-    const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (status) params.set("status", status);
-    if (stock) params.set("stock", stock);
-    if (ean) params.set("ean", ean);
-    if (promo) params.set("promo", promo);
-    if (unmapped) params.set("unmapped", unmapped);
-    if (sort && sort !== "updated") params.set("sort", sort);
-    if (totalPages > 1) params.set("page", String(totalPages));
-    const qs = params.toString();
+    const qs = buildStdupontQs({ page: totalPages });
     redirect(`/admin/variants${qs ? `?${qs}` : ""}`);
   }
 
   function pageHref(target: number) {
-    const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (status) params.set("status", status);
-    if (stock) params.set("stock", stock);
-    if (ean) params.set("ean", ean);
-    if (promo) params.set("promo", promo);
-    if (unmapped) params.set("unmapped", unmapped);
-    if (sort && sort !== "updated") params.set("sort", sort);
-    if (target > 1) params.set("page", String(target));
-    const qs = params.toString();
+    const qs = buildStdupontQs({ page: target });
     return `/admin/variants${qs ? `?${qs}` : ""}`;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Catálogo"
         title="Consultar Stock"
         subtitle={`${total.toLocaleString("pt-PT")} variants${total > PAGE_SIZE ? ` · página ${page} / ${totalPages}` : ""}.`}
         action={<StockKpis counts={kpi} />}
       />
+
+      <StockTabs active="stdupont" showOutras={showOutras} />
 
       <form method="get" className="space-y-3 border border-line bg-paper p-5">
         <div className="relative">
@@ -152,7 +209,12 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
           />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Publicação — Publicado / Não publicado / Todos. First filter the
+              boss reaches for ("what's live on the site right now?"). */}
+          <Field name="published" label="Publicação" defaultValue={published} options={[
+            ["", "Todos"], ["yes", "Publicado no site"], ["no", "Não publicado"],
+          ]} />
           <Field name="status" label="Status" defaultValue={status} options={[
             ["", "Todos"], ["DISPONIVEL", "Disponíveis"], ["INDISPONIVEL", "Indisponíveis"], ["DESCONTINUADO", "Descontinuados"],
           ]} />
