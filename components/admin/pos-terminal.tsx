@@ -51,7 +51,10 @@ export function PosTerminal({
   const lineGross = (l: Line) => Math.round(l.quantity * l.unitPriceCents * (1 - l.discountPct));
   const grossTotal = lines.reduce((s, l) => s + lineGross(l), 0);
   const netTotal = lines.reduce((s, l) => s + Math.round(lineGross(l) / VAT_DIVISOR), 0);
-  const eciTotal = Math.round(netTotal * ECI_COMMISSION_RATE);
+  // Commission rate is per-boutique now — LIS 22%, VNG 19% — so read
+  // from the map keyed on the currently-selected boutique.
+  const eciRate = ECI_COMMISSION_RATE[boutique];
+  const eciTotal = Math.round(netTotal * eciRate);
 
   const refocus = () => setTimeout(() => scanRef.current?.focus(), 0);
 
@@ -247,7 +250,7 @@ export function PosTerminal({
         <dl className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
           <div className="flex justify-between"><dt className="text-muted">Bruto (c/ IVA)</dt><dd className="tabular-nums">{eur(grossTotal)}</dd></div>
           <div className="flex justify-between"><dt className="text-muted">Líquido (s/ IVA)</dt><dd className="tabular-nums">{eur(netTotal)}</dd></div>
-          <div className="flex justify-between text-[0.8rem]"><dt className="text-muted">Comissão ECI (19%)</dt><dd className="tabular-nums text-muted">− {eur(eciTotal)}</dd></div>
+          <div className="flex justify-between text-[0.8rem]"><dt className="text-muted">Comissão ECI ({Math.round(eciRate * 100)}%)</dt><dd className="tabular-nums text-muted">− {eur(eciTotal)}</dd></div>
         </dl>
 
         <button type="button" onClick={confirm} disabled={busy || lines.length === 0}
