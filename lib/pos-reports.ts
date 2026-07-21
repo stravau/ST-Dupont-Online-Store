@@ -53,7 +53,9 @@ export async function salesByStore(
     if (r.type === "DEVOLUCAO") t.returns += r._count._all;
     else t.sales += r._count._all;
   }
-  for (const t of map.values()) t.eciCommissionCents = eciCommissionCents(t.netCents);
+  // Per-boutique rate (LIS 22%, VNG 19%) — feed the boutique into the
+  // rate lookup so each store's commission reflects its own contract.
+  for (const t of map.values()) t.eciCommissionCents = eciCommissionCents(t.netCents, t.boutique);
   return [...map.values()];
 }
 
@@ -281,6 +283,16 @@ export function dayWindow(d: Date): { from: Date; to: Date } {
   const from = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
   const to = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
   return { from, to };
+}
+
+// An inclusive date range [from-day 00:00, to-day 23:59:59.999]. If
+// `to` is before `from` they get swapped so the report always covers
+// a non-empty span.
+export function rangeWindow(from: Date, to: Date): { from: Date; to: Date } {
+  const [a, b] = from.getTime() <= to.getTime() ? [from, to] : [to, from];
+  const start = new Date(a.getFullYear(), a.getMonth(), a.getDate(), 0, 0, 0, 0);
+  const end = new Date(b.getFullYear(), b.getMonth(), b.getDate(), 23, 59, 59, 999);
+  return { from: start, to: end };
 }
 
 // Convenience window: the current calendar month [1st 00:00, now].

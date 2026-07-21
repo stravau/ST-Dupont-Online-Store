@@ -24,6 +24,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const staff = await currentStaff();
   const boutiques = boutiquesForRole(staff?.role ?? null);
   const multi = boutiques.length > 1;
+  // Only the boss (ADMIN) sees the ECI concession fee. LOJA_* get the
+  // same monthly report shape minus every commission column / row.
+  const showCommission = staff?.role === "ADMIN";
+  // Per-boutique rate for the pill next to "Comissão ECI".
+  const pctLabel: Record<BoutiqueCode, string> = { LIS: "22%", VNG: "19%" };
 
   const now = new Date();
   const ym = month && /^\d{4}-\d{2}$/.test(month)
@@ -86,7 +91,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{eur(s.grossCents)}</p>
                 <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
                   <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur(s.netCents)}</dd></div>
-                  <div className="flex justify-between"><dt>Comissão ECI (19%)</dt><dd className="tabular-nums">− {eur(s.eciCommissionCents)}</dd></div>
+                  {showCommission && (
+                    <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums">− {eur(s.eciCommissionCents)}</dd></div>
+                  )}
                   <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums">{s.sales} · {s.returns}</dd></div>
                 </dl>
               </div>
@@ -97,7 +104,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{eur(combined.grossCents)}</p>
                 <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
                   <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur(combined.netCents)}</dd></div>
-                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums">− {eur(combined.eciCommissionCents)}</dd></div>
+                  {showCommission && (
+                    <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums">− {eur(combined.eciCommissionCents)}</dd></div>
+                  )}
                   <div className="flex justify-between"><dt>Total de vendas</dt><dd className="tabular-nums">{combined.sales}</dd></div>
                 </dl>
               </div>
@@ -179,7 +188,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                             <th className="py-2 px-2">Registado</th>
                             <th className="py-2 px-2 text-right">Bruto</th>
                             <th className="py-2 px-2 text-right">Líquido</th>
-                            <th className="py-2 pl-2 text-right">Com. ECI</th>
+                            {showCommission && <th className="py-2 pl-2 text-right">Com. ECI</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -199,7 +208,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                                 </td>
                                 <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">{eur(sign * r.grossCents)}</td>
                                 <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-muted">{eur(sign * r.netCents)}</td>
-                                <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap text-muted">− {eur(r.eciCommissionCents)}</td>
+                                {showCommission && (
+                                  <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap text-muted">− {eur(r.eciCommissionCents)}</td>
+                                )}
                               </tr>
                             );
                           })}

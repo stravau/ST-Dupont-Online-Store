@@ -105,7 +105,7 @@ export async function createSale(input: CreateSaleInput) {
 
   const grossTotal = resolved.reduce((s, r) => s + r.grossCents, 0);
   const netTotal = resolved.reduce((s, r) => s + r.netCents, 0);
-  const eci = eciCommissionCents(netTotal);
+  const eci = eciCommissionCents(netTotal, boutique);
   const sign = type === "DEVOLUCAO" ? 1 : -1; // a return puts stock back
   const col = stockColumnFor(boutique);
 

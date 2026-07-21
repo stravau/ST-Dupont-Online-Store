@@ -46,7 +46,9 @@ function PulseCard({ title, subtitle, stores }: { title: string; subtitle?: stri
 
       <dl className="mt-4 space-y-1 text-[0.7rem] text-muted">
         <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur0(total.netCents)}</dd></div>
-        <div className="flex justify-between"><dt>Comissão ECI (19%)</dt><dd className="tabular-nums">− {eur0(total.eciCommissionCents)}</dd></div>
+        {/* Combined ECI fee across both boutiques — LIS at 22%, VNG at 19% —
+             so the aggregate percentage floats. Just show the euro amount. */}
+        <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums">− {eur0(total.eciCommissionCents)}</dd></div>
         <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums">{total.sales} · {total.returns}</dd></div>
       </dl>
     </div>

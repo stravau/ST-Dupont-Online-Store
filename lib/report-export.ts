@@ -1,8 +1,10 @@
-// Builds the daily sales report as an .xlsx that mirrors the ECI control
+// Builds the sales report as an .xlsx that mirrors the ECI control
 // workbook's "Mov_POS_Loja" sheet — same columns, the same live formulas
 // (Valor Vend = QTD·PVP·(1−Desc%), V.Rec = Valor Vend / 1,23), plus a totals
-// block with the ECI 19% commission. Styled in the Maison palette (ink header,
-// gold accents) so it reads as a proper report, not a raw dump.
+// block with the per-boutique ECI commission (LIS 22%, VNG 19%). Styled in
+// the Maison palette (ink header, gold accents) so it reads as a proper
+// report, not a raw dump. The `showCommission` flag lets LOJA_* callers
+// skip the commission block entirely — those roles never see the fee.
 import ExcelJS from "exceljs";
 import { VAT_DIVISOR, ECI_COMMISSION_RATE, type BoutiqueCode } from "@/lib/pos";
 import type { SaleLine } from "@/lib/pos-reports";
@@ -23,14 +25,20 @@ function hhmm(d: Date): string {
   return d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });
 }
 
+function ddmmyyyy(d: Date): string {
+  return d.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
 export async function buildDailySalesWorkbook(
-  day: Date,
+  range: { from: Date; to: Date },
   boutiques: BoutiqueCode[],
   lines: SaleLine[],
+  opts: { showCommission?: boolean } = {},
 ): Promise<Buffer> {
+  const showCommission = opts.showCommission !== false;
   const wb = new ExcelJS.Workbook();
   wb.creator = "S.T. Dupont · Painel";
-  wb.created = day;
+  wb.created = range.from;
   const ws = wb.addWorksheet("Mov_POS_Loja", {
     views: [{ state: "frozen", ySplit: 2 }],
     properties: { defaultRowHeight: 16 },
@@ -38,9 +46,13 @@ export async function buildDailySalesWorkbook(
 
   WIDTHS.forEach((w, i) => (ws.getColumn(i + 1).width = w));
 
-  // Row 1 — title band.
+  // Row 1 — title band. Uses the full range so an export spanning
+  // several days reads correctly (e.g. "01/07 → 15/07").
   ws.mergeCells(1, 1, 1, HEADERS.length);
-  const dLabel = day.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  const sameDay = ddmmyyyy(range.from) === ddmmyyyy(range.to);
+  const dLabel = sameDay
+    ? range.from.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+    : `${ddmmyyyy(range.from)} → ${ddmmyyyy(range.to)}`;
   const where = boutiques.map((b) => BOUTIQUE_NAME[b]).join(" + ");
   const title = ws.getCell(1, 1);
   title.value = `S.T. DUPONT · Relatório de Vendas · ${dLabel} · ${where}`;
@@ -67,9 +79,12 @@ export async function buildDailySalesWorkbook(
     const gross = Math.round(l.quantity * l.unitPriceCents * (1 - l.discountPct)) / 100;
     const isReturn = l.type === "DEVOLUCAO";
 
-    row.getCell(1).value = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate(), 12));
+    // Each row carries its OWN sale date (not the range endpoint) so a
+    // multi-day export shows the correct calendar for each line.
+    const soldAt = l.soldAt;
+    row.getCell(1).value = new Date(Date.UTC(soldAt.getFullYear(), soldAt.getMonth(), soldAt.getDate(), 12));
     row.getCell(1).numFmt = "dd/mm/yyyy";
-    row.getCell(2).value = { formula: `MONTH(A${r})`, result: day.getMonth() + 1 };
+    row.getCell(2).value = { formula: `MONTH(A${r})`, result: soldAt.getMonth() + 1 };
     row.getCell(3).value = hhmm(l.soldAt);
     row.getCell(3).alignment = { horizontal: "center" };
     row.getCell(4).value = isReturn ? "D" : "V";
@@ -106,8 +121,9 @@ export async function buildDailySalesWorkbook(
   const hasRows = lastData >= 3;
 
   // Totals block.
+  const totalLabel = sameDay ? "TOTAL DO DIA" : "TOTAL DO PERÍODO";
   const totalRow = ws.getRow(r + 1);
-  totalRow.getCell(9).value = "TOTAL DO DIA";
+  totalRow.getCell(9).value = totalLabel;
   totalRow.getCell(9).font = { bold: true };
   totalRow.getCell(9).alignment = { horizontal: "right" };
   totalRow.getCell(12).value = hasRows ? { formula: `SUM(L3:L${lastData})` } : 0;
@@ -118,13 +134,35 @@ export async function buildDailySalesWorkbook(
     totalRow.getCell(col).border = { top: { style: "thin", color: { argb: INK } } };
   }
 
-  const eciRow = ws.getRow(r + 2);
-  eciRow.getCell(9).value = `Comissão ECI (${Math.round(ECI_COMMISSION_RATE * 100)}%)`;
-  eciRow.getCell(9).alignment = { horizontal: "right" };
-  eciRow.getCell(9).font = { color: { argb: GOLD } };
-  eciRow.getCell(13).value = { formula: `M${r + 1}*${ECI_COMMISSION_RATE}` };
-  eciRow.getCell(13).numFmt = MONEY;
-  eciRow.getCell(13).font = { color: { argb: GOLD } };
+  // Commission block — only when the caller is the boss (LOJA_*
+  // roles never see the fee) and only when we have data. One row per
+  // boutique in scope, each with its own contract rate — so a
+  // combined boss export lists LIS at 22% and VNG at 19% separately.
+  if (showCommission && hasRows) {
+    let commissionRow = r + 2;
+    for (const b of boutiques) {
+      const rate = ECI_COMMISSION_RATE[b];
+      // Sum only the V.Rec (col M) rows that belong to this boutique.
+      // We can't reference boutique in-Excel cheaply, so we sum the
+      // JS-side already-known lines for this store and drop the total
+      // as a value (still styled as a formula-looking cell).
+      const boutiqueNet = lines
+        .filter((l) => l.boutique === b)
+        .reduce((s, l) => {
+          const gross = (l.quantity * l.unitPriceCents * (1 - l.discountPct)) / 100;
+          const sign = l.type === "DEVOLUCAO" ? -1 : 1;
+          return s + sign * (gross / VAT_DIVISOR);
+        }, 0);
+      const eci = ws.getRow(commissionRow);
+      eci.getCell(9).value = `Comissão ECI · ${BOUTIQUE_NAME[b]} (${Math.round(rate * 100)}%)`;
+      eci.getCell(9).alignment = { horizontal: "right" };
+      eci.getCell(9).font = { color: { argb: GOLD } };
+      eci.getCell(13).value = Math.round(boutiqueNet * rate * 100) / 100;
+      eci.getCell(13).numFmt = MONEY;
+      eci.getCell(13).font = { color: { argb: GOLD } };
+      commissionRow++;
+    }
+  }
 
   const buf = await wb.xlsx.writeBuffer();
   return Buffer.from(buf);

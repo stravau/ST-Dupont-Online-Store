@@ -1,12 +1,19 @@
-// In-store POS money + boutique helpers. The two factors below come straight
-// from the ECI control Excel: net = gross / 1.23 (Portuguese VAT 23%), and the
-// El Corte Inglés concession fee = net * 0.19. Kept here so a rate change is a
-// one-line edit that every report and the sale endpoint pick up.
+// In-store POS money + boutique helpers. VAT is 23% flat (Portuguese
+// standard rate). The ECI concession fee is per-boutique: Lisboa runs
+// on a 22% take, V. N. Gaia on 19%, per the two contracts on file.
+// A rate change is a one-line edit to the map below.
 
 export const VAT_DIVISOR = 1.23; // gross (w/ VAT) → net (ex-VAT)
-export const ECI_COMMISSION_RATE = 0.19; // ECI concession fee on net sales
 
 export type BoutiqueCode = "LIS" | "VNG";
+
+// ECI concession rate applied to NET sales, per boutique. Keep in
+// sync with the underlying contracts — this is the authority for every
+// report + POS calculation across the app.
+export const ECI_COMMISSION_RATE: Record<BoutiqueCode, number> = {
+  LIS: 0.22,
+  VNG: 0.19,
+};
 
 const STAFF_ROLES = new Set(["ADMIN", "LOJA_LIS", "LOJA_VNG"]);
 
@@ -36,6 +43,10 @@ export function netFromGross(grossCents: number): number {
   return Math.round(grossCents / VAT_DIVISOR);
 }
 
-export function eciCommissionCents(netCents: number): number {
-  return Math.round(netCents * ECI_COMMISSION_RATE);
+export function eciCommissionCents(netCents: number, boutique: BoutiqueCode): number {
+  return Math.round(netCents * ECI_COMMISSION_RATE[boutique]);
+}
+
+export function eciCommissionPct(boutique: BoutiqueCode): number {
+  return ECI_COMMISSION_RATE[boutique];
 }
