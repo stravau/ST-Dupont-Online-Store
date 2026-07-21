@@ -54,10 +54,12 @@ export async function OtherBrandsView({ q, brand, stock, sort, page }: Props) {
     }),
     // Brand facet (for the dropdown) — always the full list, independent of
     // the current filter, so switching between brands is possible from any
-    // filtered view.
+    // filtered view. Uses `_count: { _all: true }` to match the rest of the
+    // codebase (see lib/pos-reports.ts) — Prisma also accepts `_count: true`
+    // but the return shape differs and I want the { _all } path everywhere.
     prisma.otherBrandItem.groupBy({
       by: ["brand"],
-      _count: true,
+      _count: { _all: true },
       orderBy: { brand: "asc" },
     }),
     prisma.otherBrandItem.count(),
@@ -95,7 +97,7 @@ export async function OtherBrandsView({ q, brand, stock, sort, page }: Props) {
   }
 
   const brandOptions: [string, string][] = [["", `Todas (${brands.length})`]];
-  for (const b of brands) brandOptions.push([b.brand, `${b.brand} · ${b._count}`]);
+  for (const b of brands) brandOptions.push([b.brand, `${b.brand} · ${b._count._all}`]);
 
   return (
     <div className="space-y-6">
