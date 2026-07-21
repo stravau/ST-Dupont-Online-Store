@@ -63,10 +63,9 @@ export default async function AdminLoginPage({
 
   return (
     // Full-bleed navy monogram background covering the whole page; the white
-    // form card floats over it. Brand pinned top-left, maxim pinned
-    // bottom-left (single line). overflow-hidden guarantees no horizontal
-    // scrollbar from the nowrap maxim on any width.
-    <div className="monogram-bg relative flex min-h-[calc(100dvh/0.9)] items-center justify-center overflow-hidden px-5 py-10 text-cream sm:px-8 lg:justify-end lg:px-0 lg:pr-[7vw] xl:pr-[9vw]">
+    // form card floats centred over it. Brand pinned top-left. overflow-hidden
+    // guarantees no horizontal scrollbar on any width.
+    <div className="monogram-bg relative flex min-h-[calc(100dvh/0.9)] items-center justify-center overflow-hidden px-5 py-10 text-cream sm:px-8">
       {/* Brand — top-left */}
       <div className="absolute left-0 top-0 z-10 p-8 sm:p-12 xl:p-16">
         <p className="overline text-gold-soft">Admin</p>
@@ -78,23 +77,13 @@ export default async function AdminLoginPage({
         </p>
       </div>
 
-      {/* Maxim — pinned bottom-left, always one line (hidden on very small
-          phones where a single line can't fit gracefully). */}
-      <div className="absolute bottom-0 left-0 z-10 hidden p-8 sm:block sm:p-12 xl:p-16">
-        <div className="gold-rule mb-4" />
-        <p className="font-serif font-medium leading-none whitespace-nowrap text-cream/90 text-[clamp(0.85rem,1.5vw,1.55rem)]">
-          “A arte francesa do luxo — desde o gesto mais íntimo ao detalhe mais raro.”
-        </p>
-        <p className="mt-3 text-[0.7rem] tracking-[0.22em] text-cream/55 uppercase">
-          Painel restrito · acesso autenticado
-        </p>
-      </div>
-
-      {/* Form card — vertically centred; sits to the right on desktop so it
-          never collides with the brand/maxim, centred on phones/tablets. */}
-      <form action={action} className="relative z-20 w-full max-w-md border border-line bg-paper p-7 shadow-2xl sm:p-10">
+      {/* Form card — centred, laid out as a wide horizontal rectangle: heading
+          on the left, credentials on the right (stacks on phones). */}
+      <form action={action} className="relative z-20 grid w-full max-w-3xl gap-8 border border-line bg-paper p-8 shadow-2xl md:grid-cols-2 md:items-center md:gap-12 md:p-12">
+        {/* Left — heading */}
+        <div>
           <p className="overline text-gold">Entrar</p>
-          <h1 className="mt-3 font-serif font-semibold leading-tight text-ink text-[clamp(1.75rem,4vw,2.5rem)]">
+          <h1 className="mt-3 font-serif font-semibold leading-tight text-ink text-[clamp(1.75rem,3.4vw,2.4rem)]">
             Painel de gestão
           </h1>
           <p className="mt-3 text-sm text-muted sm:text-[0.95rem]">
@@ -111,14 +100,17 @@ export default async function AdminLoginPage({
               Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
             </p>
           )}
+        </div>
 
+        {/* Right — credentials */}
+        <div>
           <input
             type="hidden"
             name="callbackUrl"
             value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
           />
 
-          <label className="mt-8 block">
+          <label className="block">
             <span className="overline mb-2 block text-[0.62rem] text-muted">Email</span>
             <input
               name="email"
@@ -142,14 +134,15 @@ export default async function AdminLoginPage({
 
           <button
             type="submit"
-            className="mt-9 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
+            className="mt-8 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
           >
             Entrar
           </button>
 
-          <p className="mt-8 text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
+          <p className="mt-6 text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
             S.T. Dupont · 1872
           </p>
+        </div>
       </form>
     </div>
   );
