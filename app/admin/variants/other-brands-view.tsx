@@ -22,7 +22,30 @@ const eur = (c: number | null) =>
 // V. N. Gaia (Lamy, Kaweco, Filofax, Parker, Pelikan, …). Populated from the
 // ECI_VNG_Controlo Excel via `scripts/import-vng-other-brands.ts`; never linked
 // to Product/Variant and never shown on the website.
-export async function OtherBrandsView({ q, brand, stock, sort, page }: Props) {
+export async function OtherBrandsView(props: Props) {
+  try {
+    return await OtherBrandsViewInner(props);
+  } catch (err) {
+    // TEMPORARY: surface the raw error on the page so we can identify the
+    // Vercel-only crash whose digest hid the cause. Remove once fixed.
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    const stack = err instanceof Error && err.stack ? err.stack : "";
+    return (
+      <div className="border border-red-400 bg-red-50 p-6 text-sm text-red-900">
+        <p className="font-semibold">OtherBrandsView threw:</p>
+        <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-[0.72rem]">{msg}</pre>
+        {stack && (
+          <details className="mt-2">
+            <summary className="cursor-pointer text-[0.65rem] uppercase tracking-[0.16em]">Stack</summary>
+            <pre className="mt-2 overflow-x-auto text-[0.62rem] whitespace-pre-wrap">{stack}</pre>
+          </details>
+        )}
+      </div>
+    );
+  }
+}
+
+async function OtherBrandsViewInner({ q, brand, stock, sort, page }: Props) {
   const where: Prisma.OtherBrandItemWhereInput = {};
   if (q) {
     where.OR = [
