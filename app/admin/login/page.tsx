@@ -63,8 +63,10 @@ export default async function AdminLoginPage({
 
   return (
     // Full-bleed navy monogram background covering the whole page; the white
-    // form card floats centred over it. Brand pinned top-left. overflow-hidden
-    // guarantees no horizontal scrollbar on any width.
+    // form card floats centred over it as a narrow VERTICAL rectangle
+    // (heading stacked above credentials). Cleaner read than the previous
+    // wide horizontal layout — matches the "single-column entrance" pattern
+    // most luxury / SaaS admin logins use.
     <div className="monogram-bg relative flex min-h-[calc(100dvh/0.9)] items-center justify-center overflow-hidden px-5 py-10 text-cream sm:px-8">
       {/* Brand — top-left */}
       <div className="absolute left-0 top-0 z-10 p-8 sm:p-12 xl:p-16">
@@ -77,72 +79,71 @@ export default async function AdminLoginPage({
         </p>
       </div>
 
-      {/* Form card — centred, laid out as a wide horizontal rectangle: heading
-          on the left, credentials on the right (stacks on phones). */}
-      <form action={action} className="relative z-20 grid w-full max-w-3xl gap-8 border border-line bg-paper p-8 shadow-2xl md:grid-cols-2 md:items-center md:gap-12 md:p-12">
-        {/* Left — heading */}
+      {/* Form card — narrow vertical column, everything in one flow. */}
+      <form
+        action={action}
+        className="relative z-20 flex w-full max-w-sm flex-col gap-6 border border-line bg-paper p-8 shadow-2xl sm:p-10"
+      >
+        {/* Heading */}
         <div>
           <p className="overline text-gold">Entrar</p>
-          <h1 className="mt-3 font-serif font-semibold leading-tight text-ink text-[clamp(1.75rem,3.4vw,2.4rem)]">
+          <h1 className="mt-3 font-serif font-semibold leading-tight text-ink text-[clamp(1.5rem,3vw,1.9rem)]">
             Painel de gestão
           </h1>
-          <p className="mt-3 text-sm text-muted sm:text-[0.95rem]">
+          <p className="mt-3 text-sm text-muted">
             Sessão restrita à equipa da boutique.
           </p>
-
-          {error === "invalid" && (
-            <p className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-              Credenciais inválidas.
-            </p>
-          )}
-          {error === "locked" && (
-            <p className="mt-6 border border-[#d4a017]/50 bg-[#d4a017]/10 px-4 py-3 text-sm text-[#6a4f00]">
-              Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
-            </p>
-          )}
         </div>
 
-        {/* Right — credentials */}
-        <div>
-          <input
-            type="hidden"
-            name="callbackUrl"
-            value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
-          />
-
-          <label className="block">
-            <span className="overline mb-2 block text-[0.62rem] text-muted">Email</span>
-            <input
-              name="email"
-              type="email"
-              required
-              autoComplete="username"
-              className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
-            />
-          </label>
-
-          <label className="mt-5 block">
-            <span className="overline mb-2 block text-[0.62rem] text-muted">Password</span>
-            <input
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
-            />
-          </label>
-
-          <button
-            type="submit"
-            className="mt-8 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
-          >
-            Entrar
-          </button>
-
-          <p className="mt-6 text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
-            S.T. Dupont · 1872
+        {error === "invalid" && (
+          <p className="border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Credenciais inválidas.
           </p>
-        </div>
+        )}
+        {error === "locked" && (
+          <p className="border border-[#d4a017]/50 bg-[#d4a017]/10 px-4 py-3 text-sm text-[#6a4f00]">
+            Demasiadas tentativas. Volta a tentar dentro de {minutes ?? "alguns minutos"}.
+          </p>
+        )}
+
+        <input
+          type="hidden"
+          name="callbackUrl"
+          value={callbackUrl && isSafeAdminTarget(callbackUrl) ? callbackUrl : "/admin"}
+        />
+
+        <label className="block">
+          <span className="overline mb-2 block text-[0.62rem] text-muted">Email</span>
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="username"
+            className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
+          />
+        </label>
+
+        <label className="block">
+          <span className="overline mb-2 block text-[0.62rem] text-muted">Password</span>
+          <input
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="w-full border border-line bg-paper px-4 py-3.5 text-base text-ink outline-none transition-colors focus:border-gold"
+          />
+        </label>
+
+        <button
+          type="submit"
+          className="mt-2 block w-full bg-ink py-4 text-center text-xs tracking-[0.24em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
+        >
+          Entrar
+        </button>
+
+        <p className="text-center text-[0.6rem] tracking-[0.22em] text-muted uppercase">
+          S.T. Dupont · 1872
+        </p>
       </form>
     </div>
   );
