@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { currentStaff } from "@/lib/admin-auth";
 import { PageHeader } from "@/components/admin/page-header";
 import { UploadCard } from "./upload-client";
+import { EciSyncCard } from "./eci-sync-card";
 
 export const dynamic = "force-dynamic";
 
@@ -17,25 +18,18 @@ export default async function AdminUploadsPage() {
         title="Uploads Excel"
         subtitle={
           <>
-            Cada ficheiro aplica directamente na DB. O match faz-se por <strong>EAN</strong>{" "}
-            (mais fiável) e cai para <strong>REF</strong> quando vazio. Tudo fica registado em
-            Auditoria.
+            O <strong>Sincronizar ECI Controlo</strong> absorve stock, PVP, artigos novos e outras
+            marcas de uma vez (pré-visualiza antes de gravar). As <strong>Promoções</strong> ficam
+            à parte — não vêm do ECI. Tudo fica registado em Auditoria.
           </>
         }
       />
 
+      {/* The unified sync — the primary path going forward. */}
+      <EciSyncCard />
+
+      {/* Promotions stay independent of the ECI file (marketing decision). */}
       <div className="grid gap-5 md:grid-cols-2">
-        <UploadCard
-          endpoint="/api/admin/upload/pvp"
-          title="PVP"
-          tag="Preços"
-          columns={["EAN", "REF", "PVP", "DATA_INICIO (opcional)"]}
-          notes={[
-            "Actualiza priceCents para todas as variants encontradas.",
-            "Promoções activas sobrevivem até promoEndDate natural.",
-            "DATA_INICIO opcional — usa-se now() se vazio.",
-          ]}
-        />
         <UploadCard
           endpoint="/api/admin/upload/promo"
           title="Promoções"
@@ -44,31 +38,41 @@ export default async function AdminUploadsPage() {
           notes={[
             "promoPriceCents + janela (start/end).",
             "Deixa PVP_PROMO vazio para remover a promo activa.",
-          ]}
-        />
-        <UploadCard
-          endpoint="/api/admin/upload/stock"
-          title="Stock"
-          tag="Inventário"
-          columns={["EAN", "REF", "STOCK"]}
-          notes={[
-            "Sobrescreve o stock — não soma.",
-            "Para ajustes pontuais usa a edição em /admin/variants.",
-          ]}
-        />
-        <UploadCard
-          endpoint="/api/admin/upload/new-articles"
-          title="Novos artigos"
-          tag="Catálogo"
-          columns={["EAN", "REF", "DESCRICAO", "PVP", "STOCK", "CATEGORIA (opc)", "IMAGEM_URL (opc)"]}
-          notes={[
-            "Cria Product + Variant. Default status = INDISPONIVEL para revisão antes de tornar visível.",
-            "Se REF já existir, faz update em vez de create.",
-            "Sem CATEGORIA, assenta em acessorios.",
-            "Imagens via URL OU upload depois em /admin/variants/<sku>/images.",
+            "Ou cria promoções por selecção múltipla em Consultar Stock.",
           ]}
         />
       </div>
+
+      {/* Legacy single-purpose uploads — kept as a fallback until the ECI sync
+          is proven against real files. Each is absorbed by "Sincronizar ECI". */}
+      <details className="border border-line bg-paper">
+        <summary className="cursor-pointer px-5 py-3 text-[0.65rem] tracking-[0.18em] text-muted uppercase">
+          Uploads individuais (legado) — absorvidos pelo Sincronizar ECI
+        </summary>
+        <div className="grid gap-5 border-t border-line p-5 md:grid-cols-3">
+          <UploadCard
+            endpoint="/api/admin/upload/pvp"
+            title="PVP"
+            tag="Preços"
+            columns={["EAN", "REF", "PVP", "DATA_INICIO (opcional)"]}
+            notes={["Actualiza priceCents.", "Promoções activas sobrevivem."]}
+          />
+          <UploadCard
+            endpoint="/api/admin/upload/stock"
+            title="Stock"
+            tag="Inventário"
+            columns={["EAN", "REF", "STOCK"]}
+            notes={["Sobrescreve o stock — não soma."]}
+          />
+          <UploadCard
+            endpoint="/api/admin/upload/new-articles"
+            title="Novos artigos"
+            tag="Catálogo"
+            columns={["EAN", "REF", "DESCRICAO", "PVP", "STOCK", "CATEGORIA (opc)"]}
+            notes={["Cria Product + Variant (INDISPONIVEL para revisão).", "Se REF já existir, faz update."]}
+          />
+        </div>
+      </details>
     </div>
   );
 }

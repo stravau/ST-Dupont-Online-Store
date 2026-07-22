@@ -40,6 +40,32 @@ export async function readUploadedSheet(file: File): Promise<Record<string, Cell
   return [];
 }
 
+// Read the FULL multi-sheet ECI Controlo workbook and return each sheet as a
+// matrix of rows (arrays of cells) — used by the unified /api/admin/sync/eci
+// endpoint. Positional access (row[0], row[1], …) because the ECI sheets have
+// a title row + a header row before the data and rely on column position, not
+// header names (see scripts/import-lis-stock-from-eci.ts). Returns a map of
+// sheetName → rows; missing sheets are simply absent from the map.
+export async function readWorkbookMatrix(file: File): Promise<Record<string, Cell[][]>> {
+  const buf = Buffer.from(await file.arrayBuffer());
+  const wb = xlsx.read(buf, { type: "buffer", cellDates: true, raw: false });
+  const out: Record<string, Cell[][]> = {};
+  for (const name of wb.SheetNames) {
+    const ws = wb.Sheets[name];
+    out[name] = xlsx.utils.sheet_to_json<Cell[]>(ws, { header: 1, defval: null, raw: false });
+  }
+  return out;
+}
+
+// The two ECI file variants — detected from the filename, or chosen explicitly.
+export type EciStore = "LIS" | "VNG";
+export function detectEciStore(filename: string): EciStore | null {
+  const n = filename.toUpperCase();
+  if (/ECI[_ ]?LIS|_LIS_|LISBOA/.test(n)) return "LIS";
+  if (/ECI[_ ]?VNG|_VNG_|GAIA/.test(n)) return "VNG";
+  return null;
+}
+
 // Pull a value from a row by trying multiple header aliases.
 export function pick(row: Record<string, Cell>, ...keys: string[]): Cell {
   for (const k of keys) if (k in row) return row[k];

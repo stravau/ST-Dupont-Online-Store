@@ -66,6 +66,15 @@ enum SaleType {
   DEVOLUCAO
 }
 
+// Reserva lifecycle — mirrors the Excel "Reservas" sheet: an item held for a
+// client until a date. ATIVA → CONCLUIDA (levantou) / CANCELADA / EXPIRADA.
+enum ReservaStatus {
+  ATIVA
+  CONCLUIDA // cliente levantou
+  CANCELADA
+  EXPIRADA
+}
+
 // What a sale line sold. DUPONT = a catalogue ProductVariant (stock shared
 // LIS+VNG). OTHER_BRAND = an OtherBrandItem, sold only at V.N. Gaia — counts
 // for VNG's numbers but never touches Lisboa or Dupont product analytics.
@@ -316,6 +325,7 @@ model ProductVariant {
   orderItems     OrderItem[]
   saleItems      SaleItem[]
   stockMovements StockMovement[]
+  reservas       Reserva[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -644,4 +654,37 @@ model Repair {
   @@index([boutique, firstVisitAt])
   @@index([status])
   @@index([firstVisitAt])
+}
+
+// Client hold — mirrors the Excel "Reservas" sheet. An item set aside for a
+// customer until `expectedAt`. Snapshot fields (sku/desc/pvp) so the record
+// survives even if the catalogue row changes; `variantId` links to the
+// catalogue when the EAN/REF matches (null for other-brand / unmatched).
+model Reserva {
+  id            String        @id @default(cuid())
+  boutique      Boutique      @default(LIS)
+  reservedAt    DateTime      @default(now()) // Data_Reserva
+  expectedAt    DateTime? // Data_Espera — até quando fica reservado
+  variantId     String? // ligação ao catálogo (null se não bater)
+  sku           String
+  ean           String?
+  descSnapshot  String
+  brand         String? // Marca (para reservas de outras marcas)
+  quantity      Int           @default(1)
+  pvpCents      Int? // PVP no momento da reserva
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+  operator      String // iniciais (PR, MA, …)
+  status        ReservaStatus @default(ATIVA)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([boutique, reservedAt])
+  @@index([status])
+  @@index([customerPhone])
+  @@index([variantId])
 }
