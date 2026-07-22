@@ -204,7 +204,13 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                                   {r.type === "DEVOLUCAO" && (
                                     <span className="mr-1.5 rounded-sm bg-[#b94a3a]/10 px-1.5 py-0.5 text-[0.6rem] font-semibold tracking-wide text-[#b94a3a] uppercase">Devolução</span>
                                   )}
+                                  {r.type === "REPARACAO" && (
+                                    <span className="mr-1.5 rounded-sm bg-gold/15 px-1.5 py-0.5 text-[0.6rem] font-semibold tracking-wide text-[#7e5e00] uppercase">Reparação</span>
+                                  )}
                                   {what}
+                                  {r.note && (
+                                    <span className="ml-1 text-[0.7rem] italic text-muted">— {r.note}</span>
+                                  )}
                                 </td>
                                 <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">{eur(sign * r.grossCents)}</td>
                                 <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-muted">{eur(sign * r.netCents)}</td>

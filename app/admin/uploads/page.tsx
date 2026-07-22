@@ -7,9 +7,14 @@ import { EciSyncCard } from "./eci-sync-card";
 export const dynamic = "force-dynamic";
 
 export default async function AdminUploadsPage() {
-  // Bulk imports are boss-only — store logins can't reach this page.
+  // Uploads são acessíveis aos três roles com sessão de staff (ADMIN + LOJA_LIS +
+  // LOJA_VNG) — as lojas precisam de fazer o Sincronizar ECI Controlo delas
+  // durante o período de transição em que o Excel ainda é a fonte de verdade.
   const staff = await currentStaff();
-  if (staff?.role !== "ADMIN") redirect("/admin/pos");
+  const role = staff?.role;
+  if (role !== "ADMIN" && role !== "LOJA_LIS" && role !== "LOJA_VNG") {
+    redirect("/admin/pos");
+  }
 
   return (
     <div className="space-y-8">

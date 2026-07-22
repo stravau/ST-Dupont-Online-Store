@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { currentStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { boutiqueFromRole, isStaffRole, type BoutiqueCode } from "@/lib/pos";
-import { createSale, PosError, type SaleLineInput } from "@/lib/pos-service";
+import { createSale, PosError, type SaleLineInput, type RepairLineInput } from "@/lib/pos-service";
 
 export const dynamic = "force-dynamic";
 
@@ -41,12 +41,23 @@ export async function POST(req: Request) {
   const boutique = roleBoutique ?? reqBoutique;
   if (!boutique) return NextResponse.json({ ok: false, error: "boutique required" }, { status: 400 });
 
+  const rawType = body.type;
+  const type: "VENDA" | "DEVOLUCAO" | "REPARACAO" =
+    rawType === "DEVOLUCAO" ? "DEVOLUCAO" :
+    rawType === "REPARACAO" ? "REPARACAO" : "VENDA";
+
   try {
     const sale = await createSale({
       boutique,
       operatorInitials: typeof body.operatorInitials === "string" ? body.operatorInitials : "",
-      type: body.type === "DEVOLUCAO" ? "DEVOLUCAO" : "VENDA",
-      items: Array.isArray(body.items) ? (body.items as SaleLineInput[]) : [],
+      type,
+      items: Array.isArray(body.items) ? (body.items as SaleLineInput[]) : undefined,
+      // Repair sub-payload — subtype + PVP; the repairId is the Repair row
+      // whose customer is picking up (may be null for an ad-hoc quick fix).
+      repair: type === "REPARACAO" && body.repair && typeof body.repair === "object"
+        ? (body.repair as RepairLineInput)
+        : undefined,
+      repairId: typeof body.repairId === "string" ? body.repairId : null,
       note: typeof body.note === "string" ? body.note : null,
       originalSaleId: typeof body.originalSaleId === "string" ? body.originalSaleId : null,
       userId,

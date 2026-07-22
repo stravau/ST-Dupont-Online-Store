@@ -40,9 +40,9 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
     title: "Catálogo",
     items: [
       { href: "/admin/variants", label: "Consultar Stock", hint: "Preços, stock e estado", Icon: IconList },
-      ...(isAdmin
-        ? [{ href: "/admin/uploads", label: "Importar Ficheiros", hint: "Excel de PVP, stock e promoções", Icon: IconUpload }]
-        : []),
+      // Uploads (Sincronizar ECI Controlo) — as boutiques também precisam
+      // durante a fase de transição em que o Excel ainda é a fonte da verdade.
+      { href: "/admin/uploads", label: "Importar Ficheiros", hint: "Sincronizar Excel ECI Controlo", Icon: IconUpload },
     ],
   });
 
@@ -50,6 +50,7 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
     title: "Loja",
     items: [
       { href: "/admin/pos", label: "Registar Venda", hint: "Vender por código de barras", Icon: IconPos },
+      { href: "/admin/movimentos", label: "Movimentos Stock", hint: "Entradas e saídas por scan", Icon: IconPos },
       { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports },
       { href: "/admin/relatorio-vendas", label: "Relatório de Vendas", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar },
       { href: "/admin/reparacoes", label: "Reparações", hint: "Assistência e pós-venda", Icon: IconRepair },

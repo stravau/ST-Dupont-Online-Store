@@ -20,15 +20,37 @@ export interface SaleLineInput {
   discountPct?: number; // 0..1
 }
 
+// Repair pick-up charge — one line, no stock, no EAN. Subtype drives the
+// SKU + description the report shows ("Reparação · Escrita" etc.).
+export type RepairSubtype = "ESCRITA" | "ISQUEIRO" | "PELE";
+export interface RepairLineInput {
+  subtype: RepairSubtype;
+  unitPriceCents: number; // service fee in cents
+  discountPct?: number; // 0..1 — rarely used but supported for symmetry
+}
+
 export interface CreateSaleInput {
   boutique: BoutiqueCode;
   operatorInitials: string;
-  type: "VENDA" | "DEVOLUCAO";
-  items: SaleLineInput[];
+  type: "VENDA" | "DEVOLUCAO" | "REPARACAO";
+  items?: SaleLineInput[]; // required for VENDA / DEVOLUCAO
+  repair?: RepairLineInput; // required for REPARACAO
+  repairId?: string | null; // Repair record to close on success (REPARACAO)
   note?: string | null;
   originalSaleId?: string | null;
   userId?: string | null; // acting staff User.id for the audit row
 }
+
+const REPAIR_LABEL: Record<RepairSubtype, string> = {
+  ESCRITA:  "Escrita",
+  ISQUEIRO: "Isqueiro",
+  PELE:     "Pele",
+};
+const REPAIR_SKU: Record<RepairSubtype, string> = {
+  ESCRITA:  "REP-ESCRITA",
+  ISQUEIRO: "REP-ISQUEIRO",
+  PELE:     "REP-PELE",
+};
 
 // Typed error carrying an HTTP status so the route can map it cleanly.
 export class PosError extends Error {
@@ -48,6 +70,12 @@ export async function createSale(input: CreateSaleInput) {
   if (!operator || !operator.active) {
     throw new PosError(400, `operador "${initials}" inválido para ${boutique}`);
   }
+
+  // REPARACAO short-circuit — no stock, one line, closes the Repair record.
+  if (type === "REPARACAO") return createRepairSale(input, operator.id);
+  // TypeScript now knows the remaining branch is VENDA / DEVOLUCAO only.
+  const stockType: "VENDA" | "DEVOLUCAO" = type;
+
   if (!Array.isArray(input.items) || input.items.length === 0) {
     throw new PosError(400, "no items");
   }
@@ -142,7 +170,7 @@ export async function createSale(input: CreateSaleInput) {
   const grossTotal = resolved.reduce((s, r) => s + r.grossCents, 0);
   const netTotal = resolved.reduce((s, r) => s + r.netCents, 0);
   const eci = eciCommissionCents(netTotal, boutique);
-  const sign = type === "DEVOLUCAO" ? 1 : -1; // a return puts stock back
+  const sign = stockType === "DEVOLUCAO" ? 1 : -1; // a return puts stock back
   const col = stockColumnFor(boutique);
 
   return prisma.$transaction(async (tx) => {
@@ -150,7 +178,7 @@ export async function createSale(input: CreateSaleInput) {
       data: {
         boutique,
         operatorId: operator.id,
-        type,
+        type: stockType,
         grossCents: grossTotal,
         netCents: netTotal,
         eciCommissionCents: eci,
@@ -182,7 +210,7 @@ export async function createSale(input: CreateSaleInput) {
       // Dupont line — signed movement + per-store stock cache update.
       await tx.stockMovement.create({
         data: {
-          boutique, variantId: r.variantId, sku: r.sku, ean: r.ean, type,
+          boutique, variantId: r.variantId, sku: r.sku, ean: r.ean, type: stockType,
           quantity: sign * r.quantity, operatorId: operator.id, saleItemId: item.id,
         },
       });
@@ -202,8 +230,99 @@ export async function createSale(input: CreateSaleInput) {
         action: "CREATE",
         entityId: sale.id,
         after: {
-          boutique, type, operator: initials, lines: resolved.length,
+          boutique, type: stockType, operator: initials, lines: resolved.length,
           grossCents: grossTotal, netCents: netTotal, eciCommissionCents: eci,
+        },
+      },
+    });
+
+    return sale;
+  });
+}
+
+// REPARACAO pick-up — the customer collects their repaired article and pays
+// for the labour. One SaleItem, no stock movement. If the caller passed a
+// repairId, the same transaction transitions that Repair row to RESOLVIDO so
+// a repair is never "paid" without being closed. The repair is still valid
+// even without a linked id (unusual — e.g., ad-hoc quick fix at the counter).
+async function createRepairSale(input: CreateSaleInput, operatorId: string) {
+  const { boutique } = input;
+  const r = input.repair;
+  if (!r) throw new PosError(400, "REPARACAO exige campo 'repair' com subtype + unitPriceCents");
+  if (!["ESCRITA", "ISQUEIRO", "PELE"].includes(r.subtype)) {
+    throw new PosError(400, "subtype tem de ser ESCRITA | ISQUEIRO | PELE");
+  }
+  const unit = Math.round(Number(r.unitPriceCents) || 0);
+  if (!Number.isFinite(unit) || unit <= 0) {
+    throw new PosError(400, "unitPriceCents inválido (tem de ser > 0)");
+  }
+  const disc = typeof r.discountPct === "number" && r.discountPct >= 0 && r.discountPct < 1 ? r.discountPct : 0;
+  const gross = lineGrossCents(1, unit, disc);
+  const net = netFromGross(gross);
+  const eci = eciCommissionCents(net, boutique);
+  const desc = `Reparação · ${REPAIR_LABEL[r.subtype]}`;
+  const sku = REPAIR_SKU[r.subtype];
+
+  return prisma.$transaction(async (tx) => {
+    // If a Repair record is linked, verify it exists and belongs to this
+    // boutique before touching it. A missing / other-boutique row aborts
+    // so a mis-clicked pick-up doesn't close someone else's ticket.
+    let repairIdToSet: string | null = null;
+    if (input.repairId) {
+      const rep = await tx.repair.findUnique({ where: { id: input.repairId } });
+      if (!rep) throw new PosError(404, `reparação ${input.repairId} não encontrada`);
+      if (rep.boutique !== boutique) throw new PosError(400, `reparação pertence a ${rep.boutique}, não a ${boutique}`);
+      repairIdToSet = rep.id;
+    }
+
+    const sale = await tx.sale.create({
+      data: {
+        boutique,
+        operatorId,
+        type: "REPARACAO",
+        grossCents: gross,
+        netCents: net,
+        eciCommissionCents: eci,
+        note: typeof input.note === "string" ? input.note.slice(0, 500) : null,
+        repairId: repairIdToSet,
+      },
+    });
+
+    await tx.saleItem.create({
+      data: {
+        saleId: sale.id,
+        source: "REPARACAO",
+        variantId: null,
+        otherBrandItemId: null,
+        sku,
+        ean: null,
+        descSnapshot: desc,
+        brand: "Reparação",
+        quantity: 1,
+        unitPriceCents: unit,
+        discountPct: disc,
+        grossCents: gross,
+        netCents: net,
+      },
+    });
+
+    if (repairIdToSet) {
+      await tx.repair.update({
+        where: { id: repairIdToSet },
+        data: { status: "RESOLVIDO" },
+      });
+    }
+
+    await tx.adminAction.create({
+      data: {
+        userId: input.userId ?? null,
+        entityType: "SALE",
+        action: "CREATE",
+        entityId: sale.id,
+        after: {
+          boutique, type: "REPARACAO", operator: input.operatorInitials,
+          repairId: repairIdToSet, subtype: r.subtype,
+          grossCents: gross, netCents: net, eciCommissionCents: eci,
         },
       },
     });

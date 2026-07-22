@@ -15,8 +15,10 @@ const GOLD = "FF9C7A26";
 const LINE = "FFE6DECC";
 const RED = "FFB94A3A";
 
-const HEADERS = ["DATA", "MÊS", "HORA", "V/D", "Op.", "EAN", "QTD", "REF", "DESCRIÇÃO", "PVP", "Desc %", "Valor Vend", "V.Rec"];
-const WIDTHS = [12, 6, 8, 6, 7, 16, 6, 15, 40, 11, 9, 13, 13];
+// V/D = "V" venda · "D" devolução · "R" reparação (pick-up). OBS carries the
+// sale.note ("cartão turista", "cliente pediu factura", etc.).
+const HEADERS = ["DATA", "MÊS", "HORA", "V/D", "Op.", "EAN", "QTD", "REF", "DESCRIÇÃO", "PVP", "Desc %", "Valor Vend", "V.Rec", "OBS"];
+const WIDTHS = [12, 6, 8, 6, 7, 16, 6, 15, 40, 11, 9, 13, 13, 26];
 const MONEY = "#,##0.00";
 
 export const BOUTIQUE_NAME: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
@@ -78,6 +80,7 @@ export async function buildDailySalesWorkbook(
     const row = ws.getRow(r);
     const gross = Math.round(l.quantity * l.unitPriceCents * (1 - l.discountPct)) / 100;
     const isReturn = l.type === "DEVOLUCAO";
+    const isRepair = l.type === "REPARACAO";
 
     // Each row carries its OWN sale date (not the range endpoint) so a
     // multi-day export shows the correct calendar for each line.
@@ -87,9 +90,10 @@ export async function buildDailySalesWorkbook(
     row.getCell(2).value = { formula: `MONTH(A${r})`, result: soldAt.getMonth() + 1 };
     row.getCell(3).value = hhmm(l.soldAt);
     row.getCell(3).alignment = { horizontal: "center" };
-    row.getCell(4).value = isReturn ? "D" : "V";
+    row.getCell(4).value = isReturn ? "D" : isRepair ? "R" : "V";
     row.getCell(4).alignment = { horizontal: "center" };
     if (isReturn) row.getCell(4).font = { bold: true, color: { argb: RED } };
+    else if (isRepair) row.getCell(4).font = { bold: true, color: { argb: GOLD } };
     row.getCell(5).value = l.operator;
     row.getCell(5).alignment = { horizontal: "center" };
     row.getCell(6).value = l.ean ?? "";
@@ -109,6 +113,7 @@ export async function buildDailySalesWorkbook(
     // V.Rec — net of 23% VAT.
     row.getCell(13).value = { formula: `L${r}/${VAT_DIVISOR}`, result: Math.round((gross / VAT_DIVISOR) * 100) / 100 };
     row.getCell(13).numFmt = MONEY;
+    row.getCell(14).value = l.note ?? "";
 
     row.eachCell((c) => {
       c.border = { bottom: { style: "hair", color: { argb: LINE } } };

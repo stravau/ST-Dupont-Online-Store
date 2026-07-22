@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { readWorkbookMatrix, detectEciStore, type Cell, type EciStore } from "@/lib/admin-upload";
 
@@ -56,7 +56,9 @@ export async function POST(req: Request) {
   if (csrf) return csrf;
   const rl = await assertRateLimit(req, "sync-eci", 10, 60_000);
   if (rl) return rl;
-  const gate = await requireAdmin();
+  // Aberto aos três roles de staff — as boutiques também precisam de
+  // sincronizar durante a fase de transição em que o Excel é a fonte.
+  const gate = await requireStaff();
   if (!gate.ok) return gate.response;
 
   const form = await req.formData();

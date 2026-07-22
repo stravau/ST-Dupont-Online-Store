@@ -60,10 +60,14 @@ enum Boutique {
   VNG // V. N. de Gaia
 }
 
-// The Excel's V/D column: a sale (venda) or a return (devolução).
+// The Excel's V/D column plus one extra: sale, return, or a *charged repair*
+// (the client picks up their repaired article and pays for the labour). Repairs
+// don't touch stock — they're a service line — but they show up in reports the
+// same way regular sales do so the boss sees the total register.
 enum SaleType {
   VENDA
   DEVOLUCAO
+  REPARACAO
 }
 
 // Reserva lifecycle — mirrors the Excel "Reservas" sheet: an item held for a
@@ -78,9 +82,11 @@ enum ReservaStatus {
 // What a sale line sold. DUPONT = a catalogue ProductVariant (stock shared
 // LIS+VNG). OTHER_BRAND = an OtherBrandItem, sold only at V.N. Gaia — counts
 // for VNG's numbers but never touches Lisboa or Dupont product analytics.
+// REPARACAO = the labour charge for a repair pick-up (no variant, no stock).
 enum SaleItemSource {
   DUPONT
   OTHER_BRAND
+  REPARACAO
 }
 
 // Repair-ticket lifecycle — the exact "Estado" dropdown from the Excel
@@ -524,10 +530,15 @@ model Sale {
   note               String?
   // For a DEVOLUCAO, the original sale being reversed (optional).
   originalSaleId     String?
+  // For a REPARACAO, the Repair record whose customer is picking up. Set
+  // atomically with the sale; the same transaction bumps that Repair to
+  // RESOLVIDO so a repair is never "paid" without being closed.
+  repairId           String?
 
   operator     Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
   originalSale Sale?      @relation("SaleReturns", fields: [originalSaleId], references: [id], onDelete: SetNull)
   returns      Sale[]     @relation("SaleReturns")
+  repair       Repair?    @relation(fields: [repairId], references: [id], onDelete: SetNull)
   items        SaleItem[]
 
   createdAt DateTime @default(now())
@@ -536,6 +547,7 @@ model Sale {
   @@index([operatorId])
   @@index([soldAt])
   @@index([type])
+  @@index([repairId])
 }
 
 // A sale line — one row of Mov_POS_Loja. Snapshots sku/desc/price/brand (like
@@ -651,9 +663,15 @@ model Repair {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Sales that closed this repair (typically one REPARACAO pick-up sale). Kept
+  // as a list because the schema doesn't enforce 1-to-1 and we'd rather query
+  // than deduplicate.
+  sales Sale[]
+
   @@index([boutique, firstVisitAt])
   @@index([status])
   @@index([firstVisitAt])
+  @@index([customerName])
 }
 
 // Client hold — mirrors the Excel "Reservas" sheet. An item set aside for a

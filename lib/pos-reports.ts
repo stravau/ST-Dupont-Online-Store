@@ -94,7 +94,13 @@ export async function topOperators(
 ): Promise<OperatorTotals[]> {
   const rows = await prisma.sale.groupBy({
     by: ["operatorId"],
-    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, type: "VENDA" },
+    where: {
+      boutique: { in: boutiques },
+      soldAt: { gte: from, lte: to },
+      // Include repair pick-ups — they're revenue attributable to the operator
+      // exactly like a sale. Returns are excluded from the top ranking.
+      type: { in: ["VENDA", "REPARACAO"] },
+    },
     _sum: { grossCents: true },
     _count: { _all: true },
   });
@@ -168,11 +174,12 @@ export interface SaleLogEntry {
   id: string;
   soldAt: Date;
   boutique: BoutiqueCode;
-  type: "VENDA" | "DEVOLUCAO";
+  type: "VENDA" | "DEVOLUCAO" | "REPARACAO";
   operator: string; // initials
   grossCents: number;
   netCents: number;
   eciCommissionCents: number;
+  note: string | null; // "cartão turista", "cliente pediu factura", etc.
   items: { sku: string; desc: string; quantity: number }[];
 }
 
@@ -198,11 +205,12 @@ export async function salesLog(
     id: s.id,
     soldAt: s.soldAt,
     boutique: s.boutique as BoutiqueCode,
-    type: s.type as "VENDA" | "DEVOLUCAO",
+    type: s.type as "VENDA" | "DEVOLUCAO" | "REPARACAO",
     operator: s.operator.initials,
     grossCents: s.grossCents,
     netCents: s.netCents,
     eciCommissionCents: s.eciCommissionCents,
+    note: s.note ?? null,
     items: s.items.map((i) => ({ sku: i.sku, desc: i.descSnapshot, quantity: i.quantity })),
   }));
 }
@@ -210,7 +218,7 @@ export async function salesLog(
 export interface SaleLine {
   soldAt: Date;
   boutique: BoutiqueCode;
-  type: "VENDA" | "DEVOLUCAO";
+  type: "VENDA" | "DEVOLUCAO" | "REPARACAO";
   operator: string;
   ean: string | null;
   sku: string;
@@ -218,6 +226,7 @@ export interface SaleLine {
   quantity: number;
   unitPriceCents: number;
   discountPct: number;
+  note: string | null;
 }
 
 // One row per sale line (mirrors the Excel Mov_POS_Loja layout) for a window —
@@ -226,14 +235,14 @@ export async function saleLines(boutiques: BoutiqueCode[], from: Date, to: Date)
   const items = await prisma.saleItem.findMany({
     where: { sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } } },
     include: {
-      sale: { select: { soldAt: true, type: true, boutique: true, operator: { select: { initials: true } } } },
+      sale: { select: { soldAt: true, type: true, boutique: true, note: true, operator: { select: { initials: true } } } },
     },
     orderBy: { sale: { soldAt: "asc" } },
   });
   return items.map((i) => ({
     soldAt: i.sale.soldAt,
     boutique: i.sale.boutique as BoutiqueCode,
-    type: i.sale.type as "VENDA" | "DEVOLUCAO",
+    type: i.sale.type as "VENDA" | "DEVOLUCAO" | "REPARACAO",
     operator: i.sale.operator.initials,
     ean: i.ean,
     sku: i.sku,
@@ -241,6 +250,7 @@ export async function saleLines(boutiques: BoutiqueCode[], from: Date, to: Date)
     quantity: i.quantity,
     unitPriceCents: i.unitPriceCents,
     discountPct: i.discountPct,
+    note: i.sale.note ?? null,
   }));
 }
 

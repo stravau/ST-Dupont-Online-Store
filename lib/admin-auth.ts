@@ -42,3 +42,23 @@ export async function requireAdmin(): Promise<
   }
   return { ok: true, userId: staff.id };
 }
+
+// Looser gate: any of the three staff roles (ADMIN + LOJA_LIS + LOJA_VNG) can
+// perform this action. Use for operations that the boutique staff need to run
+// themselves during the Excel→app transition (Sincronizar ECI Controlo, stock
+// movement scanning, etc.). Callers still need to enforce boutique scoping on
+// their own — this only checks "is this a staff account at all".
+export async function requireStaff(): Promise<
+  { ok: true; userId: string | null; role: "ADMIN" | "LOJA_LIS" | "LOJA_VNG" }
+  | { ok: false; response: NextResponse }
+> {
+  const staff = await currentStaff();
+  const role = staff?.role;
+  if (role !== "ADMIN" && role !== "LOJA_LIS" && role !== "LOJA_VNG") {
+    return {
+      ok: false,
+      response: NextResponse.json({ ok: false, error: "sessão de staff necessária" }, { status: 403 }),
+    };
+  }
+  return { ok: true, userId: staff!.id, role };
+}
