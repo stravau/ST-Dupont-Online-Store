@@ -9,6 +9,8 @@ import { IconSearch } from "@/components/admin/icons";
 import { StockTabs, type StockTab } from "@/components/admin/stock-tabs";
 import { VariantRow } from "./row-client";
 import { OtherBrandsView } from "./other-brands-view";
+import { buildVariantWhere } from "@/lib/variant-filter";
+import { SelectionProvider, SelectionToolbar, SelectAllCheckbox } from "./selection";
 
 export const dynamic = "force-dynamic";
 
@@ -74,51 +76,9 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
     );
   }
 
-  const where: Prisma.ProductVariantWhereInput = {};
-  if (q) {
-    where.OR = [
-      { sku: { contains: q, mode: "insensitive" } },
-      { ean: { contains: q, mode: "insensitive" } },
-    ];
-  }
-  if (status === "DISPONIVEL" || status === "INDISPONIVEL" || status === "DESCONTINUADO") {
-    where.status = status;
-  }
-  if (stock === "zero") where.stock = { lte: 0 };
-  else if (stock === "low") where.stock = { gt: 0, lte: 5 };
-  else if (stock === "in") where.stock = { gt: 5 };
-  if (ean === "missing") where.ean = null;
-  else if (ean === "present") where.ean = { not: null };
-  if (promo === "active") {
-    where.promoEndDate = { gte: new Date() };
-  }
-  if (unmapped === "only") where.product = { slug: "unmapped-inventory" };
-  else if (unmapped === "exclude") where.product = { slug: { not: "unmapped-inventory" } };
-  // "Publicação" — variant that would appear in the store. Published means
-  // active, has a real product mapping (not the unmapped bucket), and isn't
-  // marked DESCONTINUADO. Not published = the inverse. Composed via AND so
-  // it doesn't clobber any earlier status/product/OR clauses the operator
-  // may have combined with it.
-  const publishedAnd: Prisma.ProductVariantWhereInput[] = [];
-  if (published === "yes") {
-    publishedAnd.push(
-      { active: true },
-      { NOT: { status: "DESCONTINUADO" } },
-      { product: { slug: { not: "unmapped-inventory" } } },
-    );
-  } else if (published === "no") {
-    publishedAnd.push({
-      OR: [
-        { active: false },
-        { status: "DESCONTINUADO" },
-        { product: { slug: "unmapped-inventory" } },
-      ],
-    });
-  }
-  if (publishedAnd.length) {
-    const existing = where.AND ? (Array.isArray(where.AND) ? where.AND : [where.AND]) : [];
-    where.AND = [...existing, ...publishedAnd];
-  }
+  // Same WHERE builder the bulk-apply endpoint uses, so "select all filtered"
+  // targets exactly these rows.
+  const where = buildVariantWhere({ q, status, stock, ean, promo, unmapped, published });
 
   const orderBy: Prisma.ProductVariantOrderByWithRelationInput =
     sort === "sku" ? { sku: "asc" } :
@@ -247,10 +207,19 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
         </div>
       </form>
 
-      <div className="overflow-x-auto border border-line bg-paper">
+      <SelectionProvider
+        pageIds={rows.map((v) => v.id)}
+        totalFiltered={total}
+        filter={{ q, status, stock, ean, promo, unmapped, published }}
+      >
+        {role === "ADMIN" && <SelectionToolbar />}
+        <div className="overflow-x-auto border border-line bg-paper">
         <table className="min-w-full text-sm">
           <thead className="bg-cream/50 text-[0.6rem] tracking-[0.16em] text-muted uppercase">
             <tr className="border-b border-line">
+              {role === "ADMIN" && (
+                <th className="px-3 py-3 text-center font-medium"><SelectAllCheckbox /></th>
+              )}
               <th className="px-4 py-3 text-left font-medium">EAN</th>
               <th className="px-4 py-3 text-left font-medium">REF</th>
               <th className="px-4 py-3 text-left font-medium">Descrição</th>
@@ -265,7 +234,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
           <tbody className="divide-y divide-line/70">
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={role === "ADMIN" ? 10 : 9}>
                   <EmptyState
                     title={hasFilters ? "Sem resultados" : "Sem artigos"}
                     body={hasFilters ? "Alarga os filtros ou limpa-os." : "Importa um Excel ou cria via /admin/uploads."}
@@ -308,7 +277,8 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
             )}
           </tbody>
         </table>
-      </div>
+        </div>
+      </SelectionProvider>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-xs">

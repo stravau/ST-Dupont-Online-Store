@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/admin/toast";
+import { RowCheckbox } from "./selection";
 
 type Status = "DISPONIVEL" | "INDISPONIVEL" | "DESCONTINUADO";
 type Role   = "ADMIN" | "LOJA_LIS" | "LOJA_VNG";
@@ -189,6 +190,11 @@ export function VariantRow({
 
   return (
     <tr className="transition-colors hover:bg-cream/40">
+      {isAdmin && (
+        <td className="px-3 py-2 text-center align-middle">
+          <RowCheckbox id={id} />
+        </td>
+      )}
       <td className="px-4 py-2 align-middle">
         <input
           value={ean}
