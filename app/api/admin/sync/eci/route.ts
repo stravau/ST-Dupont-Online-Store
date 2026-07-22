@@ -20,7 +20,14 @@ export const maxDuration = 120; // whole-workbook ingest — give it headroom.
 // before writing. See docs/excel-to-app-transition.md.
 
 const DB_SHEET = "DB";
-const OTHER_SHEETS = ["Mov_POS_Loja", "Mov_Int_Ext", "P.Reparar", "Reservas", "Danificados", "Operadores"];
+// Real sheet names, confirmed against ECI_LIS_Controlo. Note the accents and
+// the parentheses — the file uses "Reparações" and "(Danificados)".
+const RESERVAS_SHEET = "Reservas";
+const OPERADORES_SHEET = "Operadores";
+const DANIFICADOS_SHEET = "(Danificados)";
+const MOV_INT_EXT_SHEET = "Mov_Int_Ext";
+// Reported-only for now (not selected to wire): sales + the three repair buckets.
+const PENDING_SHEETS = ["Mov_POS_Loja", "Reparações", "Assuntos Vários", "Assuntos Terminados"];
 
 function normEan(v: Cell): string | null {
   if (v == null || v === "") return null;
@@ -73,22 +80,27 @@ export async function POST(req: Request) {
   const batchId = randomUUID();
   const reports: SheetReport[] = [];
 
-  // ---------- DB sheet: stock + PVP + new articles + other brands ----------
-  const dbMatrix = sheets[DB_SHEET];
-  if (!dbMatrix) {
-    reports.push({ sheet: DB_SHEET, status: "missing", detail: "folha 'DB' não encontrada" });
-  } else {
-    reports.push(await syncDbSheet(dbMatrix, store, apply, batchId));
+  // Helper: run a sheet sync only if the sheet exists; else report missing.
+  async function runSheet(name: string, fn: (m: Cell[][]) => Promise<SheetReport>) {
+    const m = sheets[name];
+    reports.push(m ? await fn(m) : { sheet: name, status: "missing", detail: "folha ausente" });
   }
 
-  // ---------- Remaining sheets: reported, not yet written ----------
-  for (const name of OTHER_SHEETS) {
+  // ---------- Wired sheets ----------
+  await runSheet(DB_SHEET, (m) => syncDbSheet(m, store, apply));            // stock/PVP/novos/outras marcas
+  await runSheet(RESERVAS_SHEET, (m) => syncReservas(m, store, apply));      // reservas de clientes
+  await runSheet(OPERADORES_SHEET, (m) => syncOperadores(m, store, apply));  // metas mensais
+  await runSheet(DANIFICADOS_SHEET, (m) => syncMovements(m, store, apply, "DANIFICADO")); // danificados
+  await runSheet(MOV_INT_EXT_SHEET, (m) => syncMovements(m, store, apply, "INT_EXT"));    // ent/sai/transf
+
+  // ---------- Reported-only (not wired yet) ----------
+  for (const name of PENDING_SHEETS) {
     const m = sheets[name];
     reports.push({
       sheet: name,
       status: m ? "pending" : "missing",
-      rows: m ? Math.max(0, m.length - 2) : 0,
-      detail: m ? "parser por ligar (precisa do ficheiro real para fixar colunas)" : "folha ausente",
+      rows: m ? Math.max(0, m.length - 1) : 0,
+      detail: m ? "por ligar (vendas / reparações — próximo passo)" : "folha ausente",
     });
   }
 
@@ -111,7 +123,7 @@ export async function POST(req: Request) {
 // 5=Stock Teórico. Row 0 = section title, row 1 = headers, 2..N = data.
 // Dupont rows → ProductVariant (stock for THIS store + PVP; create if new,
 // INDISPONIVEL). Non-Dupont rows → OtherBrandItem upsert (VNG file only).
-async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean, batchId: string): Promise<SheetReport> {
+async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): Promise<SheetReport> {
   const body = matrix.slice(2);
   const stockCol = store === "LIS" ? "stockLis" : "stockVng";
 
@@ -244,7 +256,163 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean, ba
   return {
     sheet: DB_SHEET, status: "ok", rows: body.length,
     detail: `aplicado (loja ${store})`,
-    changes: { ...changes, outrasMarcasGravadas: obUpserts, batch: batchId ? 1 : 0 },
+    changes: { ...changes, outrasMarcasGravadas: obUpserts },
     sampleUnmatched,
   };
+}
+
+// ---------- Reservas ----------
+// Cols (row 0 = header, data from row 1): 0=Data_Reserva, 1=Data_Espera,
+// 2=Marca, 3=Ref, 4=EAN, 5=Descrição, 6=Qtd, 7=PVP, 8=Cli_Nome, 9=Cli_Tlm,
+// 10=Cli_email, 11=Op. Idempotent by (boutique, sku, customerName, reservedAt).
+async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): Promise<SheetReport> {
+  const body = matrix.slice(1);
+  const cell = (v: Cell) => (v == null ? "" : String(v).trim());
+  const toDate = (v: Cell) => { if (v instanceof Date && !Number.isNaN(v.getTime())) return v; const s = cell(v); const d = s ? new Date(s) : null; return d && !Number.isNaN(d.getTime()) ? d : null; };
+
+  interface R { reservedAt: Date; expectedAt: Date | null; brand: string; ref: string; ean: string | null; desc: string; qty: number; pvpCents: number | null; name: string; phone: string | null; email: string | null; op: string; }
+  const parsed: R[] = [];
+  for (const r of body) {
+    if (!r) continue;
+    const name = cell(r[8]);
+    const ref = cell(r[3]);
+    if (!name && !ref) continue; // blank line
+    const pvp = r[7] == null || r[7] === "" ? null : Math.round((Number(r[7]) || 0) * 100);
+    parsed.push({
+      reservedAt: toDate(r[0]) ?? new Date(),
+      expectedAt: toDate(r[1]),
+      brand: cell(r[2]), ref, ean: normEan(r[4]), desc: cell(r[5]) || ref,
+      qty: Math.max(1, Math.trunc(Number(r[6]) || 1)),
+      pvpCents: pvp != null && pvp >= 0 ? pvp : null,
+      name, phone: cell(r[9]) || null, email: cell(r[10]) || null, op: cell(r[11]) || "?",
+    });
+  }
+
+  if (!apply) {
+    return { sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "pré-visualização", changes: { reservas: parsed.length } };
+  }
+
+  // Match to a catalogue variant (best-effort) for the link.
+  const variants = await prisma.productVariant.findMany({ select: { id: true, sku: true, ean: true } });
+  const bySku = new Map(variants.map((v) => [v.sku, v.id]));
+  const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
+
+  let created = 0, updated = 0;
+  for (const r of parsed) {
+    let variantId: string | null = (r.ean && byEan.get(r.ean)) || null;
+    if (!variantId) for (const c of refCandidates(r.ref)) { const id = bySku.get(c); if (id) { variantId = id; break; } }
+    const data = {
+      boutique: store, reservedAt: r.reservedAt, expectedAt: r.expectedAt, variantId,
+      sku: r.ref, ean: r.ean, descSnapshot: r.desc, brand: r.brand || null, quantity: r.qty, pvpCents: r.pvpCents,
+      customerName: r.name, customerPhone: r.phone, customerEmail: r.email, operator: r.op,
+    };
+    // Natural key so re-running the sync doesn't duplicate — and never touches
+    // reservas the app itself created (different reservedAt/name combos).
+    const existing = await prisma.reserva.findFirst({
+      where: { boutique: store, sku: r.ref, customerName: r.name, reservedAt: r.reservedAt },
+      select: { id: true },
+    });
+    if (existing) { await prisma.reserva.update({ where: { id: existing.id }, data }); updated++; }
+    else { await prisma.reserva.create({ data }); created++; }
+  }
+  return { sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "aplicado", changes: { novas: created, atualizadas: updated } };
+}
+
+// ---------- Operadores ----------
+// No header — every row is data: 0=Iniciais, 1=código, 2=meta mensal (€).
+// Upsert the operator's monthlyGoalCents for THIS store.
+async function syncOperadores(matrix: Cell[][], store: EciStore, apply: boolean): Promise<SheetReport> {
+  const cell = (v: Cell) => (v == null ? "" : String(v).trim());
+  interface O { initials: string; goalCents: number; }
+  const parsed: O[] = [];
+  for (const r of matrix) {
+    if (!r) continue;
+    const initials = cell(r[0]).toUpperCase();
+    if (!initials || initials.length > 4) continue; // skip stray/blank rows
+    const goal = r[2] == null || r[2] === "" ? 0 : Math.max(0, Math.round((Number(r[2]) || 0) * 100));
+    parsed.push({ initials, goalCents: goal });
+  }
+  if (!apply) {
+    return { sheet: OPERADORES_SHEET, status: "ok", rows: matrix.length, detail: "pré-visualização", changes: { operadores: parsed.length } };
+  }
+  let updated = 0, created = 0;
+  for (const o of parsed) {
+    const res = await prisma.operator.upsert({
+      where: { boutique_initials: { boutique: store, initials: o.initials } },
+      update: { monthlyGoalCents: o.goalCents },
+      create: { boutique: store, initials: o.initials, monthlyGoalCents: o.goalCents, active: true },
+    });
+    if (res.createdAt.getTime() === res.updatedAt.getTime()) created++; else updated++;
+  }
+  return { sheet: OPERADORES_SHEET, status: "ok", rows: matrix.length, detail: "aplicado", changes: { metasAtualizadas: updated, novos: created } };
+}
+
+// ---------- Stock movements (Danificados + Mov_Int_Ext) ----------
+// HISTORY ONLY — writes StockMovement rows for the ledger/visibility; it does
+// NOT recompute ProductVariant.stock (the DB sheet carries the authoritative
+// Stock Teórico). Idempotent by natural key (boutique, type, day, ean, qty).
+//   (Danificados): 0=Data, 1=EAN, 2=Ref, 3=Descrição, 4=Qtd, 5=Op, 6=Obs
+//   Mov_Int_Ext:   0=Data, 1=EAN, 2=Mov, 3=Qtd, 4=Ref, 5=Descrição, 6=Op, 7=Obs
+async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, kind: "DANIFICADO" | "INT_EXT"): Promise<SheetReport> {
+  const sheet = kind === "DANIFICADO" ? DANIFICADOS_SHEET : MOV_INT_EXT_SHEET;
+  const body = matrix.slice(1);
+  const cell = (v: Cell) => (v == null ? "" : String(v).trim());
+  const toDate = (v: Cell) => { if (v instanceof Date && !Number.isNaN(v.getTime())) return v; const s = cell(v); const d = s ? new Date(s) : null; return d && !Number.isNaN(d.getTime()) ? d : null; };
+  const mapType = (mov: string): "ENTRADA" | "SAIDA" | "STOCK_INICIAL" | "AJUSTE" => {
+    const m = mov.toUpperCase();
+    if (m.startsWith("ENT")) return "ENTRADA";
+    if (m.startsWith("SAI")) return "SAIDA";
+    if (m.includes("INICIAL")) return "STOCK_INICIAL";
+    return "AJUSTE";
+  };
+
+  interface Mv { movedAt: Date; ean: string | null; ref: string; desc: string; qty: number; type: string; note: string | null; op: string | null; }
+  const parsed: Mv[] = [];
+  for (const r of body) {
+    if (!r) continue;
+    if (kind === "DANIFICADO") {
+      const ref = cell(r[2]); const ean = normEan(r[1]);
+      if (!ref && !ean) continue;
+      const qty = Math.trunc(Number(r[4]) || 0);
+      // Damaged pulls stock OUT.
+      parsed.push({ movedAt: toDate(r[0]) ?? new Date(), ean, ref, desc: cell(r[3]) || ref, qty: -Math.abs(qty), type: "DANIFICADO", note: cell(r[6]) || null, op: cell(r[5]) || null });
+    } else {
+      const ref = cell(r[4]); const ean = normEan(r[1]);
+      if (!ref && !ean) continue;
+      const mov = cell(r[2]); const t = mapType(mov);
+      const magnitude = Math.abs(Math.trunc(Number(r[3]) || 0));
+      const signed = t === "SAIDA" ? -magnitude : magnitude; // ENT/inicial/ajuste = +
+      parsed.push({ movedAt: toDate(r[0]) ?? new Date(), ean, ref, desc: cell(r[5]) || ref, qty: signed, type: t, note: cell(r[7]) || null, op: cell(r[6]) || null });
+    }
+  }
+
+  if (!apply) {
+    return { sheet, status: "ok", rows: body.length, detail: "pré-visualização (histórico, não mexe no stock)", changes: { movimentos: parsed.length } };
+  }
+
+  // Dedup against what's already stored for this store+type.
+  const existing = await prisma.stockMovement.findMany({
+    where: { boutique: store, type: { in: kind === "DANIFICADO" ? ["DANIFICADO"] : ["ENTRADA", "SAIDA", "STOCK_INICIAL", "AJUSTE"] } },
+    select: { movedAt: true, ean: true, sku: true, quantity: true, type: true },
+  });
+  const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+  const seen = new Set(existing.map((m) => `${m.type}|${dayKey(m.movedAt)}|${m.ean ?? m.sku}|${m.quantity}`));
+
+  const variants = await prisma.productVariant.findMany({ select: { id: true, sku: true, ean: true } });
+  const bySku = new Map(variants.map((v) => [v.sku, v.id]));
+  const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
+
+  let created = 0, skipped = 0;
+  for (const mv of parsed) {
+    const key = `${mv.type}|${dayKey(mv.movedAt)}|${mv.ean ?? mv.ref}|${mv.qty}`;
+    if (seen.has(key)) { skipped++; continue; }
+    let variantId: string | null = (mv.ean && byEan.get(mv.ean)) || null;
+    if (!variantId) for (const c of refCandidates(mv.ref)) { const id = bySku.get(c); if (id) { variantId = id; break; } }
+    await prisma.stockMovement.create({
+      data: { boutique: store, variantId, sku: mv.ref, ean: mv.ean, type: mv.type as never, quantity: mv.qty, movedAt: mv.movedAt, note: mv.note },
+    });
+    seen.add(key);
+    created++;
+  }
+  return { sheet, status: "ok", rows: body.length, detail: "aplicado (histórico)", changes: { novos: created, jaExistentes: skipped } };
 }
