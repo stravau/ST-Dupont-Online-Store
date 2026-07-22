@@ -54,16 +54,29 @@ Saltar directo para "app é a fonte, Excel morre". Não dá porque:
 recentes. Equipa vai começando a experimentar POS terminal em
 casos-piloto. Confiança no app começa a crescer.
 
-### Fase 2 — Paralelo (algumas semanas / meses)
+### Fase 2 — 2 dias de confirmação (não semanas de paralelo)
 
-- Equipa faz cada vez mais coisas no app: POS terminal para vendas
-  reais, movimentos de stock com UI nativa, reparações, reservas.
-- Miguel continua a sincronizar o Excel esporadicamente.
-- **Relatório de diff** após cada sync — mostra onde as duas fontes
-  discordam. Investiga-se cada divergência: bug de sync? sale
-  esquecida? erro humano no Excel?
-- Meta: chegar a **zero divergências durante um mês inteiro** com
-  a equipa a operar no app.
+Decisão (2026-07-22): a Fase 2 **não** é um paralelo prolongado — seria
+trabalho a dobrar sem retorno. É uma **janela curta de confirmação de
+~2 dias**, só para provar que os números da app batem certo com o Excel.
+
+- Durante ~2 dias, a equipa regista as vendas **no Excel E na app**
+  (dupla entrada, mas curta e deliberada).
+- No fim, **relatório de diff**: os totais da app batem certo com o
+  Excel para esses 2 dias? (mesmas vendas, valores, operadores).
+  - **Bate →** larga-se o Excel; equipa passa a app-only (Fase 3).
+  - **Não bate →** investiga-se a causa (bug de sync? venda esquecida?
+    erro humano no Excel?) e estica-se 1-2 dias.
+- Para os 2 dias contarem a sério (amostra pequena), **forçar os casos
+  raros de propósito** na janela: pelo menos **uma devolução** e **uma
+  venda com desconto** de teste; cobrir **ambas as lojas** se possível.
+- **Não apagar o Excel logo** — mantê-lo como rede uns dias para poder
+  cruzar caso apareça algo na semana seguinte.
+
+Racional: a boutique faz poucas vendas/dia, por isso 2 dias com casos
+forçados apanham o essencial (a app regista bem, os totais alinham) sem
+o custo de semanas de dupla entrada. Casos verdadeiramente raros ficam
+cobertos pela rede do Excel mantido temporariamente.
 
 ### Fase 3 — App produção, Excel opcional (destino)
 
@@ -96,8 +109,9 @@ completo e absorve todas as folhas relevantes.
 `ECI_VNG_*`) ou, se ambíguo, pergunta ao utilizador via dropdown
 antes de arrancar.
 
-**UI**: `/admin/uploads` fica com **um único cartão** — "Sincronizar
-ECI Controlo" — em vez dos 4 actuais (PVP/Promo/Stock/Novos). Drag'n'drop
+**UI**: `/admin/uploads` passa a **dois cartões** — "Sincronizar ECI
+Controlo" + "Promoções" (mantém-se, ver decisão abaixo) — em vez dos 4
+actuais. Saem os cartões PVP/Stock/Novos (absorvidos pelo sync). Drag'n'drop
 grande, botão "Sincronizar", relatório final:
 
 ```
@@ -114,6 +128,33 @@ grande, botão "Sincronizar", relatório final:
   Duração: 42s
   Batch id: 4b8f... (auditoria)
 ```
+
+## Decisões: promoções e activação de novos artigos
+
+Decisão (2026-07-22):
+
+**Promoções mantêm-se num cartão à parte.** O preço promocional e as datas
+não existem na folha `DB` do ECI — são decisão de marketing do patrão. Logo:
+
+- O cartão "Promoções" (`EAN · PVP_PROMO · DATA_INICIO · DATA_FIM`) fica.
+- O sync do ECI escreve **só o PVP normal** (`priceCents`) e **nunca toca**
+  em `promoPriceCents` / `promoEndDate` → uma promoção activa sobrevive a
+  qualquer sync até à data de fim (é o comportamento que o upload PVP já tem).
+
+**Novos artigos entram escondidos — Opção A.** Uma linha nova na folha `DB`
+cria `Product` + `Variant` com `status = INDISPONIVEL` / `active = false`
+(a mesma gate de revisão do `new-articles` actual) — **nada aparece no site
+sem o patrão rever**. Para não o obrigar a activar 1 a 1:
+
+- Acrescentar **"activar em massa"** no Consultar Stock: filtrar (ex.:
+  indisponíveis / recém-criados) → seleccionar vários (checkboxes) →
+  **"Tornar disponível"**.
+- É a **mesma ferramenta de selecção múltipla** que serve para criar
+  promoções (já orçada como "Bulk edit PVP + promoção" no custo até à Fase 3)
+  — constrói-se uma vez, serve para os dois casos.
+- O relatório do sync deve **destacar quantos artigos novos entraram** (para
+  o patrão saber que tem revisão pendente) e, idealmente, ligar directo ao
+  filtro dos indisponíveis.
 
 ## Modelos a criar antes do endpoint
 
@@ -162,7 +203,9 @@ Migration + inclusão no `Sincronizar` estimados em **30-40 min** juntos.
 - Endpoint unificado `/api/admin/sync/eci` (6 parsers, 4 já existem em
   scripts CLI): **1 dia**
 - UI do cartão único em `/admin/uploads` + relatório: **meio dia**
-- Retirar os 4 cartões antigos (PVP/Promo/Stock/Novos genéricos): 30 min
+- Retirar os 3 cartões absorvidos (PVP/Stock/Novos); Promoções mantém-se: 30 min
+- "Activar em massa" no Consultar Stock (Opção A — reusa a selecção múltipla
+  das promoções, ver custo até à Fase 3): incluído aí
 - **Total: ~1.5 a 2 dias de trabalho**
 
 ## Custo para chegar à Fase 3
