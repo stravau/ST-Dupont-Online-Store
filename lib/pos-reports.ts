@@ -64,10 +64,17 @@ export async function bestSellers(
   from: Date,
   to: Date,
   limit = 10,
+  // Which lines to count. "DUPONT" keeps the catalogue best-sellers clean of
+  // other-brand items; "OTHER_BRAND" gives the Gaia-only other-brand ranking;
+  // omit for everything sold.
+  source?: "DUPONT" | "OTHER_BRAND",
 ): Promise<BestSeller[]> {
   const rows = await prisma.saleItem.groupBy({
     by: ["sku", "descSnapshot"],
-    where: { sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, type: "VENDA" } },
+    where: {
+      ...(source ? { source } : {}),
+      sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, type: "VENDA" },
+    },
     _sum: { quantity: true, grossCents: true },
     orderBy: { _sum: { quantity: "desc" } },
     take: limit,

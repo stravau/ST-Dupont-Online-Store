@@ -9,9 +9,11 @@ interface OperatorLite {
 }
 
 interface Line {
-  variantId: string;
+  source: "DUPONT" | "OTHER_BRAND";
+  variantId: string | null;
   sku: string;
   ean: string | null;
+  brand: string | null; // shown for OTHER_BRAND lines
   desc: string;
   unitPriceCents: number;
   quantity: number;
@@ -73,7 +75,9 @@ export function PosTerminal({
       }
       const param = /^\d{8}$|^\d{13}$/.test(code) ? `ean=${encodeURIComponent(code)}` : `sku=${encodeURIComponent(code)}`;
       try {
-        const res = await fetch(`/api/admin/pos/scan?${param}`);
+        // Pass the store so the scan knows whether to offer the other-brand
+        // fallback (Gaia only).
+        const res = await fetch(`/api/admin/pos/scan?${param}&boutique=${boutique}`);
         const data = await res.json();
         if (!res.ok || !data.ok) {
           setFlash({ kind: "err", msg: `Não encontrado: ${code}` });
@@ -81,39 +85,48 @@ export function PosTerminal({
           return;
         }
         const v = data.variant;
+        const isOther = data.source === "OTHER_BRAND";
         const name = (v.name?.pt ?? v.name?.en ?? v.sku) as string;
         const pName = (v.product?.name?.pt ?? v.product?.name?.en ?? "") as string;
         setLines((ls) => [
           ...ls,
           {
-            variantId: v.id,
+            source: isOther ? "OTHER_BRAND" : "DUPONT",
+            variantId: isOther ? null : v.id,
             sku: v.sku,
             ean: v.ean,
+            brand: isOther ? (v.brand ?? null) : null,
             desc: `${pName} ${name}`.trim() || v.sku,
-            unitPriceCents: v.priceCents,
+            unitPriceCents: v.priceCents ?? 0, // other-brand PVP may be null → set at the till
             quantity: 1,
             discountPct: 0,
           },
         ]);
-        setFlash({ kind: "ok", msg: `Adicionado ${v.sku}` });
+        setFlash({ kind: "ok", msg: `Adicionado ${v.sku}${isOther ? ` · ${v.brand}` : ""}` });
       } catch {
         setFlash({ kind: "err", msg: "Erro de rede ao ler o código" });
       }
       refocus();
     },
-    [lines],
+    [lines, boutique],
   );
 
   const setQty = (i: number, q: number) =>
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, quantity: Math.max(1, q || 1) } : l)));
   const setDisc = (i: number, pctInput: number) =>
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, discountPct: Math.min(0.99, Math.max(0, (pctInput || 0) / 100)) } : l)));
+  // PVP is editable only for other-brand lines (their Excel PVP can be missing);
+  // Dupont prices come fixed from the catalogue. Euros in → cents.
+  const setPrice = (i: number, euros: number) =>
+    setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, unitPriceCents: Math.max(0, Math.round((euros || 0) * 100)) } : l)));
   const removeLine = (i: number) => setLines((ls) => ls.filter((_, idx) => idx !== i));
 
   const confirm = async () => {
     if (busy) return;
     if (!operator) return setFlash({ kind: "err", msg: "Escolhe quem vendeu" });
     if (lines.length === 0) return setFlash({ kind: "err", msg: "Sem artigos" });
+    const priceless = lines.find((l) => l.source === "OTHER_BRAND" && l.unitPriceCents <= 0);
+    if (priceless) return setFlash({ kind: "err", msg: `Define o PVP de ${priceless.sku} (${priceless.brand})` });
     setBusy(true);
     setFlash(null);
     try {
@@ -124,7 +137,15 @@ export function PosTerminal({
           boutique,
           operatorInitials: operator,
           type,
-          items: lines.map((l) => ({ ean: l.ean ?? undefined, sku: l.ean ? undefined : l.sku, quantity: l.quantity, discountPct: l.discountPct })),
+          items: lines.map((l) => ({
+            ean: l.ean ?? undefined,
+            sku: l.ean ? undefined : l.sku,
+            quantity: l.quantity,
+            discountPct: l.discountPct,
+            // Other-brand PVP is set at the till (may be absent in the master),
+            // so send it explicitly; Dupont prices come from the catalogue.
+            unitPriceCents: l.source === "OTHER_BRAND" ? l.unitPriceCents : undefined,
+          })),
         }),
       });
       const data = await res.json();
@@ -200,10 +221,29 @@ export function PosTerminal({
               {lines.map((l, i) => (
                 <tr key={`${l.sku}-${i}`} className="border-b border-line/60 align-middle">
                   <td className="py-2.5 pr-3">
-                    <p className="font-medium text-ink">{l.sku}</p>
+                    <p className="font-medium text-ink">
+                      {l.sku}
+                      {l.source === "OTHER_BRAND" && l.brand && (
+                        <span className="ml-2 inline-block border border-gold/60 px-1.5 py-0.5 align-middle text-[0.55rem] tracking-[0.12em] text-gold uppercase">
+                          {l.brand}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-[0.72rem] text-muted">{l.desc}</p>
                   </td>
-                  <td className="py-2.5 px-2 text-right tabular-nums">{eur(l.unitPriceCents)}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums">
+                    {l.source === "OTHER_BRAND" ? (
+                      <input
+                        type="number" min={0} step="0.01" value={l.unitPriceCents ? l.unitPriceCents / 100 : ""}
+                        onChange={(e) => setPrice(i, parseFloat(e.target.value))}
+                        placeholder="PVP"
+                        aria-label="PVP"
+                        className={`w-20 border bg-paper px-2 py-1 text-right tabular-nums outline-none focus:border-gold ${l.unitPriceCents > 0 ? "border-line" : "border-[#b94a3a]"}`}
+                      />
+                    ) : (
+                      eur(l.unitPriceCents)
+                    )}
+                  </td>
                   <td className="py-2.5 px-2 text-center">
                     <input type="number" min={1} value={l.quantity}
                       onChange={(e) => setQty(i, parseInt(e.target.value, 10))}

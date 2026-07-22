@@ -38,7 +38,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   const [stores, best, log, operators] = await Promise.all([
     salesByStore(boutiques, from, to),
-    bestSellers(boutiques, from, to, 12),
+    bestSellers(boutiques, from, to, 12, "DUPONT"), // Dupont-only — other brands ranked separately
     salesLog(boutiques, from, to, 500),
     operatorLifetimeTotals(boutiques),
   ]);
