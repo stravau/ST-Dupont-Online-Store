@@ -2,12 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Modern formats for product photography.
+    // Modern formats for product photography — Vercel Image Optimization
+    // negociateia AVIF/WebP automaticamente e cachea no edge (~30d).
     formats: ["image/avif", "image/webp"],
-    // When official imagery is served from a CDN (e.g. Cloudinary in Phase 3),
-    // whitelist the host here. Local /public images need no entry.
+    // Hosts externos permitidos. images.starbrands.pt é o CDN oficial da
+    // Starbrands (dona da loja e da marca dos produtos) — é a fonte da
+    // verdade das fotos de catálogo, referenciada directamente no
+    // ProductVariant.images. O Next.js busca uma vez, converte para
+    // AVIF/WebP no tamanho pedido pelo browser, e serve do edge.
     remotePatterns: [
-      // { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "images.starbrands.pt" },
     ],
   },
   // Baseline security headers for every route. Deliberately NOT a strict
