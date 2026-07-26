@@ -74,7 +74,8 @@ export function EciSyncCard() {
           <h2 className="mt-1 font-serif text-2xl text-ink">Sincronizar ECI Controlo</h2>
           <p className="mt-2 max-w-xl text-sm text-muted">
             Arrasta o ficheiro ECI (LIS ou VNG). Vês primeiro uma <strong>pré-visualização</strong> do que muda;
-            só grava quando clicares em <strong>Aplicar</strong>. Cobre stock, PVP, artigos novos e outras marcas.
+            só grava quando clicares em <strong>Aplicar</strong>. Cobre stock, PVP, novos artigos, outras marcas,
+            histórico de vendas, movimentos internos, danificados, reservas, operadores e as três folhas de reparações.
           </p>
         </div>
         <label className="shrink-0 text-xs">
@@ -154,7 +155,7 @@ export function EciSyncCard() {
             </button>
           )}
           {result.applied && (
-            <p className="mt-4 text-center text-[0.7rem] text-[#1f7a4d]">✓ Gravado. As outras folhas ligam-se num próximo passo.</p>
+            <p className="mt-4 text-center text-[0.7rem] text-[#1f7a4d]">✓ Sincronização gravada.</p>
           )}
         </div>
       )}
