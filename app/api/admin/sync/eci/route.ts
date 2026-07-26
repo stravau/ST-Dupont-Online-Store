@@ -207,6 +207,7 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   const stockUpdates: { id: string; stock: number; total: number }[] = [];
   const pvpUpdates: { id: string; pvpCents: number }[] = [];
   const creates: Parsed[] = [];
+  const matchedVariantIds = new Set<string>();
 
   for (const row of dupont) {
     let hit = row.ean ? byEan.get(row.ean) : undefined;
@@ -220,6 +221,7 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
       continue;
     }
     matched++;
+    matchedVariantIds.add(hit.id);
     const curStock = (stockCol === "stockLis" ? hit.stockLis : hit.stockVng) ?? 0;
     if (curStock !== row.stock) {
       const otherStore = stockCol === "stockLis" ? (hit.stockVng ?? 0) : (hit.stockLis ?? 0);
@@ -232,17 +234,40 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
     }
   }
 
+  // --- Modo autoritativo: variants não presentes no ficheiro ficam com
+  // stock ZERO nesta loja. A variant em si NÃO se apaga (é do catálogo
+  // do site, partilhado); só a coluna cache desta loja é resetada, e o
+  // total agregado é recalculado usando o stock actual da outra loja.
+  const stockZeroUpdates: { id: string; total: number }[] = [];
+  for (const v of variants) {
+    if (matchedVariantIds.has(v.id)) continue;
+    const cur = stockCol === "stockLis" ? (v.stockLis ?? 0) : (v.stockVng ?? 0);
+    if (cur === 0) continue;
+    const otherStore = stockCol === "stockLis" ? (v.stockVng ?? 0) : (v.stockLis ?? 0);
+    stockZeroUpdates.push({ id: v.id, total: 0 + otherStore });
+  }
+
   // --- Other brands (only meaningful for the VNG file) ---
   let obUpserts = 0;
   const obRows = store === "VNG" ? other.filter((o) => o.ref) : [];
+  const obSkusInFile = new Set(obRows.map((o) => o.ref));
+  // Modo autoritativo: contar quantas OtherBrandItem existentes vão ser
+  // apagadas (só relevante quando o ficheiro é o VNG — o LIS não mexe
+  // no master de outras marcas). A execução real do delete acontece
+  // apenas no bloco APPLY abaixo.
+  const obDeleteCount = store === "VNG"
+    ? await prisma.otherBrandItem.count({ where: { sku: { notIn: [...obSkusInFile] } } })
+    : 0;
 
   const changes = {
     dupontLinhas: dupont.length,
     correspondidas: matched,
     stockAtualizado: stockChanged,
+    stockZerado: stockZeroUpdates.length,
     pvpAtualizado: pvpChanged,
     novosArtigos: newArticles,
     outrasMarcas: obRows.length,
+    outrasMarcasApagar: obDeleteCount,
     emBranco: blank,
   };
 
@@ -260,6 +285,12 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   const now = new Date();
   await runPool(stockUpdates, (u) =>
     prisma.productVariant.update({ where: { id: u.id }, data: { [stockCol]: u.stock, stock: u.total } }),
+  );
+  // Autoritativo: variants que não aparecem no ficheiro têm o stock
+  // desta loja zerado. Preserva o stock da outra loja (a outra file
+  // trata dela) e recalcula o total.
+  await runPool(stockZeroUpdates, (u) =>
+    prisma.productVariant.update({ where: { id: u.id }, data: { [stockCol]: 0, stock: u.total } }),
   );
   await runPool(pvpUpdates, (u) =>
     prisma.productVariant.update({ where: { id: u.id }, data: { priceCents: u.pvpCents, pvpStartDate: now } }),
@@ -352,10 +383,22 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
     obUpserts += toUpdate.length;
   }
 
+  // Autoritativo — apagar OtherBrandItem que já não estão no ficheiro VNG.
+  // Só faz sentido no ficheiro VNG (o LIS não trata desta tabela); no LIS
+  // este bloco fica silenciosamente inactivo.
+  let obDeleted = 0;
+  if (store === "VNG") {
+    const skusInFileArr = [...obSkusInFile];
+    const res = skusInFileArr.length > 0
+      ? await prisma.otherBrandItem.deleteMany({ where: { sku: { notIn: skusInFileArr } } })
+      : await prisma.otherBrandItem.deleteMany({});
+    obDeleted = res.count;
+  }
+
   return {
     sheet: DB_SHEET, status: "ok", rows: body.length,
     detail: `aplicado (loja ${store})`,
-    changes: { ...changes, outrasMarcasGravadas: obUpserts },
+    changes: { ...changes, outrasMarcasGravadas: obUpserts, outrasMarcasApagadas: obDeleted },
     sampleUnmatched,
   };
 }
@@ -397,8 +440,21 @@ async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): 
     });
   }
 
+  // Preview count of what would be deleted — useful even in dry-run so
+  // the boss sees the destructive part before applying.
+  const keyOf = (b: string, sku: string, name: string, at: Date) => `${b}|${sku}|${name}|${at.toISOString()}`;
+  const fileKeys = new Set(parsed.map((r) => keyOf(store, r.ref, r.name, r.reservedAt)));
+  const allBoutiqueRows = await prisma.reserva.findMany({
+    where: { boutique: store },
+    select: { id: true, sku: true, customerName: true, reservedAt: true },
+  });
+  const toDelete = allBoutiqueRows.filter((e) => !fileKeys.has(keyOf(store, e.sku, e.customerName, e.reservedAt)));
+
   if (!apply) {
-    return { sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "pré-visualização", changes: { reservas: parsed.length } };
+    return {
+      sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "pré-visualização",
+      changes: { reservas: parsed.length, aApagar: toDelete.length },
+    };
   }
 
   // Match to a catalogue variant (best-effort) for the link.
@@ -406,20 +462,9 @@ async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): 
   const bySku = new Map(variants.map((v) => [v.sku, v.id]));
   const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
 
-  // Bulk-fetch every reserva that could possibly match this batch's natural
-  // keys — one query instead of N findFirst. Match on (sku, customerName,
-  // reservedAt) client-side.
-  const skus = [...new Set(parsed.map((r) => r.ref))];
-  const names = [...new Set(parsed.map((r) => r.name))];
-  const existingRows = skus.length && names.length
-    ? await prisma.reserva.findMany({
-        where: { boutique: store, sku: { in: skus }, customerName: { in: names } },
-        select: { id: true, sku: true, customerName: true, reservedAt: true },
-      })
-    : [];
-  const keyOf = (b: string, sku: string, name: string, at: Date) => `${b}|${sku}|${name}|${at.toISOString()}`;
+  // Bulk-map the existing rows by natural key (same helper as the preview).
   const existingByKey = new Map(
-    existingRows.map((e) => [keyOf(store, e.sku, e.customerName, e.reservedAt), e.id]),
+    allBoutiqueRows.map((e) => [keyOf(store, e.sku, e.customerName, e.reservedAt), e.id]),
   );
 
   const toCreate: { data: Parameters<typeof prisma.reserva.create>[0]["data"] }[] = [];
@@ -436,7 +481,7 @@ async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): 
     if (existingId) toUpdate.push({ id: existingId, data });
     else toCreate.push({ data });
   }
-  let created = 0, updated = 0;
+  let created = 0, updated = 0, deleted = 0;
   if (toCreate.length) {
     const res = await prisma.reserva.createMany({
       data: toCreate.map((c) => c.data) as never,
@@ -446,7 +491,15 @@ async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): 
   }
   await runPool(toUpdate, async (u) => { await prisma.reserva.update({ where: { id: u.id }, data: u.data }); });
   updated = toUpdate.length;
-  return { sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "aplicado", changes: { novas: created, atualizadas: updated } };
+  // Autoritativo — apagar reservas que já não estão no ficheiro.
+  if (toDelete.length) {
+    const res = await prisma.reserva.deleteMany({ where: { id: { in: toDelete.map((d) => d.id) } } });
+    deleted = res.count;
+  }
+  return {
+    sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "aplicado",
+    changes: { novas: created, atualizadas: updated, apagadas: deleted },
+  };
 }
 
 // ---------- Operadores ----------
@@ -855,26 +908,30 @@ async function syncRepairSheet(
     });
   }
 
+  // Modo autoritativo: precisamos de TODAS as linhas deste (boutique, bucket)
+  // para calcular quais apagar (as que não aparecem no ficheiro).
+  const keyOf = (n: string, ref: string, at: Date | null) => `${n}|${ref}|${at ? at.toISOString() : "?"}`;
+  const allBucketRows = await prisma.repair.findMany({
+    where: { boutique: store, bucket },
+    select: { id: true, customerName: true, reference: true, firstVisitAt: true },
+  });
+  const fileKeys = new Set(recs.map((r) => keyOf(r.customerName, r.reference, r.firstVisitAt)));
+  const toDelete = allBucketRows.filter((e) => !fileKeys.has(keyOf(e.customerName, e.reference, e.firstVisitAt)));
+
   if (!apply) {
     return {
       sheet: sheetName, status: "ok", rows: body.length,
       detail: `pré-visualização (bucket ${bucket.toLowerCase()})`,
-      changes: { total: recs.length, semData: recs.filter((x) => !x.firstVisitAt).length, ignoradas: skippedBlank },
+      changes: {
+        total: recs.length,
+        semData: recs.filter((x) => !x.firstVisitAt).length,
+        aApagar: toDelete.length,
+        ignoradas: skippedBlank,
+      },
     };
   }
 
-  // Bulk-fetch every candidate row for this bucket instead of a findFirst per
-  // record. Filter tightly on the natural key so the query stays cheap.
-  const names = [...new Set(recs.map((r) => r.customerName))];
-  const refs  = [...new Set(recs.map((r) => r.reference))];
-  const existingRows = names.length && refs.length
-    ? await prisma.repair.findMany({
-        where: { boutique: store, bucket, customerName: { in: names }, reference: { in: refs } },
-        select: { id: true, customerName: true, reference: true, firstVisitAt: true },
-      })
-    : [];
-  const keyOf = (n: string, ref: string, at: Date | null) => `${n}|${ref}|${at ? at.toISOString() : "?"}`;
-  const existingByKey = new Map(existingRows.map((e) => [keyOf(e.customerName, e.reference, e.firstVisitAt), e.id]));
+  const existingByKey = new Map(allBucketRows.map((e) => [keyOf(e.customerName, e.reference, e.firstVisitAt), e.id]));
 
   interface WriteData {
     boutique: EciStore;
@@ -912,16 +969,23 @@ async function syncRepairSheet(
     if (existingId) toUpdate.push({ id: existingId, data });
     else toCreate.push(data);
   }
-  let created = 0, updated = 0;
+  let created = 0, updated = 0, deleted = 0;
   if (toCreate.length) {
     const res = await prisma.repair.createMany({ data: toCreate as never });
     created = res.count;
   }
   await runPool(toUpdate, async (u) => { await prisma.repair.update({ where: { id: u.id }, data: u.data }); });
   updated = toUpdate.length;
+  // Autoritativo — apagar reparações desta boutique+bucket que já não estão
+  // no ficheiro. Sale.repairId tem onDelete SetNull, portanto vendas
+  // ligadas sobrevivem com repairId=null.
+  if (toDelete.length) {
+    const res = await prisma.repair.deleteMany({ where: { id: { in: toDelete.map((d) => d.id) } } });
+    deleted = res.count;
+  }
   return {
     sheet: sheetName, status: "ok", rows: body.length,
     detail: `aplicado (bucket ${bucket.toLowerCase()})`,
-    changes: { total: recs.length, novos: created, atualizados: updated, ignoradas: skippedBlank },
+    changes: { total: recs.length, novos: created, atualizados: updated, apagadas: deleted, ignoradas: skippedBlank },
   };
 }

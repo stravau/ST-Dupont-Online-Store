@@ -77,6 +77,12 @@ export function EciSyncCard() {
             só grava quando clicares em <strong>Aplicar</strong>. Cobre stock, PVP, novos artigos, outras marcas,
             histórico de vendas, movimentos internos, danificados, reservas, operadores e as três folhas de reparações.
           </p>
+          <p className="mt-3 max-w-xl text-[0.72rem] text-[#7e5e00]">
+            <strong>Modo autoritativo:</strong> o Excel é a fonte única. Reservas, reparações e artigos
+            de outras marcas que não estejam no ficheiro <strong>serão apagados</strong>; variantes Dupont
+            ausentes ficam com o stock desta loja a <strong>zero</strong>. A pré-visualização mostra sempre
+            as contagens antes de qualquer gravação.
+          </p>
         </div>
         <label className="shrink-0 text-xs">
           <span className="overline mb-1 block text-[0.55rem] text-muted">Loja</span>
