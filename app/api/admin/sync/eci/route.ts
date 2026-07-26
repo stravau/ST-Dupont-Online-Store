@@ -6,7 +6,33 @@ import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { readWorkbookMatrix, detectEciStore, type Cell, type EciStore } from "@/lib/admin-upload";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // whole-workbook ingest — give it headroom.
+export const maxDuration = 120; // fica como está — o objectivo desta ronda é
+                                // ficar bem debaixo do tecto, não aumentá-lo.
+
+// Concurrency cap for parallel Prisma writes against Neon. High enough to
+// hide the per-query latency (10-50ms) but low enough to stay well under
+// Neon's pooler connection limit. Empirically ~20 gives a big speed-up
+// without saturating the pool.
+const POOL = 20;
+
+// Run `worker` over `items` with a cap of `concurrency` promises in flight.
+// Preserves per-item errors (they bubble up so the top-level try/catch can
+// surface them). Order of results is NOT guaranteed to match `items`.
+async function runPool<T, R>(items: T[], worker: (item: T) => Promise<R>, concurrency = POOL): Promise<R[]> {
+  const results: R[] = [];
+  if (items.length === 0) return results;
+  let cursor = 0;
+  const workers: Promise<void>[] = [];
+  const kick = async () => {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await worker(items[i]);
+    }
+  };
+  for (let k = 0; k < Math.min(concurrency, items.length); k++) workers.push(kick());
+  await Promise.all(workers);
+  return results;
+}
 
 // Unified ECI Controlo sync (Fase 1 of the Excel→app transition). One upload
 // absorbs the workbook; the boss sees a per-sheet report. DEFAULTS TO DRY-RUN —
@@ -212,16 +238,22 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   }
 
   // ---- APPLY ----
-  for (const u of stockUpdates) {
-    await prisma.productVariant.update({ where: { id: u.id }, data: { [stockCol]: u.stock, stock: u.total } });
-  }
-  for (const u of pvpUpdates) {
-    await prisma.productVariant.update({ where: { id: u.id }, data: { priceCents: u.pvpCents, pvpStartDate: new Date() } });
-  }
-  // New Dupont articles → placeholder product + variant, INDISPONIVEL.
+  // Stock + PVP updates on Dupont variants run in parallel (each is a
+  // small independent write, no cross-dependency).
+  const now = new Date();
+  await runPool(stockUpdates, (u) =>
+    prisma.productVariant.update({ where: { id: u.id }, data: { [stockCol]: u.stock, stock: u.total } }),
+  );
+  await runPool(pvpUpdates, (u) =>
+    prisma.productVariant.update({ where: { id: u.id }, data: { priceCents: u.pvpCents, pvpStartDate: now } }),
+  );
+  // New Dupont articles → placeholder product + variant, INDISPONIVEL. Each is
+  // a small transaction (product + variant) — pool them at half concurrency
+  // since two writes per item multiplies pool pressure.
   const fallbackCat = await prisma.category.findFirst({ where: { slug: "acessorios" }, select: { id: true } });
   if (fallbackCat) {
-    for (const row of creates) {
+    const cat = fallbackCat;
+    const created = await runPool(creates, async (row) => {
       const sku = refCandidates(row.ref)[0];
       const slug = `${row.desc.normalize("NFD").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 56) || "artigo"}-${sku.toLowerCase().slice(-4)}`;
       try {
@@ -229,7 +261,7 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
           const p = await tx.product.create({
             data: {
               slug, name: { pt: row.desc, en: row.desc }, description: { pt: row.desc, en: row.desc },
-              collection: "", categoryId: fallbackCat.id, active: false, featured: false,
+              collection: "", categoryId: cat.id, active: false, featured: false,
             },
             select: { id: true },
           });
@@ -239,23 +271,68 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
               priceCents: row.pvpCents ?? 0, currency: "EUR",
               [stockCol]: row.stock, stock: row.stock,
               ean: row.ean ?? undefined, status: "INDISPONIVEL", active: false,
-              pvpStartDate: new Date(), attributes: { source: "sync-eci" },
+              pvpStartDate: now, attributes: { source: "sync-eci" },
             },
           });
         });
-      } catch { unmatchedNoNew++; }
-    }
+        return true;
+      } catch { return false; }
+    }, Math.max(4, Math.floor(POOL / 2)));
+    unmatchedNoNew += created.filter((ok) => !ok).length;
   }
-  // Other brands → upsert by sku.
-  for (const o of obRows) {
-    try {
-      await prisma.otherBrandItem.upsert({
-        where: { sku: o.ref },
-        create: { brand: o.brand || "—", sku: o.ref, ean: o.ean ?? undefined, descricao: o.desc, pvpCents: o.pvpCents ?? undefined, stock: o.stock },
-        update: { brand: o.brand || "—", descricao: o.desc, pvpCents: o.pvpCents ?? undefined, stock: o.stock, ...(o.ean ? { ean: o.ean } : {}) },
+  // Other brands — the hot path (VNG has ~4900 rows). Instead of an upsert per
+  // row (thousands of round-trips), bulk-fetch what's already there, split
+  // into create/update/noop, then createMany + pooled updates. Order of
+  // magnitude faster on a full VNG file.
+  if (obRows.length) {
+    const existing = await prisma.otherBrandItem.findMany({
+      where: { sku: { in: obRows.map((r) => r.ref) } },
+      select: { id: true, sku: true, brand: true, ean: true, descricao: true, pvpCents: true, stock: true },
+    });
+    const existingBySku = new Map(existing.map((e) => [e.sku, e]));
+
+    const toCreate: typeof obRows = [];
+    const toUpdate: { id: string; brand: string; descricao: string; pvpCents: number | null; stock: number; ean: string | null }[] = [];
+    for (const o of obRows) {
+      const cur = existingBySku.get(o.ref);
+      if (!cur) { toCreate.push(o); continue; }
+      const brand = o.brand || cur.brand || "—";
+      const desc = o.desc || cur.descricao;
+      const pvp = o.pvpCents;
+      const stock = o.stock;
+      const ean = o.ean ?? cur.ean;
+      const changed =
+        brand !== cur.brand || desc !== cur.descricao ||
+        pvp !== cur.pvpCents || stock !== cur.stock ||
+        (o.ean && o.ean !== cur.ean);
+      if (changed) toUpdate.push({ id: cur.id, brand, descricao: desc, pvpCents: pvp, stock, ean });
+    }
+
+    // Bulk-insert new — one INSERT instead of N. skipDuplicates guards
+    // against a race where a concurrent sync inserted the same sku.
+    if (toCreate.length) {
+      const res = await prisma.otherBrandItem.createMany({
+        data: toCreate.map((o) => ({
+          brand: o.brand || "—", sku: o.ref,
+          ean: o.ean ?? undefined, descricao: o.desc,
+          pvpCents: o.pvpCents ?? undefined, stock: o.stock,
+        })),
+        skipDuplicates: true,
       });
-      obUpserts++;
-    } catch { /* ean/sku clash — skip, reported in count delta */ }
+      obUpserts += res.count;
+    }
+    // Updates run in parallel (independent writes).
+    await runPool(toUpdate, (u) =>
+      prisma.otherBrandItem.update({
+        where: { id: u.id },
+        data: {
+          brand: u.brand, descricao: u.descricao,
+          pvpCents: u.pvpCents ?? undefined,
+          stock: u.stock, ...(u.ean ? { ean: u.ean } : {}),
+        },
+      }),
+    );
+    obUpserts += toUpdate.length;
   }
 
   return {
@@ -302,7 +379,24 @@ async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): 
   const bySku = new Map(variants.map((v) => [v.sku, v.id]));
   const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
 
-  let created = 0, updated = 0;
+  // Bulk-fetch every reserva that could possibly match this batch's natural
+  // keys — one query instead of N findFirst. Match on (sku, customerName,
+  // reservedAt) client-side.
+  const skus = [...new Set(parsed.map((r) => r.ref))];
+  const names = [...new Set(parsed.map((r) => r.name))];
+  const existingRows = skus.length && names.length
+    ? await prisma.reserva.findMany({
+        where: { boutique: store, sku: { in: skus }, customerName: { in: names } },
+        select: { id: true, sku: true, customerName: true, reservedAt: true },
+      })
+    : [];
+  const keyOf = (b: string, sku: string, name: string, at: Date) => `${b}|${sku}|${name}|${at.toISOString()}`;
+  const existingByKey = new Map(
+    existingRows.map((e) => [keyOf(store, e.sku, e.customerName, e.reservedAt), e.id]),
+  );
+
+  const toCreate: { data: Parameters<typeof prisma.reserva.create>[0]["data"] }[] = [];
+  const toUpdate: { id: string; data: Parameters<typeof prisma.reserva.update>[0]["data"] }[] = [];
   for (const r of parsed) {
     let variantId: string | null = (r.ean && byEan.get(r.ean)) || null;
     if (!variantId) for (const c of refCandidates(r.ref)) { const id = bySku.get(c); if (id) { variantId = id; break; } }
@@ -311,15 +405,20 @@ async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): 
       sku: r.ref, ean: r.ean, descSnapshot: r.desc, brand: r.brand || null, quantity: r.qty, pvpCents: r.pvpCents,
       customerName: r.name, customerPhone: r.phone, customerEmail: r.email, operator: r.op,
     };
-    // Natural key so re-running the sync doesn't duplicate — and never touches
-    // reservas the app itself created (different reservedAt/name combos).
-    const existing = await prisma.reserva.findFirst({
-      where: { boutique: store, sku: r.ref, customerName: r.name, reservedAt: r.reservedAt },
-      select: { id: true },
-    });
-    if (existing) { await prisma.reserva.update({ where: { id: existing.id }, data }); updated++; }
-    else { await prisma.reserva.create({ data }); created++; }
+    const existingId = existingByKey.get(keyOf(store, r.ref, r.name, r.reservedAt));
+    if (existingId) toUpdate.push({ id: existingId, data });
+    else toCreate.push({ data });
   }
+  let created = 0, updated = 0;
+  if (toCreate.length) {
+    const res = await prisma.reserva.createMany({
+      data: toCreate.map((c) => c.data) as never,
+      skipDuplicates: false,
+    });
+    created = res.count;
+  }
+  await runPool(toUpdate, async (u) => { await prisma.reserva.update({ where: { id: u.id }, data: u.data }); });
+  updated = toUpdate.length;
   return { sheet: RESERVAS_SHEET, status: "ok", rows: body.length, detail: "aplicado", changes: { novas: created, atualizadas: updated } };
 }
 
@@ -340,13 +439,16 @@ async function syncOperadores(matrix: Cell[][], store: EciStore, apply: boolean)
   if (!apply) {
     return { sheet: OPERADORES_SHEET, status: "ok", rows: matrix.length, detail: "pré-visualização", changes: { operadores: parsed.length } };
   }
-  let updated = 0, created = 0;
-  for (const o of parsed) {
-    const res = await prisma.operator.upsert({
+  // Operadores é sempre poucas linhas (~5), mas paralelizar não faz mal.
+  const results = await runPool(parsed, (o) =>
+    prisma.operator.upsert({
       where: { boutique_initials: { boutique: store, initials: o.initials } },
       update: { monthlyGoalCents: o.goalCents },
       create: { boutique: store, initials: o.initials, monthlyGoalCents: o.goalCents, active: true },
-    });
+    }),
+  );
+  let created = 0, updated = 0;
+  for (const res of results) {
     if (res.createdAt.getTime() === res.updatedAt.getTime()) created++; else updated++;
   }
   return { sheet: OPERADORES_SHEET, status: "ok", rows: matrix.length, detail: "aplicado", changes: { metasAtualizadas: updated, novos: created } };
@@ -407,17 +509,31 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
   const bySku = new Map(variants.map((v) => [v.sku, v.id]));
   const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
 
-  let created = 0, skipped = 0;
+  // Build the list of movements to insert (skip ones already in the ledger).
+  // Then a single bulk INSERT — orders of magnitude faster than N creates.
+  const toInsert: {
+    boutique: EciStore; variantId: string | null; sku: string; ean: string | null;
+    type: string; quantity: number; movedAt: Date; note: string | null;
+  }[] = [];
+  let skipped = 0;
   for (const mv of parsed) {
     const key = `${mv.type}|${dayKey(mv.movedAt)}|${mv.ean ?? mv.ref}|${mv.qty}`;
     if (seen.has(key)) { skipped++; continue; }
     let variantId: string | null = (mv.ean && byEan.get(mv.ean)) || null;
     if (!variantId) for (const c of refCandidates(mv.ref)) { const id = bySku.get(c); if (id) { variantId = id; break; } }
-    await prisma.stockMovement.create({
-      data: { boutique: store, variantId, sku: mv.ref, ean: mv.ean, type: mv.type as never, quantity: mv.qty, movedAt: mv.movedAt, note: mv.note },
+    toInsert.push({
+      boutique: store, variantId, sku: mv.ref, ean: mv.ean,
+      type: mv.type, quantity: mv.qty, movedAt: mv.movedAt, note: mv.note,
     });
     seen.add(key);
-    created++;
+  }
+  let created = 0;
+  if (toInsert.length) {
+    const res = await prisma.stockMovement.createMany({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: toInsert as any,
+    });
+    created = res.count;
   }
   return { sheet, status: "ok", rows: body.length, detail: "aplicado (histórico)", changes: { novos: created, jaExistentes: skipped } };
 }
@@ -516,13 +632,20 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
   }
 
   // Ensure every operator exists (create inactive if not — the sheet is the
-  // authoritative list of who ever sold anything in the boutique).
+  // authoritative list of who ever sold anything in the boutique). Only
+  // upsert the ones that don't already exist — the vast majority are
+  // repeats between re-syncs. One SELECT + createMany beats N upserts.
   const ops = [...new Set(lines.map((l) => l.op))].filter(Boolean);
-  for (const initials of ops) {
-    await prisma.operator.upsert({
-      where: { boutique_initials: { boutique: store, initials } },
-      update: {},
-      create: { boutique: store, initials, active: true },
+  const already = await prisma.operator.findMany({
+    where: { boutique: store, initials: { in: ops } },
+    select: { initials: true },
+  });
+  const knownOps = new Set(already.map((o) => o.initials));
+  const missingOps = ops.filter((o) => !knownOps.has(o));
+  if (missingOps.length) {
+    await prisma.operator.createMany({
+      data: missingOps.map((initials) => ({ boutique: store, initials, active: true })),
+      skipDuplicates: true,
     });
   }
   const opRows = await prisma.operator.findMany({ where: { boutique: store, initials: { in: ops } }, select: { id: true, initials: true } });
@@ -550,11 +673,20 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
     await prisma.sale.deleteMany({ where: { id: { in: prior.map((p) => p.id) } } });
   }
 
-  let created = 0, items = 0, missingOp = 0;
+  // Build the list of baskets that have a valid operator, then create them
+  // in parallel. Each basket is one insert (with nested SaleItem creates via
+  // the ORM), so N baskets = N round-trips — pooling collapses total wall
+  // clock to ~N/POOL. Missing-operator groups are counted, not written.
+  const basketsToWrite: { groupLines: RawLine[]; operatorId: string }[] = [];
+  let missingOp = 0;
   for (const [, groupLines] of groups) {
-    const first = groupLines[0];
-    const operatorId = opId.get(first.op);
+    const operatorId = opId.get(groupLines[0].op);
     if (!operatorId) { missingOp++; continue; }
+    basketsToWrite.push({ groupLines, operatorId });
+  }
+
+  await runPool(basketsToWrite, async ({ groupLines, operatorId }) => {
+    const first = groupLines[0];
     const grossCents = groupLines.reduce((s, l) => s + l.grossCents, 0);
     const netCents = groupLines.reduce((s, l) => s + l.netCents, 0);
     const eci = Math.round(netCents * (store === "LIS" ? 0.22 : 0.19));
@@ -573,9 +705,9 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
         },
       },
     });
-    created++;
-    items += groupLines.length;
-  }
+  });
+  const created = basketsToWrite.length;
+  const items = basketsToWrite.reduce((s, b) => s + b.groupLines.length, 0);
 
   return {
     sheet: MOV_POS_LOJA_SHEET, status: "ok", rows: body.length,
@@ -694,13 +826,44 @@ async function syncRepairSheet(
     };
   }
 
-  let created = 0, updated = 0;
+  // Bulk-fetch every candidate row for this bucket instead of a findFirst per
+  // record. Filter tightly on the natural key so the query stays cheap.
+  const names = [...new Set(recs.map((r) => r.customerName))];
+  const refs  = [...new Set(recs.map((r) => r.reference))];
+  const existingRows = names.length && refs.length
+    ? await prisma.repair.findMany({
+        where: { boutique: store, bucket, customerName: { in: names }, reference: { in: refs } },
+        select: { id: true, customerName: true, reference: true, firstVisitAt: true },
+      })
+    : [];
+  const keyOf = (n: string, ref: string, at: Date | null) => `${n}|${ref}|${at ? at.toISOString() : "?"}`;
+  const existingByKey = new Map(existingRows.map((e) => [keyOf(e.customerName, e.reference, e.firstVisitAt), e.id]));
+
+  interface WriteData {
+    boutique: EciStore;
+    bucket: typeof bucket;
+    firstVisitAt: Date | null;
+    staff: string;
+    status: (typeof recs)[number]["status"];
+    customerName: string;
+    reference: string;
+    subject: string;
+    updates: string | null;
+    lastContactAt: Date | null;
+    lastContactStaff: string | null;
+    lastContactVia: string | null;
+    lastContactNote: string | null;
+    otherObs: string | null;
+    phone: string | null;
+    otherContacts: string | null;
+  }
+  const toCreate: WriteData[] = [];
+  const toUpdate: { id: string; data: WriteData }[] = [];
   for (const rec of recs) {
-    // Preserve any unparseable "1ª Visita" note in updates so nothing is lost.
     const updates = rec.rawFirstVisit
       ? `[1ª Visita: ${rec.rawFirstVisit}] ${rec.updates ?? ""}`.trim()
       : rec.updates;
-    const data = {
+    const data: WriteData = {
       boutique: store, bucket, firstVisitAt: rec.firstVisitAt, staff: rec.staff,
       status: rec.status, customerName: rec.customerName, reference: rec.reference,
       subject: rec.subject, updates, lastContactAt: rec.lastContactAt,
@@ -708,19 +871,17 @@ async function syncRepairSheet(
       lastContactNote: rec.lastContactNote, otherObs: rec.otherObs,
       phone: rec.phone, otherContacts: rec.otherContacts,
     };
-    // Natural key: boutique + bucket + customer + ref + firstVisit. Same combo
-    // uniquely identifies a ticket across re-runs; different bucket = different
-    // row (a customer may appear in both Reparações and Assuntos Vários).
-    const existing = await prisma.repair.findFirst({
-      where: {
-        boutique: store, bucket, customerName: rec.customerName,
-        reference: rec.reference, firstVisitAt: rec.firstVisitAt,
-      },
-      select: { id: true },
-    });
-    if (existing) { await prisma.repair.update({ where: { id: existing.id }, data }); updated++; }
-    else { await prisma.repair.create({ data }); created++; }
+    const existingId = existingByKey.get(keyOf(rec.customerName, rec.reference, rec.firstVisitAt));
+    if (existingId) toUpdate.push({ id: existingId, data });
+    else toCreate.push(data);
   }
+  let created = 0, updated = 0;
+  if (toCreate.length) {
+    const res = await prisma.repair.createMany({ data: toCreate as never });
+    created = res.count;
+  }
+  await runPool(toUpdate, async (u) => { await prisma.repair.update({ where: { id: u.id }, data: u.data }); });
+  updated = toUpdate.length;
   return {
     sheet: sheetName, status: "ok", rows: body.length,
     detail: `aplicado (bucket ${bucket.toLowerCase()})`,
