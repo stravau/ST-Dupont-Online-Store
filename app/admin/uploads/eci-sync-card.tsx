@@ -78,10 +78,12 @@ export function EciSyncCard() {
             histórico de vendas, movimentos internos, danificados, reservas, operadores e as três folhas de reparações.
           </p>
           <p className="mt-3 max-w-xl text-[0.72rem] text-[#7e5e00]">
-            <strong>Modo autoritativo:</strong> o Excel é a fonte única. Reservas, reparações e artigos
-            de outras marcas que não estejam no ficheiro <strong>serão apagados</strong>; variantes Dupont
-            ausentes ficam com o stock desta loja a <strong>zero</strong>. A pré-visualização mostra sempre
-            as contagens antes de qualquer gravação.
+            <strong>Modo autoritativo total:</strong> o Excel é a fonte <strong>única</strong>. Tudo o que existir na
+            app fora do ficheiro é apagado &mdash; <strong>vendas registadas no POS</strong>, movimentos de stock
+            criados na página de Entradas/Saídas, reservas, reparações e artigos de outras marcas.
+            Variantes Dupont ausentes ficam com stock desta loja a <strong>zero</strong>. Nada da app
+            sobrevive a um sync se não estiver também no Excel. A pré-visualização mostra as contagens
+            antes de qualquer gravação.
           </p>
         </div>
         <label className="shrink-0 text-xs">

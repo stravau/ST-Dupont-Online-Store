@@ -60,8 +60,11 @@ const REPAIR_SHEETS: { name: string; bucket: "REPARACAO" | "ASSUNTO_VARIOS" | "A
   { name: "Assuntos Terminados", bucket: "ASSUNTO_TERMINADO" },
 ];
 
-// Tag on ECI-imported sales so the sync can wipe & re-insert only the ECI-
-// backfilled subset without touching sales the POS terminal has created.
+// Marker on ECI-imported sales — kept for auditability (so the boss can tell
+// which sales were re-imported from the file vs any others that may exist
+// later). Not used for scoping deletes any more (the sync is now fully
+// authoritative — Excel is the ONLY source, all boutique sales are wiped
+// before re-import).
 const ECI_SALE_NOTE = "Histórico ECI";
 
 function normEan(v: Cell): string | null {
@@ -583,39 +586,53 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
     }
   }
 
+  // Tipos que ESTE parser gere. Precisamos disto para apagar só o subset
+  // correcto (a outra função syncMovements — a outra chamada em paralelo —
+  // trata dos outros tipos, sem colisão).
+  const typesInScope = kind === "DANIFICADO"
+    ? (["DANIFICADO"] as const)
+    : (["ENTRADA", "SAIDA", "STOCK_INICIAL", "AJUSTE", "TRANSFER_IN", "TRANSFER_OUT"] as const);
+
+  const priorCount = apply
+    ? await prisma.stockMovement.count({ where: { boutique: store, type: { in: typesInScope as never } } })
+    : 0;
+
   if (!apply) {
-    return { sheet, status: "ok", rows: body.length, detail: "pré-visualização (histórico, não mexe no stock)", changes: { movimentos: parsed.length } };
+    // Contagem do que seria apagado no modo autoritativo, para a preview.
+    const wouldWipe = await prisma.stockMovement.count({
+      where: { boutique: store, type: { in: typesInScope as never } },
+    });
+    return {
+      sheet, status: "ok", rows: body.length,
+      detail: "pré-visualização (autoritativo · movimentos actuais serão substituídos)",
+      changes: { movimentos: parsed.length, aApagar: wouldWipe },
+    };
   }
 
-  // Dedup against what's already stored for this store+type.
-  const existing = await prisma.stockMovement.findMany({
-    where: { boutique: store, type: { in: kind === "DANIFICADO" ? ["DANIFICADO"] : ["ENTRADA", "SAIDA", "STOCK_INICIAL", "AJUSTE"] } },
-    select: { movedAt: true, ean: true, sku: true, quantity: true, type: true },
+  // AUTORITATIVO — wipe-then-insert para os tipos deste parser.
+  // Apagar apenas o subset relevante desta boutique; os movimentos de
+  // VENDA/DEVOLUCAO são geridos pelo syncSales; os movimentos criados
+  // pela página /admin/movimentos (ENTRADA/SAIDA) são apagados também,
+  // porque o Excel é a única fonte.
+  await prisma.stockMovement.deleteMany({
+    where: { boutique: store, type: { in: typesInScope as never } },
   });
-  const dayKey = (d: Date) => d.toISOString().slice(0, 10);
-  const seen = new Set(existing.map((m) => `${m.type}|${dayKey(m.movedAt)}|${m.ean ?? m.sku}|${m.quantity}`));
 
   const variants = await prisma.productVariant.findMany({ select: { id: true, sku: true, ean: true } });
   const bySku = new Map(variants.map((v) => [v.sku, v.id]));
   const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
 
-  // Build the list of movements to insert (skip ones already in the ledger).
-  // Then a single bulk INSERT — orders of magnitude faster than N creates.
   const toInsert: {
     boutique: EciStore; variantId: string | null; sku: string; ean: string | null;
     type: string; quantity: number; movedAt: Date; note: string | null;
   }[] = [];
-  let skipped = 0;
   for (const mv of parsed) {
-    const key = `${mv.type}|${dayKey(mv.movedAt)}|${mv.ean ?? mv.ref}|${mv.qty}`;
-    if (seen.has(key)) { skipped++; continue; }
     let variantId: string | null = (mv.ean && byEan.get(mv.ean)) || null;
     if (!variantId) for (const c of refCandidates(mv.ref)) { const id = bySku.get(c); if (id) { variantId = id; break; } }
     toInsert.push({
       boutique: store, variantId, sku: mv.ref, ean: mv.ean,
       type: mv.type, quantity: mv.qty, movedAt: mv.movedAt, note: mv.note,
     });
-    seen.add(key);
   }
   let created = 0;
   if (toInsert.length) {
@@ -625,19 +642,25 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
     });
     created = res.count;
   }
-  return { sheet, status: "ok", rows: body.length, detail: "aplicado (histórico)", changes: { novos: created, jaExistentes: skipped } };
+  return {
+    sheet, status: "ok", rows: body.length,
+    detail: `aplicado (autoritativo · substituiu ${priorCount} movimentos)`,
+    changes: { novos: created, apagados: priorCount },
+  };
 }
 
 // ---------- Mov_POS_Loja (historical sales) ----------
 // Columns (0-indexed): 0=DATA (excel serial), 1=MÊS, 2=HORA, 3=V/D, 4=Op., 5=EAN,
 // 6=QTD, 7=REF, 8=DESCRIÇÃO, 9=PVP, 10=Desc %, 11=Valor Vend, 12=V.Rec.
 //
-// Idempotency: this backfill tags every row with note = "Histórico ECI", so
-// re-running deletes only the previously-imported ECI batch (the same tag) and
-// re-inserts fresh — sales the POS terminal registered natively (no such note)
-// stay untouched. Deliberately does NOT create StockMovements or touch
-// stockLis/stockVng — the DB sheet already carries the *theoretical* stock
-// that has these subtracted; recording again would double-count.
+// Idempotency: full wipe-and-rewrite per boutique. The sync is authoritative
+// (Excel = única fonte); everything the boutique has in Sale/SaleItem is
+// deleted first, then the file is re-inserted from scratch. That means POS-
+// terminal sales are ALSO wiped — if it's not in the Excel, it doesn't exist.
+// Sale-linked StockMovement rows (types VENDA/DEVOLUCAO) are deleted alongside
+// to avoid orphans with saleItemId → null. Deliberately does NOT create new
+// StockMovement for VENDA/DEVOLUCAO here — the DB sheet already carries the
+// theoretical stock that has these subtracted; recording again would double-count.
 async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Promise<SheetReport> {
   const body = matrix.slice(1);
 
@@ -751,17 +774,18 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
     return null;
   };
 
-  // Wipe the previous ECI backfill FOR THIS BOUTIQUE only. POS-terminal sales
-  // don't carry the tag so they're safe. Scoping by boutique avoids nuking the
-  // other store's history when only one file is re-synced.
-  const prior = await prisma.sale.findMany({
-    where: { note: ECI_SALE_NOTE, boutique: store },
-    select: { id: true },
-  });
-  if (prior.length) {
-    await prisma.saleItem.deleteMany({ where: { saleId: { in: prior.map((p) => p.id) } } });
-    await prisma.sale.deleteMany({ where: { id: { in: prior.map((p) => p.id) } } });
-  }
+  // AUTORITATIVO — apagar TUDO desta boutique antes de re-inserir.
+  //  • Sale (cascata para SaleItem via FK Cascade)
+  //  • StockMovement onde type ∈ (VENDA, DEVOLUCAO) — os que estavam ligados
+  //    às sales apagadas. Sem isto ficariam com saleItemId=null como debris.
+  // Scope: só ESTA boutique (o outro ficheiro trata da outra loja).
+  const priorCount = await prisma.sale.count({ where: { boutique: store } });
+  await Promise.all([
+    prisma.sale.deleteMany({ where: { boutique: store } }),
+    prisma.stockMovement.deleteMany({
+      where: { boutique: store, type: { in: ["VENDA", "DEVOLUCAO"] } },
+    }),
+  ]);
 
   // Build the list of baskets that have a valid operator, then create them
   // in parallel. Each basket is one insert (with nested SaleItem creates via
@@ -801,7 +825,7 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
 
   return {
     sheet: MOV_POS_LOJA_SHEET, status: "ok", rows: body.length,
-    detail: `aplicado (histórico · ${prior.length ? `substituiu ${prior.length} vendas ECI anteriores` : "primeira importação"})`,
+    detail: `aplicado (autoritativo · ${priorCount ? `substituiu ${priorCount} vendas anteriores` : "primeira importação"})`,
     changes: { baskets: created, linhas: items, vendas: totalV, devolucoes: totalD, semOperador: missingOp, malFormadas: malformed },
   };
 }
