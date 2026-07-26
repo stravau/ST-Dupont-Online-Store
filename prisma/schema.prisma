@@ -89,6 +89,20 @@ enum SaleItemSource {
   REPARACAO
 }
 
+// Which of the three Excel sheets a Repair row came from. The three share the
+// same column layout ("1ª Visita / Staff / Estado / Cliente / Ref / Assunto /
+// Atualizações / Último Contato…"), but they mean different things:
+//   REPARACAO         — Reparações sheet: an article being repaired
+//   ASSUNTO_VARIOS    — Assuntos Vários: general aftersales / requests
+//                       (special-order enquiries, quotes, etc.)
+//   ASSUNTO_TERMINADO — Assuntos Terminados: archived / closed items
+// UIs can filter by this bucket without inventing a subject-prefix convention.
+enum RepairBucket {
+  REPARACAO
+  ASSUNTO_VARIOS
+  ASSUNTO_TERMINADO
+}
+
 // Repair-ticket lifecycle — the exact "Estado" dropdown from the Excel
 // Reparações sheet. UI labels: Aguardando Cliente · Aguardando STD ·
 // Aguardando JM · Aguardando PR · Art. em Reparação · Resolvido ·
@@ -642,6 +656,9 @@ model OtherBrandItem {
 model Repair {
   id           String       @id @default(cuid())
   boutique     Boutique     @default(LIS) // qual loja acompanha o processo
+  // Qual folha do Excel deu origem à linha (para a UI poder filtrar). Novos
+  // registos criados pela app assumem REPARACAO por defeito.
+  bucket       RepairBucket @default(REPARACAO)
   // 1ª_Visita — data automática em novos processos (default now()); nullable
   // porque o histórico importado tem linhas com data desconhecida ("??").
   firstVisitAt DateTime?    @default(now())
@@ -672,6 +689,7 @@ model Repair {
   @@index([status])
   @@index([firstVisitAt])
   @@index([customerName])
+  @@index([bucket])
 }
 
 // Client hold — mirrors the Excel "Reservas" sheet. An item set aside for a

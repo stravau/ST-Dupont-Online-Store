@@ -89,21 +89,23 @@ cobertos pela rede do Excel mantido temporariamente.
 
 ---
 
-## Plano concreto para Fase 1 (o que construir primeiro)
+## Plano concreto para Fase 1 (estado — 2026-07-23)
 
 **Endpoint único**: `POST /api/admin/sync/eci` que aceita o Excel
-completo e absorve todas as folhas relevantes.
+completo e absorve todas as folhas relevantes. **Todas as folhas
+não-derivadas estão ligadas** — a Fase 1 está funcionalmente completa
+do lado do sync (falta polir UI/decidir Fase 2).
 
-| Folha do Excel | Destino na DB                                    | Estratégia de idempotência             |
-|----------------|--------------------------------------------------|----------------------------------------|
-| `DB`           | `ProductVariant.stockLis` **ou** `.stockVng` + `OtherBrandItem` (só VNG) | upsert por EAN → REF                   |
-| `Mov_POS_Loja` | `Sale` + `SaleItem`                              | prefixo `note = "Histórico ECI"`, delete-then-insert por window (padrão do `import-eci-sales.ts`) |
-| `Mov_Int_Ext`  | `StockMovement`                                  | chave natural (data, ean, tipo, qty, op) |
-| `P.Reparar`    | `Repair`                                         | upsert por (data, cliente, ref)        |
-| `Reservas`     | `Reserva` (**modelo novo — falta criar**)        | upsert por (data, cliente, ref)        |
-| `Danificados`  | `StockMovement` type `DANIFICADO`                | chave natural (data, ean)              |
-| `Operadores`   | `Operator`                                       | upsert por (boutique, initials)        |
-| `Vend_Dia`, `Estat_Calc`, `Enc_Template` | — (derivadas, ignoradas) | —                                      |
+| Folha do Excel                                           | Destino na DB                                    | Estratégia de idempotência             |
+|----------------------------------------------------------|--------------------------------------------------|----------------------------------------|
+| `DB`                                                     | `ProductVariant.stockLis` **ou** `.stockVng` + `OtherBrandItem` (só VNG) | upsert por EAN → REF                   |
+| `Mov_POS_Loja`                                           | `Sale` + `SaleItem`                              | `note = "Histórico ECI"`, delete-then-insert por boutique (POS-native sobrevive) |
+| `Mov_Int_Ext`                                            | `StockMovement`                                  | chave natural (boutique, tipo, dia, ean, qty) |
+| `(Danificados)`                                          | `StockMovement` type `DANIFICADO`                | mesma chave natural                    |
+| `Reservas`                                               | `Reserva`                                        | upsert por (boutique, sku, cliente, reservedAt) |
+| `Operadores`                                             | `Operator`                                       | upsert por (boutique, initials); só metas mensais |
+| `Reparações` / `Assuntos Vários` / `Assuntos Terminados` | `Repair` (com campo `bucket` novo)               | upsert por (boutique, bucket, cliente, ref, firstVisit) |
+| `Vend_Dia`, `Estat_Calc`, `Enc_Template`                 | — (derivadas, ignoradas)                         | —                                      |
 
 **Detecção LIS/VNG**: pelo nome do ficheiro (`ECI_LIS_*` ou
 `ECI_VNG_*`) ou, se ambíguo, pergunta ao utilizador via dropdown
