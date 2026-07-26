@@ -367,7 +367,17 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
 async function syncReservas(matrix: Cell[][], store: EciStore, apply: boolean): Promise<SheetReport> {
   const body = matrix.slice(1);
   const cell = (v: Cell) => (v == null ? "" : String(v).trim());
-  const toDate = (v: Cell) => { if (v instanceof Date && !Number.isNaN(v.getTime())) return v; const s = cell(v); const d = s ? new Date(s) : null; return d && !Number.isNaN(d.getTime()) ? d : null; };
+  const toDate = (v: Cell) => {
+    if (v instanceof Date && !Number.isNaN(v.getTime())) return v;
+    // Excel day serial (comes through as a plain number with raw:true).
+    if (typeof v === "number" && Number.isFinite(v) && v > 20000 && v < 80000) {
+      const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    const s = cell(v);
+    const d = s ? new Date(s) : null;
+    return d && !Number.isNaN(d.getTime()) ? d : null;
+  };
 
   interface R { reservedAt: Date; expectedAt: Date | null; brand: string; ref: string; ean: string | null; desc: string; qty: number; pvpCents: number | null; name: string; phone: string | null; email: string | null; op: string; }
   const parsed: R[] = [];
@@ -481,7 +491,17 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
   const sheet = kind === "DANIFICADO" ? DANIFICADOS_SHEET : MOV_INT_EXT_SHEET;
   const body = matrix.slice(1);
   const cell = (v: Cell) => (v == null ? "" : String(v).trim());
-  const toDate = (v: Cell) => { if (v instanceof Date && !Number.isNaN(v.getTime())) return v; const s = cell(v); const d = s ? new Date(s) : null; return d && !Number.isNaN(d.getTime()) ? d : null; };
+  const toDate = (v: Cell) => {
+    if (v instanceof Date && !Number.isNaN(v.getTime())) return v;
+    // Excel day serial (comes through as a plain number with raw:true).
+    if (typeof v === "number" && Number.isFinite(v) && v > 20000 && v < 80000) {
+      const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    const s = cell(v);
+    const d = s ? new Date(s) : null;
+    return d && !Number.isNaN(d.getTime()) ? d : null;
+  };
   const mapType = (mov: string): "ENTRADA" | "SAIDA" | "STOCK_INICIAL" | "AJUSTE" => {
     const m = mov.toUpperCase();
     if (m.startsWith("ENT")) return "ENTRADA";

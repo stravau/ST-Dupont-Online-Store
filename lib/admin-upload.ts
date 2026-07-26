@@ -46,13 +46,19 @@ export async function readUploadedSheet(file: File): Promise<Record<string, Cell
 // a title row + a header row before the data and rely on column position, not
 // header names (see scripts/import-lis-stock-from-eci.ts). Returns a map of
 // sheetName → rows; missing sheets are simply absent from the map.
+//
+// IMPORTANT: uses raw: true. With raw: false, Portuguese-formatted money cells
+// arrive as strings like "1.400,50" — Number()/parseFloat both mishandle that
+// format (parseFloat returns 1.4, silently truncating the value). Raw values
+// come through as native JS numbers directly. Dates come as Excel day serials
+// (numbers) — every downstream parser handles both Date and number.
 export async function readWorkbookMatrix(file: File): Promise<Record<string, Cell[][]>> {
   const buf = Buffer.from(await file.arrayBuffer());
-  const wb = xlsx.read(buf, { type: "buffer", cellDates: true, raw: false });
+  const wb = xlsx.read(buf, { type: "buffer", raw: true });
   const out: Record<string, Cell[][]> = {};
   for (const name of wb.SheetNames) {
     const ws = wb.Sheets[name];
-    out[name] = xlsx.utils.sheet_to_json<Cell[]>(ws, { header: 1, defval: null, raw: false });
+    out[name] = xlsx.utils.sheet_to_json<Cell[]>(ws, { header: 1, defval: null, raw: true });
   }
   return out;
 }
