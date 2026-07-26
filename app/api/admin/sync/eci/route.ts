@@ -124,16 +124,33 @@ export async function POST(req: Request) {
   }
 
   // ---------- Wired sheets ----------
-  await runSheet(DB_SHEET, (m) => syncDbSheet(m, store, apply));            // stock/PVP/novos/outras marcas
-  await runSheet(MOV_POS_LOJA_SHEET, (m) => syncSales(m, store, apply));     // histórico de vendas
-  await runSheet(MOV_INT_EXT_SHEET, (m) => syncMovements(m, store, apply, "INT_EXT"));    // ent/sai/transf
-  await runSheet(DANIFICADOS_SHEET, (m) => syncMovements(m, store, apply, "DANIFICADO")); // danificados
-  await runSheet(RESERVAS_SHEET, (m) => syncReservas(m, store, apply));      // reservas de clientes
-  await runSheet(OPERADORES_SHEET, (m) => syncOperadores(m, store, apply));  // metas mensais
-  // The three repair-shaped sheets — same parser, different bucket tag.
-  for (const rep of REPAIR_SHEETS) {
-    await runSheet(rep.name, (m) => syncRepairSheet(m, store, apply, rep.bucket, rep.name));
-  }
+  // Order matters ONLY for the pair below; everything else touches disjoint
+  // tables and runs in parallel to cut wall clock roughly in half on smaller
+  // files (LIS) where no single sheet dominates the total.
+  //
+  //   1. DB          — may CREATE new ProductVariant rows (novos artigos).
+  //                    Sales/Movements/Reservas do a variantId lookup, so we
+  //                    run DB first to avoid variantId=null on brand-new SKUs
+  //                    that only appear in this file.
+  //   2. Operadores  — before Sales, so the operator upsert races don't
+  //                    happen (Sales also touches Operator to ensure the
+  //                    initials it sees exist).
+  //   3. Everything else in parallel: sales, both movement variants,
+  //      reservas, and each of the three repair-bucket sheets. Each writes
+  //      to its own table (Sale/SaleItem, StockMovement, Reserva, Repair)
+  //      and only reads from ProductVariant/Operator — safe to overlap.
+  await runSheet(DB_SHEET, (m) => syncDbSheet(m, store, apply));
+  await runSheet(OPERADORES_SHEET, (m) => syncOperadores(m, store, apply));
+
+  await Promise.all([
+    runSheet(MOV_POS_LOJA_SHEET, (m) => syncSales(m, store, apply)),
+    runSheet(MOV_INT_EXT_SHEET,  (m) => syncMovements(m, store, apply, "INT_EXT")),
+    runSheet(DANIFICADOS_SHEET,  (m) => syncMovements(m, store, apply, "DANIFICADO")),
+    runSheet(RESERVAS_SHEET,     (m) => syncReservas(m, store, apply)),
+    ...REPAIR_SHEETS.map((rep) =>
+      runSheet(rep.name, (m) => syncRepairSheet(m, store, apply, rep.bucket, rep.name)),
+    ),
+  ]);
 
   if (apply) {
     try {
