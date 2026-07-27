@@ -14,7 +14,7 @@ async function main() {
   const withStarbrands = await prisma.$queryRawUnsafe<{ count: bigint }[]>(
     `select count(*)::bigint as count from "ProductVariant" where exists (select 1 from unnest(images) as u where u like 'https://images.starbrands.pt/%')`,
   );
-  const starbrandsCount = Number(withStarbrands[0]?.count ?? 0n);
+  const starbrandsCount = Number(withStarbrands[0]?.count ?? BigInt(0));
 
   // Contar TOTAL de URLs (bruto) e de URLs Starbrands por unnest
   const stats = await prisma.$queryRawUnsafe<{ total: bigint; starbrands: bigint }[]>(
@@ -27,9 +27,9 @@ async function main() {
   console.log(`  Total variants:                 ${total}`);
   console.log(`  Com imagens:                    ${withImages}`);
   console.log(`  Com pelo menos 1 URL Starbrands: ${starbrandsCount}`);
-  console.log(`  URLs somadas:                   ${Number(stats[0]?.total ?? 0n)}`);
-  console.log(`  URLs Starbrands:                ${Number(stats[0]?.starbrands ?? 0n)}`);
-  console.log(`  URLs locais (nossa cauda):      ${Number(stats[0]?.total ?? 0n) - Number(stats[0]?.starbrands ?? 0n)}`);
+  console.log(`  URLs somadas:                   ${Number(stats[0]?.total ?? BigInt(0))}`);
+  console.log(`  URLs Starbrands:                ${Number(stats[0]?.starbrands ?? BigInt(0))}`);
+  console.log(`  URLs locais (nossa cauda):      ${Number(stats[0]?.total ?? BigInt(0)) - Number(stats[0]?.starbrands ?? BigInt(0))}`);
 
   await prisma.adminAction.create({
     data: {
