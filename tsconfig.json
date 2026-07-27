@@ -30,5 +30,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // scripts/ é excluído porque são utilitários de linha de comando,
+  // corridos com tsx (permissive), e não devem entrar no bundle do
+  // Next.js. Já rebentou o deploy uma vez porque um script usava
+  // literais BigInt (0n) — fora do bundle isso não importa; dentro
+  // do build do Next parte tudo em silêncio até alguém abrir o site.
+  // Se precisares de type-check aos scripts, corre `npx tsc -p
+  // tsconfig.scripts.json --noEmit` (target ES2022, permite BigInt).
+  "exclude": ["node_modules", "scripts"]
 }
