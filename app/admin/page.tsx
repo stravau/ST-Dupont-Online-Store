@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import { EmptyState } from "@/components/admin/empty-state";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { BigKPIs } from "@/components/admin/big-kpis";
@@ -11,6 +10,7 @@ import { LiveTicker } from "@/components/admin/live-ticker";
 import { SalesTrend } from "@/components/admin/dashboard-widgets";
 import { SalesHeatmap } from "@/components/admin/sales-heatmap";
 import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
+import { ActivityTimeline } from "@/components/admin/activity-timeline";
 import {
   getDashboardSnapshot,
   getTickerRows,
@@ -103,41 +103,11 @@ export default async function AdminHome() {
         />
       </section>
 
-      {/* Últimas alterações — vai ganhar timeline com ícones na tranche D. */}
-      <section>
-        <div className="flex items-baseline justify-between border-b border-line pb-3">
-          <h2 className="font-serif text-xl text-ink">Últimas alterações</h2>
-          <Link href="/admin/audit" className="text-[0.6rem] tracking-[0.18em] text-muted uppercase transition-colors hover:text-gold">
-            Ver tudo →
-          </Link>
-        </div>
-        <div className="border border-line border-t-0 bg-paper">
-          {recentActions.length === 0 ? (
-            <EmptyState
-              icon="✦"
-              title="Sem actividade ainda"
-              body="As edições no painel e os uploads aparecem aqui em tempo real."
-            />
-          ) : (
-            <ul className="divide-y divide-line/70">
-              {recentActions.map((a) => (
-                <li key={a.id} className="grid grid-cols-[auto_auto_1fr_auto] items-baseline gap-4 px-5 py-3 text-sm">
-                  <time className="text-xs text-muted tabular-nums">
-                    {a.createdAt.toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" })}
-                  </time>
-                  <span className="text-[0.6rem] tracking-[0.18em] text-gold uppercase">{a.action}</span>
-                  <span className="truncate text-xs text-ink">
-                    <span className="font-mono text-muted">{a.entityType}</span>
-                    {a.entityId ? <> · <span className="font-mono">{a.entityId}</span></> : null}
-                    {a.note ? <span className="text-muted"> · {a.note}</span> : null}
-                  </span>
-                  <span className="text-[0.65rem] text-muted">{a.user?.email ?? "system"}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+      {/* Actividade recente — timeline com ícones semânticos (venda emerald,
+          sync copper, delete claret, etc.) + timestamps relativos. */}
+      <div className="card-in">
+        <ActivityTimeline actions={recentActions} />
+      </div>
     </div>
   );
 }
