@@ -7,6 +7,7 @@
 // queries de forma específica ao dashboard e envolve lógica de janelas
 // "mesmo período do mês anterior". Nada que sirva outro report.
 import { salesByStore, dayWindow, monthWindow, type StoreTotals } from "@/lib/pos-reports";
+import { prisma } from "@/lib/prisma";
 import type { BoutiqueCode } from "@/lib/pos";
 
 export interface KpiValue {
@@ -77,6 +78,59 @@ function samePeriodLastMonth(d: Date): { from: Date; to: Date } {
   const from = new Date(y, m - 1, 1, 0, 0, 0, 0);
   const to = new Date(y, m - 1, targetDay, 23, 59, 59, 999);
   return { from, to };
+}
+
+// Live ticker rows — as últimas N vendas por boutique. Cada linha traz o
+// que precisamos para render sem re-fetch: hora, operador, descrição
+// concatenada dos artigos, gross, tipo. Ordenado por soldAt desc.
+// Devoluções e reparações também entram (badge diferente na UI).
+export interface TickerRow {
+  id: string;
+  boutique: BoutiqueCode;
+  soldAt: string; // ISO
+  operator: string;
+  type: "VENDA" | "DEVOLUCAO" | "REPARACAO";
+  grossCents: number;
+  itemsSummary: string; // "1× Ligne 2 Palladium · 2× Recarga Gas"
+}
+
+export async function getTickerRows(
+  boutiques: BoutiqueCode[],
+  perBoutiqueLimit: number = 10,
+): Promise<Record<BoutiqueCode, TickerRow[]>> {
+  // Uma query por boutique para poder aplicar limit isoladamente
+  // (evita puxar 20 de VNG quando só queríamos 10 e depois filtrar).
+  const perBoutique = await Promise.all(
+    boutiques.map(async (b) => {
+      const sales = await prisma.sale.findMany({
+        where: { boutique: b },
+        orderBy: { soldAt: "desc" },
+        take: perBoutiqueLimit,
+        include: {
+          operator: { select: { initials: true } },
+          items: { select: { quantity: true, descSnapshot: true }, take: 4 },
+        },
+      });
+      const rows: TickerRow[] = sales.map((s) => ({
+        id: s.id,
+        boutique: b,
+        soldAt: s.soldAt.toISOString(),
+        operator: s.operator.initials,
+        type: s.type as "VENDA" | "DEVOLUCAO" | "REPARACAO",
+        grossCents: s.grossCents,
+        itemsSummary:
+          s.items.map((i) => `${i.quantity}× ${truncate(i.descSnapshot, 40)}`).join(" · ") || "—",
+      }));
+      return [b, rows] as const;
+    }),
+  );
+  const out = {} as Record<BoutiqueCode, TickerRow[]>;
+  for (const [b, rows] of perBoutique) out[b] = rows;
+  return out;
+}
+
+function truncate(s: string, max: number): string {
+  return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
 
 export async function getDashboardSnapshot(

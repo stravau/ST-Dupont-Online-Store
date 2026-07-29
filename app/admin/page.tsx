@@ -7,8 +7,9 @@ import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons
 import { AdminHero } from "@/components/admin/admin-hero";
 import { BigKPIs } from "@/components/admin/big-kpis";
 import { BoutiqueSplitHero } from "@/components/admin/boutique-split-hero";
+import { LiveTicker } from "@/components/admin/live-ticker";
 import { SalesTrend } from "@/components/admin/dashboard-widgets";
-import { getDashboardSnapshot } from "@/lib/dashboard-data";
+import { getDashboardSnapshot, getTickerRows } from "@/lib/dashboard-data";
 import { dailySalesSeries, dayWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 
@@ -35,9 +36,10 @@ export default async function AdminHome() {
   const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
   const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
 
-  const [snapshot, trend, recentActions] = await Promise.all([
+  const [snapshot, trend, ticker, recentActions] = await Promise.all([
     getDashboardSnapshot(BOTH, now),
     dailySalesSeries(BOTH, trendFrom, today.to),
+    getTickerRows(BOTH, 10),
     prisma.adminAction.findMany({
       orderBy: { createdAt: "desc" },
       take: 8,
@@ -55,6 +57,7 @@ export default async function AdminHome() {
       >
         <BigKPIs today={snapshot.today} month={snapshot.month} monthName={snapshot.monthName} />
         <BoutiqueSplitHero boutiques={snapshot.boutiques} />
+        <LiveTicker initial={ticker} boutiques={BOTH} />
       </AdminHero>
 
       {/* Tendência 30 dias — corpo cream. Fica em cima porque ainda é sinal
