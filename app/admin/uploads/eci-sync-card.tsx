@@ -43,7 +43,24 @@ export function EciSyncCard() {
       fd.append("apply", apply ? "true" : "false");
       if (store) fd.append("store", store);
       const res = await fetch("/api/admin/sync/eci", { method: "POST", body: fd });
-      const data: SyncResult = await res.json().catch(() => ({ ok: false, error: "resposta inválida" }));
+
+      // Try JSON first; if it fails (413/504/500 returning HTML from Vercel),
+      // surface the HTTP status + body snippet so the operator knows what
+      // actually broke (payload too large? timeout? crash?).
+      let data: SyncResult;
+      const contentType = res.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text().catch(() => "");
+        const snippet = text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
+        const knownError =
+          res.status === 413 ? `Ficheiro demasiado grande para o Vercel (limite 4.5MB por request). O ficheiro tem ${(f.size / 1024 / 1024).toFixed(1)}MB.`
+          : res.status === 504 ? `Timeout — o sync demorou mais que o permitido no Vercel. Volta a tentar; se persistir, temos de dividir o processamento.`
+          : res.status === 401 || res.status === 403 ? "Sessão expirou. Recarrega a página e volta a fazer login."
+          : `HTTP ${res.status} · ${snippet || res.statusText || "sem detalhe"}`;
+        data = { ok: false, error: knownError };
+      }
       setResult(data);
       if (data.ok) {
         toast.push("success", apply ? `Sincronização aplicada (${data.store})` : `Pré-visualização pronta (${data.store})`);
@@ -51,8 +68,10 @@ export function EciSyncCard() {
         toast.push("error", data.error ?? "falha");
       }
     } catch (e) {
-      setResult({ ok: false, error: (e as Error).message.slice(0, 200) });
-      toast.push("error", (e as Error).message);
+      // Network abort, connection reset, etc.
+      const msg = (e as Error).message.slice(0, 200);
+      setResult({ ok: false, error: `Rede: ${msg}` });
+      toast.push("error", msg);
     } finally {
       setBusy(false);
     }
