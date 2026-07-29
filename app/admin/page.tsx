@@ -9,7 +9,14 @@ import { BigKPIs } from "@/components/admin/big-kpis";
 import { BoutiqueSplitHero } from "@/components/admin/boutique-split-hero";
 import { LiveTicker } from "@/components/admin/live-ticker";
 import { SalesTrend } from "@/components/admin/dashboard-widgets";
-import { getDashboardSnapshot, getTickerRows } from "@/lib/dashboard-data";
+import { SalesHeatmap } from "@/components/admin/sales-heatmap";
+import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
+import {
+  getDashboardSnapshot,
+  getTickerRows,
+  getHeatmap,
+  getTopOperatorsPerBoutique,
+} from "@/lib/dashboard-data";
 import { dailySalesSeries, dayWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 
@@ -36,10 +43,12 @@ export default async function AdminHome() {
   const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
   const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
 
-  const [snapshot, trend, ticker, recentActions] = await Promise.all([
+  const [snapshot, trend, ticker, heatmap, topOps, recentActions] = await Promise.all([
     getDashboardSnapshot(BOTH, now),
     dailySalesSeries(BOTH, trendFrom, today.to),
     getTickerRows(BOTH, 10),
+    getHeatmap(BOTH, 8, now),
+    getTopOperatorsPerBoutique(BOTH, 3, now),
     prisma.adminAction.findMany({
       orderBy: { createdAt: "desc" },
       take: 8,
@@ -60,11 +69,21 @@ export default async function AdminHome() {
         <LiveTicker initial={ticker} boutiques={BOTH} />
       </AdminHero>
 
-      {/* Tendência 30 dias — corpo cream. Fica em cima porque ainda é sinal
-          executivo. Heatmap 8-semanas + Top Operadores entram na tranche C. */}
-      <div className="card-in">
-        <SalesTrend points={trend} />
+      {/* Tendência 30 dias + Heatmap 8 semanas lado a lado — dois ângulos do
+          mesmo dado. O bar chart mostra volume ao longo do tempo; o heatmap
+          revela padrões por dia da semana. Grid empilha em mobile. */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <div className="card-in min-w-0">
+          <SalesTrend points={trend} />
+        </div>
+        <div className="min-w-0">
+          <SalesHeatmap data={heatmap} />
+        </div>
       </div>
+
+      {/* Top operadores por boutique — só ADMIN vê (LOJA_* têm a tabela
+          completa em /admin/relatorios que já é mais informativa). */}
+      <TopOperatorsBar perBoutique={topOps} monthName={snapshot.monthName} />
 
       {/* Jump cards — atalhos para as duas acções mais usadas. */}
       <section className="grid gap-5 md:grid-cols-2">
