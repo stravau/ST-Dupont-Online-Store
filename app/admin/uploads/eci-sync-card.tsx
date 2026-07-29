@@ -6,11 +6,12 @@ import { IconUpload } from "@/components/admin/icons";
 
 interface SheetReport {
   sheet: string;
-  status: "ok" | "pending" | "missing";
+  status: "ok" | "pending" | "missing" | "failed";
   rows?: number;
   detail?: string;
   changes?: Record<string, number>;
   sampleUnmatched?: string[];
+  errorMessage?: string;
 }
 interface SyncResult {
   ok: boolean;
@@ -19,7 +20,9 @@ interface SyncResult {
   file?: string;
   reports?: SheetReport[];
   error?: string;
+  trace?: string;
   needStore?: boolean;
+  warning?: string;
 }
 
 // The unified "Sincronizar ECI Controlo" card. Upload → DRY-RUN preview (see the
@@ -143,7 +146,20 @@ export function EciSyncCard() {
         <div className="mt-5 border border-red-300 bg-red-50 px-4 py-3 text-xs text-red-900">
           <p className="font-semibold uppercase tracking-[0.16em]">Falhou</p>
           <p className="mt-1 font-mono">{result.error}</p>
+          {result.trace && (
+            <details className="mt-2">
+              <summary className="cursor-pointer font-mono text-[0.6rem] uppercase tracking-[0.14em]">Stack</summary>
+              <pre className="mt-1 overflow-x-auto whitespace-pre-wrap text-[0.6rem]">{result.trace}</pre>
+            </details>
+          )}
           {result.needStore && <p className="mt-1">Escolhe a loja no seletor acima e arrasta o ficheiro outra vez.</p>}
+        </div>
+      )}
+
+      {result?.warning && (
+        <div className="mt-5 border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+          <p className="font-semibold uppercase tracking-[0.16em]">Aviso</p>
+          <p className="mt-1">{result.warning}</p>
         </div>
       )}
 
@@ -160,12 +176,22 @@ export function EciSyncCard() {
               <li key={r.sheet} className="grid grid-cols-[10rem_5rem_1fr] items-baseline gap-3 py-2 text-xs">
                 <span className="font-mono text-ink">{r.sheet}</span>
                 <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
-                  r.status === "ok" ? "text-[#1f7a4d]" : r.status === "pending" ? "text-[#7e5e00]" : "text-muted"
+                  r.status === "ok" ? "text-[#1f7a4d]" :
+                  r.status === "pending" ? "text-[#7e5e00]" :
+                  r.status === "failed" ? "text-[#8c2a2a]" :
+                  "text-muted"
                 }`}>
-                  {r.status === "ok" ? "pronto" : r.status === "pending" ? "pendente" : "ausente"}
+                  {r.status === "ok" ? "pronto" :
+                   r.status === "pending" ? "pendente" :
+                   r.status === "failed" ? "FALHOU" :
+                   "ausente"}
                 </span>
                 <span className="text-muted">
-                  {r.changes ? (
+                  {r.status === "failed" ? (
+                    <span className="font-mono text-[0.68rem] text-[#8c2a2a]">
+                      {r.errorMessage ?? "erro desconhecido"}
+                    </span>
+                  ) : r.changes ? (
                     <span className="font-mono text-[0.68rem] text-ink">
                       {Object.entries(r.changes).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(" · ") || "sem alterações"}
                     </span>

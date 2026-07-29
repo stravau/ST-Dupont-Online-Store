@@ -82,11 +82,12 @@ function refCandidates(ref: string): string[] {
 
 interface SheetReport {
   sheet: string;
-  status: "ok" | "pending" | "missing";
+  status: "ok" | "pending" | "missing" | "failed";
   rows?: number;
   detail?: string;
   changes?: Record<string, number>;
   sampleUnmatched?: string[];
+  errorMessage?: string; // populado quando status = "failed"
 }
 
 export async function POST(req: Request) {
@@ -99,75 +100,118 @@ export async function POST(req: Request) {
   const gate = await requireStaff();
   if (!gate.ok) return gate.response;
 
-  const form = await req.formData();
-  const file = form.get("file");
-  if (!(file instanceof File)) return NextResponse.json({ ok: false, error: "no file" }, { status: 400 });
-  const apply = form.get("apply") === "true";
-  const storeOverride = form.get("store");
-  const store: EciStore | null =
-    storeOverride === "LIS" || storeOverride === "VNG" ? storeOverride : detectEciStore(file.name);
-  if (!store) {
-    return NextResponse.json(
-      { ok: false, error: "não deu para detetar a loja (LIS/VNG) pelo nome do ficheiro — escolhe manualmente", needStore: true },
-      { status: 400 },
-    );
+  // Top-level try/catch para que qualquer erro devolva JSON estruturado.
+  // Sem isto, um throw dentro das queries paralelas gera 500 HTML do Vercel
+  // e o cliente vê "resposta inválida" sem pista.
+  try {
+    const form = await req.formData();
+    const file = form.get("file");
+    if (!(file instanceof File)) return NextResponse.json({ ok: false, error: "no file" }, { status: 400 });
+    const apply = form.get("apply") === "true";
+    const storeOverride = form.get("store");
+    const store: EciStore | null =
+      storeOverride === "LIS" || storeOverride === "VNG" ? storeOverride : detectEciStore(file.name);
+    if (!store) {
+      return NextResponse.json(
+        { ok: false, error: "não deu para detetar a loja (LIS/VNG) pelo nome do ficheiro — escolhe manualmente", needStore: true },
+        { status: 400 },
+      );
+    }
+
+    let sheets: Record<string, Cell[][]>;
+    try { sheets = await readWorkbookMatrix(file); }
+    catch (e) { return safeError(e, "ficheiro ilegível"); }
+
+    const batchId = randomUUID();
+    const reports: SheetReport[] = [];
+
+    // Isola cada sheet — se uma falhar, marca-a como "failed" com a
+    // mensagem, e as outras continuam. Assim vemos EXACTAMENTE qual
+    // folha crashou em vez de todo o sync explodir em silêncio.
+    async function runSheet(name: string, fn: (m: Cell[][]) => Promise<SheetReport>) {
+      const m = sheets[name];
+      if (!m) {
+        reports.push({ sheet: name, status: "missing", detail: "folha ausente" });
+        return;
+      }
+      try {
+        reports.push(await fn(m));
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        reports.push({
+          sheet: name,
+          status: "failed",
+          detail: "erro durante processamento — outras folhas continuaram",
+          errorMessage: msg.slice(0, 300),
+        });
+      }
+    }
+
+    // ---------- Wired sheets ----------
+    // Order matters ONLY for the pair below; everything else touches disjoint
+    // tables and runs in parallel to cut wall clock roughly in half on smaller
+    // files (LIS) where no single sheet dominates the total.
+    //
+    //   1. DB          — may CREATE new ProductVariant rows (novos artigos).
+    //                    Sales/Movements/Reservas do a variantId lookup, so we
+    //                    run DB first to avoid variantId=null on brand-new SKUs
+    //                    that only appear in this file.
+    //   2. Operadores  — before Sales, so the operator upsert races don't
+    //                    happen (Sales also touches Operator to ensure the
+    //                    initials it sees exist).
+    //   3. Everything else in parallel: sales, both movement variants,
+    //      reservas, and each of the three repair-bucket sheets. Each writes
+    //      to its own table (Sale/SaleItem, StockMovement, Reserva, Repair)
+    //      and only reads from ProductVariant/Operator — safe to overlap.
+    await runSheet(DB_SHEET, (m) => syncDbSheet(m, store, apply));
+    await runSheet(OPERADORES_SHEET, (m) => syncOperadores(m, store, apply));
+
+    await Promise.all([
+      runSheet(MOV_POS_LOJA_SHEET, (m) => syncSales(m, store, apply)),
+      runSheet(MOV_INT_EXT_SHEET,  (m) => syncMovements(m, store, apply, "INT_EXT")),
+      runSheet(DANIFICADOS_SHEET,  (m) => syncMovements(m, store, apply, "DANIFICADO")),
+      runSheet(RESERVAS_SHEET,     (m) => syncReservas(m, store, apply)),
+      ...REPAIR_SHEETS.map((rep) =>
+        runSheet(rep.name, (m) => syncRepairSheet(m, store, apply, rep.bucket, rep.name)),
+      ),
+    ]);
+
+    if (apply) {
+      try {
+        await prisma.adminAction.create({
+          data: {
+            entityType: "UPLOAD_BATCH", action: "SYNC_ECI", entityId: `eci-${store.toLowerCase()}`, batchId,
+            note: `Sync ECI ${store} · ${file.name} · ${reports.filter((r) => r.status === "ok").length} folhas aplicadas`,
+            after: { store, file: file.name, reports } as object,
+          },
+        });
+      } catch (e) { return safeError(e, "batch summary write failed"); }
+    }
+
+    // Uma folha ter falhado NÃO faz o request falhar (as outras foram
+    // aplicadas correctamente). O cliente vê o "failed" no relatório.
+    const failedCount = reports.filter((r) => r.status === "failed").length;
+    return NextResponse.json({
+      ok: true,
+      store,
+      applied: apply,
+      file: file.name,
+      batchId,
+      reports,
+      ...(failedCount > 0 ? { warning: `${failedCount} folha(s) falharam — ver detalhes por linha` } : {}),
+    });
+  } catch (e) {
+    // Última rede — qualquer coisa que escape aos catches internos.
+    // Loga no console do Vercel para conseguirmos ver na dashboard.
+    console.error("[sync/eci] fatal:", e);
+    const msg = e instanceof Error ? e.message : String(e);
+    const stack = e instanceof Error && e.stack ? e.stack.split("\n").slice(0, 4).join(" · ") : "";
+    return NextResponse.json({
+      ok: false,
+      error: `Erro no servidor: ${msg.slice(0, 300)}`,
+      trace: stack.slice(0, 500),
+    }, { status: 500 });
   }
-
-  let sheets: Record<string, Cell[][]>;
-  try { sheets = await readWorkbookMatrix(file); }
-  catch (e) { return safeError(e, "ficheiro ilegível"); }
-
-  const batchId = randomUUID();
-  const reports: SheetReport[] = [];
-
-  // Helper: run a sheet sync only if the sheet exists; else report missing.
-  async function runSheet(name: string, fn: (m: Cell[][]) => Promise<SheetReport>) {
-    const m = sheets[name];
-    reports.push(m ? await fn(m) : { sheet: name, status: "missing", detail: "folha ausente" });
-  }
-
-  // ---------- Wired sheets ----------
-  // Order matters ONLY for the pair below; everything else touches disjoint
-  // tables and runs in parallel to cut wall clock roughly in half on smaller
-  // files (LIS) where no single sheet dominates the total.
-  //
-  //   1. DB          — may CREATE new ProductVariant rows (novos artigos).
-  //                    Sales/Movements/Reservas do a variantId lookup, so we
-  //                    run DB first to avoid variantId=null on brand-new SKUs
-  //                    that only appear in this file.
-  //   2. Operadores  — before Sales, so the operator upsert races don't
-  //                    happen (Sales also touches Operator to ensure the
-  //                    initials it sees exist).
-  //   3. Everything else in parallel: sales, both movement variants,
-  //      reservas, and each of the three repair-bucket sheets. Each writes
-  //      to its own table (Sale/SaleItem, StockMovement, Reserva, Repair)
-  //      and only reads from ProductVariant/Operator — safe to overlap.
-  await runSheet(DB_SHEET, (m) => syncDbSheet(m, store, apply));
-  await runSheet(OPERADORES_SHEET, (m) => syncOperadores(m, store, apply));
-
-  await Promise.all([
-    runSheet(MOV_POS_LOJA_SHEET, (m) => syncSales(m, store, apply)),
-    runSheet(MOV_INT_EXT_SHEET,  (m) => syncMovements(m, store, apply, "INT_EXT")),
-    runSheet(DANIFICADOS_SHEET,  (m) => syncMovements(m, store, apply, "DANIFICADO")),
-    runSheet(RESERVAS_SHEET,     (m) => syncReservas(m, store, apply)),
-    ...REPAIR_SHEETS.map((rep) =>
-      runSheet(rep.name, (m) => syncRepairSheet(m, store, apply, rep.bucket, rep.name)),
-    ),
-  ]);
-
-  if (apply) {
-    try {
-      await prisma.adminAction.create({
-        data: {
-          entityType: "UPLOAD_BATCH", action: "SYNC_ECI", entityId: `eci-${store.toLowerCase()}`, batchId,
-          note: `Sync ECI ${store} · ${file.name} · ${reports.filter((r) => r.status === "ok").length} folhas aplicadas`,
-          after: { store, file: file.name, reports } as object,
-        },
-      });
-    } catch (e) { return safeError(e, "batch summary write failed"); }
-  }
-
-  return NextResponse.json({ ok: true, store, applied: apply, file: file.name, batchId, reports });
 }
 
 // DB sheet layout (positional): 0=EAN, 1=Ref, 2=Marca, 3=Descrição, 4=PVP,
