@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { currentStaff } from "@/lib/admin-auth";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { EmptyState } from "@/components/admin/empty-state";
 import { IconSearch } from "@/components/admin/icons";
 import { StockTabs, type StockTab } from "@/components/admin/stock-tabs";
@@ -67,7 +67,8 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
     const active = sp.active ?? "";
     return (
       <div className="space-y-6">
-        <PageHeader
+        <AdminHero
+          compact
           eyebrow="Catálogo"
           title="Consultar Stock"
           subtitle="Marcas vendidas em V. N. de Gaia (edição inline · sem ligação ao site)."
@@ -157,7 +158,8 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <AdminHero
+          compact
         eyebrow="Catálogo"
         title="Consultar Stock"
         subtitle={`${total.toLocaleString("pt-PT")} variants${total > PAGE_SIZE ? ` · página ${page} / ${totalPages}` : ""}.`}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { ImagesEditor } from "./images-client";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,8 @@ export default async function VariantImagesPage({ params }: { params: Promise<{ 
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <AdminHero
+        compact
         eyebrow={`SKU · ${sku}`}
         title={variantName}
         subtitle={

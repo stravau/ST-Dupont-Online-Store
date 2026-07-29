@@ -1,5 +1,5 @@
 import { currentStaff } from "@/lib/admin-auth";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { MovimentosScanner } from "@/components/admin/movimentos-scanner";
 import type { BoutiqueCode } from "@/lib/pos";
 import { redirect } from "next/navigation";
@@ -34,7 +34,8 @@ export default async function MovimentosPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <PageHeader
+      <AdminHero
+        compact
         eyebrow="Operações"
         title="Movimentos de Stock"
         subtitle={`Entradas e saídas por código de barras · ${scope}`}

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { currentStaff } from "@/lib/admin-auth";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { UploadCard } from "./upload-client";
 import { EciSyncCard } from "./eci-sync-card";
 
@@ -18,7 +18,8 @@ export default async function AdminUploadsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <AdminHero
+        compact
         eyebrow="Operações"
         title="Uploads Excel"
         subtitle={

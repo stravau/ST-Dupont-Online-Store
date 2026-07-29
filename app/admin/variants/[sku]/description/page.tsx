@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { DescriptionEditor } from "./description-client";
 
 // Per-colourway description editor. The parent product carries the
@@ -47,7 +47,8 @@ export default async function VariantDescriptionPage({
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <AdminHero
+        compact
         eyebrow={`SKU · ${sku}`}
         title={variantName}
         subtitle={

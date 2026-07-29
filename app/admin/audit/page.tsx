@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { EmptyState } from "@/components/admin/empty-state";
 
 export const dynamic = "force-dynamic";
@@ -197,7 +197,8 @@ export default async function AdminAuditPage({
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <AdminHero
+        compact
         eyebrow="Sistema"
         title="Auditoria"
         subtitle={`${total.toLocaleString("pt-PT")} acções registadas${totalPages > 1 ? ` · página ${page} de ${totalPages}` : ""}.`}

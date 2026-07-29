@@ -1,6 +1,6 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { RepairsManager, type RepairRow } from "@/components/admin/repairs-manager";
 import type { BoutiqueCode } from "@/lib/pos";
 
@@ -64,7 +64,8 @@ export default async function ReparacoesPage() {
 
   return (
     <div>
-      <PageHeader
+      <AdminHero
+        compact
         eyebrow="Operações"
         title="Reparações"
         subtitle={`Assistência e pós-venda · ${scope}`}
