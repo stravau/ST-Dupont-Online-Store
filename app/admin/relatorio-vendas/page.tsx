@@ -1,5 +1,5 @@
 import { currentStaff } from "@/lib/admin-auth";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { ReportDatePicker } from "@/components/admin/report-date-picker";
 import { salesByStore, salesLog, rangeWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
@@ -70,47 +70,43 @@ export default async function DailyReportPage({
 
   return (
     <div>
-      <PageHeader
+      <AdminHero
         eyebrow="Operações"
         title="Relatório de Vendas"
-        subtitle="Escolhe um intervalo de datas para ver o resumo e exportar o registo em Excel (mesmo formato e fórmulas do controlo ECI)."
-      />
-
-      <div className="mt-6">
-        <ReportDatePicker from={fromYmd} to={toYmd} />
-      </div>
-
-      <p className="mt-8 font-serif text-xl text-ink capitalize">{rangeLabel}</p>
-
-      {/* Summary — per store + combined for the boss. */}
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {stores.map((s) => (
-          <div key={s.boutique} className="border border-line border-l-[3px] border-l-gold bg-paper p-5">
-            <p className="overline text-[0.55rem] text-muted">{BOUTIQUE_LABEL[s.boutique]}</p>
-            <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{eur(s.grossCents)}</p>
-            <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
-              <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur(s.netCents)}</dd></div>
-              {showCommission && (
-                <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums">− {eur(s.eciCommissionCents)}</dd></div>
-              )}
-              <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums">{s.sales} · {s.returns}</dd></div>
-            </dl>
-          </div>
-        ))}
-        {multi && (
-          <div className="border border-line border-l-[3px] border-l-ink bg-ink/[0.03] p-5">
-            <p className="overline text-[0.55rem] text-gold">Total do período · as duas lojas</p>
-            <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{eur(combined.grossCents)}</p>
-            <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
-              <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur(combined.netCents)}</dd></div>
-              {showCommission && (
-                <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums">− {eur(combined.eciCommissionCents)}</dd></div>
-              )}
-              <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums">{combined.sales} · {combined.returns}</dd></div>
-            </dl>
-          </div>
-        )}
-      </div>
+        subtitle={<span className="capitalize">{rangeLabel}</span>}
+        action={<ReportDatePicker from={fromYmd} to={toYmd} />}
+      >
+        {/* Summary embutido no hero para o patrão ver os totais em cima
+            do fundo navy — Big-picture antes do detalhe. */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {stores.map((s) => (
+            <div key={s.boutique} className="admin-hero-card p-4">
+              <p className="overline text-[0.55rem] text-gold-soft">{BOUTIQUE_LABEL[s.boutique]}</p>
+              <p className="hero-number mt-2 text-3xl">{eur(s.grossCents)}</p>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(s.netCents)}</dd></div>
+                {showCommission && (
+                  <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums text-cream/90">− {eur(s.eciCommissionCents)}</dd></div>
+                )}
+                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-cream/90">{s.sales} · {s.returns}</dd></div>
+              </dl>
+            </div>
+          ))}
+          {multi && (
+            <div className="admin-hero-card border-l-[3px] border-l-gold p-4">
+              <p className="overline text-[0.55rem] text-gold">Total do período · as duas lojas</p>
+              <p className="hero-number mt-2 text-3xl">{eur(combined.grossCents)}</p>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(combined.netCents)}</dd></div>
+                {showCommission && (
+                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums text-cream/90">− {eur(combined.eciCommissionCents)}</dd></div>
+                )}
+                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-cream/90">{combined.sales} · {combined.returns}</dd></div>
+              </dl>
+            </div>
+          )}
+        </div>
+      </AdminHero>
 
       {/* The window's register — a preview of what the Excel export contains. */}
       <section className="mt-8">

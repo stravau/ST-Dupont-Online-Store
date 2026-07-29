@@ -1,5 +1,5 @@
 import { currentStaff } from "@/lib/admin-auth";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { MonthPicker } from "@/components/admin/month-picker";
 import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
@@ -72,47 +72,47 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   return (
     <div>
-      <PageHeader
+      <AdminHero
         eyebrow="Operações"
         title="Relatórios"
         subtitle={`Vendas de ${monthName} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
         action={<MonthPicker month={ym} />}
-      />
+      >
+        {/* Totals per store dentro do hero — grande contraste sobre navy. */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {stores.map((s) => (
+            <div key={s.boutique} className="admin-hero-card p-4">
+              <p className="overline text-[0.55rem] text-gold-soft">{BOUTIQUE_LABEL[s.boutique]}</p>
+              <p className="hero-number mt-2 text-3xl">{eur(s.grossCents)}</p>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(s.netCents)}</dd></div>
+                {showCommission && (
+                  <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums text-cream/90">− {eur(s.eciCommissionCents)}</dd></div>
+                )}
+                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-cream/90">{s.sales} · {s.returns}</dd></div>
+              </dl>
+            </div>
+          ))}
+          {multi && (
+            <div className="admin-hero-card border-l-[3px] border-l-gold p-4">
+              <p className="overline text-[0.55rem] text-gold">Total · as duas lojas</p>
+              <p className="hero-number mt-2 text-3xl">{eur(combined.grossCents)}</p>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(combined.netCents)}</dd></div>
+                {showCommission && (
+                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums text-cream/90">− {eur(combined.eciCommissionCents)}</dd></div>
+                )}
+                <div className="flex justify-between"><dt>Total de vendas</dt><dd className="tabular-nums text-cream/90">{combined.sales}</dd></div>
+              </dl>
+            </div>
+          )}
+        </div>
+      </AdminHero>
 
       {/* Two independent columns: the report on the left, the best-sellers rail
           pinned on the right so it never pushes the log around. */}
-      <div className="mt-6 flex flex-col gap-8 xl:flex-row xl:items-start xl:gap-10">
+      <div className="flex flex-col gap-8 xl:flex-row xl:items-start xl:gap-10">
         <div className="min-w-0 flex-1">
-          {/* Totals per store (bruto · líquido · comissão ECI) */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {stores.map((s) => (
-              <div key={s.boutique} className="border border-line border-l-[3px] border-l-gold bg-paper p-5">
-                <p className="overline text-[0.55rem] text-muted">{BOUTIQUE_LABEL[s.boutique]}</p>
-                <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{eur(s.grossCents)}</p>
-                <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
-                  <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur(s.netCents)}</dd></div>
-                  {showCommission && (
-                    <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums">− {eur(s.eciCommissionCents)}</dd></div>
-                  )}
-                  <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums">{s.sales} · {s.returns}</dd></div>
-                </dl>
-              </div>
-            ))}
-            {multi && (
-              <div className="border border-line border-l-[3px] border-l-ink bg-ink/[0.03] p-5">
-                <p className="overline text-[0.55rem] text-gold">Total · as duas lojas</p>
-                <p className="mt-3 font-serif text-3xl text-ink tabular-nums">{eur(combined.grossCents)}</p>
-                <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
-                  <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums">{eur(combined.netCents)}</dd></div>
-                  {showCommission && (
-                    <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums">− {eur(combined.eciCommissionCents)}</dd></div>
-                  )}
-                  <div className="flex justify-between"><dt>Total de vendas</dt><dd className="tabular-nums">{combined.sales}</dd></div>
-                </dl>
-              </div>
-            )}
-          </div>
-
           {/* Vendas por operador — cumulative (all-time) totals, mirroring the
               Excel Estat_Calc pivot. Independent of the month filter above. */}
           <section className="mt-8">

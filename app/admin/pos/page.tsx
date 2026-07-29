@@ -1,6 +1,6 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/admin/page-header";
+import { AdminHero } from "@/components/admin/admin-hero";
 import { PosTerminal } from "@/components/admin/pos-terminal";
 import type { BoutiqueCode } from "@/lib/pos";
 
@@ -32,13 +32,16 @@ export default async function PosPage() {
       : "Ambas as boutiques";
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
-      <PageHeader
+    <div>
+      <AdminHero
+        compact
         eyebrow="Operações"
         title="Ponto de Venda"
-        subtitle={`Registo interno de vendas e devoluções por código de barras · ${scope}`}
+        subtitle={`Registo interno de vendas, devoluções e reparações por código de barras · ${scope}`}
       />
-      <PosTerminal operators={operators as { boutique: BoutiqueCode; initials: string }[]} boutiques={boutiques} />
+      <div className="mx-auto max-w-5xl">
+        <PosTerminal operators={operators as { boutique: BoutiqueCode; initials: string }[]} boutiques={boutiques} />
+      </div>
     </div>
   );
 }

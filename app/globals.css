@@ -19,6 +19,22 @@
   --gold-soft: #d8bd7c; /* lighter gold for fine details on dark */
   --muted: #4a5a72; /* slate-blue secondary text — AA contrast on cream */
   --line: #d4deec; /* light blue-grey borders */
+
+  /* --- Extensions for the admin dashboard rebrand ------------------------- */
+  /* Bright gold for hero numbers / accent highlights on the dark navy band.
+     Contrast against navy-deep passes AAA large text. */
+  --gold-glow: #f0c95a;
+  /* Pressed / active gold state — deeper than the base for tactile feedback. */
+  --gold-deep: #8a6716;
+  /* Subtle border on dark navy surfaces (elevated cards over --navy-deep). */
+  --ink-line: #1e3357;
+
+  /* Maison semantic set — replaces generic green/red/orange in admin widgets.
+     Deeper, more editorial tones that read as Dupont rather than a generic
+     admin panel. All pass AA contrast on cream (`--cream`). */
+  --emerald: #2d5f42; /* positive — deltas ▲, active state, "ok" */
+  --claret:  #7a2a2a; /* negative — deltas ▼, deletes, warnings sérios */
+  --copper:  #a85a20; /* atenção — pending, sync desactualizado */
 }
 
 @theme inline {
@@ -30,8 +46,14 @@
   --color-paper: var(--paper);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
+  --color-gold-glow: var(--gold-glow);
+  --color-gold-deep: var(--gold-deep);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-ink-line: var(--ink-line);
+  --color-emerald: var(--emerald);
+  --color-claret: var(--claret);
+  --color-copper: var(--copper);
 
   --font-serif: var(--font-display-serif);
   --font-sans: var(--font-body-sans);
@@ -100,6 +122,108 @@ h1, h2, h3, .font-serif {
     repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.05) 0 1px, transparent 1px 22px),
     repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.05) 0 1px, transparent 1px 22px),
     linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
+}
+
+/* Dark hero band for admin pages — the executive strip at the top of the
+   dashboard / reports / POS that houses live totals. Same monogram texture
+   as .monogram-bg but with a bottom gold hairline that anchors the
+   transition to the cream page body. Padding is applied by the consumer
+   so different pages can breathe differently. */
+.admin-hero {
+  background-color: var(--navy-deep);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
+    linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
+  color: var(--cream);
+  border-bottom: 1px solid rgba(181, 138, 52, 0.4);
+  position: relative;
+}
+/* The hairline bottom border becomes a full-strength gold divider — a
+   1px gradient that dissolves at the edges to feel intentional, not clinical. */
+.admin-hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--gold) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Card elevated OVER the .admin-hero — same navy family, one step lighter,
+   with an ink-line border. Used for KPI cards, boutique split, etc. */
+.admin-hero-card {
+  background-color: var(--charcoal);
+  border: 1px solid var(--ink-line);
+  color: var(--cream);
+}
+.admin-hero-card:hover {
+  border-color: rgba(181, 138, 52, 0.35);
+  transition: border-color 0.3s ease;
+}
+
+/* Big display number for hero KPIs — Georgia serif, gold-glow, tabular. */
+.hero-number {
+  font-family: var(--font-serif), Georgia, serif;
+  color: var(--gold-glow);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  font-weight: 400;
+}
+
+/* Counter animation — used by BigKPIs. The number is set via inline style,
+   we just apply the reveal timing. */
+@keyframes heroReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-reveal {
+  animation: heroReveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-reveal { animation: none; }
+}
+
+/* Live ticker row inside .admin-hero — used by dashboard live sales feed.
+   New rows enter with a subtle slide-down + flash gold, then settle. */
+@keyframes tickerNew {
+  0%   { background-color: rgba(240, 201, 90, 0.22); transform: translateY(-4px); opacity: 0; }
+  20%  { opacity: 1; transform: none; }
+  100% { background-color: transparent; }
+}
+.ticker-row-new {
+  animation: tickerNew 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-row-new { animation: none; }
+}
+
+/* Pulsing dot for "live" indicators — heartbeat rhythm. */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.85); }
+}
+.live-dot {
+  display: inline-block;
+  width: 6px; height: 6px; border-radius: 999px;
+  background: var(--gold-glow);
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+
+/* Card fade-up on mount for the cream body cards. Stagger via inline
+   `style={{ animationDelay: '80ms' }}` etc. */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.card-in {
+  animation: cardIn 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-in { animation: none; }
 }
 
 /* Premium onyx band for the category model line-up slider. Neutral near-black
