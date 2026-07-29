@@ -27,6 +27,7 @@ interface SearchProps {
     unmapped?: string;
     published?: string;
     brand?: string;
+    active?: string; // só da tab "outras" — filtro de ativo/inactivo
     sort?: string;
     page?: string;
   }>;
@@ -63,15 +64,24 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
   // filtering / listing to OtherBrandsView so the two views stay decoupled
   // (they share no filter shape — different table, different facets).
   if (activeTab === "outras") {
+    const active = sp.active ?? "";
     return (
       <div className="space-y-6">
         <PageHeader
           eyebrow="Catálogo"
           title="Consultar Stock"
-          subtitle="Vista analítica das marcas vendidas em V. N. de Gaia (sem ligação ao site)."
+          subtitle="Marcas vendidas em V. N. de Gaia (edição inline · sem ligação ao site)."
         />
         <StockTabs active="outras" showOutras />
-        <OtherBrandsView q={q} brand={brand} stock={stock ?? ""} sort={sort} page={page} />
+        <OtherBrandsView
+          role={role}
+          q={q}
+          brand={brand}
+          stock={stock ?? ""}
+          active={active}
+          sort={sort}
+          page={page}
+        />
       </div>
     );
   }
