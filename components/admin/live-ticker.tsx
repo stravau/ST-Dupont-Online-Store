@@ -51,12 +51,18 @@ function TickerColumn({
   rows,
   showLabel,
   newIds,
+  initialVisible,
 }: {
   boutique: BoutiqueCode;
   rows: TickerRow[];
   showLabel: boolean;
   newIds: Set<string>;
+  initialVisible: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? rows : rows.slice(0, initialVisible);
+  const hiddenCount = Math.max(0, rows.length - initialVisible);
+
   return (
     <div>
       {showLabel && (
@@ -70,22 +76,33 @@ function TickerColumn({
       {rows.length === 0 ? (
         <p className="text-[0.72rem] text-cream/40">Sem vendas ainda.</p>
       ) : (
-        <ul className="space-y-1.5">
-          {rows.map((r) => (
-            <li
-              key={r.id}
-              className={`grid grid-cols-[auto_auto_1fr_auto] items-baseline gap-2 border-l border-transparent px-2 py-1 text-[0.72rem] transition-colors hover:border-l-gold/40 ${newIds.has(r.id) ? "ticker-row-new" : ""}`}
+        <>
+          <ul className="space-y-1.5">
+            {visible.map((r) => (
+              <li
+                key={r.id}
+                className={`grid grid-cols-[auto_auto_1fr_auto] items-baseline gap-2 border-l border-transparent px-2 py-1 text-[0.72rem] transition-colors hover:border-l-gold/40 ${newIds.has(r.id) ? "ticker-row-new" : ""}`}
+              >
+                <time className="tabular-nums text-cream/50">{relativeTime(r.soldAt)}</time>
+                <span className="font-mono text-[0.68rem] text-gold-soft">{r.operator}</span>
+                <span className="min-w-0 truncate text-cream/80">
+                  {typeBadge(r.type)}
+                  {r.itemsSummary}
+                </span>
+                <span className="tabular-nums font-medium text-cream/95">{eur(r.grossCents)}</span>
+              </li>
+            ))}
+          </ul>
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-2 w-full border-t border-cream/10 py-1.5 text-[0.62rem] tracking-[0.14em] text-gold-soft uppercase transition-colors hover:text-gold-glow"
             >
-              <time className="tabular-nums text-cream/50">{relativeTime(r.soldAt)}</time>
-              <span className="font-mono text-[0.68rem] text-gold-soft">{r.operator}</span>
-              <span className="min-w-0 truncate text-cream/80">
-                {typeBadge(r.type)}
-                {r.itemsSummary}
-              </span>
-              <span className="tabular-nums font-medium text-cream/95">{eur(r.grossCents)}</span>
-            </li>
-          ))}
-        </ul>
+              {expanded ? "Mostrar menos ▲" : `Mostrar mais ${hiddenCount} ▾`}
+            </button>
+          )}
+        </>
       )}
     </div>
   );
@@ -94,9 +111,11 @@ function TickerColumn({
 export function LiveTicker({
   initial,
   boutiques,
+  initialVisible = 5,
 }: {
   initial: Record<BoutiqueCode, TickerRow[]>;
   boutiques: BoutiqueCode[];
+  initialVisible?: number;
 }) {
   const [data, setData] = useState<Record<BoutiqueCode, TickerRow[]>>(initial);
   const knownIds = useRef<Set<string>>(new Set());
@@ -152,8 +171,9 @@ export function LiveTicker({
           key={b}
           boutique={b}
           rows={data[b] ?? []}
-          showLabel={boutiques.length > 1 || true} // sempre mostra label
+          showLabel
           newIds={newIds}
+          initialVisible={initialVisible}
         />
       ))}
     </div>

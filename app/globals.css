@@ -35,6 +35,15 @@
   --emerald: #2d5f42; /* positive — deltas ▲, active state, "ok" */
   --claret:  #7a2a2a; /* negative — deltas ▼, deletes, warnings sérios */
   --copper:  #a85a20; /* atenção — pending, sync desactualizado */
+
+  /* Admin hero band — dedicated tokens (NÃO tocar em --navy-deep porque
+     esse é usado em .monogram-bg no login + storefront). Um passo mais
+     claro que o navy-deep original, para o admin respirar sem perder o
+     tom executivo. */
+  --admin-hero-top:     #12233f;
+  --admin-hero-bottom:  #234770;
+  --admin-hero-card:    #1b2f4c;
+  --admin-hero-line:    #2a4670;
 }
 
 @theme inline {
@@ -124,17 +133,35 @@ h1, h2, h3, .font-serif {
     linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
 }
 
+/* --- Admin scope typography ---------------------------------------------
+   Só dentro de <div class="admin-scope"> (wrapper do /admin/layout.tsx).
+   Body em Inter — mais legível para tabelas densas, KPIs, listas — mantendo
+   os headings (h1/h2/h3 e .font-serif) em Cormorant Garamond para preservar
+   o tom Maison. Storefront público não é afectado. */
+.admin-scope {
+  font-family: var(--font-admin-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Números tabulares em toda a interface — dinheiro, contagens, datas
+     ficam alinhados sem `tabular-nums` per-cell. */
+  font-feature-settings: "tnum" 1, "cv11" 1, "ss01" 1;
+}
+.admin-scope h1,
+.admin-scope h2,
+.admin-scope h3,
+.admin-scope .font-serif {
+  font-family: var(--font-display-serif), Georgia, "Times New Roman", serif;
+}
+
 /* Dark hero band for admin pages — the executive strip at the top of the
    dashboard / reports / POS that houses live totals. Same monogram texture
-   as .monogram-bg but with a bottom gold hairline that anchors the
-   transition to the cream page body. Padding is applied by the consumer
-   so different pages can breathe differently. */
+   as .monogram-bg but com um tom navy mais lift (não tão preto), gerido
+   por tokens dedicados (--admin-hero-top/-bottom) para não afectar login
+   ou storefront. Hairline gold em baixo anchor a transição para o cream. */
 .admin-hero {
-  background-color: var(--navy-deep);
+  background-color: var(--admin-hero-top);
   background-image:
     repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
     repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
-    linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
+    linear-gradient(180deg, var(--admin-hero-top) 0%, var(--admin-hero-bottom) 100%);
   color: var(--cream);
   border-bottom: 1px solid rgba(181, 138, 52, 0.4);
   position: relative;
@@ -150,11 +177,12 @@ h1, h2, h3, .font-serif {
   pointer-events: none;
 }
 
-/* Card elevated OVER the .admin-hero — same navy family, one step lighter,
-   with an ink-line border. Used for KPI cards, boutique split, etc. */
+/* Card elevated OVER the .admin-hero — mesma família mas mais lift ainda.
+   Border em --admin-hero-line (também mais claro que ink-line) para o
+   contorno ler bem sobre o novo background. */
 .admin-hero-card {
-  background-color: var(--charcoal);
-  border: 1px solid var(--ink-line);
+  background-color: var(--admin-hero-card);
+  border: 1px solid var(--admin-hero-line);
   color: var(--cream);
 }
 .admin-hero-card:hover {

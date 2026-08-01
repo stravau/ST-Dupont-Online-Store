@@ -21,6 +21,10 @@ function cellColor(v: number, max: number): string {
 }
 
 export function SalesHeatmap({ data }: { data: Heatmap }) {
+  // Coordenadas base do viewBox — proporções que o SVG mantém quando
+  // esticado pelo container (preserveAspectRatio default = xMidYMid meet).
+  // Sem cap de max-width, o heatmap enche a largura do card e as
+  // células crescem proporcionalmente.
   const cellSize = 22;
   const cellGap = 3;
   const labelWidth = 34;
@@ -36,13 +40,13 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
         </span>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
+      <div className="mt-4">
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
           role="img"
           aria-label="Mapa de calor de vendas por dia da semana"
-          className="w-full max-w-full"
-          style={{ maxWidth: `${totalWidth}px` }}
+          className="block h-auto w-full"
+          preserveAspectRatio="xMidYMid meet"
         >
           {/* Header dos dias */}
           {WEEKDAYS.map((d, i) => (

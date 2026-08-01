@@ -10,7 +10,6 @@ import { LiveTicker } from "@/components/admin/live-ticker";
 import { SalesTrend } from "@/components/admin/dashboard-widgets";
 import { SalesHeatmap } from "@/components/admin/sales-heatmap";
 import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
-import { ActivityTimeline } from "@/components/admin/activity-timeline";
 import {
   getDashboardSnapshot,
   getTickerRows,
@@ -43,17 +42,12 @@ export default async function AdminHome() {
   const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
   const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
 
-  const [snapshot, trend, ticker, heatmap, topOps, recentActions] = await Promise.all([
+  const [snapshot, trend, ticker, heatmap, topOps] = await Promise.all([
     getDashboardSnapshot(BOTH, now),
     dailySalesSeries(BOTH, trendFrom, today.to),
-    getTickerRows(BOTH, 10),
+    getTickerRows(BOTH, 15), // fetch 15 per boutique, ticker shows 5 + expand
     getHeatmap(BOTH, 8, now),
     getTopOperatorsPerBoutique(BOTH, 3, now),
-    prisma.adminAction.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: { user: { select: { email: true } } },
-    }),
   ]);
 
   return (
@@ -62,11 +56,11 @@ export default async function AdminHome() {
       <AdminHero
         eyebrow="Painel"
         title={greeting}
-        subtitle="Vendas ao vivo, tendência dos últimos 30 dias e últimas alterações."
+        subtitle="Vendas ao vivo, tendência dos últimos 30 dias e ritmo semanal."
       >
         <BigKPIs today={snapshot.today} month={snapshot.month} monthName={snapshot.monthName} />
         <BoutiqueSplitHero boutiques={snapshot.boutiques} />
-        <LiveTicker initial={ticker} boutiques={BOTH} />
+        <LiveTicker initial={ticker} boutiques={BOTH} initialVisible={5} />
       </AdminHero>
 
       {/* Tendência 30 dias + Heatmap 8 semanas lado a lado — dois ângulos do
@@ -102,12 +96,6 @@ export default async function AdminHome() {
           Icon={IconUpload}
         />
       </section>
-
-      {/* Actividade recente — timeline com ícones semânticos (venda emerald,
-          sync copper, delete claret, etc.) + timestamps relativos. */}
-      <div className="card-in">
-        <ActivityTimeline actions={recentActions} />
-      </div>
     </div>
   );
 }

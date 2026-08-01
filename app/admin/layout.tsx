@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { signOut } from "@/auth";
 import { currentStaff } from "@/lib/admin-auth";
 import { AdminSidebar, AdminMobileBar } from "@/components/admin/sidebar";
 import { ToastProvider } from "@/components/admin/toast";
+
+// Font: Inter para o admin body (leitura densa de tabelas, KPIs, listas).
+// O storefront continua com Cormorant + EB Garamond (via root layout);
+// aqui aplicamos Inter APENAS ao wrapper do painel, portanto o /admin/login
+// e a home pública ficam intactas. Headings do admin continuam a herdar
+// --font-display-serif (Cormorant) via .font-serif.
+const adminBody = Inter({
+  variable: "--font-admin-body",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 // Admin shell — sidebar on desktop, sticky chip-row on mobile, content
 // area with comfortable max-width. /admin/login renders without the
@@ -38,7 +51,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen bg-cream text-ink">
+      <div className={`admin-scope flex min-h-screen bg-cream text-ink ${adminBody.variable}`}>
         <AdminSidebar email={email} role={role} signOutAction={signOutAction} />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <AdminMobileBar email={email} role={role} signOutAction={signOutAction} />
