@@ -42,11 +42,13 @@ export default async function AdminHome() {
   const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
   const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
 
-  const [snapshot, trend, ticker, heatmap, topOps] = await Promise.all([
+  const [snapshot, trend, ticker, heatmapAll, heatmapLIS, heatmapVNG, topOps] = await Promise.all([
     getDashboardSnapshot(BOTH, now),
     dailySalesSeries(BOTH, trendFrom, today.to),
     getTickerRows(BOTH, 15), // fetch 15 per boutique, ticker shows 5 + expand
     getHeatmap(BOTH, 8, now),
+    getHeatmap(["LIS"], 8, now),
+    getHeatmap(["VNG"], 8, now),
     getTopOperatorsPerBoutique(BOTH, 3, now),
   ]);
 
@@ -71,7 +73,7 @@ export default async function AdminHome() {
           <SalesTrend points={trend} />
         </div>
         <div className="min-w-0">
-          <SalesHeatmap data={heatmap} />
+          <SalesHeatmap perScope={{ all: heatmapAll, LIS: heatmapLIS, VNG: heatmapVNG }} />
         </div>
       </div>
 

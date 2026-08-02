@@ -1,8 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import type { Heatmap } from "@/lib/dashboard-data";
 
-// Heatmap 8 semanas × 7 dias — grelha estilo GitHub mas em tons dourados
-// on-brand. Célula vazia = --line, escala de gold-soft → gold → gold-deep
-// para intensidade crescente. Tooltip nativo por célula.
+// Heatmap 8 semanas × 7 dias com tabs Geral · Lisboa · V.N. Gaia. Cliente
+// porque tem state (scope activo). Cada scope recebe o seu próprio Heatmap
+// pré-computado pelo server (getHeatmap por boutique).
 
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
@@ -10,23 +13,28 @@ const eur = (c: number) =>
   (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 // Escala tipo semáforo — vermelho (baixo), amarelo (médio), verde (alto).
-// Convenção "mais vendas = melhor". Zero fica em cinza neutro para se
-// distinguir claramente de "vendeu pouco".
 function cellColor(v: number, max: number): string {
-  if (v <= 0 || max === 0) return "#e6e6ea"; // neutro — sem vendas
+  if (v <= 0 || max === 0) return "#e6e6ea";
   const ratio = v / max;
-  if (ratio < 0.2) return "#e57373";  // vermelho suave — muito baixo
-  if (ratio < 0.4) return "#f0a05a";  // laranja — baixo
-  if (ratio < 0.6) return "#f4d35e";  // amarelo — médio
-  if (ratio < 0.85) return "#8fc26f"; // verde claro — alto
-  return "#3f9455";                    // verde forte — muito alto
+  if (ratio < 0.2) return "#e57373";
+  if (ratio < 0.4) return "#f0a05a";
+  if (ratio < 0.6) return "#f4d35e";
+  if (ratio < 0.85) return "#8fc26f";
+  return "#3f9455";
 }
 
-export function SalesHeatmap({ data }: { data: Heatmap }) {
-  // Cells rectangulares (bricks) — mais largas que altas — para que o
-  // viewBox tenha proporção landscape a bater com o card em grid-cols-2.
-  // Assim o SVG preenche o card sem whitespace lateral e sem esticar o
-  // heatmap em altura. Cells "quadradas" a 22×22 não davam essa proporção.
+export type HeatmapScope = "all" | "LIS" | "VNG";
+
+const TABS: { key: HeatmapScope; label: string }[] = [
+  { key: "all", label: "Geral" },
+  { key: "LIS", label: "Lisboa" },
+  { key: "VNG", label: "V.N. Gaia" },
+];
+
+export function SalesHeatmap({ perScope }: { perScope: Record<HeatmapScope, Heatmap> }) {
+  const [scope, setScope] = useState<HeatmapScope>("all");
+  const data = perScope[scope];
+
   const cellWidth = 68;
   const cellHeight = 20;
   const cellGap = 3;
@@ -36,26 +44,38 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
 
   return (
     <section className="card-in flex h-full flex-col border border-line bg-paper p-6">
-      <div className="flex items-baseline justify-between border-b border-line pb-3">
+      <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
         <h2 className="font-serif text-xl text-ink">Ritmo semanal</h2>
-        <span className="text-[0.6rem] tracking-[0.18em] text-muted uppercase">
-          últimas {data.weeks} semanas
-        </span>
+        <div className="flex gap-1">
+          {TABS.map((t) => {
+            const active = scope === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setScope(t.key)}
+                className={`border px-2.5 py-1 text-[0.6rem] tracking-[0.12em] uppercase transition-colors ${
+                  active
+                    ? "border-gold bg-gold/10 text-gold"
+                    : "border-line text-muted hover:border-gold/50 hover:text-ink"
+                }`}
+                aria-pressed={active}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Card usa h-full para casar altura com o SalesTrend no grid. O SVG
-          preenche a área central preservando aspect ratio — cells ficam
-          centradas com pouca folga lateral, evitando o efeito cartoonish
-          de esticar 7 cells por toda a largura. */}
       <div className="mt-4 flex min-h-0 flex-1 items-center justify-center">
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
           role="img"
-          aria-label="Mapa de calor de vendas por dia da semana"
+          aria-label={`Mapa de calor de vendas — ${TABS.find((t) => t.key === scope)?.label}`}
           className="block max-h-full max-w-full"
           preserveAspectRatio="xMidYMid meet"
         >
-          {/* Header dos dias */}
           {WEEKDAYS.map((d, i) => (
             <text
               key={d}
@@ -69,7 +89,6 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
               {d}
             </text>
           ))}
-          {/* Grid */}
           {data.cells.map((c) => (
             <rect
               key={`${c.weekIdx}-${c.dayIdx}`}
@@ -89,7 +108,6 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
               </title>
             </rect>
           ))}
-          {/* Label vertical: primeira semana (topo) + hoje (base) */}
           <text x={0} y={14 + cellHeight} fontSize={8} fill="var(--muted)">
             {relLabel(data.weeks - 1)}
           </text>
