@@ -231,13 +231,23 @@ export default async function CategoryPage({
   const lineOf = (p: (typeof items)[number]): string =>
     groupByType ? (getProductType(p, locale)?.label ?? otherLabel) : p.collection;
   const allCards = items.flatMap((p) =>
-    expandProductCards(p).map(({ sku }) => ({
-      key: `${p.slug}-${sku}`,
-      line: lineOf(p),
-      node: (
-        <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />
-      ),
-    })),
+    expandProductCards(p)
+      // O filtro de stock acima é ao nível do PRODUTO ("tem alguma cor com
+      // stock"), mas a grelha desenha um cartão POR COR. Sem este segundo
+      // filtro, pedir "em stock em Lisboa" devolvia também as cores irmãs
+      // sem stock nenhum — cada uma com o seu selo verde.
+      .filter(({ sku }) => {
+        if (activeStock === "all") return true;
+        const v = p.variants.find((x) => x.sku === sku);
+        return v ? stockOk(v) : false;
+      })
+      .map(({ sku }) => ({
+        key: `${p.slug}-${sku}`,
+        line: lineOf(p),
+        node: (
+          <ProductCard key={`${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />
+        ),
+      })),
   );
   const showAll = isShowAll(allParam);
   const { slice: pageCards, page, totalPages } = showAll

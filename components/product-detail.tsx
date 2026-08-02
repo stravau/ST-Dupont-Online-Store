@@ -6,7 +6,9 @@ import { ProductImage } from "@/components/product-image";
 import { VariantSelector, type VariantOption, type SelectorLabels } from "@/components/variant-selector";
 import { SpecDetails } from "@/components/spec-details";
 import { DescriptionDetails } from "@/components/description-details";
+import { StatusPill } from "@/components/status-pill";
 import { imgSrc } from "@/lib/img";
+import type { Locale } from "@/lib/i18n";
 import type { Spec } from "@/lib/specs";
 
 // Two-column product top: the left image swaps to the selected colourway's
@@ -19,6 +21,8 @@ export function ProductDetail({
   labels,
   initialType,
   initialSku,
+  overline,
+  lang,
   header,
   extras,
   specsByVariant,
@@ -35,6 +39,10 @@ export function ProductDetail({
   labels: SelectorLabels;
   initialType?: string;
   initialSku?: string;
+  /** Linha de categoria · colecção. Fica ao lado do selo de disponibilidade,
+   *  que tem de ser renderizado aqui (cliente) para acompanhar a cor activa. */
+  overline: React.ReactNode;
+  lang: Locale;
   header: React.ReactNode;
   extras: React.ReactNode;
   specsByVariant: Record<string, Spec[]>;
@@ -195,6 +203,14 @@ export function ProductDetail({
       </div>
 
       <div className="flex flex-col justify-center">
+        {/* O selo de disponibilidade tem de reflectir a COR ACTIVA, não o
+            produto: um Ligne 2 com quatro cores em que só uma tem stock em
+            Lisboa mostrava "Disponível em Lisboa" nas quatro. Por isso vive
+            aqui, no cliente, e não no header renderizado no servidor. */}
+        <div className="flex items-center justify-between gap-4">
+          {overline}
+          <StatusPill lang={lang} stockLis={activeVariant?.stockLis} stockVng={activeVariant?.stockVng} />
+        </div>
         {header}
         <p className="mt-3 text-xs tracking-[0.2em] text-muted uppercase">REF · {activeSku}</p>
         <div className="mt-10">

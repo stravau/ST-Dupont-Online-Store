@@ -142,14 +142,16 @@ export function ProductCard({
     }
   }
 
-  // "Indisponível" only when EVERY sellable colourway is unavailable — the
-  // catalog already derives INDISPONIVEL for any variant with no stock, so this
-  // covers both a fully out-of-stock product and a manually-hidden one, while a
-  // product with stock in even one colourway stays available.
-  const sellable = product.variants.filter((v) => v.status !== "DESCONTINUADO");
-  const isIndisponivel = sellable.length === 0 || sellable.every((v) => v.status === "INDISPONIVEL");
-  const cardLis = product.variants.reduce((m, v) => Math.max(m, v.stockLis ?? 0), 0);
-  const cardVng = product.variants.reduce((m, v) => Math.max(m, v.stockVng ?? 0), 0);
+  // Disponibilidade da COLOURWAY que este cartão mostra — nunca o máximo do
+  // produto. O cartão é fixo numa cor (a de `initialSwatch`, que também é a
+  // foto grande), portanto dizer "Disponível em Lisboa" porque uma cor
+  // *irmã* tem stock era simplesmente falso. `status` já vem derivado do
+  // stock por effectiveStatus() em lib/catalog.
+  const shownSku = swatches[initialSwatch]?.sku ?? variantSku ?? base.sku;
+  const shown = product.variants.find((v) => v.sku === shownSku) ?? base;
+  const isIndisponivel = shown.status !== "DISPONIVEL";
+  const cardLis = shown.stockLis ?? 0;
+  const cardVng = shown.stockVng ?? 0;
   const stockLabel =
     cardLis > 0 && cardVng > 0
       ? dict.product.availabilityBoth
