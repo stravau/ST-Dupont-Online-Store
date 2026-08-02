@@ -182,15 +182,32 @@ function refCandidates(ref: string): string[] {
   return out;
 }
 
+// Um grupo de exemplos concretos ("STD012345 — stock 3 → 0") que a
+// pré-visualização mostra por baixo dos números. `tone` pinta o grupo:
+// add = cria, update = altera, remove = apaga/zera.
+interface SampleGroup {
+  title: string;
+  tone: "add" | "update" | "remove";
+  lines: string[];
+  note?: string;
+}
+
 interface SheetReport {
   sheet: string;
   status: "ok" | "pending" | "missing" | "failed";
   rows?: number;
   detail?: string;
   changes?: Record<string, number>;
+  samples?: SampleGroup[];
   sampleUnmatched?: string[];
   errorMessage?: string; // populado quando status = "failed"
   ms?: number;           // tempo de processamento — para diagnosticar timeouts
+}
+
+// Cents → "1 234,50 €". Usado só nas mensagens da pré-visualização.
+function eurLabel(cents: number | null | undefined): string {
+  if (cents == null) return "—";
+  return (cents / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 }
 
 export async function POST(req: Request) {
@@ -361,6 +378,18 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   const creates: Parsed[] = [];
   const matchedVariantIds = new Set<string>();
 
+  // Exemplos concretos para a pré-visualização. Um número ("139 stocks
+  // actualizados") não diz se a mudança é razoável; ver "STD012345 · Isqueiro
+  // X — stock 3 → 0" diz. Guardamos os primeiros SAMPLE_MAX de cada tipo.
+  const SAMPLE_MAX = 8;
+  const sampleStock: string[] = [];
+  const samplePvp: string[] = [];
+  const sampleNovos: string[] = [];
+  const sampleZerados: string[] = [];
+  // Impacto agregado do PVP — a soma das subidas/descidas dá logo a noção
+  // de "isto é uma correcção pontual" vs "isto é uma remarcação geral".
+  let pvpUpCount = 0, pvpDownCount = 0, pvpDeltaCents = 0;
+
   for (const row of dupont) {
     let hit = row.ean ? byEan.get(row.ean) : undefined;
     if (!hit) for (const c of refCandidates(row.ref)) { const v = bySku.get(c); if (v) { hit = v; break; } }
@@ -369,6 +398,9 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
       // (INDISPONIVEL, needs review — see Opção A).
       newArticles++;
       creates.push(row);
+      if (sampleNovos.length < SAMPLE_MAX) {
+        sampleNovos.push(`${row.ref} · ${row.desc} — ${eurLabel(row.pvpCents)} · stock ${row.stock}`);
+      }
       if (sampleUnmatched.length < 10) sampleUnmatched.push(`NOVO · REF=${row.ref} · ${row.desc}`);
       continue;
     }
@@ -379,10 +411,19 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
       const otherStore = stockCol === "stockLis" ? (hit.stockVng ?? 0) : (hit.stockLis ?? 0);
       stockUpdates.push({ id: hit.id, stock: row.stock, total: row.stock + otherStore });
       stockChanged++;
+      if (sampleStock.length < SAMPLE_MAX) {
+        sampleStock.push(`${hit.sku} · ${row.desc} — stock ${curStock} → ${row.stock}`);
+      }
     }
     if (row.pvpCents != null && row.pvpCents !== hit.priceCents) {
       pvpUpdates.push({ id: hit.id, pvpCents: row.pvpCents });
       pvpChanged++;
+      const delta = row.pvpCents - hit.priceCents;
+      pvpDeltaCents += delta;
+      if (delta > 0) pvpUpCount++; else pvpDownCount++;
+      if (samplePvp.length < SAMPLE_MAX) {
+        samplePvp.push(`${hit.sku} · ${row.desc} — ${eurLabel(hit.priceCents)} → ${eurLabel(row.pvpCents)} (${delta > 0 ? "+" : ""}${eurLabel(delta)})`);
+      }
     }
   }
 
@@ -397,6 +438,9 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
     if (cur === 0) continue;
     const otherStore = stockCol === "stockLis" ? (v.stockVng ?? 0) : (v.stockLis ?? 0);
     stockZeroUpdates.push({ id: v.id, total: 0 + otherStore });
+    if (sampleZerados.length < SAMPLE_MAX) {
+      sampleZerados.push(`${v.sku} — stock ${cur} → 0 (não vem no ficheiro)`);
+    }
   }
 
   // --- Other brands (only meaningful for the VNG file) ---
@@ -407,9 +451,20 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   // apagadas (só relevante quando o ficheiro é o VNG — o LIS não mexe
   // no master de outras marcas). A execução real do delete acontece
   // apenas no bloco APPLY abaixo.
-  const obDeleteCount = store === "VNG"
-    ? await prisma.otherBrandItem.count({ where: { sku: { notIn: [...obSkusInFile] } } })
-    : 0;
+  // Além da contagem, trazemos uma amostra do que vai desaparecer — apagar
+  // artigos é a operação mais destrutiva do sync e um número sozinho não
+  // deixa ninguém decidir se está certo.
+  const [obDeleteCount, obDeleteSample] = store === "VNG"
+    ? await Promise.all([
+        prisma.otherBrandItem.count({ where: { sku: { notIn: [...obSkusInFile] } } }),
+        prisma.otherBrandItem.findMany({
+          where: { sku: { notIn: [...obSkusInFile] } },
+          select: { sku: true, brand: true, descricao: true, stock: true },
+          take: 8,
+          orderBy: { stock: "desc" }, // os com mais stock primeiro — os que doem
+        }),
+      ])
+    : [0, [] as { sku: string; brand: string; descricao: string; stock: number }[]];
 
   const changes = {
     dupontLinhas: dupont.length,
@@ -424,10 +479,30 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   };
 
   if (!apply) {
+    const samples: SampleGroup[] = [];
+    if (sampleStock.length) samples.push({ title: `Stock a actualizar (${stockChanged})`, tone: "update", lines: sampleStock });
+    if (samplePvp.length) {
+      samples.push({
+        title: `PVP a actualizar (${pvpChanged} · ${pvpUpCount} a subir, ${pvpDownCount} a descer)`,
+        tone: "update",
+        lines: samplePvp,
+        note: `Impacto líquido nos preços: ${pvpDeltaCents > 0 ? "+" : ""}${eurLabel(pvpDeltaCents)}`,
+      });
+    }
+    if (sampleNovos.length) samples.push({ title: `Artigos novos a criar (${newArticles})`, tone: "add", lines: sampleNovos, note: "Entram como INDISPONIVEL — não aparecem no site até serem revistos." });
+    if (sampleZerados.length) samples.push({ title: `Stock a zerar (${stockZeroUpdates.length})`, tone: "remove", lines: sampleZerados, note: "Artigos do catálogo que não vêm neste ficheiro. A ficha do produto mantém-se; só o stock desta loja passa a 0." });
+    if (obDeleteSample.length) {
+      samples.push({
+        title: `Outras marcas a APAGAR (${obDeleteCount})`,
+        tone: "remove",
+        lines: obDeleteSample.map((o) => `${o.sku} · ${o.brand} · ${o.descricao} — stock ${o.stock}`),
+        note: "Apagados por completo da tabela de outras marcas. Mostrados os de maior stock primeiro.",
+      });
+    }
     return {
       sheet: DB_SHEET, status: "ok", rows: body.length,
       detail: `pré-visualização (loja ${store}) — nada gravado`,
-      changes, sampleUnmatched,
+      changes, sampleUnmatched, samples,
     };
   }
 
@@ -851,15 +926,6 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
     };
   }
 
-  // AUTORITATIVO — wipe-then-insert para os tipos deste parser.
-  // Apagar apenas o subset relevante desta boutique; os movimentos de
-  // VENDA/DEVOLUCAO são geridos pelo syncSales; os movimentos criados
-  // pela página /admin/movimentos (ENTRADA/SAIDA) são apagados também,
-  // porque o Excel é a única fonte.
-  await prisma.stockMovement.deleteMany({
-    where: { boutique: store, type: { in: typesInScope as never } },
-  });
-
   const variants = await prisma.productVariant.findMany({ select: { id: true, sku: true, ean: true } });
   const bySku = new Map(variants.map((v) => [v.sku, v.id]));
   const byEan = new Map(variants.filter((v) => v.ean).map((v) => [v.ean as string, v.id]));
@@ -877,15 +943,25 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
     });
   }
   let created = 0;
+  // AUTORITATIVO — wipe-then-insert para os tipos deste parser, numa só
+  // transacção: uma falha entre o delete e o insert deixaria a boutique sem
+  // livro de movimentos. Apaga apenas o subset relevante — os movimentos de
+  // VENDA/DEVOLUCAO são geridos pelo syncSales; os criados em
+  // /admin/movimentos são apagados porque o Excel é a única fonte.
   // Chunked: 4.7k linhas × 8 colunas já anda perto do tecto de 65535
   // parâmetros por statement do Postgres.
-  await insertChunked(toInsert, async (slice) => {
-    const res = await prisma.stockMovement.createMany({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: slice as any,
+  await prisma.$transaction(async (tx) => {
+    await tx.stockMovement.deleteMany({
+      where: { boutique: store, type: { in: typesInScope as never } },
     });
-    created += res.count;
-  });
+    await insertChunked(toInsert, async (slice) => {
+      const res = await tx.stockMovement.createMany({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: slice as any,
+      });
+      created += res.count;
+    });
+  }, { timeout: 90_000, maxWait: 15_000 });
   return {
     sheet, status: "ok", rows: body.length,
     detail: `aplicado (autoritativo · substituiu ${priorCount} movimentos)`,
@@ -981,10 +1057,48 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
   const totalD = lines.filter((l) => l.vd === "DEVOLUCAO").length;
 
   if (!apply) {
+    // O sync é autoritativo: TUDO o que a loja tem em Sale é apagado e
+    // reposto pelo ficheiro. A pré-visualização tem de dizer quanto é
+    // esse "tudo" — em nº de vendas, em euros e no período coberto —
+    // senão ninguém consegue avaliar se o ficheiro está completo.
+    const [priorCount, priorAgg, priorRange] = await Promise.all([
+      prisma.sale.count({ where: { boutique: store } }),
+      prisma.sale.aggregate({ where: { boutique: store }, _sum: { grossCents: true } }),
+      prisma.sale.aggregate({ where: { boutique: store }, _min: { soldAt: true }, _max: { soldAt: true } }),
+    ]);
+    const importGross = lines.reduce((s, l) => s + (l.vd === "VENDA" ? l.grossCents : -l.grossCents), 0);
+    const dates = lines.map((l) => l.soldAt.getTime());
+    const d = (t: number | Date | null | undefined) =>
+      t == null ? "—" : new Date(t).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+    const samples: SampleGroup[] = [];
+    if (priorCount > 0) {
+      samples.push({
+        title: `Vendas actuais a APAGAR (${priorCount})`,
+        tone: "remove",
+        lines: [
+          `Total facturado que sai da app: ${eurLabel(priorAgg._sum.grossCents ?? 0)}`,
+          `Período coberto: ${d(priorRange._min.soldAt)} a ${d(priorRange._max.soldAt)}`,
+        ],
+        note: "O Excel é a fonte única: todas as vendas desta loja são apagadas e substituídas pelas do ficheiro — incluindo as registadas no POS que não estejam lá.",
+      });
+    }
+    samples.push({
+      title: `Vendas a importar do ficheiro (${groups.size} cestos)`,
+      tone: "add",
+      lines: [
+        `Total facturado que entra: ${eurLabel(importGross)}`,
+        dates.length ? `Período coberto: ${d(Math.min(...dates))} a ${d(Math.max(...dates))}` : "Sem datas válidas",
+        `${totalV} linhas de venda · ${totalD} de devolução`,
+        ...(malformed > 0 ? [`${malformed} linhas ignoradas (data, REF ou V/D em falta)`] : []),
+      ],
+    });
+
     return {
       sheet: MOV_POS_LOJA_SHEET, status: "ok", rows: body.length,
       detail: "pré-visualização (histórico — não mexe em stock)",
-      changes: { linhas: lines.length, vendas: totalV, devolucoes: totalD, baskets: groups.size, malFormadas: malformed },
+      changes: { linhas: lines.length, vendas: totalV, devolucoes: totalD, baskets: groups.size, malFormadas: malformed, vendasAApagar: priorCount },
+      samples,
     };
   }
 
@@ -1024,12 +1138,6 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
   //    às sales apagadas. Sem isto ficariam com saleItemId=null como debris.
   // Scope: só ESTA boutique (o outro ficheiro trata da outra loja).
   const priorCount = await prisma.sale.count({ where: { boutique: store } });
-  await Promise.all([
-    prisma.sale.deleteMany({ where: { boutique: store } }),
-    prisma.stockMovement.deleteMany({
-      where: { boutique: store, type: { in: ["VENDA", "DEVOLUCAO"] } },
-    }),
-  ]);
 
   // Build the list of baskets that have a valid operator, then create them
   // in parallel. Each basket is one insert (with nested SaleItem creates via
@@ -1072,9 +1180,19 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
       });
     }
   }
-  // Sales primeiro — SaleItem.saleId tem FK para Sale.
-  await insertChunked(saleRows, (slice) => prisma.sale.createMany({ data: slice }));
-  await insertChunked(itemRows, (slice) => prisma.saleItem.createMany({ data: slice }));
+  // Apagar e reinserir TÊM de ser atómicos. Fora de transacção, um timeout
+  // (ou qualquer falha) entre o deleteMany e o createMany deixava a loja
+  // sem histórico de vendas nenhum e sem forma de recuperar — o pior modo
+  // de falha possível neste endpoint. Ou passa tudo, ou não passa nada.
+  await prisma.$transaction(async (tx) => {
+    await tx.sale.deleteMany({ where: { boutique: store } });
+    await tx.stockMovement.deleteMany({
+      where: { boutique: store, type: { in: ["VENDA", "DEVOLUCAO"] } },
+    });
+    // Sales primeiro — SaleItem.saleId tem FK para Sale.
+    await insertChunked(saleRows, (slice) => tx.sale.createMany({ data: slice }));
+    await insertChunked(itemRows, (slice) => tx.saleItem.createMany({ data: slice }));
+  }, { timeout: 90_000, maxWait: 15_000 });
   const created = basketsToWrite.length;
   const items = basketsToWrite.reduce((s, b) => s + b.groupLines.length, 0);
 

@@ -4,15 +4,97 @@ import { useRef, useState } from "react";
 import { useToast } from "@/components/admin/toast";
 import { IconUpload } from "@/components/admin/icons";
 
+type Tone = "add" | "update" | "remove" | "info";
+
+interface SampleGroup {
+  title: string;
+  tone: "add" | "update" | "remove";
+  lines: string[];
+  note?: string;
+}
 interface SheetReport {
   sheet: string;
   status: "ok" | "pending" | "missing" | "failed";
   rows?: number;
   detail?: string;
   changes?: Record<string, number>;
+  samples?: SampleGroup[];
   sampleUnmatched?: string[];
   errorMessage?: string;
   ms?: number; // tempo de processamento da folha
+}
+
+// As chaves de `changes` vêm do endpoint em camelCase. Traduzimo-las aqui
+// para português corrente e damos-lhes um tom, para se ver de relance o que
+// CRIA (verde), o que ALTERA (dourado) e o que APAGA (vermelho) — que é a
+// pergunta que interessa antes de carregar em Aplicar.
+const CHANGE_LABELS: Record<string, { label: string; tone: Tone }> = {
+  dupontLinhas:             { label: "linhas Dupont no ficheiro", tone: "info" },
+  correspondidas:           { label: "correspondidas ao catálogo", tone: "info" },
+  emBranco:                 { label: "linhas em branco", tone: "info" },
+  stockAtualizado:          { label: "stock a actualizar", tone: "update" },
+  stockZerado:              { label: "stock a zerar", tone: "remove" },
+  pvpAtualizado:            { label: "PVP a actualizar", tone: "update" },
+  novosArtigos:             { label: "artigos novos", tone: "add" },
+  outrasMarcas:             { label: "outras marcas no ficheiro", tone: "info" },
+  outrasMarcasApagar:       { label: "outras marcas a apagar", tone: "remove" },
+  outrasMarcasGravadas:     { label: "outras marcas gravadas", tone: "update" },
+  outrasMarcasApagadas:     { label: "outras marcas apagadas", tone: "remove" },
+  outrasMarcasEanLibertado: { label: "EAN libertado", tone: "update" },
+  outrasMarcasFalhadas:     { label: "outras marcas falhadas", tone: "remove" },
+  reservas:                 { label: "reservas no ficheiro", tone: "info" },
+  aApagar:                  { label: "a apagar", tone: "remove" },
+  novas:                    { label: "novas", tone: "add" },
+  novos:                    { label: "novos", tone: "add" },
+  atualizadas:              { label: "actualizadas", tone: "update" },
+  atualizados:              { label: "actualizados", tone: "update" },
+  apagadas:                 { label: "apagadas", tone: "remove" },
+  apagados:                 { label: "apagados", tone: "remove" },
+  operadores:               { label: "operadores", tone: "info" },
+  metasAtualizadas:         { label: "metas actualizadas", tone: "update" },
+  movimentos:               { label: "movimentos no ficheiro", tone: "info" },
+  linhas:                   { label: "linhas", tone: "info" },
+  vendas:                   { label: "linhas de venda", tone: "info" },
+  devolucoes:               { label: "linhas de devolução", tone: "info" },
+  baskets:                  { label: "cestos a criar", tone: "add" },
+  vendasAApagar:            { label: "vendas a apagar", tone: "remove" },
+  malFormadas:              { label: "linhas ignoradas", tone: "info" },
+  semOperador:              { label: "sem operador", tone: "info" },
+  total:                    { label: "total", tone: "info" },
+  ignoradas:                { label: "ignoradas", tone: "info" },
+};
+
+// Chaves cujo valor é destrutivo — usadas para o aviso no topo.
+const DESTRUCTIVE_KEYS = new Set([
+  "stockZerado", "outrasMarcasApagar", "outrasMarcasApagadas",
+  "vendasAApagar", "aApagar", "apagadas", "apagados",
+]);
+
+const TONE_TEXT: Record<Tone, string> = {
+  add: "text-[#1f7a4d]",
+  update: "text-[#7e5e00]",
+  remove: "text-[#8c2a2a]",
+  info: "text-muted",
+};
+const TONE_BOX: Record<"add" | "update" | "remove", string> = {
+  add: "border-[#2bb673]/40 bg-[#2bb673]/5",
+  update: "border-gold/40 bg-gold/5",
+  remove: "border-[#b94a3a]/40 bg-[#b94a3a]/5",
+};
+
+// Junta, de todas as folhas, só o que é irreversível — para o aviso no topo
+// da pré-visualização. Sem isto era preciso caçar as chaves destrutivas no
+// meio das informativas, folha a folha.
+function destructiveSummary(reports: SheetReport[]): string[] {
+  const out: string[] = [];
+  for (const r of reports) {
+    for (const [k, v] of Object.entries(r.changes ?? {})) {
+      if (!v || !DESTRUCTIVE_KEYS.has(k)) continue;
+      const label = CHANGE_LABELS[k]?.label ?? k;
+      out.push(`${v.toLocaleString("pt-PT")} ${label} — folha ${r.sheet}`);
+    }
+  }
+  return out;
 }
 interface SyncResult {
   ok: boolean;
@@ -172,39 +254,80 @@ export function EciSyncCard() {
             </p>
             <span className="font-mono text-[0.6rem] text-muted">{result.file}</span>
           </div>
-          <ul className="mt-3 divide-y divide-line/60">
-            {result.reports.map((r) => (
-              <li key={r.sheet} className="grid grid-cols-[10rem_5rem_1fr_auto] items-baseline gap-3 py-2 text-xs">
-                <span className="font-mono text-ink">{r.sheet}</span>
-                <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
-                  r.status === "ok" ? "text-[#1f7a4d]" :
-                  r.status === "pending" ? "text-[#7e5e00]" :
-                  r.status === "failed" ? "text-[#8c2a2a]" :
-                  "text-muted"
-                }`}>
-                  {r.status === "ok" ? "pronto" :
-                   r.status === "pending" ? "pendente" :
-                   r.status === "failed" ? "FALHOU" :
-                   "ausente"}
-                </span>
-                <span className="text-muted">
+          {/* Resumo do que é irreversível, em cima e em português corrente —
+              antes era preciso ler chaves camelCase espalhadas por 10 linhas
+              para perceber que o sync ia apagar vendas. */}
+          {!result.applied && destructiveSummary(result.reports).length > 0 && (
+            <div className="mt-4 border border-[#b94a3a]/40 bg-[#b94a3a]/5 px-4 py-3">
+              <p className="text-[0.6rem] font-semibold tracking-[0.16em] text-[#8c2a2a] uppercase">
+                O que vai ser apagado
+              </p>
+              <ul className="mt-2 space-y-0.5 text-xs text-[#8c2a2a]">
+                {destructiveSummary(result.reports).map((d) => (
+                  <li key={d}>· {d}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <ul className="mt-4 space-y-3">
+            {result.reports.map((r) => {
+              const entries = Object.entries(r.changes ?? {}).filter(([, v]) => v);
+              return (
+                <li key={r.sheet} className="border-b border-line/60 pb-3 last:border-b-0">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-mono text-xs text-ink">{r.sheet}</span>
+                    <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
+                      r.status === "ok" ? "text-[#1f7a4d]" :
+                      r.status === "pending" ? "text-[#7e5e00]" :
+                      r.status === "failed" ? "text-[#8c2a2a]" :
+                      "text-muted"
+                    }`}>
+                      {r.status === "ok" ? "pronto" :
+                       r.status === "pending" ? "pendente" :
+                       r.status === "failed" ? "FALHOU" :
+                       "ausente"}
+                    </span>
+                    {typeof r.rows === "number" && (
+                      <span className="text-[0.6rem] text-muted tabular-nums">{r.rows.toLocaleString("pt-PT")} linhas lidas</span>
+                    )}
+                    <span className="ml-auto font-mono text-[0.6rem] text-muted tabular-nums">
+                      {typeof r.ms === "number" ? (r.ms >= 1000 ? `${(r.ms / 1000).toFixed(1)}s` : `${r.ms}ms`) : ""}
+                    </span>
+                  </div>
+
                   {r.status === "failed" ? (
-                    <span className="font-mono text-[0.68rem] text-[#8c2a2a]">
-                      {r.errorMessage ?? "erro desconhecido"}
-                    </span>
-                  ) : r.changes ? (
-                    <span className="font-mono text-[0.68rem] text-ink">
-                      {Object.entries(r.changes).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(" · ") || "sem alterações"}
-                    </span>
-                  ) : r.detail}
-                </span>
-                {/* Tempo por folha — para saber qual está a puxar o sync
-                    para cima do tecto do Vercel sem ter de adivinhar. */}
-                <span className="font-mono text-[0.6rem] text-muted tabular-nums">
-                  {typeof r.ms === "number" ? (r.ms >= 1000 ? `${(r.ms / 1000).toFixed(1)}s` : `${r.ms}ms`) : ""}
-                </span>
-              </li>
-            ))}
+                    <p className="mt-1.5 font-mono text-[0.68rem] text-[#8c2a2a]">{r.errorMessage ?? "erro desconhecido"}</p>
+                  ) : entries.length > 0 ? (
+                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[0.7rem]">
+                      {entries.map(([k, v]) => {
+                        const meta = CHANGE_LABELS[k] ?? { label: k, tone: "info" as Tone };
+                        return (
+                          <span key={k} className={TONE_TEXT[meta.tone]}>
+                            <strong className="tabular-nums">{v.toLocaleString("pt-PT")}</strong> {meta.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="mt-1.5 text-[0.7rem] text-muted">{r.detail ?? "sem alterações"}</p>
+                  )}
+
+                  {/* Exemplos reais — a parte que responde a "isto está certo?" */}
+                  {r.samples?.map((g) => (
+                    <details key={g.title} className={`mt-2 border px-3 py-2 ${TONE_BOX[g.tone]}`}>
+                      <summary className={`cursor-pointer text-[0.68rem] font-medium ${TONE_TEXT[g.tone]}`}>
+                        {g.title}
+                      </summary>
+                      {g.note && <p className="mt-1.5 text-[0.65rem] text-muted italic">{g.note}</p>}
+                      <ul className="mt-1.5 space-y-0.5 font-mono text-[0.65rem] text-ink">
+                        {g.lines.map((l, i) => <li key={i} className="break-words">{l}</li>)}
+                      </ul>
+                    </details>
+                  ))}
+                </li>
+              );
+            })}
           </ul>
 
           {previewed && (
