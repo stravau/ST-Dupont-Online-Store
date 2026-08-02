@@ -3,16 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { PosTerminal } from "@/components/admin/pos-terminal";
 import type { BoutiqueCode } from "@/lib/pos";
+import { boutiquesForRole } from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
-
-// The boutiques a staff login may operate. LOJA_* are pinned to their own
-// store; ADMIN (the boss) can ring up either.
-function boutiquesForRole(role: string | null): BoutiqueCode[] {
-  if (role === "LOJA_LIS") return ["LIS"];
-  if (role === "LOJA_VNG") return ["VNG"];
-  return ["LIS", "VNG"]; // ADMIN
-}
 
 export default async function PosPage() {
   const staff = await currentStaff();

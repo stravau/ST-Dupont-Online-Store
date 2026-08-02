@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { currentStaff } from "@/lib/admin-auth";
 import { assertRateLimit } from "@/lib/admin-api";
-import { isStaffRole, type BoutiqueCode } from "@/lib/pos";
+import { isStaffRole } from "@/lib/pos";
 import { saleLines, rangeWindow } from "@/lib/pos-reports";
 import { buildDailySalesWorkbook } from "@/lib/report-export";
+import { boutiquesForRole, resolveScope } from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
-
-function boutiquesForRole(role: string | null): BoutiqueCode[] {
-  if (role === "LOJA_LIS") return ["LIS"];
-  if (role === "LOJA_VNG") return ["VNG"];
-  return ["LIS", "VNG"];
-}
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
 function parseYmd(s: string | null): Date | null {
@@ -33,10 +28,16 @@ export async function GET(req: Request) {
 
   const staff = await currentStaff();
   if (!isStaffRole(staff?.role)) return NextResponse.json({ ok: false }, { status: 404 });
-  const boutiques = boutiquesForRole(staff?.role ?? null);
   const showCommission = staff?.role === "ADMIN";
 
   const url = new URL(req.url);
+  // ?boutique=LIS|VNG restringe o ficheiro a uma loja. resolveScope intersecta
+  // com o que o role permite, portanto um LOJA_LIS não exporta Gaia pedindo
+  // ?boutique=VNG à mão.
+  const { boutiques } = resolveScope(
+    url.searchParams.get("boutique") ?? undefined,
+    boutiquesForRole(staff?.role ?? null),
+  );
   const legacyDate = url.searchParams.get("date");
   const now = new Date();
   const fromDate =
@@ -52,9 +53,13 @@ export async function GET(req: Request) {
   const ymd = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const sameDay = ymd(fromDate) === ymd(toDate);
+  // Sufixo da loja quando o export é de uma só — sem ele, exportar Lisboa e
+  // depois Gaia do mesmo dia dava dois ficheiros com o mesmo nome e o segundo
+  // aparecia como "(1)" na pasta de downloads.
+  const suffix = boutiques.length === 1 ? `-${boutiques[0].toLowerCase()}` : "";
   const filename = sameDay
-    ? `relatorio-vendas-${ymd(fromDate)}.xlsx`
-    : `relatorio-vendas-${ymd(fromDate)}_${ymd(toDate)}.xlsx`;
+    ? `relatorio-vendas-${ymd(fromDate)}${suffix}.xlsx`
+    : `relatorio-vendas-${ymd(fromDate)}_${ymd(toDate)}${suffix}.xlsx`;
 
   return new NextResponse(new Uint8Array(buf), {
     status: 200,

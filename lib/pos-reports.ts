@@ -295,6 +295,52 @@ export async function dailySalesSeries(
   return out;
 }
 
+// As mesmas séries diárias mas separadas por loja E em conjunto, a partir de
+// UMA só query. Chamar dailySalesSeries três vezes daria três varrimentos da
+// tabela Sale para os mesmos 30 dias; aqui trazemos as linhas uma vez e
+// distribuímo-las pelos três baldes em memória.
+export async function dailySalesSeriesPerScope(
+  boutiques: BoutiqueCode[],
+  from: Date,
+  to: Date,
+): Promise<Record<"all" | BoutiqueCode, DayPoint[]>> {
+  const sales = await prisma.sale.findMany({
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    select: { soldAt: true, type: true, grossCents: true, boutique: true },
+  });
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const keyOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  const totals: Record<"all" | BoutiqueCode, Map<string, number>> = {
+    all: new Map(), LIS: new Map(), VNG: new Map(),
+  };
+  for (const s of sales) {
+    const k = keyOf(s.soldAt);
+    const signed = s.type === "DEVOLUCAO" ? -s.grossCents : s.grossCents;
+    totals.all.set(k, (totals.all.get(k) ?? 0) + signed);
+    const b = totals[s.boutique as BoutiqueCode];
+    if (b) b.set(k, (b.get(k) ?? 0) + signed);
+  }
+
+  const build = (m: Map<string, number>): DayPoint[] => {
+    const out: DayPoint[] = [];
+    const cursor = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    const end = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+    while (cursor <= end) {
+      const k = keyOf(cursor);
+      out.push({
+        day: k,
+        label: `${pad(cursor.getDate())}/${pad(cursor.getMonth() + 1)}`,
+        grossCents: m.get(k) ?? 0,
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return out;
+  };
+
+  return { all: build(totals.all), LIS: build(totals.LIS), VNG: build(totals.VNG) };
+}
+
 // A calendar day [00:00, 23:59:59.999] for the export.
 export function dayWindow(d: Date): { from: Date; to: Date } {
   const from = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);

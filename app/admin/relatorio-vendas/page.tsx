@@ -3,16 +3,16 @@ import { AdminHero } from "@/components/admin/admin-hero";
 import { ReportDatePicker } from "@/components/admin/report-date-picker";
 import { salesByStore, salesLog, rangeWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
+import {
+  BOUTIQUE_LABEL,
+  BoutiqueScopeTabsOnDark,
+  boutiquesForRole,
+  resolveScope,
+  type BoutiqueScope,
+} from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
 
-function boutiquesForRole(role: string | null): BoutiqueCode[] {
-  if (role === "LOJA_LIS") return ["LIS"];
-  if (role === "LOJA_VNG") return ["VNG"];
-  return ["LIS", "VNG"];
-}
-
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
 const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 const hhmm = (d: Date) => d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });
 const ymdOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -21,11 +21,12 @@ const isYmd = (s: string | undefined): s is string => !!s && /^\d{4}-\d{2}-\d{2}
 export default async function DailyReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; date?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; date?: string; boutique?: string }>;
 }) {
-  const { from: fromParam, to: toParam, date: legacyDate } = await searchParams;
+  const { from: fromParam, to: toParam, date: legacyDate, boutique } = await searchParams;
   const staff = await currentStaff();
-  const boutiques = boutiquesForRole(staff?.role ?? null);
+  const allowed = boutiquesForRole(staff?.role ?? null);
+  const { scope, boutiques } = resolveScope(boutique, allowed);
   const multi = boutiques.length > 1;
   // Only the boss (ADMIN) sees the ECI concession. Store logins get the
   // report + registo but never the commission line — that's a contract
@@ -68,13 +69,30 @@ export default async function DailyReportPage({
   // row skips the pct chip because the two rates differ.
   const pctLabel: Record<BoutiqueCode, string> = { LIS: "22%", VNG: "19%" };
 
+  // Preserva o intervalo de datas ao trocar de loja.
+  const hrefFor = (s: BoutiqueScope) => {
+    const params = new URLSearchParams({ from: fromYmd, to: toYmd });
+    if (s !== "all") params.set("boutique", s);
+    return `/admin/relatorio-vendas?${params.toString()}`;
+  };
+
   return (
     <div>
       <AdminHero
         eyebrow="Operações"
         title="Relatório de Vendas"
-        subtitle={<span className="capitalize">{rangeLabel}</span>}
-        action={<ReportDatePicker from={fromYmd} to={toYmd} />}
+        subtitle={
+          <span className="capitalize">
+            {rangeLabel}
+            {multi ? "" : ` · ${BOUTIQUE_LABEL[boutiques[0]]}`}
+          </span>
+        }
+        action={
+          <div className="flex flex-col items-end gap-3">
+            <BoutiqueScopeTabsOnDark scope={scope} allowed={allowed} hrefFor={hrefFor} />
+            <ReportDatePicker from={fromYmd} to={toYmd} />
+          </div>
+        }
       >
         {/* Summary embutido no hero para o patrão ver os totais em cima
             do fundo navy — Big-picture antes do detalhe. */}

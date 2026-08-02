@@ -1,15 +1,11 @@
 import type { TopOperator } from "@/lib/dashboard-data";
 import type { BoutiqueCode } from "@/lib/pos";
+import { BOUTIQUE_LABEL } from "@/components/admin/boutique-scope";
 
 // TopOperators — top 3 vendedores por boutique, este mês. Só faz sentido
 // para ADMIN (LOJA_* já tem a tabela completa em /admin/relatorios).
 // Bar horizontal com o top 1 em gold-glow, top 2 em gold, top 3 em
 // gold-soft. Coroa dourada minúscula no #1.
-
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = {
-  LIS: "Lisboa",
-  VNG: "V. N. de Gaia",
-};
 
 const eur0 = (c: number) =>
   (c / 100).toLocaleString("pt-PT", {

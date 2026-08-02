@@ -33,6 +33,59 @@ export interface DashboardSnapshot {
   generatedAt: string;
 }
 
+/** Um par de KPIs (hoje + mês) já com deltas, para um âmbito de loja. */
+export interface ScopedKpis {
+  today: KpiWithDelta;
+  month: KpiWithDelta;
+}
+
+/**
+ * Os KPIs de hoje e do mês, com deltas vs o mês anterior, para os TRÊS
+ * âmbitos: as duas lojas juntas, só Lisboa, só Gaia.
+ *
+ * Reutiliza as mesmas quatro queries do getDashboardSnapshot — salesByStore
+ * devolve uma linha por loja, portanto os âmbitos individuais saem de filtrar
+ * essas linhas em memória. Chamar getDashboardSnapshot três vezes custaria
+ * doze queries em vez de quatro.
+ */
+export async function getDashboardKpisPerScope(
+  boutiques: BoutiqueCode[],
+  now: Date = new Date(),
+): Promise<Record<"all" | BoutiqueCode, ScopedKpis>> {
+  const today = dayWindow(now);
+  const month = monthWindow(now);
+  const todayPrev = sameDayLastMonth(now);
+  const monthPrev = samePeriodLastMonth(now);
+
+  const [rowsToday, rowsMonth, rowsTodayPrev, rowsMonthPrev] = await Promise.all([
+    salesByStore(boutiques, today.from, today.to),
+    salesByStore(boutiques, month.from, month.to),
+    salesByStore(boutiques, todayPrev.from, todayPrev.to),
+    salesByStore(boutiques, monthPrev.from, monthPrev.to),
+  ]);
+
+  const only = (rows: StoreTotals[], b: BoutiqueCode | null) =>
+    b === null ? rows : rows.filter((r) => r.boutique === b);
+
+  const withDelta = (cur: StoreTotals[], prev: StoreTotals[]): KpiWithDelta => {
+    const n = summarize(cur);
+    const p = summarize(prev);
+    return {
+      now: n,
+      previous: p,
+      deltaGrossPct: pctDelta(n.grossCents, p.grossCents),
+      deltaSalesPct: pctDelta(n.sales, p.sales),
+    };
+  };
+
+  const forScope = (b: BoutiqueCode | null): ScopedKpis => ({
+    today: withDelta(only(rowsToday, b), only(rowsTodayPrev, b)),
+    month: withDelta(only(rowsMonth, b), only(rowsMonthPrev, b)),
+  });
+
+  return { all: forScope(null), LIS: forScope("LIS"), VNG: forScope("VNG") };
+}
+
 function summarize(rows: StoreTotals[]): KpiValue {
   return rows.reduce(
     (a, s) => ({

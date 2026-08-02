@@ -1,5 +1,6 @@
 import type { StoreTotals } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
+import { BOUTIQUE_LABEL } from "@/components/admin/boutique-scope";
 
 // BoutiqueSplit dentro do <AdminHero>: dois cards lado a lado com totais
 // de hoje + do mês por boutique. Um pouco mais denso que os BigKPIs
@@ -7,11 +8,6 @@ import type { BoutiqueCode } from "@/lib/pos";
 //
 // Só aparece se `boutiques` tem mais que uma entrada (i.e. role=ADMIN
 // vê ambas; LOJA_* vê só a sua e este componente fica escondido).
-
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = {
-  LIS: "Lisboa",
-  VNG: "V. N. de Gaia",
-};
 
 const eur0 = (c: number) =>
   (c / 100).toLocaleString("pt-PT", {

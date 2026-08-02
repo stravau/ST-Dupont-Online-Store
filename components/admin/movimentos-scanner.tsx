@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { BoutiqueCode } from "@/lib/pos";
+import { BOUTIQUE_LABEL } from "@/components/admin/boutique-scope";
 
 type MovType = "ENTRADA" | "SAIDA";
 
@@ -19,7 +20,6 @@ interface HistoryEntry {
   boutique: BoutiqueCode;
 }
 
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
 
 function hhmm(d = new Date()) {
   return d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VAT_DIVISOR, ECI_COMMISSION_RATE, type BoutiqueCode } from "@/lib/pos";
+import { BOUTIQUE_LABEL } from "@/components/admin/boutique-scope";
 
 interface OperatorLite {
   boutique: BoutiqueCode;
@@ -30,7 +31,6 @@ interface RepairHit {
   firstVisitAt: string | null;
 }
 
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
 const REPAIR_LABEL: Record<RepairSubtype, string> = { ESCRITA: "Escrita", ISQUEIRO: "Isqueiro", PELE: "Pele" };
 
 const eur = (cents: number) =>

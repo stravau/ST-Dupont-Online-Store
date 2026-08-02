@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 // Date-range selector for the sales-report page. Two `<input type="date">`
 // fields — from + to — reload the page with ?from=…&to=… so the server
@@ -10,11 +10,19 @@ import { usePathname, useRouter } from "next/navigation";
 export function ReportDatePicker({ from, to }: { from: string; to: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const search = useSearchParams();
+  // Preserva o ?boutique= ao mudar de datas — antes reescrevia a query
+  // string inteira e a página voltava a "Geral" sem aviso.
+  const boutique = search.get("boutique");
+  const exportQs = boutique ? `&boutique=${encodeURIComponent(boutique)}` : "";
 
   function nav(nextFrom: string, nextTo: string) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(nextFrom)) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(nextTo)) return;
-    router.push(`${pathname}?from=${nextFrom}&to=${nextTo}`);
+    const params = new URLSearchParams(search.toString());
+    params.set("from", nextFrom);
+    params.set("to", nextTo);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   return (
@@ -40,7 +48,7 @@ export function ReportDatePicker({ from, to }: { from: string; to: string }) {
         />
       </label>
       <a
-        href={`/api/admin/reports/export?from=${from}&to=${to}`}
+        href={`/api/admin/reports/export?from=${from}&to=${to}${exportQs}`}
         download
         className="inline-flex items-center gap-2 rounded-md bg-ink px-5 py-2.5 text-[0.7rem] tracking-[0.18em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
       >

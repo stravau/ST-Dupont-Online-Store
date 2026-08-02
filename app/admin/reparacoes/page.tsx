@@ -3,14 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { RepairsManager, type RepairRow } from "@/components/admin/repairs-manager";
 import type { BoutiqueCode } from "@/lib/pos";
+import { boutiquesForRole } from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
-
-function boutiquesForRole(role: string | null): BoutiqueCode[] {
-  if (role === "LOJA_LIS") return ["LIS"];
-  if (role === "LOJA_VNG") return ["VNG"];
-  return ["LIS", "VNG"];
-}
 
 // A Date → local "YYYY-MM-DD" (the shape the <input type="date"> and the API expect).
 const iso = (d: Date | null): string => {

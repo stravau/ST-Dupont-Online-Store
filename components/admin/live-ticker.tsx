@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { BoutiqueCode } from "@/lib/pos";
+import { BOUTIQUE_LABEL } from "@/components/admin/boutique-scope";
 import type { TickerRow } from "@/lib/dashboard-data";
 
 // LiveTicker — feed vertical das últimas N vendas, com poll silencioso
@@ -12,11 +13,6 @@ import type { TickerRow } from "@/lib/dashboard-data";
 // LOJA_*, uma coluna só com a sua boutique.
 //
 // Componente cliente porque precisa de setInterval + DOM refs.
-
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = {
-  LIS: "Lisboa",
-  VNG: "V. N. de Gaia",
-};
 
 const eur = (c: number) =>
   (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });

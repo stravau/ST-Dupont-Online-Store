@@ -1,16 +1,10 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { MovimentosScanner } from "@/components/admin/movimentos-scanner";
-import type { BoutiqueCode } from "@/lib/pos";
+import { boutiquesForRole } from "@/components/admin/boutique-scope";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-
-function boutiquesForRole(role: string | null): BoutiqueCode[] {
-  if (role === "LOJA_LIS") return ["LIS"];
-  if (role === "LOJA_VNG") return ["VNG"];
-  return ["LIS", "VNG"]; // ADMIN
-}
 
 // Movimentos de stock — Entrada / Saída via scan de EAN. Substitui a folha
 // Mov_Int_Ext do Excel para o dia-a-dia da equipa. Cada scan grava um

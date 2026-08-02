@@ -4,19 +4,19 @@ import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
 import { AdminHero } from "@/components/admin/admin-hero";
-import { BigKPIs } from "@/components/admin/big-kpis";
 import { BoutiqueSplitHero } from "@/components/admin/boutique-split-hero";
 import { LiveTicker } from "@/components/admin/live-ticker";
-import { SalesTrend } from "@/components/admin/dashboard-widgets";
+import { DashboardKpiScope, SalesTrendScope } from "@/components/admin/dashboard-scope";
 import { SalesHeatmap } from "@/components/admin/sales-heatmap";
 import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
 import {
   getDashboardSnapshot,
+  getDashboardKpisPerScope,
   getTickerRows,
   getHeatmap,
   getTopOperatorsPerBoutique,
 } from "@/lib/dashboard-data";
-import { dailySalesSeries, dayWindow } from "@/lib/pos-reports";
+import { dailySalesSeriesPerScope, dayWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 
 export const dynamic = "force-dynamic";
@@ -42,9 +42,10 @@ export default async function AdminHome() {
   const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
   const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
 
-  const [snapshot, trend, ticker, heatmapAll, heatmapLIS, heatmapVNG, topOps] = await Promise.all([
+  const [snapshot, kpisPerScope, trendPerScope, ticker, heatmapAll, heatmapLIS, heatmapVNG, topOps] = await Promise.all([
     getDashboardSnapshot(BOTH, now),
-    dailySalesSeries(BOTH, trendFrom, today.to),
+    getDashboardKpisPerScope(BOTH, now),
+    dailySalesSeriesPerScope(BOTH, trendFrom, today.to),
     getTickerRows(BOTH, 15), // fetch 15 per boutique, ticker shows 5 + expand
     getHeatmap(BOTH, 8, now),
     getHeatmap(["LIS"], 8, now),
@@ -60,7 +61,7 @@ export default async function AdminHome() {
         title={greeting}
         subtitle="Vendas ao vivo, tendência dos últimos 30 dias e ritmo semanal."
       >
-        <BigKPIs today={snapshot.today} month={snapshot.month} monthName={snapshot.monthName} />
+        <DashboardKpiScope kpis={kpisPerScope} monthName={snapshot.monthName} />
         <BoutiqueSplitHero boutiques={snapshot.boutiques} />
         <LiveTicker initial={ticker} boutiques={BOTH} initialVisible={5} fetchCount={15} />
       </AdminHero>
@@ -70,7 +71,7 @@ export default async function AdminHome() {
           revela padrões por dia da semana. Grid empilha em mobile. */}
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="card-in min-w-0">
-          <SalesTrend points={trend} />
+          <SalesTrendScope perScope={trendPerScope} />
         </div>
         <div className="min-w-0">
           <SalesHeatmap perScope={{ all: heatmapAll, LIS: heatmapLIS, VNG: heatmapVNG }} />

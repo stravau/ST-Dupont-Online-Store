@@ -3,26 +3,29 @@ import { AdminHero } from "@/components/admin/admin-hero";
 import { MonthPicker } from "@/components/admin/month-picker";
 import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
+import {
+  BOUTIQUE_LABEL,
+  BoutiqueScopeTabsOnDark,
+  boutiquesForRole,
+  resolveScope,
+  type BoutiqueScope,
+} from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
 
-function boutiquesForRole(role: string | null): BoutiqueCode[] {
-  if (role === "LOJA_LIS") return ["LIS"];
-  if (role === "LOJA_VNG") return ["VNG"];
-  return ["LIS", "VNG"];
-}
-
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
 const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 const hhmm = (d: Date) => d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });
 const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const dayLabel = (d: Date) =>
   d.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const { month } = await searchParams;
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ month?: string; boutique?: string }> }) {
+  const { month, boutique } = await searchParams;
   const staff = await currentStaff();
-  const boutiques = boutiquesForRole(staff?.role ?? null);
+  const allowed = boutiquesForRole(staff?.role ?? null);
+  // ?boutique= re-escopa TUDO nesta página — totais, operadores, registo e
+  // mais vendidos — porque as quatro queries já aceitam BoutiqueCode[].
+  const { scope, boutiques } = resolveScope(boutique, allowed);
   const multi = boutiques.length > 1;
   // Only the boss (ADMIN) sees the ECI concession fee. LOJA_* get the
   // same monthly report shape minus every commission column / row.
@@ -35,6 +38,14 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     ? month
     : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const { from, to, label: monthName } = monthRange(ym);
+
+  // Preserva o mês ao trocar de loja e vice-versa.
+  const hrefFor = (s: BoutiqueScope) => {
+    const params = new URLSearchParams({ month: ym });
+    if (s !== "all") params.set("boutique", s);
+    return `/admin/relatorios?${params.toString()}`;
+  };
+  const exportQs = scope === "all" ? "" : `&boutique=${scope}`;
 
   const [stores, best, log, operators] = await Promise.all([
     salesByStore(boutiques, from, to),
@@ -76,7 +87,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         eyebrow="Operações"
         title="Relatórios"
         subtitle={`Vendas de ${monthName} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
-        action={<MonthPicker month={ym} />}
+        action={
+          <div className="flex flex-wrap items-center gap-3">
+            <BoutiqueScopeTabsOnDark scope={scope} allowed={allowed} hrefFor={hrefFor} />
+            <MonthPicker month={ym} />
+          </div>
+        }
       >
         {/* Totals per store dentro do hero — grande contraste sobre navy. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -171,7 +187,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                     <div className="flex items-center justify-between gap-4">
                       <p className="overline text-[0.58rem] text-gold">{d.label}</p>
                       <a
-                        href={`/api/admin/reports/export?date=${d.key}`}
+                        href={`/api/admin/reports/export?date=${d.key}${exportQs}`}
                         download
                         className="shrink-0 text-[0.62rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
                       >
@@ -234,7 +250,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <aside className="w-full shrink-0 xl:sticky xl:top-6 xl:w-64">
           <div className="border border-line bg-paper p-5">
             <h2 className="font-serif text-base text-ink">Mais vendidos</h2>
-            <p className="mt-1 text-[0.65rem] text-muted">{monthName}</p>
+            <p className="mt-1 text-[0.65rem] text-muted">
+              {monthName}
+              {multi ? "" : ` · ${BOUTIQUE_LABEL[boutiques[0]]}`}
+            </p>
             {best.length === 0 ? (
               <p className="mt-4 text-sm text-muted">Ainda sem vendas.</p>
             ) : (

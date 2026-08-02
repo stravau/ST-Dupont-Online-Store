@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { currentStaff } from "@/lib/admin-auth";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { EmptyState } from "@/components/admin/empty-state";
 
@@ -92,6 +93,13 @@ export default async function AdminAuditPage({
 }: {
   searchParams: Promise<{ entityType?: string; entityId?: string; action?: string; userEmail?: string; page?: string }>;
 }) {
+  // Só o ADMIN vê a auditoria. Até aqui a única barreira era o item de menu
+  // estar escondido para LOJA_* — o proxy deixa passar os três roles de staff,
+  // portanto quem escrevesse /admin/audit no browser via o registo completo de
+  // alterações ao catálogo, incluindo os preços.
+  const staff = await currentStaff();
+  if (staff?.role !== "ADMIN") redirect("/admin/pos");
+
   const sp = await searchParams;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
 

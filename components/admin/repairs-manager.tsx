@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { BoutiqueCode } from "@/lib/pos";
+import { BOUTIQUE_LABEL, BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
 
 // ----- shared vocab (mirrors the Excel Reparações dropdowns) -----
 
@@ -32,8 +33,6 @@ const STATUS_TONE: Record<string, string> = {
 
 // Contact methods seen in the Excel "Último_Contato" column.
 const CONTACT_VIAS = ["Em loja", "Whatsapp", "Chamada tlf.", "E-mail", "Whatsapp & E-mail", "SMS", "Por responder"];
-
-const BOUTIQUE_LABEL: Record<BoutiqueCode, string> = { LIS: "Lisboa", VNG: "V. N. de Gaia" };
 
 export interface RepairRow {
   id: string;
@@ -94,17 +93,27 @@ export function RepairsManager({
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  // Filtro de loja — puramente no cliente: o ADMIN já recebe os bilhetes das
+  // duas lojas do servidor, e sem isto tinha-os todos numa tabela plana sem
+  // forma de perguntar "quantos abertos tem Gaia?".
+  const [boutiqueFilter, setBoutiqueFilter] = useState<BoutiqueCode | "">("");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return repairs.filter((r) => {
+      if (boutiqueFilter && r.boutique !== boutiqueFilter) return false;
       if (statusFilter && r.status !== statusFilter) return false;
       if (!q) return true;
       return [r.customerName, r.reference, r.subject, r.staff, r.phone, r.otherContacts]
         .filter(Boolean)
         .some((v) => (v as string).toLowerCase().includes(q));
     });
-  }, [repairs, query, statusFilter]);
+  }, [repairs, query, statusFilter, boutiqueFilter]);
+
+  // Contagem por loja para as tabs — sempre sobre o conjunto completo, para
+  // os números não mudarem conforme o filtro de estado/pesquisa.
+  const countFor = (b: BoutiqueCode | "") =>
+    b === "" ? repairs.length : repairs.filter((r) => r.boutique === b).length;
 
   function openNew() {
     setForm(emptyForm(boutiques[0], today));
@@ -173,8 +182,37 @@ export function RepairsManager({
 
   return (
     <div>
+      {/* Tabs de loja — só quando há mais que uma. Com a contagem à frente,
+          porque "quantos processos tem cada loja" é a pergunta que a tabela
+          plana não deixava responder. */}
+      {multi && (
+        <div role="tablist" aria-label="Filtrar por loja" className="mt-6 flex gap-1">
+          {([["", "Geral"], ...boutiques.map((b) => [b, BOUTIQUE_SHORT[b]] as const)] as [BoutiqueCode | "", string][]).map(
+            ([key, label]) => {
+              const active = boutiqueFilter === key;
+              return (
+                <button
+                  key={key || "all"}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setBoutiqueFilter(key)}
+                  className={`border px-3 py-1.5 text-[0.62rem] tracking-[0.12em] uppercase transition-colors ${
+                    active
+                      ? "border-gold bg-gold/10 text-gold"
+                      : "border-line text-muted hover:border-gold/50 hover:text-ink"
+                  }`}
+                >
+                  {label} <span className="tabular-nums opacity-70">{countFor(key)}</span>
+                </button>
+              );
+            },
+          )}
+        </div>
+      )}
+
       {/* Toolbar */}
-      <div className="mt-6 flex flex-wrap items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -202,7 +240,7 @@ export function RepairsManager({
 
       <p className="mt-3 text-[0.7rem] text-muted">
         {filtered.length} {filtered.length === 1 ? "processo" : "processos"}
-        {statusFilter || query ? ` (de ${repairs.length})` : ""}
+        {statusFilter || query || boutiqueFilter ? ` (de ${repairs.length})` : ""}
       </p>
 
       {/* Table */}
