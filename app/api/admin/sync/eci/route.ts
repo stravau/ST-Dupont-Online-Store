@@ -90,24 +90,50 @@ async function bulkUpdatePvp(rows: { id: string; pvpCents: number }[], startedAt
   }
 }
 
-async function bulkUpdateOtherBrand(
-  rows: { id: string; brand: string; descricao: string; pvpCents: number | null; stock: number; ean: string | null }[],
-) {
+type ObUpdateRow = {
+  id: string; sku: string; brand: string; descricao: string;
+  pvpCents: number | null; stock: number; ean: string | null;
+};
+
+// COALESCE on ean keeps the existing barcode when the file omits one — matches
+// the row-by-row path this replaced.
+function obUpdateSql(slice: ObUpdateRow[]) {
+  const values = Prisma.join(
+    slice.map((r) => Prisma.sql`(${r.id}::text, ${r.brand}::text, ${r.descricao}::text, ${r.pvpCents}::int, ${r.stock}::int, ${r.ean}::text)`),
+  );
+  return prisma.$executeRaw`
+    UPDATE "OtherBrandItem" AS o
+       SET "brand" = v.brand, "descricao" = v.descricao, "pvpCents" = v.pvp,
+           "stock" = v.stock, "ean" = COALESCE(v.ean, o."ean"), "updatedAt" = NOW()
+      FROM (VALUES ${values}) AS v(id, brand, descricao, pvp, stock, ean)
+     WHERE o."id" = v.id
+  `;
+}
+
+// Um lote inteiro morre se UMA linha violar o unique do EAN, e isso levava
+// a folha DB toda com ele. O caller já liberta os EANs em conflito antes de
+// chegar aqui; esta é a rede por baixo — o lote que falhar é reprocessado
+// linha-a-linha, aplicando tudo o que dá e reportando só o que ficou de fora.
+async function bulkUpdateOtherBrand(rows: ObUpdateRow[]): Promise<{ applied: number; failed: string[] }> {
+  let applied = 0;
+  const failed: string[] = [];
   for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
     const slice = rows.slice(i, i + INSERT_CHUNK);
-    const values = Prisma.join(
-      slice.map((r) => Prisma.sql`(${r.id}::text, ${r.brand}::text, ${r.descricao}::text, ${r.pvpCents}::int, ${r.stock}::int, ${r.ean}::text)`),
-    );
-    // COALESCE on ean keeps the existing barcode when the file omits one —
-    // matches the row-by-row path this replaced.
-    await prisma.$executeRaw`
-      UPDATE "OtherBrandItem" AS o
-         SET "brand" = v.brand, "descricao" = v.descricao, "pvpCents" = v.pvp,
-             "stock" = v.stock, "ean" = COALESCE(v.ean, o."ean"), "updatedAt" = NOW()
-        FROM (VALUES ${values}) AS v(id, brand, descricao, pvp, stock, ean)
-       WHERE o."id" = v.id
-    `;
+    try {
+      await obUpdateSql(slice);
+      applied += slice.length;
+    } catch {
+      for (const row of slice) {
+        try { await obUpdateSql([row]); applied++; }
+        catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          const reason = msg.includes("OtherBrandItem_ean_key") ? `EAN ${row.ean} duplicado` : msg.slice(0, 60);
+          failed.push(`${row.sku} · ${reason}`);
+        }
+      }
+    }
   }
+  return { applied, failed };
 }
 
 // Unified ECI Controlo sync (Fase 1 of the Excel→app transition). One upload
@@ -504,11 +530,62 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
       }
     }
   }
+  // Autoritativo — apagar OtherBrandItem que já não estão no ficheiro VNG.
+  // Só faz sentido no ficheiro VNG (o LIS não trata desta tabela); no LIS
+  // este bloco fica silenciosamente inactivo.
+  //
+  // Corre ANTES das escritas de propósito: uma linha que sai do ficheiro pode
+  // estar a segurar um EAN que o ficheiro passa agora a outra REF. O índice
+  // "OtherBrandItem_ean_key" é verificado linha-a-linha (não é DEFERRABLE),
+  // portanto atribuí-lo antes de libertar dava 23505.
+  let obDeleted = 0;
+  if (store === "VNG") {
+    const skusInFileArr = [...obSkusInFile];
+    const res = skusInFileArr.length > 0
+      ? await prisma.otherBrandItem.deleteMany({ where: { sku: { notIn: skusInFileArr } } })
+      : await prisma.otherBrandItem.deleteMany({});
+    obDeleted = res.count;
+  }
+
   // Other brands — the hot path (VNG has ~4900 rows). Instead of an upsert per
   // row (thousands of round-trips), bulk-fetch what's already there, split
   // into create/update/noop, then createMany + pooled updates. Order of
   // magnitude faster on a full VNG file.
+  let obEansFreed = 0;
+  let obFailed: string[] = [];
   if (obRows.length) {
+    // --- Resolver conflitos de EAN antes de escrever ---
+    // 1) Dentro do próprio ficheiro: se duas REFs trazem o mesmo EAN, a
+    //    primeira fica com ele e as outras entram sem EAN. Sem isto o
+    //    createMany/UPDATE colidia consigo mesmo.
+    const eanOwnerInFile = new Map<string, string>();
+    for (const o of obRows) {
+      if (!o.ean) continue;
+      if (eanOwnerInFile.has(o.ean)) o.ean = null;
+      else eanOwnerInFile.set(o.ean, o.ref);
+    }
+    // 2) Contra a base: um EAN que o ficheiro dá à REF A mas que está preso
+    //    na REF B (que sobreviveu ao delete acima) é libertado primeiro.
+    //    É o caso de um EAN corrigido/trocado entre artigos de uma versão
+    //    do ficheiro para a seguinte.
+    const desiredEans = [...eanOwnerInFile.keys()];
+    if (desiredEans.length) {
+      const holders = await prisma.otherBrandItem.findMany({
+        where: { ean: { in: desiredEans } },
+        select: { id: true, sku: true, ean: true },
+      });
+      const toFree = holders
+        .filter((h) => h.ean && eanOwnerInFile.get(h.ean) !== h.sku)
+        .map((h) => h.id);
+      for (let i = 0; i < toFree.length; i += INSERT_CHUNK) {
+        const res = await prisma.otherBrandItem.updateMany({
+          where: { id: { in: toFree.slice(i, i + INSERT_CHUNK) } },
+          data: { ean: null },
+        });
+        obEansFreed += res.count;
+      }
+    }
+
     const existing = await prisma.otherBrandItem.findMany({
       where: { sku: { in: obRows.map((r) => r.ref) } },
       select: { id: true, sku: true, brand: true, ean: true, descricao: true, pvpCents: true, stock: true },
@@ -516,7 +593,7 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
     const existingBySku = new Map(existing.map((e) => [e.sku, e]));
 
     const toCreate: typeof obRows = [];
-    const toUpdate: { id: string; brand: string; descricao: string; pvpCents: number | null; stock: number; ean: string | null }[] = [];
+    const toUpdate: ObUpdateRow[] = [];
     for (const o of obRows) {
       const cur = existingBySku.get(o.ref);
       if (!cur) { toCreate.push(o); continue; }
@@ -529,7 +606,7 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
         brand !== cur.brand || desc !== cur.descricao ||
         pvp !== cur.pvpCents || stock !== cur.stock ||
         (o.ean && o.ean !== cur.ean);
-      if (changed) toUpdate.push({ id: cur.id, brand, descricao: desc, pvpCents: pvp, stock, ean });
+      if (changed) toUpdate.push({ id: cur.id, sku: o.ref, brand, descricao: desc, pvpCents: pvp, stock, ean });
     }
 
     // Bulk-insert new — one INSERT instead of N. skipDuplicates guards
@@ -549,26 +626,24 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
     }
     // Um único UPDATE por lote de 1000 em vez de um round-trip por linha —
     // é aqui que estava o grosso do tempo no ficheiro VNG.
-    await bulkUpdateOtherBrand(toUpdate);
-    obUpserts += toUpdate.length;
-  }
-
-  // Autoritativo — apagar OtherBrandItem que já não estão no ficheiro VNG.
-  // Só faz sentido no ficheiro VNG (o LIS não trata desta tabela); no LIS
-  // este bloco fica silenciosamente inactivo.
-  let obDeleted = 0;
-  if (store === "VNG") {
-    const skusInFileArr = [...obSkusInFile];
-    const res = skusInFileArr.length > 0
-      ? await prisma.otherBrandItem.deleteMany({ where: { sku: { notIn: skusInFileArr } } })
-      : await prisma.otherBrandItem.deleteMany({});
-    obDeleted = res.count;
+    const obRes = await bulkUpdateOtherBrand(toUpdate);
+    obUpserts += obRes.applied;
+    obFailed = obRes.failed;
+    for (const f of obFailed.slice(0, 10)) {
+      if (sampleUnmatched.length < 20) sampleUnmatched.push(`OUTRAS MARCAS · ${f}`);
+    }
   }
 
   return {
     sheet: DB_SHEET, status: "ok", rows: body.length,
     detail: `aplicado (loja ${store})`,
-    changes: { ...changes, outrasMarcasGravadas: obUpserts, outrasMarcasApagadas: obDeleted },
+    changes: {
+      ...changes,
+      outrasMarcasGravadas: obUpserts,
+      outrasMarcasApagadas: obDeleted,
+      outrasMarcasEanLibertado: obEansFreed,
+      outrasMarcasFalhadas: obFailed.length,
+    },
     sampleUnmatched,
   };
 }
