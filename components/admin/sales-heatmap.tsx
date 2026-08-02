@@ -34,23 +34,24 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
   const totalHeight = data.weeks * (cellSize + cellGap) + 14;
 
   return (
-    <section className="card-in border border-line bg-paper p-5">
+    <section className="card-in flex h-full flex-col border border-line bg-paper p-6">
       <div className="flex items-baseline justify-between border-b border-line pb-3">
-        <h2 className="font-serif text-lg text-ink">Ritmo semanal</h2>
-        <span className="text-[0.6rem] tracking-[0.14em] text-muted uppercase">
+        <h2 className="font-serif text-xl text-ink">Ritmo semanal</h2>
+        <span className="text-[0.6rem] tracking-[0.18em] text-muted uppercase">
           últimas {data.weeks} semanas
         </span>
       </div>
 
-      {/* Card ocupa toda a coluna (mesma largura que o SalesTrend ao lado).
-          SVG estica horizontalmente com aspect ratio preservado — cells
-          crescem para preencher, sem whitespace lateral. */}
-      <div className="mt-4">
+      {/* Card usa h-full para casar altura com o SalesTrend no grid. O SVG
+          preenche a área central preservando aspect ratio — cells ficam
+          centradas com pouca folga lateral, evitando o efeito cartoonish
+          de esticar 7 cells por toda a largura. */}
+      <div className="mt-4 flex min-h-0 flex-1 items-center justify-center">
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
           role="img"
           aria-label="Mapa de calor de vendas por dia da semana"
-          className="block h-auto w-full"
+          className="block max-h-full max-w-full"
           preserveAspectRatio="xMidYMid meet"
         >
           {/* Header dos dias */}

@@ -75,7 +75,7 @@ export function SalesTrend({ points }: { points: DayPoint[] }) {
   const mid = Math.floor(points.length / 2);
 
   return (
-    <section className="border border-line bg-paper p-6">
+    <section className="flex h-full flex-col border border-line bg-paper p-6">
       <div className="flex items-baseline justify-between border-b border-line pb-3">
         <h2 className="font-serif text-xl text-ink">Tendência de vendas</h2>
         <span className="text-[0.6rem] tracking-[0.18em] text-muted uppercase">últimos 30 dias</span>
@@ -87,7 +87,7 @@ export function SalesTrend({ points }: { points: DayPoint[] }) {
         máx/dia <span className="font-medium text-ink tabular-nums">{eur0(max)}</span>
       </p>
 
-      <div className="mt-4 flex h-40 items-end gap-[2px] border-b border-line" role="img" aria-label={`Vendas diárias dos últimos ${points.length} dias`}>
+      <div className="mt-4 flex min-h-0 flex-1 items-end gap-[2px] border-b border-line" role="img" aria-label={`Vendas diárias dos últimos ${points.length} dias`}>
         {points.map((p, i) => {
           const h = p.grossCents > 0 ? Math.max(3, Math.round((p.grossCents / max) * 100)) : 0;
           const isToday = i === points.length - 1;
