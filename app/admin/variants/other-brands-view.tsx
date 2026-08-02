@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { IconSearch } from "@/components/admin/icons";
 import { OBSelectionProvider, OBSelectionToolbar, OBSelectAllCheckbox } from "./other-brand-selection";
 import { OtherBrandRow } from "./other-brand-row";
-import { NewOtherBrandButton } from "./other-brand-new";
+import { ArticleImportButton } from "@/components/admin/article-import";
 
 const PAGE_SIZE = 50;
 
@@ -26,7 +26,7 @@ interface Props {
 //
 // Sync inicial vem do ficheiro ECI VNG via /api/admin/sync/eci.
 // A partir daí a edição é directa: inline por linha, bulk multi-select,
-// e "+ Novo artigo" para linhas que ainda não vieram do Excel.
+// e "+ Criar artigos" (import Excel) para linhas que ainda não vieram do ECI.
 export async function OtherBrandsView({ role, q, brand, stock, active, sort, page }: Props) {
   const canEdit = role === "ADMIN" || role === "LOJA_VNG";
 
@@ -111,7 +111,17 @@ export async function OtherBrandsView({ role, q, brand, stock, active, sort, pag
           </div>
           {canEdit && (
             <div className="flex flex-col items-end gap-1">
-              <NewOtherBrandButton />
+              <ArticleImportButton
+                endpoint="/api/admin/other-brand/import"
+                title="Criar artigos · Outras marcas"
+                label="+ Criar artigos"
+                columns={["REF", "MARCA", "DESCRICAO", "EAN (opc)", "PVP (opc)", "STOCK (opc)"]}
+                notes={[
+                  "REF já existente faz update em vez de duplicar.",
+                  "Só toca nas linhas do ficheiro — o resto fica intacto.",
+                  "Usa a REF do ECI VNG para não duplicar na próxima sincronia.",
+                ]}
+              />
               {inactiveCount > 0 && (
                 <span className="text-[0.62rem] tracking-[0.1em] text-muted uppercase">
                   {inactiveCount} inactivos escondidos por defeito
@@ -195,7 +205,7 @@ export async function OtherBrandsView({ role, q, brand, stock, active, sort, pag
                       title={hasFilters ? "Sem resultados" : "Sem artigos"}
                       body={hasFilters
                         ? "Alarga os filtros ou limpa-os."
-                        : "Sincroniza o Excel ECI VNG em /admin/uploads ou usa \"+ Novo artigo\"."}
+                        : "Sincroniza o Excel ECI VNG em Importar Ficheiros ou usa \"+ Criar artigos\"."}
                       action={hasFilters ? (
                         <Link href="/admin/variants?tab=outras" className="border-b border-ink pb-0.5 text-[0.65rem] tracking-[0.18em] text-ink uppercase hover:border-gold hover:text-gold">
                           Limpar filtros

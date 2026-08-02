@@ -87,14 +87,14 @@ export default async function AdminHome() {
           href="/admin/variants"
           eyebrow="Artigos"
           title="Lista editável"
-          body="Pesquisa, filtra e edita em direto EAN, REF, PVP, status, stock e imagens por variant."
+          body="Pesquisa, filtra e edita em direto EAN, REF, PVP, status, stock e imagens. Cria artigos novos por Excel."
           Icon={IconList}
         />
         <JumpCard
           href="/admin/uploads"
           eyebrow="Uploads"
-          title="Excel batch"
-          body="PVP · Promoções · Stock · Novos artigos. Aplica directamente na DB com trilho de auditoria."
+          title="Sincronizar ECI"
+          body="Stock, PVP, artigos e outras marcas de uma vez — com pré-visualização. Promoções à parte."
           Icon={IconUpload}
         />
       </section>

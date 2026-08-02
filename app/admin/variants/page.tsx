@@ -9,6 +9,7 @@ import { IconSearch } from "@/components/admin/icons";
 import { StockTabs, type StockTab } from "@/components/admin/stock-tabs";
 import { VariantRow } from "./row-client";
 import { OtherBrandsView } from "./other-brands-view";
+import { ArticleImportButton } from "@/components/admin/article-import";
 import { buildVariantWhere } from "@/lib/variant-filter";
 import { SelectionProvider, SelectionToolbar, SelectAllCheckbox } from "./selection";
 
@@ -168,6 +169,25 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
 
       <StockTabs active="stdupont" showOutras={showOutras} />
 
+      {/* Criar artigos por Excel — só ADMIN (o endpoint corre requireAdmin).
+          Mesma mecânica da tab Outras marcas, endpoint diferente porque cá
+          escrevemos Product + ProductVariant, lá OtherBrandItem. */}
+      {role === "ADMIN" && (
+        <div className="flex justify-end">
+          <ArticleImportButton
+            endpoint="/api/admin/upload/new-articles"
+            title="Criar artigos · S.T. Dupont"
+            label="+ Criar artigos"
+            columns={["EAN", "REF", "DESCRICAO", "PVP", "STOCK", "CATEGORIA (opc)", "IMAGEM_URL (opc)", "COLECAO (opc)"]}
+            notes={[
+              "Cria Product + Variant como INDISPONIVEL para revisão antes de publicar.",
+              "REF já existente faz update do PVP, stock e descrição.",
+              "Sem CATEGORIA, cai em Acessórios.",
+            ]}
+          />
+        </div>
+      )}
+
       <form method="get" className="space-y-3 border border-line bg-paper p-5">
         <div className="relative">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
@@ -249,7 +269,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
                 <td colSpan={role === "ADMIN" ? 10 : 9}>
                   <EmptyState
                     title={hasFilters ? "Sem resultados" : "Sem artigos"}
-                    body={hasFilters ? "Alarga os filtros ou limpa-os." : "Importa um Excel ou cria via /admin/uploads."}
+                    body={hasFilters ? "Alarga os filtros ou limpa-os." : "Usa \"+ Criar artigos\" ou sincroniza o Excel ECI em Importar Ficheiros."}
                     action={hasFilters ? (
                       <Link href="/admin/variants" className="border-b border-ink pb-0.5 text-[0.65rem] tracking-[0.18em] text-ink uppercase hover:border-gold hover:text-gold">
                         Limpar filtros
