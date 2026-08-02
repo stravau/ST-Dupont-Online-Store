@@ -4,7 +4,7 @@ import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
 import { AdminHero } from "@/components/admin/admin-hero";
-import { DashboardHeroScope, SalesTrendScope } from "@/components/admin/dashboard-scope";
+import { DashboardScopeProvider, DashboardHeroScope, SalesTrendScope } from "@/components/admin/dashboard-scope";
 import { SalesHeatmap } from "@/components/admin/sales-heatmap";
 import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
 import {
@@ -52,6 +52,9 @@ export default async function AdminHome() {
   ]);
 
   return (
+    // O filtro de loja vive no hero mas comanda a página toda — por isso o
+    // provider envolve tudo, e os cards de baixo não têm selector próprio.
+    <DashboardScopeProvider>
     <div className="space-y-10">
       {/* Banda escura executiva — a coisa que o patrão vê primeiro. */}
       <AdminHero
@@ -101,6 +104,7 @@ export default async function AdminHome() {
         />
       </section>
     </div>
+    </DashboardScopeProvider>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import type { BoutiqueCode } from "@/lib/pos";
 import type { ScopedKpis, TickerRow } from "@/lib/dashboard-data";
 import type { DayPoint } from "@/lib/pos-reports";
@@ -9,7 +9,7 @@ import { SalesTrend } from "@/components/admin/dashboard-widgets";
 import { LiveTicker } from "@/components/admin/live-ticker";
 import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
 
-type Scope = "all" | BoutiqueCode;
+export type Scope = "all" | BoutiqueCode;
 
 const TABS: { key: Scope; label: string }[] = [
   { key: "all", label: "Geral" },
@@ -17,14 +17,32 @@ const TABS: { key: Scope; label: string }[] = [
   { key: "VNG", label: BOUTIQUE_SHORT.VNG },
 ];
 
+// Um só âmbito para o painel inteiro. O hero e os cards de baixo são irmãos
+// na árvore (o hero é server component), por isso o estado vive num contexto
+// à volta dos dois em vez de num deles. Assim carregar em "Lisboa" no topo
+// re-escopa KPIs, últimas vendas, tendência e ritmo semanal de uma vez, e os
+// cards de baixo deixam de precisar de filtro próprio.
+const ScopeCtx = createContext<{ scope: Scope; setScope: (s: Scope) => void } | null>(null);
+
+export function DashboardScopeProvider({ children }: { children: React.ReactNode }) {
+  const [scope, setScope] = useState<Scope>("all");
+  const value = useMemo(() => ({ scope, setScope }), [scope]);
+  return <ScopeCtx.Provider value={value}>{children}</ScopeCtx.Provider>;
+}
+
+export function useDashboardScope() {
+  const ctx = useContext(ScopeCtx);
+  if (!ctx) throw new Error("useDashboardScope precisa de <DashboardScopeProvider> acima na árvore");
+  return ctx;
+}
+
 /**
- * Todo o conteúdo do hero do painel sob um único filtro de loja: KPIs de hoje
- * e do mês (com deltas) + as últimas vendas.
+ * O hero do painel: as tabs (que comandam a página toda) + KPIs de hoje e do
+ * mês com deltas + as últimas vendas.
  *
  * Escolher Lisboa ou Gaia esconde por completo o que é da outra — o ticker
  * passa a uma coluna só, à largura toda do card, em vez de duas colunas com
- * metade vazia. O BoutiqueSplit (dois cartões lado a lado) saiu: com o filtro,
- * os KPIs de cima dão a mesma leitura sem duplicar a informação.
+ * metade vazia.
  */
 export function DashboardHeroScope({
   kpis,
@@ -37,7 +55,7 @@ export function DashboardHeroScope({
   ticker: Record<BoutiqueCode, TickerRow[]>;
   boutiques: BoutiqueCode[];
 }) {
-  const [scope, setScope] = useState<Scope>("all");
+  const { scope, setScope } = useDashboardScope();
   const k = kpis[scope];
   const visible = scope === "all" ? boutiques : ([scope] as BoutiqueCode[]);
 
@@ -61,14 +79,10 @@ export function DashboardHeroScope({
   );
 }
 
+// Sem tabs próprias — segue o filtro do hero.
 export function SalesTrendScope({ perScope }: { perScope: Record<Scope, DayPoint[]> }) {
-  const [scope, setScope] = useState<Scope>("all");
-  return (
-    <SalesTrend
-      points={perScope[scope]}
-      action={<ScopeTabs scope={scope} onChange={setScope} />}
-    />
-  );
+  const { scope } = useDashboardScope();
+  return <SalesTrend points={perScope[scope]} />;
 }
 
 function ScopeTabs({

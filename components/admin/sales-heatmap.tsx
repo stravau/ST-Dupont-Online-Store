@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import type { Heatmap } from "@/lib/dashboard-data";
+import { useDashboardScope, type Scope } from "@/components/admin/dashboard-scope";
 
-// Heatmap 8 semanas × 7 dias com tabs Geral · Lisboa · V.N. Gaia. Cliente
-// porque tem state (scope activo). Cada scope recebe o seu próprio Heatmap
-// pré-computado pelo server (getHeatmap por boutique).
+// Heatmap 8 semanas × 7 dias. Cada âmbito recebe o seu próprio Heatmap
+// pré-computado pelo servidor; qual deles se mostra vem do filtro único do
+// painel (o do hero), não de tabs próprias — ter dois selectores na mesma
+// página para a mesma coisa era redundante.
 
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
@@ -23,16 +24,8 @@ function cellColor(v: number, max: number): string {
   return "#3f9455";
 }
 
-export type HeatmapScope = "all" | "LIS" | "VNG";
-
-const TABS: { key: HeatmapScope; label: string }[] = [
-  { key: "all", label: "Geral" },
-  { key: "LIS", label: "Lisboa" },
-  { key: "VNG", label: "V.N. Gaia" },
-];
-
-export function SalesHeatmap({ perScope }: { perScope: Record<HeatmapScope, Heatmap> }) {
-  const [scope, setScope] = useState<HeatmapScope>("all");
+export function SalesHeatmap({ perScope }: { perScope: Record<Scope, Heatmap> }) {
+  const { scope } = useDashboardScope();
   const data = perScope[scope];
 
   const cellWidth = 68;
@@ -44,27 +37,12 @@ export function SalesHeatmap({ perScope }: { perScope: Record<HeatmapScope, Heat
 
   return (
     <section className="card-in flex h-full flex-col border border-line bg-paper p-6">
-      <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
-        <h2 className="font-serif text-xl text-ink">Ritmo semanal</h2>
-        <div className="flex gap-1">
-          {TABS.map((t) => {
-            const active = scope === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setScope(t.key)}
-                className={`border px-2.5 py-1 text-[0.6rem] tracking-[0.12em] uppercase transition-colors ${
-                  active
-                    ? "border-gold bg-gold/10 text-gold"
-                    : "border-line text-muted hover:border-gold/50 hover:text-ink"
-                }`}
-                aria-pressed={active}
-              >
-                {t.label}
-              </button>
-            );
-          })}
+      <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
+        <div className="min-w-0">
+          <h2 className="font-serif text-xl text-ink">Ritmo semanal</h2>
+          <p className="mt-1 text-[0.6rem] tracking-[0.18em] text-muted uppercase">
+            últimas {data.weeks} semanas
+          </p>
         </div>
       </div>
 
@@ -72,7 +50,7 @@ export function SalesHeatmap({ perScope }: { perScope: Record<HeatmapScope, Heat
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
           role="img"
-          aria-label={`Mapa de calor de vendas — ${TABS.find((t) => t.key === scope)?.label}`}
+          aria-label="Mapa de calor de vendas por dia da semana"
           className="block max-h-full max-w-full"
           preserveAspectRatio="xMidYMid meet"
         >
