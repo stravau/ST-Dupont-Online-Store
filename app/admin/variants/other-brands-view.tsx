@@ -53,7 +53,10 @@ export async function OtherBrandsView({ role, q, brand, stock, active, sort, pag
     sort === "stock-asc" ? { stock: "asc" } :
                             { updatedAt: "desc" };
 
-  const [total, rows, brands, totalItems, outOfStock, lowStock, inactiveCount, valuedStock] = await Promise.all([
+  // Os KPIs desta vista vivem no AdminHero (ver getOtherBrandKpis abaixo) —
+  // aqui só fica o que a tabela precisa, mais o inactiveCount da nota junto
+  // ao botão de importar.
+  const [total, rows, brands, inactiveCount] = await Promise.all([
     prisma.otherBrandItem.count({ where }),
     prisma.otherBrandItem.findMany({
       where,
@@ -66,14 +69,7 @@ export async function OtherBrandsView({ role, q, brand, stock, active, sort, pag
       _count: { _all: true },
       orderBy: { brand: "asc" },
     }),
-    prisma.otherBrandItem.count(),
-    prisma.otherBrandItem.count({ where: { stock: { lte: 0 }, active: true } }),
-    prisma.otherBrandItem.count({ where: { stock: { gt: 0, lte: 5 }, active: true } }),
     prisma.otherBrandItem.count({ where: { active: false } }),
-    prisma.otherBrandItem.findMany({
-      where: { stock: { gt: 0 }, pvpCents: { not: null }, active: true },
-      select: { stock: true, pvpCents: true },
-    }).then((rs) => rs.reduce((s, r) => s + (r.stock * (r.pvpCents ?? 0)), 0)),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -101,14 +97,8 @@ export async function OtherBrandsView({ role, q, brand, stock, active, sort, pag
       filter={{ q, brand, stock, active }}
     >
       <div className="space-y-6">
-        {/* KPIs em cima. Se o utilizador pode editar, mostra também "+ Novo artigo". */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
-            <KpiCard n={totalItems.toLocaleString("pt-PT")} label="Artigos" />
-            <KpiCard n={outOfStock.toLocaleString("pt-PT")} label="Esgotados" tone={outOfStock > 0 ? "text-[#b94a3a]" : undefined} />
-            <KpiCard n={lowStock.toLocaleString("pt-PT")} label="Stock baixo (≤5)" tone={lowStock > 0 ? "text-[#7e5e00]" : undefined} />
-            <KpiCard n={(valuedStock / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })} label="Valor total (PVP)" />
-          </div>
+        {/* Os KPIs subiram para o hero — aqui fica só a acção de importar. */}
+        <div className="flex flex-wrap items-start justify-end gap-4">
           {canEdit && (
             <div className="flex flex-col items-end gap-1">
               <ArticleImportButton
@@ -262,11 +252,59 @@ function buildParams(o: { q: string; brand: string; stock: string; active: strin
   return params;
 }
 
-function KpiCard({ n, label, tone }: { n: string; label: string; tone?: string }) {
+// KPIs da vista Outras marcas — sobem para o AdminHero (mesma cluster de
+// chips que a tab S.T. Dupont usa) em vez de ficarem em cards soltos no
+// corpo da página. As contagens são sempre os totais, independentes do
+// filtro activo, para os números não dançarem enquanto se filtra.
+export async function getOtherBrandKpis() {
+  const [items, outOfStock, lowStock, inactive, valuedStock] = await Promise.all([
+    prisma.otherBrandItem.count(),
+    prisma.otherBrandItem.count({ where: { stock: { lte: 0 }, active: true } }),
+    prisma.otherBrandItem.count({ where: { stock: { gt: 0, lte: 5 }, active: true } }),
+    prisma.otherBrandItem.count({ where: { active: false } }),
+    prisma.otherBrandItem
+      .findMany({
+        where: { stock: { gt: 0 }, pvpCents: { not: null }, active: true },
+        select: { stock: true, pvpCents: true },
+      })
+      .then((rs) => rs.reduce((s, r) => s + r.stock * (r.pvpCents ?? 0), 0)),
+  ]);
+  return { items, outOfStock, lowStock, inactive, valuedStock };
+}
+
+export function OtherBrandKpis({ counts }: { counts: Awaited<ReturnType<typeof getOtherBrandKpis>> }) {
+  const n = (v: number) => v.toLocaleString("pt-PT");
+  const items: { n: string; label: string; href?: string; tone?: string }[] = [
+    { n: n(counts.items), label: "Artigos", href: "/admin/variants?tab=outras" },
+    { n: n(counts.outOfStock), label: "Esgotados", href: "/admin/variants?tab=outras&stock=zero", tone: counts.outOfStock > 0 ? "text-[#b94a3a]" : undefined },
+    { n: n(counts.lowStock), label: "Stock ≤5", href: "/admin/variants?tab=outras&stock=low", tone: counts.lowStock > 0 ? "text-[#7e5e00]" : undefined },
+    { n: n(counts.inactive), label: "Inactivos", href: "/admin/variants?tab=outras&active=no" },
+    { n: (counts.valuedStock / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }), label: "Valor PVP" },
+  ];
   return (
-    <div className="border border-line bg-paper p-4">
-      <p className={`font-serif text-2xl leading-none tabular-nums ${tone ?? "text-ink"}`}>{n}</p>
-      <p className="mt-2 text-[0.55rem] tracking-[0.12em] text-muted uppercase">{label}</p>
+    <div className="flex flex-wrap items-stretch divide-x divide-line overflow-hidden rounded-sm border border-line bg-paper">
+      {items.map((it) => {
+        const body = (
+          <>
+            <p className={`font-serif text-xl leading-none tabular-nums ${it.tone ?? "text-ink"}`}>{it.n}</p>
+            <p className="mt-1 text-[0.52rem] tracking-[0.1em] text-muted uppercase group-hover:text-gold">{it.label}</p>
+          </>
+        );
+        // O valor de stock é um somatório — não há vista filtrada para ele,
+        // por isso fica como chip estático em vez de link morto.
+        return it.href ? (
+          <Link
+            key={it.label}
+            href={it.href}
+            title={`Ver ${it.label.toLowerCase()}`}
+            className="group px-3.5 py-1.5 text-center transition-colors hover:bg-cream/60"
+          >
+            {body}
+          </Link>
+        ) : (
+          <div key={it.label} className="px-3.5 py-1.5 text-center">{body}</div>
+        );
+      })}
     </div>
   );
 }

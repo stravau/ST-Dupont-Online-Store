@@ -12,6 +12,7 @@ interface SheetReport {
   changes?: Record<string, number>;
   sampleUnmatched?: string[];
   errorMessage?: string;
+  ms?: number; // tempo de processamento da folha
 }
 interface SyncResult {
   ok: boolean;
@@ -173,7 +174,7 @@ export function EciSyncCard() {
           </div>
           <ul className="mt-3 divide-y divide-line/60">
             {result.reports.map((r) => (
-              <li key={r.sheet} className="grid grid-cols-[10rem_5rem_1fr] items-baseline gap-3 py-2 text-xs">
+              <li key={r.sheet} className="grid grid-cols-[10rem_5rem_1fr_auto] items-baseline gap-3 py-2 text-xs">
                 <span className="font-mono text-ink">{r.sheet}</span>
                 <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
                   r.status === "ok" ? "text-[#1f7a4d]" :
@@ -196,6 +197,11 @@ export function EciSyncCard() {
                       {Object.entries(r.changes).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(" · ") || "sem alterações"}
                     </span>
                   ) : r.detail}
+                </span>
+                {/* Tempo por folha — para saber qual está a puxar o sync
+                    para cima do tecto do Vercel sem ter de adivinhar. */}
+                <span className="font-mono text-[0.6rem] text-muted tabular-nums">
+                  {typeof r.ms === "number" ? (r.ms >= 1000 ? `${(r.ms / 1000).toFixed(1)}s` : `${r.ms}ms`) : ""}
                 </span>
               </li>
             ))}

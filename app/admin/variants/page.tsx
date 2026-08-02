@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { IconSearch } from "@/components/admin/icons";
 import { StockTabs, type StockTab } from "@/components/admin/stock-tabs";
 import { VariantRow } from "./row-client";
-import { OtherBrandsView } from "./other-brands-view";
+import { OtherBrandsView, getOtherBrandKpis, OtherBrandKpis } from "./other-brands-view";
 import { ArticleImportButton } from "@/components/admin/article-import";
 import { buildVariantWhere } from "@/lib/variant-filter";
 import { SelectionProvider, SelectionToolbar, SelectAllCheckbox } from "./selection";
@@ -66,6 +66,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
   // (they share no filter shape — different table, different facets).
   if (activeTab === "outras") {
     const active = sp.active ?? "";
+    const obKpis = await getOtherBrandKpis();
     return (
       <div className="space-y-6">
         <AdminHero
@@ -73,6 +74,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
           eyebrow="Catálogo"
           title="Consultar Stock"
           subtitle="Marcas vendidas em V. N. de Gaia (edição inline · sem ligação ao site)."
+          action={<OtherBrandKpis counts={obKpis} />}
         />
         <StockTabs active="outras" showOutras />
         <OtherBrandsView

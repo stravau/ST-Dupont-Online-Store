@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/app/generated/prisma/client";
 import { requireStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { readWorkbookMatrix, detectEciStore, type Cell, type EciStore } from "@/lib/admin-upload";
@@ -32,6 +33,81 @@ async function runPool<T, R>(items: T[], worker: (item: T) => Promise<R>, concur
   for (let k = 0; k < Math.min(concurrency, items.length); k++) workers.push(kick());
   await Promise.all(workers);
   return results;
+}
+
+// Postgres caps a statement at 65535 bind parameters. Every bulk helper below
+// slices its input so the widest row shape still fits comfortably.
+const INSERT_CHUNK = 1000;
+
+// Run a createMany in slices. N round-trips become ceil(N/1000) — on the VNG
+// file that's the difference between ~2500 inserts and 3.
+async function insertChunked<T>(rows: T[], insert: (slice: T[]) => Promise<unknown>) {
+  for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
+    await insert(rows.slice(i, i + INSERT_CHUNK));
+  }
+}
+
+// Bulk UPDATE via a single statement carrying a VALUES list, instead of one
+// round-trip per row. This is what kept the VNG sync (≈6.5k DB rows, ≈4.9k
+// other-brand rows) over the Vercel time budget: thousands of sequential
+// `update()` calls at ~30ms each dominated the wall clock.
+//
+// Every value is explicitly cast — without the casts Postgres infers the
+// VALUES column types from the first row, which breaks as soon as a nullable
+// column starts with NULL. `updatedAt` is set by hand because raw SQL bypasses
+// Prisma's @updatedAt.
+async function bulkUpdateStock(
+  stockCol: "stockLis" | "stockVng",
+  rows: { id: string; stock: number; total: number }[],
+) {
+  const col = Prisma.raw(`"${stockCol}"`); // union-typed literal, never user input
+  for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
+    const slice = rows.slice(i, i + INSERT_CHUNK);
+    const values = Prisma.join(
+      slice.map((r) => Prisma.sql`(${r.id}::text, ${r.stock}::int, ${r.total}::int)`),
+    );
+    await prisma.$executeRaw`
+      UPDATE "ProductVariant" AS pv
+         SET ${col} = v.stock, "stock" = v.total, "updatedAt" = NOW()
+        FROM (VALUES ${values}) AS v(id, stock, total)
+       WHERE pv."id" = v.id
+    `;
+  }
+}
+
+async function bulkUpdatePvp(rows: { id: string; pvpCents: number }[], startedAt: Date) {
+  for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
+    const slice = rows.slice(i, i + INSERT_CHUNK);
+    const values = Prisma.join(
+      slice.map((r) => Prisma.sql`(${r.id}::text, ${r.pvpCents}::int)`),
+    );
+    await prisma.$executeRaw`
+      UPDATE "ProductVariant" AS pv
+         SET "priceCents" = v.price, "pvpStartDate" = ${startedAt}::timestamptz, "updatedAt" = NOW()
+        FROM (VALUES ${values}) AS v(id, price)
+       WHERE pv."id" = v.id
+    `;
+  }
+}
+
+async function bulkUpdateOtherBrand(
+  rows: { id: string; brand: string; descricao: string; pvpCents: number | null; stock: number; ean: string | null }[],
+) {
+  for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
+    const slice = rows.slice(i, i + INSERT_CHUNK);
+    const values = Prisma.join(
+      slice.map((r) => Prisma.sql`(${r.id}::text, ${r.brand}::text, ${r.descricao}::text, ${r.pvpCents}::int, ${r.stock}::int, ${r.ean}::text)`),
+    );
+    // COALESCE on ean keeps the existing barcode when the file omits one —
+    // matches the row-by-row path this replaced.
+    await prisma.$executeRaw`
+      UPDATE "OtherBrandItem" AS o
+         SET "brand" = v.brand, "descricao" = v.descricao, "pvpCents" = v.pvp,
+             "stock" = v.stock, "ean" = COALESCE(v.ean, o."ean"), "updatedAt" = NOW()
+        FROM (VALUES ${values}) AS v(id, brand, descricao, pvp, stock, ean)
+       WHERE o."id" = v.id
+    `;
+  }
 }
 
 // Unified ECI Controlo sync (Fase 1 of the Excel→app transition). One upload
@@ -88,6 +164,7 @@ interface SheetReport {
   changes?: Record<string, number>;
   sampleUnmatched?: string[];
   errorMessage?: string; // populado quando status = "failed"
+  ms?: number;           // tempo de processamento — para diagnosticar timeouts
 }
 
 export async function POST(req: Request) {
@@ -134,8 +211,9 @@ export async function POST(req: Request) {
         reports.push({ sheet: name, status: "missing", detail: "folha ausente" });
         return;
       }
+      const t0 = Date.now();
       try {
-        reports.push(await fn(m));
+        reports.push({ ...(await fn(m)), ms: Date.now() - t0 });
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         reports.push({
@@ -143,6 +221,7 @@ export async function POST(req: Request) {
           status: "failed",
           detail: "erro durante processamento — outras folhas continuaram",
           errorMessage: msg.slice(0, 300),
+          ms: Date.now() - t0,
         });
       }
     }
@@ -330,50 +409,100 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
   // Stock + PVP updates on Dupont variants run in parallel (each is a
   // small independent write, no cross-dependency).
   const now = new Date();
-  await runPool(stockUpdates, (u) =>
-    prisma.productVariant.update({ where: { id: u.id }, data: { [stockCol]: u.stock, stock: u.total } }),
-  );
+  await bulkUpdateStock(stockCol, stockUpdates);
   // Autoritativo: variants que não aparecem no ficheiro têm o stock
   // desta loja zerado. Preserva o stock da outra loja (a outra file
   // trata dela) e recalcula o total.
-  await runPool(stockZeroUpdates, (u) =>
-    prisma.productVariant.update({ where: { id: u.id }, data: { [stockCol]: 0, stock: u.total } }),
-  );
-  await runPool(pvpUpdates, (u) =>
-    prisma.productVariant.update({ where: { id: u.id }, data: { priceCents: u.pvpCents, pvpStartDate: now } }),
-  );
+  await bulkUpdateStock(stockCol, stockZeroUpdates.map((u) => ({ id: u.id, stock: 0, total: u.total })));
+  await bulkUpdatePvp(pvpUpdates, now);
   // New Dupont articles → placeholder product + variant, INDISPONIVEL. Each is
   // a small transaction (product + variant) — pool them at half concurrency
   // since two writes per item multiplies pool pressure.
-  const fallbackCat = await prisma.category.findFirst({ where: { slug: "acessorios" }, select: { id: true } });
-  if (fallbackCat) {
+  const fallbackCat = creates.length
+    ? await prisma.category.findFirst({ where: { slug: "acessorios" }, select: { id: true } })
+    : null;
+  if (fallbackCat && creates.length) {
     const cat = fallbackCat;
-    const created = await runPool(creates, async (row) => {
+    // Este bloco era uma $transaction por artigo (2 writes cada) — na
+    // primeira sincronia de um ficheiro grande são centenas de round-trips.
+    // Passa a dois createMany por lote, o que obriga a resolver TODAS as
+    // colisões de unique (sku, slug, ean) antes de escrever: sem o
+    // isolamento por linha, uma colisão rebentaria o lote inteiro.
+    const prepared: { productId: string; sku: string; slug: string; ean: string | null; row: Parsed }[] = [];
+    const usedSku = new Set<string>();
+    const usedSlug = new Set<string>();
+    const usedEan = new Set<string>();
+    for (const row of creates) {
       const sku = refCandidates(row.ref)[0];
-      const slug = `${row.desc.normalize("NFD").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 56) || "artigo"}-${sku.toLowerCase().slice(-4)}`;
+      if (!sku || usedSku.has(sku)) { unmatchedNoNew++; continue; }
+      usedSku.add(sku);
+      const base =
+        row.desc.normalize("NFD").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 56) ||
+        "artigo";
+      const tail = sku.toLowerCase().slice(-4);
+      let slug = `${base}-${tail}`;
+      for (let n = 2; usedSlug.has(slug); n++) slug = `${base}-${tail}-${n}`;
+      usedSlug.add(slug);
+      // Dois artigos novos com o mesmo EAN no mesmo ficheiro: o primeiro
+      // fica com ele, os seguintes entram sem EAN (a coluna é unique).
+      let ean = row.ean;
+      if (ean) {
+        if (usedEan.has(ean)) ean = null;
+        else usedEan.add(ean);
+      }
+      prepared.push({ productId: randomUUID(), sku, slug, ean, row });
+    }
+
+    // O que já existe na DB salta — em vez de rebentar a inserção em lote.
+    const [slugTaken, skuTaken, eanTaken] = await Promise.all([
+      prisma.product.findMany({ where: { slug: { in: prepared.map((p) => p.slug) } }, select: { slug: true } }),
+      prisma.productVariant.findMany({ where: { sku: { in: prepared.map((p) => p.sku) } }, select: { sku: true } }),
+      prisma.productVariant.findMany({
+        where: { ean: { in: prepared.map((p) => p.ean).filter((e): e is string => e !== null) } },
+        select: { ean: true },
+      }),
+    ]);
+    const takenSlug = new Set(slugTaken.map((s) => s.slug));
+    const takenSku = new Set(skuTaken.map((s) => s.sku));
+    const takenEan = new Set(eanTaken.map((s) => s.ean));
+
+    const writable = prepared.filter((p) => {
+      if (takenSlug.has(p.slug) || takenSku.has(p.sku)) { unmatchedNoNew++; return false; }
+      if (p.ean && takenEan.has(p.ean)) p.ean = null; // fica sem EAN, mas entra
+      return true;
+    });
+
+    // Product + Variant do mesmo lote numa transacção — se a segunda
+    // inserção falhar, não ficam Products órfãos sem variant.
+    for (let i = 0; i < writable.length; i += INSERT_CHUNK) {
+      const slice = writable.slice(i, i + INSERT_CHUNK);
       try {
-        await prisma.$transaction(async (tx) => {
-          const p = await tx.product.create({
-            data: {
-              slug, name: { pt: row.desc, en: row.desc }, description: { pt: row.desc, en: row.desc },
+        await prisma.$transaction([
+          prisma.product.createMany({
+            data: slice.map((p) => ({
+              id: p.productId, slug: p.slug,
+              name: { pt: p.row.desc, en: p.row.desc },
+              description: { pt: p.row.desc, en: p.row.desc },
               collection: "", categoryId: cat.id, active: false, featured: false,
-            },
-            select: { id: true },
-          });
-          await tx.productVariant.create({
-            data: {
-              sku, productId: p.id, name: { pt: row.desc, en: row.desc },
-              priceCents: row.pvpCents ?? 0, currency: "EUR",
-              [stockCol]: row.stock, stock: row.stock,
-              ean: row.ean ?? undefined, status: "INDISPONIVEL", active: false,
+            })),
+          }),
+          prisma.productVariant.createMany({
+            data: slice.map((p) => ({
+              sku: p.sku, productId: p.productId,
+              name: { pt: p.row.desc, en: p.row.desc },
+              priceCents: p.row.pvpCents ?? 0, currency: "EUR",
+              ...(stockCol === "stockLis" ? { stockLis: p.row.stock } : { stockVng: p.row.stock }),
+              stock: p.row.stock,
+              ean: p.ean ?? undefined,
+              status: "INDISPONIVEL" as const, active: false,
               pvpStartDate: now, attributes: { source: "sync-eci" },
-            },
-          });
-        });
-        return true;
-      } catch { return false; }
-    }, Math.max(4, Math.floor(POOL / 2)));
-    unmatchedNoNew += created.filter((ok) => !ok).length;
+            })),
+          }),
+        ]);
+      } catch {
+        unmatchedNoNew += slice.length;
+      }
+    }
   }
   // Other brands — the hot path (VNG has ~4900 rows). Instead of an upsert per
   // row (thousands of round-trips), bulk-fetch what's already there, split
@@ -406,27 +535,21 @@ async function syncDbSheet(matrix: Cell[][], store: EciStore, apply: boolean): P
     // Bulk-insert new — one INSERT instead of N. skipDuplicates guards
     // against a race where a concurrent sync inserted the same sku.
     if (toCreate.length) {
-      const res = await prisma.otherBrandItem.createMany({
-        data: toCreate.map((o) => ({
-          brand: o.brand || "—", sku: o.ref,
-          ean: o.ean ?? undefined, descricao: o.desc,
-          pvpCents: o.pvpCents ?? undefined, stock: o.stock,
-        })),
-        skipDuplicates: true,
+      await insertChunked(toCreate, async (slice) => {
+        const res = await prisma.otherBrandItem.createMany({
+          data: slice.map((o) => ({
+            brand: o.brand || "—", sku: o.ref,
+            ean: o.ean ?? undefined, descricao: o.desc,
+            pvpCents: o.pvpCents ?? undefined, stock: o.stock,
+          })),
+          skipDuplicates: true,
+        });
+        obUpserts += res.count;
       });
-      obUpserts += res.count;
     }
-    // Updates run in parallel (independent writes).
-    await runPool(toUpdate, (u) =>
-      prisma.otherBrandItem.update({
-        where: { id: u.id },
-        data: {
-          brand: u.brand, descricao: u.descricao,
-          pvpCents: u.pvpCents ?? undefined,
-          stock: u.stock, ...(u.ean ? { ean: u.ean } : {}),
-        },
-      }),
-    );
+    // Um único UPDATE por lote de 1000 em vez de um round-trip por linha —
+    // é aqui que estava o grosso do tempo no ficheiro VNG.
+    await bulkUpdateOtherBrand(toUpdate);
     obUpserts += toUpdate.length;
   }
 
@@ -679,13 +802,15 @@ async function syncMovements(matrix: Cell[][], store: EciStore, apply: boolean, 
     });
   }
   let created = 0;
-  if (toInsert.length) {
+  // Chunked: 4.7k linhas × 8 colunas já anda perto do tecto de 65535
+  // parâmetros por statement do Postgres.
+  await insertChunked(toInsert, async (slice) => {
     const res = await prisma.stockMovement.createMany({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: toInsert as any,
+      data: slice as any,
     });
-    created = res.count;
-  }
+    created += res.count;
+  });
   return {
     sheet, status: "ok", rows: body.length,
     detail: `aplicado (autoritativo · substituiu ${priorCount} movimentos)`,
@@ -843,27 +968,38 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
     basketsToWrite.push({ groupLines, operatorId });
   }
 
-  await runPool(basketsToWrite, async ({ groupLines, operatorId }) => {
+  // Era um `sale.create` aninhado por cesto — ~2500 round-trips no ficheiro
+  // VNG, o grosso do tempo que rebentava o tecto do Vercel. Gerando os ids
+  // dos Sale à cabeça, as duas tabelas entram em createMany chunked: 2500
+  // inserções passam a ~5.
+  const saleRows: Prisma.SaleCreateManyInput[] = [];
+  const itemRows: Prisma.SaleItemCreateManyInput[] = [];
+  for (const { groupLines, operatorId } of basketsToWrite) {
     const first = groupLines[0];
+    const saleId = randomUUID();
     const grossCents = groupLines.reduce((s, l) => s + l.grossCents, 0);
     const netCents = groupLines.reduce((s, l) => s + l.netCents, 0);
-    const eci = Math.round(netCents * (store === "LIS" ? 0.22 : 0.19));
-    await prisma.sale.create({
-      data: {
-        boutique: store, operatorId, type: first.vd, soldAt: first.soldAt,
-        grossCents, netCents, eciCommissionCents: eci, note: ECI_SALE_NOTE,
-        items: {
-          create: groupLines.map((l) => ({
-            source: "DUPONT" as const,
-            variantId: matchVariant(l),
-            sku: l.ref, ean: l.ean, descSnapshot: l.desc, brand: "S.T. Dupont",
-            quantity: l.qty, unitPriceCents: l.pvpCents,
-            discountPct: l.discountPct, grossCents: l.grossCents, netCents: l.netCents,
-          })),
-        },
-      },
+    saleRows.push({
+      id: saleId,
+      boutique: store, operatorId, type: first.vd, soldAt: first.soldAt,
+      grossCents, netCents,
+      eciCommissionCents: Math.round(netCents * (store === "LIS" ? 0.22 : 0.19)),
+      note: ECI_SALE_NOTE,
     });
-  });
+    for (const l of groupLines) {
+      itemRows.push({
+        saleId,
+        source: "DUPONT",
+        variantId: matchVariant(l),
+        sku: l.ref, ean: l.ean, descSnapshot: l.desc, brand: "S.T. Dupont",
+        quantity: l.qty, unitPriceCents: l.pvpCents,
+        discountPct: l.discountPct, grossCents: l.grossCents, netCents: l.netCents,
+      });
+    }
+  }
+  // Sales primeiro — SaleItem.saleId tem FK para Sale.
+  await insertChunked(saleRows, (slice) => prisma.sale.createMany({ data: slice }));
+  await insertChunked(itemRows, (slice) => prisma.saleItem.createMany({ data: slice }));
   const created = basketsToWrite.length;
   const items = basketsToWrite.reduce((s, b) => s + b.groupLines.length, 0);
 
