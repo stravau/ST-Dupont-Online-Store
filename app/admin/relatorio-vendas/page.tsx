@@ -5,7 +5,7 @@ import { salesByStore, salesLog, rangeWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 import {
   BOUTIQUE_LABEL,
-  BoutiqueScopeTabsOnDark,
+  BoutiqueScopeTabs,
   boutiquesForRole,
   resolveScope,
   type BoutiqueScope,
@@ -87,12 +87,7 @@ export default async function DailyReportPage({
             {multi ? "" : ` · ${BOUTIQUE_LABEL[boutiques[0]]}`}
           </span>
         }
-        action={
-          <div className="flex flex-col items-end gap-3">
-            <BoutiqueScopeTabsOnDark scope={scope} allowed={allowed} hrefFor={hrefFor} />
-            <ReportDatePicker from={fromYmd} to={toYmd} />
-          </div>
-        }
+        action={<ReportDatePicker from={fromYmd} to={toYmd} />}
       >
         {/* Summary embutido no hero para o patrão ver os totais em cima
             do fundo navy — Big-picture antes do detalhe. */}
@@ -126,8 +121,14 @@ export default async function DailyReportPage({
         </div>
       </AdminHero>
 
+      {/* Filtro de loja junto ao Registo, que é o que ele re-escopa (e o que
+          o botão de exportar vai buscar) — no hero ficava desligado disso. */}
+      <div className="mt-8">
+        <BoutiqueScopeTabs scope={scope} allowed={allowed} hrefFor={hrefFor} />
+      </div>
+
       {/* The window's register — a preview of what the Excel export contains. */}
-      <section className="mt-8">
+      <section className="mt-6">
         <h2 className="font-serif text-lg text-ink">Registo</h2>
         {log.length === 0 ? (
           <p className="mt-3 text-sm text-muted">Sem vendas registadas neste intervalo.</p>

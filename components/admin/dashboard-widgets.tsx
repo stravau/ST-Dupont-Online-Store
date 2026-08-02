@@ -68,7 +68,7 @@ export function SalesPulse({ today, month, monthName }: { today: StoreTotals[]; 
 // accent hue (ink bars, today in gold), thin marks with a 2px gap and 3px
 // rounded tops anchored to a baseline rule. Labels wear ink tokens, never the
 // mark colour. Native title tooltip per bar gives the hover detail.
-export function SalesTrend({ points }: { points: DayPoint[] }) {
+export function SalesTrend({ points, action }: { points: DayPoint[]; action?: React.ReactNode }) {
   const values = points.map((p) => p.grossCents);
   const max = Math.max(1, ...values);
   const total = values.reduce((a, v) => a + v, 0);
@@ -76,9 +76,14 @@ export function SalesTrend({ points }: { points: DayPoint[] }) {
 
   return (
     <section className="flex h-full flex-col border border-line bg-paper p-6">
-      <div className="flex items-baseline justify-between border-b border-line pb-3">
-        <h2 className="font-serif text-xl text-ink">Tendência de vendas</h2>
-        <span className="text-[0.6rem] tracking-[0.18em] text-muted uppercase">últimos 30 dias</span>
+      {/* "últimos 30 dias" vive por baixo do título, não à direita dele: com
+          as tabs de loja no canto direito os dois textos sobrepunham-se. */}
+      <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
+        <div className="min-w-0">
+          <h2 className="font-serif text-xl text-ink">Tendência de vendas</h2>
+          <p className="mt-1 text-[0.6rem] tracking-[0.18em] text-muted uppercase">últimos 30 dias</p>
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
       </div>
 
       <p className="mt-3 text-[0.72rem] text-muted">

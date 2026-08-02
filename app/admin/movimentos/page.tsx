@@ -27,14 +27,19 @@ export default async function MovimentosPage() {
       : "Ambas as boutiques";
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    // Mesma estrutura do /admin/pos: o hero corre edge-to-edge (as margens
+    // negativas dele contam com o padding do <main>, e um wrapper estreito
+    // à volta encolhia-o) e só o conteúdo é que fica com largura limitada.
+    <div>
       <AdminHero
         compact
         eyebrow="Operações"
         title="Movimentos de Stock"
         subtitle={`Entradas e saídas por código de barras · ${scope}`}
       />
-      <MovimentosScanner boutiques={boutiques} />
+      <div className="mx-auto max-w-5xl">
+        <MovimentosScanner boutiques={boutiques} />
+      </div>
     </div>
   );
 }

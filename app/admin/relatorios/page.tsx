@@ -5,7 +5,7 @@ import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange
 import type { BoutiqueCode } from "@/lib/pos";
 import {
   BOUTIQUE_LABEL,
-  BoutiqueScopeTabsOnDark,
+  BoutiqueScopeTabs,
   boutiquesForRole,
   resolveScope,
   type BoutiqueScope,
@@ -87,12 +87,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         eyebrow="Operações"
         title="Relatórios"
         subtitle={`Vendas de ${monthName} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
-        action={
-          <div className="flex flex-wrap items-center gap-3">
-            <BoutiqueScopeTabsOnDark scope={scope} allowed={allowed} hrefFor={hrefFor} />
-            <MonthPicker month={ym} />
-          </div>
-        }
+        action={<MonthPicker month={ym} />}
       >
         {/* Totals per store dentro do hero — grande contraste sobre navy. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -131,7 +126,13 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <div className="min-w-0 flex-1">
           {/* Vendas por operador — cumulative (all-time) totals, mirroring the
               Excel Estat_Calc pivot. Independent of the month filter above. */}
-          <section className="mt-8">
+          {/* Filtro de loja imediatamente acima da primeira tabela que ele
+              afecta — no hero ficava longe do conteúdo que re-escopa. */}
+          <div className="mt-8">
+            <BoutiqueScopeTabs scope={scope} allowed={allowed} hrefFor={hrefFor} />
+          </div>
+
+          <section className="mt-6">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className="font-serif text-lg text-ink">Vendas por operador</h2>
               <span className="text-[0.62rem] tracking-[0.14em] text-muted uppercase">Total histórico · líquido de devoluções</span>

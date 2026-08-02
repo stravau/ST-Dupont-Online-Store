@@ -4,9 +4,7 @@ import { currentStaff } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
 import { AdminHero } from "@/components/admin/admin-hero";
-import { BoutiqueSplitHero } from "@/components/admin/boutique-split-hero";
-import { LiveTicker } from "@/components/admin/live-ticker";
-import { DashboardKpiScope, SalesTrendScope } from "@/components/admin/dashboard-scope";
+import { DashboardHeroScope, SalesTrendScope } from "@/components/admin/dashboard-scope";
 import { SalesHeatmap } from "@/components/admin/sales-heatmap";
 import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
 import {
@@ -61,9 +59,12 @@ export default async function AdminHome() {
         title={greeting}
         subtitle="Vendas ao vivo, tendência dos últimos 30 dias e ritmo semanal."
       >
-        <DashboardKpiScope kpis={kpisPerScope} monthName={snapshot.monthName} />
-        <BoutiqueSplitHero boutiques={snapshot.boutiques} />
-        <LiveTicker initial={ticker} boutiques={BOTH} initialVisible={5} fetchCount={15} />
+        <DashboardHeroScope
+          kpis={kpisPerScope}
+          monthName={snapshot.monthName}
+          ticker={ticker}
+          boutiques={BOTH}
+        />
       </AdminHero>
 
       {/* Tendência 30 dias + Heatmap 8 semanas lado a lado — dois ângulos do

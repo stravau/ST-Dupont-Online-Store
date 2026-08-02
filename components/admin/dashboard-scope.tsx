@@ -2,19 +2,12 @@
 
 import { useState } from "react";
 import type { BoutiqueCode } from "@/lib/pos";
-import type { ScopedKpis } from "@/lib/dashboard-data";
+import type { ScopedKpis, TickerRow } from "@/lib/dashboard-data";
 import type { DayPoint } from "@/lib/pos-reports";
 import { BigKPIs } from "@/components/admin/big-kpis";
 import { SalesTrend } from "@/components/admin/dashboard-widgets";
+import { LiveTicker } from "@/components/admin/live-ticker";
 import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
-
-// Os dois widgets do dashboard que ainda mostravam as duas lojas somadas sem
-// forma de as separar: os BigKPIs (hoje / este mês, com deltas) e a Tendência
-// de 30 dias. Os restantes — BoutiqueSplit, LiveTicker, TopOperators, Heatmap —
-// já vinham divididos por loja, por isso não estão aqui.
-//
-// O servidor pré-calcula os três âmbitos (custa as mesmas 4 queries + 1 que
-// já custava antes), o cliente só indexa — mesmo padrão do SalesHeatmap.
 
 type Scope = "all" | BoutiqueCode;
 
@@ -24,21 +17,46 @@ const TABS: { key: Scope; label: string }[] = [
   { key: "VNG", label: BOUTIQUE_SHORT.VNG },
 ];
 
-export function DashboardKpiScope({
+/**
+ * Todo o conteúdo do hero do painel sob um único filtro de loja: KPIs de hoje
+ * e do mês (com deltas) + as últimas vendas.
+ *
+ * Escolher Lisboa ou Gaia esconde por completo o que é da outra — o ticker
+ * passa a uma coluna só, à largura toda do card, em vez de duas colunas com
+ * metade vazia. O BoutiqueSplit (dois cartões lado a lado) saiu: com o filtro,
+ * os KPIs de cima dão a mesma leitura sem duplicar a informação.
+ */
+export function DashboardHeroScope({
   kpis,
   monthName,
+  ticker,
+  boutiques,
 }: {
   kpis: Record<Scope, ScopedKpis>;
   monthName: string;
+  ticker: Record<BoutiqueCode, TickerRow[]>;
+  boutiques: BoutiqueCode[];
 }) {
   const [scope, setScope] = useState<Scope>("all");
   const k = kpis[scope];
+  const visible = scope === "all" ? boutiques : ([scope] as BoutiqueCode[]);
+
   return (
     <div>
-      <div className="mb-3 flex justify-end">
-        <ScopeTabs scope={scope} onChange={setScope} onDark />
+      <ScopeTabs scope={scope} onChange={setScope} onDark />
+      <div className="mt-5">
+        <BigKPIs today={k.today} month={k.month} monthName={monthName} />
       </div>
-      <BigKPIs today={k.today} month={k.month} monthName={monthName} />
+      {/* key força o LiveTicker a remontar quando o âmbito muda, para o
+          seed de "vendas já vistas" não marcar as linhas da outra loja
+          como novas e disparar o flash gold em massa. */}
+      <LiveTicker
+        key={scope}
+        initial={ticker}
+        boutiques={visible}
+        initialVisible={5}
+        fetchCount={15}
+      />
     </div>
   );
 }
@@ -46,12 +64,10 @@ export function DashboardKpiScope({
 export function SalesTrendScope({ perScope }: { perScope: Record<Scope, DayPoint[]> }) {
   const [scope, setScope] = useState<Scope>("all");
   return (
-    <div className="relative h-full">
-      <div className="absolute right-6 top-6 z-10">
-        <ScopeTabs scope={scope} onChange={setScope} />
-      </div>
-      <SalesTrend points={perScope[scope]} />
-    </div>
+    <SalesTrend
+      points={perScope[scope]}
+      action={<ScopeTabs scope={scope} onChange={setScope} />}
+    />
   );
 }
 
