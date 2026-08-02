@@ -87,7 +87,7 @@ export function SalesTrend({ points }: { points: DayPoint[] }) {
         máx/dia <span className="font-medium text-ink tabular-nums">{eur0(max)}</span>
       </p>
 
-      <div className="mt-4 flex min-h-0 flex-1 items-end gap-[2px] border-b border-line" role="img" aria-label={`Vendas diárias dos últimos ${points.length} dias`}>
+      <div className="mt-4 flex h-40 items-end gap-[2px] border-b border-line" role="img" aria-label={`Vendas diárias dos últimos ${points.length} dias`}>
         {points.map((p, i) => {
           const h = p.grossCents > 0 ? Math.max(3, Math.round((p.grossCents / max) * 100)) : 0;
           const isToday = i === points.length - 1;

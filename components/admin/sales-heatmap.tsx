@@ -23,15 +23,16 @@ function cellColor(v: number, max: number): string {
 }
 
 export function SalesHeatmap({ data }: { data: Heatmap }) {
-  // Coordenadas base do viewBox — proporções que o SVG mantém quando
-  // esticado pelo container (preserveAspectRatio default = xMidYMid meet).
-  // Sem cap de max-width, o heatmap enche a largura do card e as
-  // células crescem proporcionalmente.
-  const cellSize = 22;
+  // Cells rectangulares (bricks) — mais largas que altas — para que o
+  // viewBox tenha proporção landscape a bater com o card em grid-cols-2.
+  // Assim o SVG preenche o card sem whitespace lateral e sem esticar o
+  // heatmap em altura. Cells "quadradas" a 22×22 não davam essa proporção.
+  const cellWidth = 68;
+  const cellHeight = 20;
   const cellGap = 3;
-  const labelWidth = 34;
-  const totalWidth = labelWidth + 7 * (cellSize + cellGap);
-  const totalHeight = data.weeks * (cellSize + cellGap) + 14;
+  const labelWidth = 38;
+  const totalWidth = labelWidth + 7 * (cellWidth + cellGap);
+  const totalHeight = data.weeks * (cellHeight + cellGap) + 14;
 
   return (
     <section className="card-in flex h-full flex-col border border-line bg-paper p-6">
@@ -58,7 +59,7 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
           {WEEKDAYS.map((d, i) => (
             <text
               key={d}
-              x={labelWidth + i * (cellSize + cellGap) + cellSize / 2}
+              x={labelWidth + i * (cellWidth + cellGap) + cellWidth / 2}
               y={10}
               textAnchor="middle"
               fontSize={9}
@@ -72,10 +73,10 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
           {data.cells.map((c) => (
             <rect
               key={`${c.weekIdx}-${c.dayIdx}`}
-              x={labelWidth + c.dayIdx * (cellSize + cellGap)}
-              y={14 + c.weekIdx * (cellSize + cellGap)}
-              width={cellSize}
-              height={cellSize}
+              x={labelWidth + c.dayIdx * (cellWidth + cellGap)}
+              y={14 + c.weekIdx * (cellHeight + cellGap)}
+              width={cellWidth}
+              height={cellHeight}
               rx={3}
               fill={cellColor(c.grossCents, data.maxGross)}
               stroke={c.grossCents > 0 ? "transparent" : "var(--line)"}
@@ -89,7 +90,7 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
             </rect>
           ))}
           {/* Label vertical: primeira semana (topo) + hoje (base) */}
-          <text x={0} y={14 + cellSize} fontSize={8} fill="var(--muted)">
+          <text x={0} y={14 + cellHeight} fontSize={8} fill="var(--muted)">
             {relLabel(data.weeks - 1)}
           </text>
           <text x={0} y={totalHeight - 4} fontSize={8} fill="var(--gold)">
