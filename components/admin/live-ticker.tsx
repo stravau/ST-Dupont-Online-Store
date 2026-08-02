@@ -112,10 +112,15 @@ export function LiveTicker({
   initial,
   boutiques,
   initialVisible = 5,
+  fetchCount = 10,
 }: {
   initial: Record<BoutiqueCode, TickerRow[]>;
   boutiques: BoutiqueCode[];
   initialVisible?: number;
+  /** Quantas rows pedir por boutique no poll — TEM de bater com o N do
+   *  SSR em page.tsx, senão o total encolhe no primeiro poll e o botão
+   *  "Mostrar mais N" muda de número. */
+  fetchCount?: number;
 }) {
   const [data, setData] = useState<Record<BoutiqueCode, TickerRow[]>>(initial);
   const knownIds = useRef<Set<string>>(new Set());
@@ -135,7 +140,7 @@ export function LiveTicker({
     let cancelled = false;
     async function poll() {
       try {
-        const res = await fetch("/api/admin/dashboard-live", { cache: "no-store" });
+        const res = await fetch(`/api/admin/dashboard-live?n=${fetchCount}`, { cache: "no-store" });
         if (!res.ok) return;
         const json = await res.json();
         if (cancelled || !json?.ok) return;
@@ -162,7 +167,7 @@ export function LiveTicker({
     }
     const t = setInterval(poll, 30_000);
     return () => { cancelled = true; clearInterval(t); };
-  }, [boutiques]);
+  }, [boutiques, fetchCount]);
 
   return (
     <div className={`mt-6 grid gap-6 ${boutiques.length > 1 ? "md:grid-cols-2" : ""}`}>

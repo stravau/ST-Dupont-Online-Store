@@ -62,7 +62,7 @@ export default async function AdminHome() {
       >
         <BigKPIs today={snapshot.today} month={snapshot.month} monthName={snapshot.monthName} />
         <BoutiqueSplitHero boutiques={snapshot.boutiques} />
-        <LiveTicker initial={ticker} boutiques={BOTH} initialVisible={5} />
+        <LiveTicker initial={ticker} boutiques={BOTH} initialVisible={5} fetchCount={15} />
       </AdminHero>
 
       {/* Tendência 30 dias + Heatmap 8 semanas lado a lado — dois ângulos do
