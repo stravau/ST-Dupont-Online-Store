@@ -34,7 +34,7 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
   const totalHeight = data.weeks * (cellSize + cellGap) + 14;
 
   return (
-    <section className="card-in mx-auto max-w-xs border border-line bg-paper p-5">
+    <section className="card-in border border-line bg-paper p-5">
       <div className="flex items-baseline justify-between border-b border-line pb-3">
         <h2 className="font-serif text-lg text-ink">Ritmo semanal</h2>
         <span className="text-[0.6rem] tracking-[0.14em] text-muted uppercase">
@@ -42,10 +42,9 @@ export function SalesHeatmap({ data }: { data: Heatmap }) {
         </span>
       </div>
 
-      {/* Card cabe-se em max-w-xs (~320px) e centra-se na coluna do grid.
-          O SVG estica até essa largura mantendo o aspect ratio (cells
-          crescem apenas ~1.3x face ao natural), portanto não há
-          whitespace à direita dentro do card. */}
+      {/* Card ocupa toda a coluna (mesma largura que o SalesTrend ao lado).
+          SVG estica horizontalmente com aspect ratio preservado — cells
+          crescem para preencher, sem whitespace lateral. */}
       <div className="mt-4">
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
