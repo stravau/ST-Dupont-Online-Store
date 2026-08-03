@@ -826,13 +826,19 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
    acabar e a impressora corta. No ecrã mostramos a mesma largura, para o que
    se vê ser o que sai. */
 .ticket-roll {
-  --roll-width: 72mm;
+  /* Largura do PAPEL. A zona de silêncio vem do padding do .ticket-copy, não
+     de @page margin — os drivers de térmica tratam a margem de página de
+     maneiras diferentes, o padding é respeitado por todos. */
+  --roll-width: 80mm;
+  --roll-quiet: 4mm; /* margem interna: nada de texto encostado ao bordo */
   font-family: var(--font-admin-body), system-ui, sans-serif;
   color: #000;
   background: #fff;
 }
 .ticket-copy {
+  box-sizing: border-box;
   width: var(--roll-width);
+  padding: var(--roll-quiet);
   font-size: 8.5pt;
   line-height: 1.25;
 }
@@ -858,10 +864,11 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
     padding: 1rem 0 3rem;
     width: fit-content;
   }
-  /* Contorno só no ecrã, para se perceber onde acaba o papel. */
+  /* O contorno marca o bordo do PAPEL — sem offset, senão desenha-se a 4mm
+     de distância e parece que o conteúdo transborda quando não transborda. */
   .ticket-copy {
-    outline: 1px solid #ddd;
-    outline-offset: 4mm;
+    outline: 1px solid #ccc;
+    outline-offset: 0;
   }
 }
 
