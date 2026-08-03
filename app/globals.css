@@ -818,3 +818,84 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+/* --- Ficha de Assistência (impressora de talões, rolo 80mm) ------------- */
+/* Largura útil de 72mm num rolo de 80mm (as impressoras térmicas comuns
+   deixam ~4mm de margem de cada lado). Altura automática: o talão corre até
+   acabar e a impressora corta. No ecrã mostramos a mesma largura, para o que
+   se vê ser o que sai. */
+.ticket-roll {
+  --roll-width: 72mm;
+  font-family: var(--font-admin-body), system-ui, sans-serif;
+  color: #000;
+  background: #fff;
+}
+.ticket-copy {
+  width: var(--roll-width);
+  font-size: 8.5pt;
+  line-height: 1.25;
+}
+/* Marca de corte entre as duas vias — a impressora corta no fim de cada
+   trabalho, mas se saírem juntas isto diz onde separar à mão. */
+.copy-cut {
+  width: var(--roll-width);
+  border-top: 1px dashed #000;
+  margin: 4mm 0;
+  padding-top: 1mm;
+  font-size: 6.5pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+@media screen {
+  .ticket-roll {
+    margin: 0 auto;
+    padding: 1rem 0 3rem;
+    width: fit-content;
+  }
+  /* Contorno só no ecrã, para se perceber onde acaba o papel. */
+  .ticket-copy {
+    outline: 1px solid #ddd;
+    outline-offset: 4mm;
+  }
+}
+
+@media print {
+  /* Só o talão vai ao papel — sidebar, barra móvel e botões ficam de fora.
+     Usa visibility e NÃO display: o talão está aninhado dentro do chrome do
+     admin, e display:none num ascendente não se anula no descendente;
+     visibility:hidden anula-se. */
+  body * {
+    visibility: hidden;
+  }
+  .ticket-roll,
+  .ticket-roll * {
+    visibility: visible;
+  }
+  .ticket-roll {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    width: var(--roll-width);
+  }
+  .ticket-copy {
+    outline: none;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    /* auto na altura = rolo contínuo; sem isto o driver assume A4 e mete
+       uma quebra de página a meio do talão. */
+    size: 80mm auto;
+    margin: 0;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

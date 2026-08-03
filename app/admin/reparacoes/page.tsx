@@ -32,16 +32,13 @@ export default async function ReparacoesPage() {
     }),
   ]);
 
-  // Numeração por ordem de 1ª visita CRESCENTE (o ticket #1 é o mais antigo),
-  // independente da ordem de apresentação da tabela. Sem data vai para o fim.
-  const numberById = new Map<string, number>();
-  [...rows]
-    .sort((a, b) => (a.firstVisitAt?.getTime() ?? Infinity) - (b.firstVisitAt?.getTime() ?? Infinity))
-    .forEach((r, i) => numberById.set(r.id, i + 1));
-
+  // O número vem da coluna, atribuído na criação e por loja — já não é
+  // calculado por ordenação. O cliente leva-o escrito na ficha, portanto tem
+  // de ser imóvel: antes, inserir um processo com data anterior fazia deslizar
+  // todos os seguintes e o papel dele deixava de bater certo.
   const repairs: RepairRow[] = rows.map((r) => ({
     id: r.id,
-    number: numberById.get(r.id) ?? 0,
+    number: r.ticketNumber ?? 0,
     boutique: r.boutique as BoutiqueCode,
     firstVisit: iso(r.firstVisitAt),
     staff: r.staff,
@@ -51,6 +48,9 @@ export default async function ReparacoesPage() {
     repairType: r.repairType,
     modelName: r.modelName,
     estimatedCostCents: r.estimatedCostCents,
+    serialNumber: r.serialNumber,
+    usageMarks: r.usageMarks,
+    underWarranty: r.underWarranty,
     subject: r.subject,
     updates: r.updates,
     lastContactAt: iso(r.lastContactAt),

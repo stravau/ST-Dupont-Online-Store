@@ -43,6 +43,42 @@ function day(v: unknown): Date | null {
   return new Date(y, m - 1, d, 0, 0, 0, 0);
 }
 
+// Tri-estado para a Garantia: true = sim, false = não, null = por apurar.
+// Um checkbox não servia — "não perguntámos" e "não tem garantia" são coisas
+// diferentes num documento que o cliente assina.
+function tribool(v: unknown): boolean | null {
+  if (v === true || v === "true" || v === "SIM") return true;
+  if (v === false || v === "false" || v === "NAO" || v === "NÃO") return false;
+  return null;
+}
+
+// Próximo número de ficha para a loja. Corre dentro de uma transacção com o
+// nível SERIALIZABLE porque dois registos abertos ao mesmo tempo na mesma loja
+// pediriam o mesmo max+1; o índice único ([boutique, ticketNumber]) apanha a
+// colisão de qualquer forma, e o caller repete.
+async function createWithTicketNumber(
+  data: Omit<Parameters<typeof prisma.repair.create>[0]["data"], "ticketNumber">,
+  boutique: BoutiqueCode,
+) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const last = await prisma.repair.findFirst({
+      where: { boutique },
+      orderBy: { ticketNumber: "desc" },
+      select: { ticketNumber: true },
+    });
+    const next = (last?.ticketNumber ?? 0) + 1;
+    try {
+      return await prisma.repair.create({ data: { ...data, ticketNumber: next } });
+    } catch (e) {
+      // P2002 = unique violation: outro registo levou este número. Tenta o
+      // seguinte em vez de rebentar na cara de quem está a atender.
+      const code = (e as { code?: string })?.code;
+      if (code !== "P2002" || attempt === 3) throw e;
+    }
+  }
+  throw new Error("não consegui atribuir número de ficha");
+}
+
 // POST /api/admin/repairs — open a new repair ticket. 1ª Visita is stamped
 // automatically (or accepts an explicit firstVisit date). LOJA_* rows are
 // pinned to their boutique; ADMIN may name it.
@@ -79,8 +115,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const repair = await prisma.repair.create({
-      data: {
+    const repair = await createWithTicketNumber(
+      {
         boutique,
         firstVisitAt: day(body.firstVisit) ?? undefined,
         staff: staffInitials,
@@ -90,6 +126,9 @@ export async function POST(req: Request) {
         repairType: asRepairType(body.repairType),
         modelName,
         estimatedCostCents: cents(body.estimatedCostCents),
+        serialNumber: str(body.serialNumber),
+        usageMarks: str(body.usageMarks),
+        underWarranty: tribool(body.underWarranty),
         subject,
         updates: str(body.updates),
         lastContactAt: day(body.lastContactAt),
@@ -100,8 +139,9 @@ export async function POST(req: Request) {
         phone: str(body.phone),
         otherContacts: str(body.otherContacts),
       },
-    });
-    return NextResponse.json({ ok: true, id: repair.id });
+      boutique,
+    );
+    return NextResponse.json({ ok: true, id: repair.id, ticketNumber: repair.ticketNumber });
   } catch (e) {
     return safeError(e);
   }
@@ -146,6 +186,9 @@ export async function PATCH(req: Request) {
   if ("repairType" in body) data.repairType = asRepairType(body.repairType);
   if ("modelName" in body) data.modelName = str(body.modelName);
   if ("estimatedCostCents" in body) data.estimatedCostCents = cents(body.estimatedCostCents);
+  if ("serialNumber" in body) data.serialNumber = str(body.serialNumber);
+  if ("usageMarks" in body) data.usageMarks = str(body.usageMarks);
+  if ("underWarranty" in body) data.underWarranty = tribool(body.underWarranty);
   if ("subject" in body) data.subject = str(body.subject) ?? "";
   if ("updates" in body) data.updates = str(body.updates);
   if ("firstVisit" in body) data.firstVisitAt = day(body.firstVisit) ?? undefined;

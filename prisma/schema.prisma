@@ -679,6 +679,15 @@ model Repair {
   repairType   RepairType? // Tipo — Isqueiro / Escrita / Pele (null = por definir)
   modelName    String? // nome/modelo da peça (substitui a REF na UI)
   estimatedCostCents Int? // Custo estimado (orçamento) em cêntimos
+  // ----- Ficha de assistência (o papel que o cliente leva) -----
+  // Sequência POR LOJA, atribuída na criação e imóvel a partir daí. Tinha de
+  // deixar de ser calculada por ordenação: o cliente leva o número escrito
+  // num papel, e um processo inserido com data anterior fazia deslizar todos
+  // os seguintes — o papel dele deixava de bater certo com o sistema.
+  ticketNumber  Int?
+  serialNumber  String? // Nº de série gravado na peça
+  usageMarks    String? // Marcas de uso visíveis à entrada — a nossa protecção
+  underWarranty Boolean? // Garantia SIM/NÃO (null = ainda por apurar)
   subject      String // Assunto — descrição do problema/pedido
   updates      String? // Atualizações — notas do processo
   // Último_Contato — data & staff / via / observação
@@ -698,6 +707,7 @@ model Repair {
   // than deduplicate.
   sales Sale[]
 
+  @@unique([boutique, ticketNumber])
   @@index([boutique, firstVisitAt])
   @@index([status])
   @@index([firstVisitAt])

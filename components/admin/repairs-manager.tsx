@@ -54,6 +54,9 @@ export interface RepairRow {
   repairType: string | null; // ISQUEIRO | ESCRITA | PELE | null
   modelName: string | null; // nome/modelo da peça
   estimatedCostCents: number | null; // custo estimado (orçamento)
+  serialNumber: string | null; // Nº de série
+  usageMarks: string | null; // marcas de uso visíveis à entrada
+  underWarranty: boolean | null; // garantia SIM/NÃO (null = por apurar)
   subject: string;
   updates: string | null;
   lastContactAt: string | null; // YYYY-MM-DD
@@ -75,6 +78,9 @@ interface FormState {
   repairType: string; // "" | ISQUEIRO | ESCRITA | PELE
   modelName: string;
   estimatedCost: string; // euros, como texto
+  serialNumber: string;
+  usageMarks: string;
+  underWarranty: string; // "" | "SIM" | "NAO"
   subject: string;
   updates: string;
   lastContactAt: string;
@@ -96,6 +102,9 @@ const emptyForm = (boutique: BoutiqueCode, today: string): FormState => ({
   repairType: "",
   modelName: "",
   estimatedCost: "",
+  serialNumber: "",
+  usageMarks: "",
+  underWarranty: "",
   subject: "",
   updates: "",
   lastContactAt: "",
@@ -164,6 +173,9 @@ export function RepairsManager({
       repairType: r.repairType ?? "",
       modelName: r.modelName ?? r.reference ?? "",
       estimatedCost: r.estimatedCostCents != null ? (r.estimatedCostCents / 100).toFixed(2) : "",
+      serialNumber: r.serialNumber ?? "",
+      usageMarks: r.usageMarks ?? "",
+      underWarranty: r.underWarranty === true ? "SIM" : r.underWarranty === false ? "NAO" : "",
       subject: r.subject,
       updates: r.updates ?? "",
       lastContactAt: r.lastContactAt ?? "",
@@ -204,6 +216,9 @@ export function RepairsManager({
       repairType: form.repairType || null,
       modelName: form.modelName,
       estimatedCostCents,
+      serialNumber: form.serialNumber,
+      usageMarks: form.usageMarks,
+      underWarranty: form.underWarranty || null,
       subject: form.subject,
       updates: form.updates,
       lastContactAt: form.lastContactAt,
@@ -229,6 +244,12 @@ export function RepairsManager({
       setOpen(false);
       setSaving(false);
       router.refresh();
+      // Processo NOVO: abre logo a ficha para imprimir — é o papel que o
+      // cliente leva na hora, e obrigar a procurá-lo na tabela a seguir era
+      // um passo a mais no balcão. Em edições não abre nada.
+      if (!isEdit && data.id) {
+        window.open(`/admin/reparacoes/${data.id}/ticket`, "_blank", "noopener");
+      }
     } catch {
       setError("Erro de rede. Tenta novamente.");
       setSaving(false);
@@ -371,6 +392,16 @@ export function RepairsManager({
                     >
                       Atualizar
                     </button>
+                    {/* Nova aba: a ficha abre já no diálogo de impressão e o
+                        atendimento não perde o sítio na tabela. */}
+                    <a
+                      href={`/admin/reparacoes/${r.id}/ticket`}
+                      target="_blank"
+                      rel="noopener"
+                      className="ml-3 text-[0.62rem] tracking-[0.14em] text-muted uppercase transition-colors hover:text-gold"
+                    >
+                      Ficha ↗
+                    </a>
                   </td>
                 </tr>
               ))
@@ -426,6 +457,23 @@ export function RepairsManager({
                 </Field>
                 <Field label="Custo estimado (€)">
                   <input type="number" min={0} step="0.01" value={form.estimatedCost} onChange={(e) => set("estimatedCost", e.target.value)} placeholder="0,00" className={inputCls} />
+                </Field>
+                <Field label="Nº de série">
+                  <input value={form.serialNumber} onChange={(e) => set("serialNumber", e.target.value)} placeholder="gravado na peça" className={inputCls} />
+                </Field>
+                {/* Tri-estado: "por apurar" tem de ser distinguível de "não
+                    tem garantia" — é um documento que o cliente assina. */}
+                <Field label="Garantia">
+                  <select value={form.underWarranty} onChange={(e) => set("underWarranty", e.target.value)} className={inputCls}>
+                    <option value="">— por apurar —</option>
+                    <option value="SIM">Sim</option>
+                    <option value="NAO">Não</option>
+                  </select>
+                </Field>
+                {/* O campo mais importante da ficha: é o que protege a loja se
+                    o cliente disser depois que o risco apareceu cá. */}
+                <Field label="Marcas de uso visíveis (à entrada)" full>
+                  <textarea value={form.usageMarks} onChange={(e) => set("usageMarks", e.target.value)} rows={2} placeholder="Ex.: riscos no corpo, desgaste no clip, amolgadela na base…" className={inputCls} />
                 </Field>
                 <Field label="Assunto *" full>
                   <textarea value={form.subject} onChange={(e) => set("subject", e.target.value)} rows={2} className={inputCls} />
