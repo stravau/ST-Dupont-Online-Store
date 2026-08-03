@@ -156,7 +156,7 @@ export async function getTickerRows(
   const perBoutique = await Promise.all(
     boutiques.map(async (b) => {
       const sales = await prisma.sale.findMany({
-        where: { boutique: b },
+        where: { boutique: b, voidedAt: null },
         orderBy: { soldAt: "desc" },
         take: perBoutiqueLimit,
         include: {
@@ -223,6 +223,7 @@ export async function getHeatmap(
     where: {
       boutique: { in: boutiques },
       soldAt: { gte: fromDate, lte: toDate },
+      voidedAt: null,
     },
     select: { soldAt: true, type: true, grossCents: true },
   });
@@ -291,6 +292,7 @@ export async function getTopOperatorsPerBoutique(
       where: {
         boutique: b,
         soldAt: { gte: from, lte: to },
+        voidedAt: null,
         type: { in: ["VENDA", "REPARACAO"] }, // devoluções não contam para ranking
       },
       _sum: { grossCents: true },

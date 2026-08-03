@@ -333,3 +333,117 @@ async function createRepairSale(input: CreateSaleInput, operatorId: string) {
     return sale;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Anulação de uma venda mal registada
+// ---------------------------------------------------------------------------
+// Soft-delete: a Sale fica na base com voidedAt/voidedReason. Apagá-la perderia
+// o rasto de que existiu, que é precisamente o que se quer auditar.
+//
+// Desfaz tudo o que a venda fez:
+//   • repõe o stock (per-store das variants Dupont, contador plano das outras
+//     marcas), aplicando o sinal INVERSO ao que a venda aplicou;
+//   • escreve movimentos de AJUSTE a espelhar a reposição, em vez de apagar os
+//     originais — o livro passa a mostrar "venda −2" seguido de "ajuste +2",
+//     que é a verdade do que aconteceu;
+//   • reabre a reparação, se a venda tinha fechado uma (senão ficava paga e
+//     resolvida sem nunca ter sido cobrada).
+export async function voidSale(input: {
+  saleId: string;
+  reason: string;
+  userId?: string | null;
+  /** Quando definido, só permite anular vendas desta loja (gate dos LOJA_*). */
+  restrictToBoutique?: BoutiqueCode | null;
+}) {
+  const { saleId, reason } = input;
+
+  return prisma.$transaction(async (tx) => {
+    const sale = await tx.sale.findUnique({
+      where: { id: saleId },
+      include: { items: true, operator: { select: { initials: true } } },
+    });
+    if (!sale) throw new PosError(404, "venda não encontrada");
+    if (sale.voidedAt) throw new PosError(409, "esta venda já está anulada");
+    if (input.restrictToBoutique && sale.boutique !== input.restrictToBoutique) {
+      throw new PosError(403, `sem permissão para a loja ${sale.boutique}`);
+    }
+
+    const boutique = sale.boutique as BoutiqueCode;
+    const col = stockColumnFor(boutique);
+    // A venda aplicou este sinal ao stock; para desfazer aplicamos o oposto.
+    // DEVOLUCAO devolveu stock (+1), portanto anulá-la volta a tirá-lo.
+    const saleSign = sale.type === "DEVOLUCAO" ? 1 : -1;
+    const undoSign = -saleSign;
+
+    for (const item of sale.items) {
+      if (item.source === "OTHER_BRAND" && item.otherBrandItemId) {
+        const ob = await tx.otherBrandItem.findUnique({
+          where: { id: item.otherBrandItemId },
+          select: { stock: true },
+        });
+        if (ob) {
+          await tx.otherBrandItem.update({
+            where: { id: item.otherBrandItemId },
+            data: { stock: ob.stock + undoSign * item.quantity },
+          });
+        }
+        continue;
+      }
+      if (!item.variantId) continue; // linha sem catálogo (REPARACAO, EAN órfão)
+
+      const v = await tx.productVariant.findUnique({
+        where: { id: item.variantId },
+        select: { stockLis: true, stockVng: true },
+      });
+      if (!v) continue;
+      const nextCol = (col === "stockLis" ? v.stockLis : v.stockVng) + undoSign * item.quantity;
+      const nextLis = col === "stockLis" ? nextCol : v.stockLis;
+      const nextVng = col === "stockVng" ? nextCol : v.stockVng;
+      await tx.productVariant.update({
+        where: { id: item.variantId },
+        data: { [col]: nextCol, stock: nextLis + nextVng },
+      });
+      await tx.stockMovement.create({
+        data: {
+          boutique, variantId: item.variantId, sku: item.sku, ean: item.ean,
+          type: "AJUSTE", quantity: undoSign * item.quantity,
+          operatorId: sale.operatorId,
+          note: `Anulação da venda de ${sale.soldAt.toLocaleDateString("pt-PT")} · ${reason}`.slice(0, 500),
+        },
+      });
+    }
+
+    // Reparação paga por esta venda volta a aguardar o cliente.
+    if (sale.repairId) {
+      await tx.repair.update({
+        where: { id: sale.repairId },
+        data: { status: "AGUARDANDO_CLIENTE" },
+      });
+    }
+
+    const voided = await tx.sale.update({
+      where: { id: saleId },
+      data: { voidedAt: new Date(), voidedReason: reason.slice(0, 500) },
+    });
+
+    await tx.adminAction.create({
+      data: {
+        userId: input.userId ?? null,
+        entityType: "SALE",
+        action: "VOID",
+        entityId: saleId,
+        note: reason.slice(0, 500),
+        before: {
+          boutique, type: sale.type, operator: sale.operator?.initials ?? null,
+          soldAt: sale.soldAt.toISOString(), lines: sale.items.length,
+          grossCents: sale.grossCents, netCents: sale.netCents,
+          eciCommissionCents: sale.eciCommissionCents,
+          repairId: sale.repairId,
+        } as object,
+        after: { voidedAt: voided.voidedAt?.toISOString() ?? null, voidedReason: reason } as object,
+      },
+    });
+
+    return voided;
+  });
+}

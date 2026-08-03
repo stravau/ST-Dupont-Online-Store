@@ -558,6 +558,12 @@ model Sale {
   // atomically with the sale; the same transaction bumps that Repair to
   // RESOLVIDO so a repair is never "paid" without being closed.
   repairId           String?
+  // ----- Anulação -----
+  // Uma venda mal registada (operador errado, código lido duas vezes, preço
+  // trocado) é ANULADA, não apagada: a linha fica para se poder auditar o que
+  // aconteceu e quem o desfez. Toda a contabilidade filtra por voidedAt: null.
+  voidedAt     DateTime?
+  voidedReason String?
 
   operator     Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
   originalSale Sale?      @relation("SaleReturns", fields: [originalSaleId], references: [id], onDelete: SetNull)
@@ -572,6 +578,7 @@ model Sale {
   @@index([soldAt])
   @@index([type])
   @@index([repairId])
+  @@index([voidedAt])
 }
 
 // A sale line — one row of Mov_POS_Loja. Snapshots sku/desc/price/brand (like

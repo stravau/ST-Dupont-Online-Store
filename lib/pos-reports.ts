@@ -37,7 +37,7 @@ export async function salesByStore(
 ): Promise<StoreTotals[]> {
   const rows = await prisma.sale.groupBy({
     by: ["boutique", "type"],
-    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, voidedAt: null },
     _sum: { grossCents: true, netCents: true },
     _count: { _all: true },
   });
@@ -73,7 +73,7 @@ export async function bestSellers(
     by: ["sku", "descSnapshot"],
     where: {
       ...(source ? { source } : {}),
-      sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, type: "VENDA" },
+      sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, type: "VENDA", voidedAt: null },
     },
     _sum: { quantity: true, grossCents: true },
     orderBy: { _sum: { quantity: "desc" } },
@@ -97,6 +97,7 @@ export async function topOperators(
     where: {
       boutique: { in: boutiques },
       soldAt: { gte: from, lte: to },
+      voidedAt: null,
       // Include repair pick-ups — they're revenue attributable to the operator
       // exactly like a sale. Returns are excluded from the top ranking.
       type: { in: ["VENDA", "REPARACAO"] },
@@ -137,7 +138,7 @@ export interface OperatorLifetime {
 
 export async function operatorLifetimeTotals(boutiques: BoutiqueCode[]): Promise<OperatorLifetime[]> {
   const sales = await prisma.sale.findMany({
-    where: { boutique: { in: boutiques } },
+    where: { boutique: { in: boutiques }, voidedAt: null },
     select: {
       type: true,
       grossCents: true,
@@ -193,7 +194,7 @@ export async function salesLog(
   limit = 500,
 ): Promise<SaleLogEntry[]> {
   const rows = await prisma.sale.findMany({
-    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, voidedAt: null },
     orderBy: { soldAt: "desc" },
     take: limit,
     include: {
@@ -233,7 +234,7 @@ export interface SaleLine {
 // used by the daily Excel export. Ordered chronologically.
 export async function saleLines(boutiques: BoutiqueCode[], from: Date, to: Date): Promise<SaleLine[]> {
   const items = await prisma.saleItem.findMany({
-    where: { sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } } },
+    where: { sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, voidedAt: null } },
     include: {
       sale: { select: { soldAt: true, type: true, boutique: true, note: true, operator: { select: { initials: true } } } },
     },
@@ -269,7 +270,7 @@ export async function dailySalesSeries(
   to: Date,
 ): Promise<DayPoint[]> {
   const sales = await prisma.sale.findMany({
-    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, voidedAt: null },
     select: { soldAt: true, type: true, grossCents: true },
   });
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -305,7 +306,7 @@ export async function dailySalesSeriesPerScope(
   to: Date,
 ): Promise<Record<"all" | BoutiqueCode, DayPoint[]>> {
   const sales = await prisma.sale.findMany({
-    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to } },
+    where: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, voidedAt: null },
     select: { soldAt: true, type: true, grossCents: true, boutique: true },
   });
   const pad = (n: number) => String(n).padStart(2, "0");

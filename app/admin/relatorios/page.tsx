@@ -1,6 +1,7 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { MonthPicker } from "@/components/admin/month-picker";
+import { VoidSaleButton } from "@/components/admin/void-sale-button";
 import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 import {
@@ -205,7 +206,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                             <th className="py-2 px-2">Registado</th>
                             <th className="py-2 px-2 text-right">Bruto</th>
                             <th className="py-2 px-2 text-right">Líquido</th>
-                            {showCommission && <th className="py-2 pl-2 text-right">Com. ECI</th>}
+                            {showCommission && <th className="py-2 px-2 text-right">Com. ECI</th>}
+                            <th className="py-2 pl-2 text-right"></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -232,8 +234,14 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                                 <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">{eur(sign * r.grossCents)}</td>
                                 <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-muted">{eur(sign * r.netCents)}</td>
                                 {showCommission && (
-                                  <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap text-muted">− {eur(r.eciCommissionCents)}</td>
+                                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-muted">− {eur(r.eciCommissionCents)}</td>
                                 )}
+                                <td className="py-2.5 pl-2 text-right whitespace-nowrap">
+                                  <VoidSaleButton
+                                    saleId={r.id}
+                                    label={`${hhmm(r.soldAt)} · ${r.operator} · ${eur(sign * r.grossCents)}`}
+                                  />
+                                </td>
                               </tr>
                             );
                           })}

@@ -139,18 +139,33 @@ export function RepairsManager({
   // duas lojas do servidor, e sem isto tinha-os todos numa tabela plana sem
   // forma de perguntar "quantos abertos tem Gaia?".
   const [boutiqueFilter, setBoutiqueFilter] = useState<BoutiqueCode | "">("");
+  // Resolvidos escondidos por defeito: são a maioria dos processos ao fim de
+  // uns meses e enterram os que ainda precisam de acção.
+  const [showResolved, setShowResolved] = useState(false);
+
+  const resolvedCount = useMemo(
+    () =>
+      repairs.filter(
+        (r) => r.status === "RESOLVIDO" && (!boutiqueFilter || r.boutique === boutiqueFilter),
+      ).length,
+    [repairs, boutiqueFilter],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return repairs.filter((r) => {
       if (boutiqueFilter && r.boutique !== boutiqueFilter) return false;
       if (statusFilter && r.status !== statusFilter) return false;
+      // Pedir explicitamente o estado "Resolvido" no filtro mostra-os, mesmo
+      // com o interruptor desligado — senão o filtro não daria resultado
+      // nenhum e parecia avariado.
+      if (!showResolved && !statusFilter && r.status === "RESOLVIDO") return false;
       if (!q) return true;
       return [r.customerName, r.modelName, r.reference, r.subject, r.staff, r.phone, r.otherContacts]
         .filter(Boolean)
         .some((v) => (v as string).toLowerCase().includes(q));
     });
-  }, [repairs, query, statusFilter, boutiqueFilter]);
+  }, [repairs, query, statusFilter, boutiqueFilter, showResolved]);
 
   // Contagem por loja para as tabs — sempre sobre o conjunto completo, para
   // os números não mudarem conforme o filtro de estado/pesquisa.
@@ -318,9 +333,22 @@ export function RepairsManager({
         </button>
       </div>
 
-      <p className="mt-3 text-[0.7rem] text-muted">
-        {filtered.length} {filtered.length === 1 ? "processo" : "processos"}
-        {statusFilter || query || boutiqueFilter ? ` (de ${repairs.length})` : ""}
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.7rem] text-muted">
+        <span>
+          {filtered.length} {filtered.length === 1 ? "processo" : "processos"}
+          {statusFilter || query || boutiqueFilter ? ` (de ${repairs.length})` : ""}
+        </span>
+        {resolvedCount > 0 && !statusFilter && (
+          <button
+            type="button"
+            onClick={() => setShowResolved((v) => !v)}
+            className="text-[0.65rem] tracking-[0.12em] text-muted uppercase underline-offset-4 transition-colors hover:text-gold hover:underline"
+          >
+            {showResolved
+              ? `Esconder ${resolvedCount} resolvido${resolvedCount === 1 ? "" : "s"}`
+              : `Mostrar ${resolvedCount} resolvido${resolvedCount === 1 ? "" : "s"}`}
+          </button>
+        )}
       </p>
 
       {/* Table */}

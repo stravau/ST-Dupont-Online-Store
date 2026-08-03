@@ -1,6 +1,7 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { MovimentosScanner } from "@/components/admin/movimentos-scanner";
+import { MovementHistory, type HistoryParams } from "./history";
 import { boutiquesForRole } from "@/components/admin/boutique-scope";
 import { redirect } from "next/navigation";
 
@@ -11,7 +12,12 @@ export const dynamic = "force-dynamic";
 // StockMovement + actualiza o cache de stock; a UI mostra o histórico da
 // sessão actual (não precisa de estado persistente do lado do cliente).
 // Acessível aos três roles de staff — a boutique é forçada para LOJA_*.
-export default async function MovimentosPage() {
+export default async function MovimentosPage({
+  searchParams,
+}: {
+  searchParams: Promise<HistoryParams>;
+}) {
+  const sp = await searchParams;
   const staff = await currentStaff();
   const role = staff?.role;
   if (role !== "ADMIN" && role !== "LOJA_LIS" && role !== "LOJA_VNG") {
@@ -40,6 +46,9 @@ export default async function MovimentosPage() {
       <div className="mx-auto max-w-5xl">
         <MovimentosScanner boutiques={boutiques} />
       </div>
+      {/* O histórico usa a largura toda — é uma tabela de oito colunas e
+          espremê-la nos 5xl do scanner não ajudava ninguém. */}
+      <MovementHistory boutiques={boutiques} params={sp} />
     </div>
   );
 }
