@@ -42,6 +42,8 @@ export async function GET(req: Request) {
     take: 20,
     select: {
       id: true, customerName: true, reference: true, subject: true, firstVisitAt: true,
+      // Prefill the charge: type + estimated cost carry into the terminal.
+      repairType: true, modelName: true, estimatedCostCents: true,
     },
   });
 

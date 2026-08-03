@@ -29,6 +29,9 @@ interface RepairHit {
   reference: string;
   subject: string;
   firstVisitAt: string | null;
+  repairType: RepairSubtype | null;
+  modelName: string | null;
+  estimatedCostCents: number | null;
 }
 
 const REPAIR_LABEL: Record<RepairSubtype, string> = { ESCRITA: "Escrita", ISQUEIRO: "Isqueiro", PELE: "Pele" };
@@ -71,6 +74,10 @@ export function PosTerminal({
   const [repairPicked, setRepairPicked] = useState<RepairHit | null>(null);
   const [repairSubtype, setRepairSubtype] = useState<RepairSubtype>("ESCRITA");
   const [repairPrice, setRepairPrice] = useState<string>("");
+  // Orçamento gate: "pending" = picked, awaiting Sim/Não · "confirmed" = price
+  // crystallised (locked), can finalise · "revised" = said Não, enter a new
+  // price and only then finalise.
+  const [budgetState, setBudgetState] = useState<"pending" | "confirmed" | "revised">("pending");
   const [repairSearchOpen, setRepairSearchOpen] = useState(false);
 
   const storeOperators = useMemo(
@@ -86,6 +93,9 @@ export function PosTerminal({
   // ----- Reparação totals (one line, fixed qty=1) -----
   const repairPriceCents = Math.max(0, Math.round((parseFloat(repairPrice) || 0) * 100));
   const repairGross = repairPriceCents;
+  // Ready to charge a repair: a customer is picked, the orçamento was answered
+  // (not "pending"), and there's a price.
+  const repairReady = !!repairPicked && budgetState !== "pending" && repairPriceCents > 0;
   const repairNet = Math.round(repairGross / VAT_DIVISOR);
 
   // Active totals per tab so the summary block stays honest.
@@ -172,11 +182,29 @@ export function PosTerminal({
     return () => { cancelled = true; clearTimeout(t); };
   }, [type, repairSearch, repairPicked, boutique]);
 
+  // Pick a waiting repair → prefill the type + estimated cost, and open the
+  // orçamento question. If there's no estimate, jump straight to "revised" (no
+  // budget to confirm — just enter the price).
+  const pickRepair = (r: RepairHit) => {
+    setRepairPicked(r);
+    setRepairSearch("");
+    setRepairHits([]);
+    if (r.repairType) setRepairSubtype(r.repairType);
+    if (r.estimatedCostCents != null && r.estimatedCostCents > 0) {
+      setRepairPrice((r.estimatedCostCents / 100).toFixed(2));
+      setBudgetState("pending");
+    } else {
+      setRepairPrice("");
+      setBudgetState("revised");
+    }
+  };
+
   const clearRepair = () => {
     setRepairPicked(null);
     setRepairSearch("");
     setRepairHits([]);
     setRepairPrice("");
+    setBudgetState("pending");
   };
 
   // Boutique switch nukes tab-local selections so we never send a Lisboa
@@ -195,6 +223,7 @@ export function PosTerminal({
 
     if (type === "REPARACAO") {
       if (!repairPicked) { setFlash({ kind: "err", msg: "Escolhe o cliente" }); return; }
+      if (budgetState === "pending") { setFlash({ kind: "err", msg: "Confirma o orçamento (Sim/Não) primeiro" }); return; }
       if (repairPriceCents <= 0) { setFlash({ kind: "err", msg: "Define o preço da reparação" }); return; }
     } else {
       if (lines.length === 0) { setFlash({ kind: "err", msg: "Sem artigos" }); return; }
@@ -400,7 +429,7 @@ export function PosTerminal({
                         <li key={r.id}>
                           <button
                             type="button"
-                            onMouseDown={(e) => { e.preventDefault(); setRepairPicked(r); setRepairSearch(""); setRepairHits([]); }}
+                            onMouseDown={(e) => { e.preventDefault(); pickRepair(r); }}
                             className="block w-full px-4 py-2.5 text-left transition-colors hover:bg-cream/60"
                           >
                             <p className="text-sm font-medium text-ink">{r.customerName}</p>
@@ -443,20 +472,62 @@ export function PosTerminal({
             </fieldset>
 
             <label className="block">
-              <span className="overline text-[0.55rem] text-muted">Preço da reparação (€)</span>
+              <span className="overline text-[0.55rem] text-muted">
+                {budgetState === "confirmed" ? "Preço da reparação (€) · confirmado" : "Preço da reparação (€)"}
+              </span>
               <input
                 type="number"
                 min={0}
                 step="0.01"
                 value={repairPrice}
                 onChange={(e) => setRepairPrice(e.target.value)}
+                readOnly={budgetState === "confirmed"}
                 placeholder="0,00"
-                className="mt-2 w-full border border-line bg-paper px-4 py-3 font-mono text-lg tabular-nums text-ink outline-none focus:border-gold"
+                className={`mt-2 w-full border px-4 py-3 font-mono text-lg tabular-nums outline-none focus:border-gold ${
+                  budgetState === "confirmed" ? "border-[#2bb673]/50 bg-[#2bb673]/5 text-ink" : "border-line bg-paper text-ink"
+                }`}
               />
-              <p className="mt-1 text-[0.62rem] text-muted">
-                A reparação será marcada como resolvida assim que a cobrança for registada.
-              </p>
             </label>
+
+            {/* Confirmação do orçamento — só faz sentido com um cliente escolhido. */}
+            {repairPicked && (
+              <div className="border border-line bg-cream/30 p-3">
+                <p className="text-[0.72rem] text-ink">
+                  Confirma o orçamento{repairPriceCents > 0 ? ` de ${eur(repairPriceCents)}` : ""}?
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBudgetState("confirmed")}
+                    className={`flex-1 border py-1.5 text-[0.65rem] tracking-[0.14em] uppercase transition-colors ${
+                      budgetState === "confirmed" ? "border-[#3b7551] bg-[#3b7551] text-cream" : "border-line text-ink hover:border-gold"
+                    }`}
+                  >
+                    Sim
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setBudgetState("revised"); setRepairPrice(""); }}
+                    className={`flex-1 border py-1.5 text-[0.65rem] tracking-[0.14em] uppercase transition-colors ${
+                      budgetState === "revised" ? "border-[#b94a3a] bg-[#b94a3a] text-cream" : "border-line text-ink hover:border-gold"
+                    }`}
+                  >
+                    Não
+                  </button>
+                </div>
+                <p className="mt-2 text-[0.62rem] text-muted">
+                  {budgetState === "pending"
+                    ? "Confirma para cristalizar o preço, ou escolhe Não para inserir um novo."
+                    : budgetState === "confirmed"
+                    ? "Preço cristalizado — podes finalizar a cobrança."
+                    : "Insere o novo preço acima; a cobrança fica disponível depois disso."}
+                </p>
+              </div>
+            )}
+
+            <p className="text-[0.62rem] text-muted">
+              A reparação será marcada como resolvida assim que a cobrança for registada.
+            </p>
           </div>
         )}
       </div>
@@ -524,7 +595,7 @@ export function PosTerminal({
           disabled={
             busy ||
             (type !== "REPARACAO" && lines.length === 0) ||
-            (type === "REPARACAO" && (!repairPicked || repairPriceCents <= 0))
+            (type === "REPARACAO" && !repairReady)
           }
           className="mt-5 w-full bg-ink py-3 text-xs tracking-[0.2em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink disabled:cursor-not-allowed disabled:opacity-40">
           {busy

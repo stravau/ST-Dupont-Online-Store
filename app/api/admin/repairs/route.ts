@@ -19,6 +19,17 @@ const STATUSES = [
 type RepairStatus = (typeof STATUSES)[number];
 const isStatus = (v: unknown): v is RepairStatus => typeof v === "string" && (STATUSES as readonly string[]).includes(v);
 
+const REPAIR_TYPES = ["ISQUEIRO", "ESCRITA", "PELE"] as const;
+type RepairType = (typeof REPAIR_TYPES)[number];
+const asRepairType = (v: unknown): RepairType | null =>
+  typeof v === "string" && (REPAIR_TYPES as readonly string[]).includes(v) ? (v as RepairType) : null;
+
+// Non-negative integer cents from a number|null (blank/invalid → null).
+function cents(v: unknown): number | null {
+  if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return null;
+  return Math.round(v);
+}
+
 // Trim a string field; empty → null (so optional columns clear cleanly).
 function str(v: unknown): string | null {
   if (typeof v !== "string") return null;
@@ -59,10 +70,12 @@ export async function POST(req: Request) {
 
   const staffInitials = str(body.staff) ?? "";
   const customerName = str(body.customerName);
-  const reference = str(body.reference);
+  const modelName = str(body.modelName);
+  // `reference` is kept for compat; the manager sends it = modelName.
+  const reference = str(body.reference) ?? modelName;
   const subject = str(body.subject);
-  if (!customerName || !reference || !subject) {
-    return NextResponse.json({ ok: false, error: "cliente, referência e assunto são obrigatórios" }, { status: 400 });
+  if (!customerName || !modelName || !subject) {
+    return NextResponse.json({ ok: false, error: "cliente, modelo da peça e assunto são obrigatórios" }, { status: 400 });
   }
 
   try {
@@ -73,7 +86,10 @@ export async function POST(req: Request) {
         staff: staffInitials,
         status: isStatus(body.status) ? body.status : "POR_VERIFICAR",
         customerName,
-        reference,
+        reference: reference ?? modelName,
+        repairType: asRepairType(body.repairType),
+        modelName,
+        estimatedCostCents: cents(body.estimatedCostCents),
         subject,
         updates: str(body.updates),
         lastContactAt: day(body.lastContactAt),
@@ -127,6 +143,9 @@ export async function PATCH(req: Request) {
   if ("status" in body && isStatus(body.status)) data.status = body.status;
   if ("customerName" in body) data.customerName = str(body.customerName) ?? "";
   if ("reference" in body) data.reference = str(body.reference) ?? "";
+  if ("repairType" in body) data.repairType = asRepairType(body.repairType);
+  if ("modelName" in body) data.modelName = str(body.modelName);
+  if ("estimatedCostCents" in body) data.estimatedCostCents = cents(body.estimatedCostCents);
   if ("subject" in body) data.subject = str(body.subject) ?? "";
   if ("updates" in body) data.updates = str(body.updates);
   if ("firstVisit" in body) data.firstVisitAt = day(body.firstVisit) ?? undefined;

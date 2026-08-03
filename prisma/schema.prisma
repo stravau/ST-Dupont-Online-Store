@@ -103,6 +103,15 @@ enum RepairBucket {
   ASSUNTO_TERMINADO
 }
 
+// Kind of repair — matches the POS repair-charge subtype (Isqueiro / Escrita /
+// Pele). Nullable on the model: imported/historical tickets may not state it,
+// and it's set in the admin when known.
+enum RepairType {
+  ISQUEIRO
+  ESCRITA
+  PELE
+}
+
 // Repair-ticket lifecycle — the exact "Estado" dropdown from the Excel
 // Reparações sheet. UI labels: Aguardando Cliente · Aguardando STD ·
 // Aguardando JM · Aguardando PR · Art. em Reparação · Resolvido ·
@@ -666,7 +675,10 @@ model Repair {
   staff        String // Staff — iniciais do operador (PR, MA, …)
   status       RepairStatus @default(POR_VERIFICAR) // Estado [Ir atualizando]
   customerName String // Cli_Nome
-  reference    String // Ref. — artigo / referência
+  reference    String // Ref. — histórico ECI (mantido; a UI usa repairType + modelName)
+  repairType   RepairType? // Tipo — Isqueiro / Escrita / Pele (null = por definir)
+  modelName    String? // nome/modelo da peça (substitui a REF na UI)
+  estimatedCostCents Int? // Custo estimado (orçamento) em cêntimos
   subject      String // Assunto — descrição do problema/pedido
   updates      String? // Atualizações — notas do processo
   // Último_Contato — data & staff / via / observação

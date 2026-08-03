@@ -32,14 +32,25 @@ export default async function ReparacoesPage() {
     }),
   ]);
 
+  // Numeração por ordem de 1ª visita CRESCENTE (o ticket #1 é o mais antigo),
+  // independente da ordem de apresentação da tabela. Sem data vai para o fim.
+  const numberById = new Map<string, number>();
+  [...rows]
+    .sort((a, b) => (a.firstVisitAt?.getTime() ?? Infinity) - (b.firstVisitAt?.getTime() ?? Infinity))
+    .forEach((r, i) => numberById.set(r.id, i + 1));
+
   const repairs: RepairRow[] = rows.map((r) => ({
     id: r.id,
+    number: numberById.get(r.id) ?? 0,
     boutique: r.boutique as BoutiqueCode,
     firstVisit: iso(r.firstVisitAt),
     staff: r.staff,
     status: r.status,
     customerName: r.customerName,
     reference: r.reference,
+    repairType: r.repairType,
+    modelName: r.modelName,
+    estimatedCostCents: r.estimatedCostCents,
     subject: r.subject,
     updates: r.updates,
     lastContactAt: iso(r.lastContactAt),

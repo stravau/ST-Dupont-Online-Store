@@ -34,14 +34,26 @@ const STATUS_TONE: Record<string, string> = {
 // Contact methods seen in the Excel "Último_Contato" column.
 const CONTACT_VIAS = ["Em loja", "Whatsapp", "Chamada tlf.", "E-mail", "Whatsapp & E-mail", "SMS", "Por responder"];
 
+// Tipo de reparação — matches the POS repair-charge subtype.
+export const REPAIR_TYPES = [
+  { value: "ISQUEIRO", label: "Isqueiro" },
+  { value: "ESCRITA", label: "Escrita" },
+  { value: "PELE", label: "Pele" },
+] as const;
+const TYPE_LABEL: Record<string, string> = Object.fromEntries(REPAIR_TYPES.map((t) => [t.value, t.label]));
+
 export interface RepairRow {
   id: string;
+  number: number; // ordem por data de 1ª visita (crescente) — atribuído no servidor
   boutique: BoutiqueCode;
   firstVisit: string; // YYYY-MM-DD (or "" if unknown)
   staff: string;
   status: string;
   customerName: string;
-  reference: string;
+  reference: string; // histórico (mantido); a UI usa repairType + modelName
+  repairType: string | null; // ISQUEIRO | ESCRITA | PELE | null
+  modelName: string | null; // nome/modelo da peça
+  estimatedCostCents: number | null; // custo estimado (orçamento)
   subject: string;
   updates: string | null;
   lastContactAt: string | null; // YYYY-MM-DD
@@ -53,7 +65,26 @@ export interface RepairRow {
   otherContacts: string | null;
 }
 
-type FormState = Omit<RepairRow, "id"> & { id: string | null };
+interface FormState {
+  id: string | null;
+  boutique: BoutiqueCode;
+  firstVisit: string;
+  staff: string;
+  status: string;
+  customerName: string;
+  repairType: string; // "" | ISQUEIRO | ESCRITA | PELE
+  modelName: string;
+  estimatedCost: string; // euros, como texto
+  subject: string;
+  updates: string;
+  lastContactAt: string;
+  lastContactStaff: string;
+  lastContactVia: string;
+  lastContactNote: string;
+  otherObs: string;
+  phone: string;
+  otherContacts: string;
+}
 
 const emptyForm = (boutique: BoutiqueCode, today: string): FormState => ({
   id: null,
@@ -62,7 +93,9 @@ const emptyForm = (boutique: BoutiqueCode, today: string): FormState => ({
   staff: "",
   status: "POR_VERIFICAR",
   customerName: "",
-  reference: "",
+  repairType: "",
+  modelName: "",
+  estimatedCost: "",
   subject: "",
   updates: "",
   lastContactAt: "",
@@ -104,7 +137,7 @@ export function RepairsManager({
       if (boutiqueFilter && r.boutique !== boutiqueFilter) return false;
       if (statusFilter && r.status !== statusFilter) return false;
       if (!q) return true;
-      return [r.customerName, r.reference, r.subject, r.staff, r.phone, r.otherContacts]
+      return [r.customerName, r.modelName, r.reference, r.subject, r.staff, r.phone, r.otherContacts]
         .filter(Boolean)
         .some((v) => (v as string).toLowerCase().includes(q));
     });
@@ -121,7 +154,26 @@ export function RepairsManager({
     setOpen(true);
   }
   function openEdit(r: RepairRow) {
-    setForm({ ...r, updates: r.updates ?? "" });
+    setForm({
+      id: r.id,
+      boutique: r.boutique,
+      firstVisit: r.firstVisit,
+      staff: r.staff,
+      status: r.status,
+      customerName: r.customerName,
+      repairType: r.repairType ?? "",
+      modelName: r.modelName ?? r.reference ?? "",
+      estimatedCost: r.estimatedCostCents != null ? (r.estimatedCostCents / 100).toFixed(2) : "",
+      subject: r.subject,
+      updates: r.updates ?? "",
+      lastContactAt: r.lastContactAt ?? "",
+      lastContactStaff: r.lastContactStaff ?? "",
+      lastContactVia: r.lastContactVia ?? "",
+      lastContactNote: r.lastContactNote ?? "",
+      otherObs: r.otherObs ?? "",
+      phone: r.phone ?? "",
+      otherContacts: r.otherContacts ?? "",
+    });
     setError(null);
     setOpen(true);
   }
@@ -131,13 +183,15 @@ export function RepairsManager({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.customerName.trim() || !form.reference.trim() || !form.subject.trim()) {
-      setError("Cliente, referência e assunto são obrigatórios.");
+    if (!form.customerName.trim() || !form.modelName.trim() || !form.subject.trim()) {
+      setError("Cliente, modelo da peça e assunto são obrigatórios.");
       return;
     }
     setSaving(true);
     setError(null);
     const isEdit = !!form.id;
+    const estRaw = parseFloat(form.estimatedCost.replace(",", "."));
+    const estimatedCostCents = Number.isFinite(estRaw) && estRaw >= 0 ? Math.round(estRaw * 100) : null;
     const payload = {
       id: form.id,
       boutique: form.boutique,
@@ -145,7 +199,11 @@ export function RepairsManager({
       staff: form.staff,
       status: form.status,
       customerName: form.customerName,
-      reference: form.reference,
+      // `reference` kept in sync with the model name for ECI/export compat.
+      reference: form.modelName,
+      repairType: form.repairType || null,
+      modelName: form.modelName,
+      estimatedCostCents,
       subject: form.subject,
       updates: form.updates,
       lastContactAt: form.lastContactAt,
@@ -179,6 +237,7 @@ export function RepairsManager({
 
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso + "T00:00:00").toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "—";
+  const eur = (cents: number) => (cents / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
   return (
     <div>
@@ -245,15 +304,17 @@ export function RepairsManager({
 
       {/* Table */}
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[68rem] border-collapse text-sm">
+        <table className="w-full min-w-[76rem] border-collapse text-sm">
           <thead>
             <tr className="border-b border-line text-left text-[0.56rem] tracking-[0.1em] text-muted uppercase">
+              <th className="py-2 pr-2">Nº</th>
               <th className="py-2 pr-3">1ª Visita</th>
               <th className="py-2 px-2">Operador</th>
               <th className="py-2 px-2">Estado</th>
               {multi && <th className="py-2 px-2">Loja</th>}
               <th className="py-2 px-2">Cliente</th>
-              <th className="py-2 px-2">Ref.</th>
+              <th className="py-2 px-2">Tipo / Modelo</th>
+              <th className="py-2 px-2 text-right">Custo est.</th>
               <th className="py-2 px-2">Assunto</th>
               <th className="py-2 px-2">Últ. contacto</th>
               <th className="py-2 px-2">Contacto</th>
@@ -263,13 +324,14 @@ export function RepairsManager({
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={multi ? 10 : 9} className="py-10 text-center text-sm text-muted">
+                <td colSpan={multi ? 12 : 11} className="py-10 text-center text-sm text-muted">
                   Nenhum processo encontrado.
                 </td>
               </tr>
             ) : (
               filtered.map((r) => (
                 <tr key={r.id} className="border-b border-line/60 align-top">
+                  <td className="py-3 pr-2 tabular-nums text-muted">{r.number}</td>
                   <td className="py-3 pr-3 tabular-nums whitespace-nowrap text-muted">{fmtDate(r.firstVisit || null)}</td>
                   <td className="py-3 px-2 font-medium text-ink whitespace-nowrap">{r.staff || "—"}</td>
                   <td className="py-3 px-2 whitespace-nowrap">
@@ -279,7 +341,15 @@ export function RepairsManager({
                   </td>
                   {multi && <td className="py-3 px-2 text-[0.72rem] text-muted whitespace-nowrap">{BOUTIQUE_LABEL[r.boutique]}</td>}
                   <td className="py-3 px-2 font-medium text-ink">{r.customerName}</td>
-                  <td className="py-3 px-2 text-muted">{r.reference}</td>
+                  <td className="py-3 px-2">
+                    {r.repairType
+                      ? <span className="inline-block rounded-sm bg-gold/12 px-2 py-0.5 text-[0.58rem] font-semibold tracking-wide text-[#8a6d0f] uppercase">{TYPE_LABEL[r.repairType] ?? r.repairType}</span>
+                      : <span className="text-[0.62rem] text-muted italic">por definir</span>}
+                    <span className="mt-1 block text-[0.8rem] text-ink">{r.modelName || r.reference || "—"}</span>
+                  </td>
+                  <td className="py-3 px-2 text-right tabular-nums text-muted whitespace-nowrap">
+                    {r.estimatedCostCents != null ? eur(r.estimatedCostCents) : "—"}
+                  </td>
                   <td className="py-3 px-2 max-w-[22rem] text-[0.82rem] text-ink/90">
                     <span className="line-clamp-2">{r.subject}</span>
                     {r.updates && <span className="mt-1 block text-[0.72rem] text-muted line-clamp-2">↳ {r.updates}</span>}
@@ -345,8 +415,17 @@ export function RepairsManager({
                 <Field label="Cliente *">
                   <input value={form.customerName} onChange={(e) => set("customerName", e.target.value)} className={inputCls} />
                 </Field>
-                <Field label="Referência / artigo *">
-                  <input value={form.reference} onChange={(e) => set("reference", e.target.value)} placeholder="Isqueiro L2 antigo" className={inputCls} />
+                <Field label="Tipo de reparação">
+                  <select value={form.repairType} onChange={(e) => set("repairType", e.target.value)} className={inputCls}>
+                    <option value="">— por definir —</option>
+                    {REPAIR_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Modelo da peça *">
+                  <input value={form.modelName} onChange={(e) => set("modelName", e.target.value)} placeholder="Isqueiro L2, Caneta Classique…" className={inputCls} />
+                </Field>
+                <Field label="Custo estimado (€)">
+                  <input type="number" min={0} step="0.01" value={form.estimatedCost} onChange={(e) => set("estimatedCost", e.target.value)} placeholder="0,00" className={inputCls} />
                 </Field>
                 <Field label="Assunto *" full>
                   <textarea value={form.subject} onChange={(e) => set("subject", e.target.value)} rows={2} className={inputCls} />
