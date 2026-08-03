@@ -37,6 +37,7 @@ export interface CreateSaleInput {
   repair?: RepairLineInput; // required for REPARACAO
   repairId?: string | null; // Repair record to close on success (REPARACAO)
   note?: string | null;
+  touristCard?: boolean; // cliente usou Cartão Turista (VENDA/DEVOLUCAO)
   originalSaleId?: string | null;
   userId?: string | null; // acting staff User.id for the audit row
 }
@@ -183,6 +184,7 @@ export async function createSale(input: CreateSaleInput) {
         netCents: netTotal,
         eciCommissionCents: eci,
         note: typeof input.note === "string" ? input.note.slice(0, 500) : null,
+        touristCard: input.touristCard === true,
         originalSaleId: input.originalSaleId ?? null,
       },
     });
@@ -284,6 +286,7 @@ async function createRepairSale(input: CreateSaleInput, operatorId: string) {
         netCents: net,
         eciCommissionCents: eci,
         note: typeof input.note === "string" ? input.note.slice(0, 500) : null,
+        touristCard: input.touristCard === true,
         repairId: repairIdToSet,
       },
     });

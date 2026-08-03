@@ -542,6 +542,7 @@ model Sale {
   netCents           Int      @default(0) // Σ V.Rec (gross / 1.23, ex-VAT)
   eciCommissionCents Int      @default(0) // netCents * 0.19 (ECI concession fee)
   note               String?
+  touristCard        Boolean  @default(false) // cliente usou Cartão Turista?
   // For a DEVOLUCAO, the original sale being reversed (optional).
   originalSaleId     String?
   // For a REPARACAO, the Repair record whose customer is picking up. Set

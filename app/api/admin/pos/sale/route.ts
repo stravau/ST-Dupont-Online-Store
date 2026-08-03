@@ -59,6 +59,7 @@ export async function POST(req: Request) {
         : undefined,
       repairId: typeof body.repairId === "string" ? body.repairId : null,
       note: typeof body.note === "string" ? body.note : null,
+      touristCard: body.touristCard === true,
       originalSaleId: typeof body.originalSaleId === "string" ? body.originalSaleId : null,
       userId,
     });

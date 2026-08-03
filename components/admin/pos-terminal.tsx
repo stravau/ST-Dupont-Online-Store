@@ -56,6 +56,7 @@ export function PosTerminal({
   const [type, setType] = useState<PosType>("VENDA");
   const [operator, setOperator] = useState("");
   const [note, setNote] = useState("");
+  const [touristCard, setTouristCard] = useState(false); // Cartão turista — default Não
   const [lines, setLines] = useState<Line[]>([]);
   const [scan, setScan] = useState("");
   const [busy, setBusy] = useState(false);
@@ -222,6 +223,7 @@ export function PosTerminal({
               operatorInitials: operator,
               type,
               note: note.trim() || undefined,
+              touristCard,
               items: lines.map((l) => ({
                 ean: l.ean ?? undefined,
                 sku: l.ean ? undefined : l.sku,
@@ -247,6 +249,7 @@ export function PosTerminal({
           setLines([]);
         }
         setNote("");
+        setTouristCard(false);
       }
     } catch {
       setFlash({ kind: "err", msg: "Erro de rede ao registar" });
@@ -485,10 +488,31 @@ export function PosTerminal({
             value={note}
             onChange={(e) => setNote(e.target.value.slice(0, 500))}
             rows={2}
-            placeholder="Ex.: cartão turista, cliente pediu factura, etc."
+            placeholder="Ex.: cliente pediu factura, etc."
             className="mt-2 w-full resize-y border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-gold"
           />
         </label>
+
+        {/* Cartão turista — Sim/Não, Não por defeito. Só nas vendas/devoluções. */}
+        {type !== "REPARACAO" && (
+          <div className="mt-4 flex items-center justify-between">
+            <span className="overline text-[0.55rem] text-muted">Cartão turista</span>
+            <div className="flex rounded-sm border border-line p-0.5">
+              {([["Não", false], ["Sim", true]] as const).map(([label, val]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setTouristCard(val)}
+                  className={`px-4 py-1 text-[0.65rem] tracking-[0.14em] uppercase transition-colors ${
+                    touristCard === val ? "bg-ink text-cream" : "text-ink hover:text-gold"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <dl className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
           <div className="flex justify-between"><dt className="text-muted">Bruto (c/ IVA)</dt><dd className="tabular-nums">{eur(grossTotal)}</dd></div>

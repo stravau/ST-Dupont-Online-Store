@@ -6,40 +6,51 @@ import { BOUTIQUE_LABEL } from "@/components/admin/boutique-scope";
 
 type MovType = "ENTRADA" | "SAIDA";
 
+// A scanned-but-not-yet-registered article, sitting in the basket awaiting
+// confirmation — mirrors the sales terminal.
+interface Line {
+  sku: string;
+  ean: string | null;
+  desc: string;
+  brand: string;
+  unitPriceCents: number; // PVP, shown for reference
+  quantity: number;
+}
+
 interface HistoryEntry {
   id: string;
   at: string; // "HH:MM"
   type: MovType;
   sku: string;
-  ean: string | null;
   desc: string;
-  brand: string;
   quantity: number;
   stockBefore: number;
   stockAfter: number;
-  boutique: BoutiqueCode;
 }
 
+const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 function hhmm(d = new Date()) {
   return d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });
 }
 
-// Scanner UI for stock intake / outtake — one scan = one signed movement.
-// Left: scan input + tab (Entrada / Saída) + boutique + quantity + note.
-// Right: chronological session history (current tab only, wipes on reload —
-// the DB has the audit trail if you need to go back further).
+// Stock intake / outtake scanner — same flow as sales: each scan drops the
+// article into a basket (stand-by, with PVP + editable quantity); nothing is
+// written until "Registar entrada / saída". Left: scan + basket. Right: the
+// session log of what has been committed + running totals.
 export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) {
   const [boutique, setBoutique] = useState<BoutiqueCode>(boutiques[0]);
   const [type, setType] = useState<MovType>("ENTRADA");
   const [scan, setScan] = useState("");
-  const [quantity, setQuantity] = useState<number>(1);
   const [note, setNote] = useState("");
+  const [lines, setLines] = useState<Line[]>([]);
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const scanRef = useRef<HTMLInputElement>(null);
   const refocus = () => setTimeout(() => scanRef.current?.focus(), 0);
+
+  const basketUnits = useMemo(() => lines.reduce((s, l) => s + l.quantity, 0), [lines]);
 
   const totals = useMemo(() => {
     const t = { entradas: 0, saidas: 0, unidades: 0 };
@@ -50,64 +61,106 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
     return t;
   }, [history]);
 
-  const submit = useCallback(
+  // Scan → resolve the article and drop it in the basket (bump qty if already
+  // there). Nothing is committed here.
+  const addByCode = useCallback(
     async (raw: string) => {
       const code = raw.trim();
       if (!code) return;
       setScan("");
-      if (busy) return;
-      setBusy(true);
-      setFlash(null);
+      const existing = lines.find((l) => l.ean === code || l.sku.toUpperCase() === code.toUpperCase());
+      if (existing) {
+        setLines((ls) => ls.map((l) => (l === existing ? { ...l, quantity: l.quantity + 1 } : l)));
+        setFlash({ kind: "ok", msg: `+1 ${existing.sku}` });
+        refocus();
+        return;
+      }
+      const param = /^\d{8}$|^\d{13}$/.test(code) ? `ean=${encodeURIComponent(code)}` : `sku=${encodeURIComponent(code)}`;
       try {
-        const payload: Record<string, unknown> = {
-          boutique,
-          type,
-          quantity,
-          note: note.trim() || undefined,
-        };
-        if (/^\d{8}$|^\d{13}$/.test(code)) payload.ean = code;
-        else payload.sku = code;
+        const res = await fetch(`/api/admin/pos/scan?${param}&boutique=${boutique}`);
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          setFlash({ kind: "err", msg: `Não encontrado: ${code}` });
+          refocus();
+          return;
+        }
+        const v = data.variant;
+        const name = (v.name?.pt ?? v.name?.en ?? v.sku) as string;
+        const pName = (v.product?.name?.pt ?? v.product?.name?.en ?? "") as string;
+        setLines((ls) => [
+          ...ls,
+          {
+            sku: v.sku,
+            ean: v.ean,
+            desc: `${pName} ${name}`.trim() || v.sku,
+            brand: (v.brand as string) ?? "S.T. Dupont",
+            unitPriceCents: v.priceCents ?? 0,
+            quantity: 1,
+          },
+        ]);
+        setFlash({ kind: "ok", msg: `Adicionado ${v.sku}` });
+      } catch {
+        setFlash({ kind: "err", msg: "Erro de rede ao ler o código" });
+      }
+      refocus();
+    },
+    [lines, boutique],
+  );
 
+  const setQty = (i: number, q: number) =>
+    setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, quantity: Math.max(1, q || 1) } : l)));
+  const removeLine = (i: number) => setLines((ls) => ls.filter((_, idx) => idx !== i));
+
+  // Register the whole basket — one movement per line. Sequential so a mid-list
+  // failure still commits (and reports) the ones that worked.
+  const register = useCallback(async () => {
+    if (busy) return;
+    if (lines.length === 0) { setFlash({ kind: "err", msg: "Sem artigos — lê um código primeiro" }); return; }
+    setBusy(true);
+    setFlash(null);
+    let ok = 0;
+    const failed: string[] = [];
+    const committed: HistoryEntry[] = [];
+    for (const l of lines) {
+      try {
         const res = await fetch("/api/admin/movimentos", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            boutique,
+            type,
+            quantity: l.quantity,
+            note: note.trim() || undefined,
+            ...(l.ean ? { ean: l.ean } : { sku: l.sku }),
+          }),
         });
         const data = await res.json();
-        if (!res.ok || !data.ok) {
-          setFlash({ kind: "err", msg: data.error ?? "Falha ao registar movimento" });
-        } else {
-          setFlash({ kind: "ok", msg: `${type === "ENTRADA" ? "Entrada" : "Saída"} · ${data.article.sku}` });
-          setHistory((prev) => [
-            {
-              id: data.movementId,
-              at: hhmm(),
-              type,
-              sku: data.article.sku,
-              ean: data.article.ean,
-              desc: data.article.desc,
-              brand: data.article.brand,
-              quantity,
-              stockBefore: data.stockBefore,
-              stockAfter: data.stockAfter,
-              boutique,
-            },
-            ...prev,
-          ].slice(0, 100));
-        }
+        if (!res.ok || !data.ok) { failed.push(`${l.sku}: ${data.error ?? "falha"}`); continue; }
+        ok++;
+        committed.push({
+          id: data.movementId, at: hhmm(), type, sku: data.article.sku, desc: data.article.desc,
+          quantity: l.quantity, stockBefore: data.stockBefore, stockAfter: data.stockAfter,
+        });
       } catch {
-        setFlash({ kind: "err", msg: "Erro de rede ao registar" });
-      } finally {
-        setBusy(false);
-        refocus();
+        failed.push(`${l.sku}: erro de rede`);
       }
-    },
-    [boutique, type, quantity, note, busy],
-  );
+    }
+    if (committed.length) setHistory((prev) => [...committed.reverse(), ...prev].slice(0, 200));
+    if (failed.length === 0) {
+      setFlash({ kind: "ok", msg: `${type === "ENTRADA" ? "Entrada" : "Saída"} registada · ${ok} artigos` });
+      setLines([]);
+      setNote("");
+    } else {
+      setLines(lines.filter((l) => failed.some((f) => f.startsWith(l.sku)))); // keep only the ones that failed
+      setFlash({ kind: "err", msg: `${ok} registados · ${failed.length} falharam (${failed[0]})` });
+    }
+    setBusy(false);
+    refocus();
+  }, [busy, lines, boutique, type, note]);
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
-      {/* Left — controls + scanner */}
+      {/* Left — controls + scanner + basket */}
       <div className="space-y-5">
         {boutiques.length > 1 && (
           <div className="inline-flex rounded-sm border border-line p-0.5">
@@ -115,7 +168,7 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
               <button
                 key={b}
                 type="button"
-                onClick={() => { setBoutique(b); setHistory([]); }}
+                onClick={() => { setBoutique(b); setLines([]); setHistory([]); }}
                 className={`px-4 py-1.5 text-xs tracking-[0.15em] uppercase transition-colors ${
                   b === boutique ? "bg-ink text-cream" : "text-ink hover:text-gold"
                 }`}
@@ -148,47 +201,88 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
             autoFocus
             value={scan}
             onChange={(e) => setScan(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void submit(scan); } }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void addByCode(scan); } }}
             inputMode="numeric"
             placeholder="Aponta o leitor ou escreve o EAN / REF e Enter"
             className="mt-2 w-full border border-line bg-paper px-4 py-3 font-mono text-lg tabular-nums text-ink outline-none focus:border-gold"
           />
         </label>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="overline text-[0.55rem] text-muted">Quantidade</span>
-            <input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
-              className="mt-2 w-full border border-line bg-paper px-4 py-2.5 text-lg tabular-nums text-ink outline-none focus:border-gold"
-            />
-          </label>
-          <label className="block">
-            <span className="overline text-[0.55rem] text-muted">Nota (opcional)</span>
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value.slice(0, 300))}
-              placeholder="Ex.: fornecedor, transferência LIS→VNG"
-              className="mt-2 w-full border border-line bg-paper px-4 py-2.5 text-sm text-ink outline-none focus:border-gold"
-            />
-          </label>
-        </div>
-
         {flash && (
-          <p className={`text-sm ${flash.kind === "ok" ? "text-[#3b7551]" : "text-[#b94a3a]"}`}>
-            {flash.msg}
-          </p>
+          <p className={`text-sm ${flash.kind === "ok" ? "text-[#3b7551]" : "text-[#b94a3a]"}`}>{flash.msg}</p>
         )}
+
+        {/* Basket — scanned articles awaiting confirmation */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[32rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-[0.6rem] tracking-[0.14em] text-muted uppercase">
+                <th className="py-2 pr-3">Artigo</th>
+                <th className="py-2 px-2 text-right">PVP</th>
+                <th className="py-2 px-2 text-center">Qtd</th>
+                <th className="py-2 pl-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.length === 0 ? (
+                <tr><td colSpan={4} className="py-8 text-center text-muted">Sem artigos — lê um código para começar.</td></tr>
+              ) : (
+                lines.map((l, i) => (
+                  <tr key={`${l.sku}-${i}`} className="border-b border-line/60 align-middle">
+                    <td className="py-2.5 pr-3">
+                      <p className="font-medium text-ink">
+                        {l.sku}
+                        {l.brand && l.brand !== "S.T. Dupont" && (
+                          <span className="ml-2 inline-block border border-gold/60 px-1.5 py-0.5 align-middle text-[0.55rem] tracking-[0.12em] text-gold uppercase">{l.brand}</span>
+                        )}
+                      </p>
+                      <p className="text-[0.72rem] text-muted">{l.desc}</p>
+                    </td>
+                    <td className="py-2.5 px-2 text-right tabular-nums text-muted">{eur(l.unitPriceCents)}</td>
+                    <td className="py-2.5 px-2 text-center">
+                      <input type="number" min={1} value={l.quantity}
+                        onChange={(e) => setQty(i, parseInt(e.target.value, 10))}
+                        className="w-16 border border-line bg-paper px-2 py-1 text-center tabular-nums outline-none focus:border-gold" />
+                    </td>
+                    <td className="py-2.5 pl-2 text-right">
+                      <button type="button" onClick={() => removeLine(i)} aria-label="Remover"
+                        className="text-muted transition-colors hover:text-[#b94a3a]">✕</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Right — session history */}
+      {/* Right — confirm panel + session history */}
       <aside className="h-fit border border-line bg-paper p-5 lg:sticky lg:top-6">
-        <p className="overline text-[0.55rem] text-muted">Sessão actual</p>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[0.72rem]">
+        <label className="block">
+          <span className="overline text-[0.55rem] text-muted">Nota (opcional)</span>
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value.slice(0, 300))}
+            placeholder="Ex.: fornecedor, transferência LIS→VNG"
+            className="mt-2 w-full border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-gold"
+          />
+        </label>
+
+        <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4 text-sm">
+          <span className="text-muted">No cesto</span>
+          <span className="tabular-nums text-ink">{lines.length} artigos · {basketUnits} un.</span>
+        </div>
+
+        <button type="button" onClick={register} disabled={busy || lines.length === 0}
+          className={`mt-4 w-full py-3 text-xs tracking-[0.2em] text-cream uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+            type === "ENTRADA" ? "bg-[#3b7551] hover:bg-[#2f5f42]" : "bg-[#b94a3a] hover:bg-[#9d3e30]"
+          }`}>
+          {busy ? "A registar…" : type === "ENTRADA" ? "Registar entrada" : "Registar saída"}
+        </button>
+
+        {/* Session totals */}
+        <div className="mt-6 grid grid-cols-3 gap-2 border-t border-line pt-4 text-center text-[0.72rem]">
           <div>
             <p className="font-serif text-xl text-[#3b7551] tabular-nums">{totals.entradas}</p>
             <p className="text-[0.55rem] tracking-[0.12em] text-muted uppercase">Entradas</p>
@@ -203,11 +297,9 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
           </div>
         </div>
 
-        <div className="mt-4 max-h-[28rem] overflow-y-auto border-t border-line pt-3">
+        <div className="mt-4 max-h-[24rem] overflow-y-auto border-t border-line pt-3">
           {history.length === 0 ? (
-            <p className="py-6 text-center text-[0.72rem] text-muted">
-              Sem movimentos ainda — lê um código para começar.
-            </p>
+            <p className="py-6 text-center text-[0.72rem] text-muted">Nada registado nesta sessão ainda.</p>
           ) : (
             <ul className="space-y-2">
               {history.map((h) => (
