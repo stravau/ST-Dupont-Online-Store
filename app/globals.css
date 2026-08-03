@@ -836,17 +836,20 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   font-size: 8.5pt;
   line-height: 1.25;
 }
-/* Marca de corte entre as duas vias — a impressora corta no fim de cada
-   trabalho, mas se saírem juntas isto diz onde separar à mão. */
-.copy-cut {
-  width: var(--roll-width);
-  border-top: 1px dashed #000;
-  margin: 4mm 0;
-  padding-top: 1mm;
-  font-size: 6.5pt;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-align: center;
+/* Logo no talão — largura relativa ao rolo para não estourar os 72mm.
+   Máximo generoso: o papel térmico imprime a 1 bit, e uma marca pequena
+   de mais fica com as hastes finas esbatidas. */
+.ticket-logo {
+  width: 44mm !important;
+  max-width: 60%;
+  height: auto !important;
+}
+
+/* Separador entre as duas vias — só no ecrã. No papel elas nunca coexistem:
+   são dois trabalhos de impressão distintos, e o cortador da impressora
+   separa-os. */
+.copy-gap {
+  height: 1.5rem;
 }
 
 @media screen {
@@ -886,6 +889,13 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
     outline: none;
   }
   .no-print {
+    display: none !important;
+  }
+  /* Um talão por trabalho de impressão. O botão põe data-print-copy no
+     <body> antes de cada window.print(); sem o atributo (Ctrl+P directo do
+     browser) saem os dois seguidos, que continua a ser um resultado válido. */
+  body[data-print-copy="cliente"] .ticket-copy[data-copy="loja"],
+  body[data-print-copy="loja"] .ticket-copy[data-copy="cliente"] {
     display: none !important;
   }
   @page {

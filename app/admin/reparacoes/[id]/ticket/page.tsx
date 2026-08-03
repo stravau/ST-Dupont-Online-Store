@@ -5,6 +5,7 @@ import { boutiquesForRole } from "@/components/admin/boutique-scope";
 import { STORE_LIS, STORE_VNG } from "@/lib/store-info";
 import { REPAIR_TERMS, REPAIR_TYPE_LABEL, ticketRef } from "@/lib/repair-ticket";
 import { PrintButton } from "./print-button";
+import { Logo } from "@/components/logo";
 import type { BoutiqueCode } from "@/lib/pos";
 
 export const dynamic = "force-dynamic";
@@ -45,15 +46,17 @@ export default async function RepairTicketPage({ params }: { params: Promise<{ i
         <div>
           <p className="text-[0.6rem] tracking-[0.16em] text-muted uppercase">Ficha de assistência</p>
           <p className="font-mono text-sm text-ink">{ref}</p>
-          <p className="mt-1 text-[0.62rem] text-muted">Rolo 80&nbsp;mm · sai a via do cliente e a via da loja</p>
+          <p className="mt-1 text-[0.62rem] text-muted">
+            Rolo 80&nbsp;mm · dois talões separados (o cortador da impressora divide-os)
+          </p>
         </div>
         <PrintButton />
       </div>
 
       <div className="ticket-roll">
-        <Copy repair={repair} store={store} ref_={ref} full />
-        <div className="copy-cut">— cortar —</div>
-        <Copy repair={repair} store={store} ref_={ref} />
+        <Copy repair={repair} store={store} ref_={ref} which="cliente" />
+        <div className="copy-gap no-print" />
+        <Copy repair={repair} store={store} ref_={ref} which="loja" />
       </div>
     </>
   );
@@ -65,21 +68,29 @@ function Copy({
   repair,
   store,
   ref_,
-  full = false,
+  which,
 }: {
   repair: RepairRecord;
   store: typeof STORE_LIS;
   ref_: string;
-  full?: boolean;
+  which: "cliente" | "loja";
 }) {
+  // A via do cliente leva as condições de prestação de assistência; a da loja
+  // vai agrafada à peça e não precisa do texto legal — poupa meio metro de
+  // papel em cada processo.
+  const full = which === "cliente";
   const warranty =
     repair.underWarranty === true ? "SIM" : repair.underWarranty === false ? "NÃO" : "—";
 
   return (
-    <section className="ticket-copy">
+    <section className="ticket-copy" data-copy={which}>
       <div className="text-center">
-        <p className="text-[11pt] font-bold tracking-[0.18em]">ST DUPONT</p>
-        <p className="text-[6.5pt] leading-tight">{store.venue}</p>
+        {/* Logo oficial. A arte é branca, por isso vai invertida para preto —
+            é o mesmo que o resto do site faz sobre fundos claros. Em papel
+            térmico convém ficar generoso no tamanho: linhas finas de mais
+            saem esbatidas na impressão a 1 bit. */}
+        <Logo variant="dark" width={150} className="ticket-logo mx-auto" />
+        <p className="mt-1 text-[6.5pt] leading-tight">{store.venue}</p>
         <p className="text-[6.5pt] leading-tight">Tlf: {store.phone}</p>
         <p className="text-[6.5pt] leading-tight">{store.email}</p>
       </div>
