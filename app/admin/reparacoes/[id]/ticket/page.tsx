@@ -123,9 +123,11 @@ function Copy({
           <p className="text-[6.5pt] font-bold tracking-[0.1em] uppercase">
             Condições de prestação de assistência
           </p>
-          <ol className="mt-1 list-decimal space-y-[1.5px] pl-3">
+          {/* 6.8pt é o mínimo que uma térmica de 203 dpi ainda resolve com
+              nitidez; abaixo disso as hastes das letras caem entre pontos. */}
+          <ol className="mt-1 list-decimal space-y-[2px] pl-3">
             {REPAIR_TERMS.map((t) => (
-              <li key={t.title} className="text-[5.8pt] leading-[1.2]">
+              <li key={t.title} className="text-[6.8pt] leading-[1.25]">
                 <span className="font-bold">{t.title}:</span> {t.body}
               </li>
             ))}
