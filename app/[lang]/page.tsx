@@ -192,7 +192,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <p className="mt-4 text-muted md:text-lg">{dict.home.findGiftSub}</p>
             <div className="gold-rule mx-auto mt-7" />
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-4 lg:gap-3">
             {tiles.map((t, i) => (
               <Link
                 key={t.key}
@@ -239,11 +239,21 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       {/* Em Destaque — mesma mecânica de carrossel, conteúdo escolhido a dedo
           no admin. Só existe se houver selecção. */}
       {featured.length > 0 && (
-        <section className="bg-paper">
-          <div className="mx-auto max-w-7xl px-6 pt-20 pb-24">
+        // Fundo Géode. A imagem entra por CSS e não por <Image> de propósito:
+        // se o ficheiro não estiver lá, a secção fica no navy de base em vez
+        // de rebentar. bg-ink é essa base e também o que se vê nos bordos se
+        // a foto não cobrir tudo.
+        <section
+          className="relative bg-ink bg-cover bg-center bg-no-repeat text-cream"
+          style={{ backgroundImage: "url(/ss26/geode-bg.jpg)" }}
+        >
+          {/* Véu escuro: a geoda tem zonas claras a meio e o texto cream
+              desaparecia por cima delas. */}
+          <div aria-hidden className="absolute inset-0 bg-ink/55" />
+          <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24">
             <div className="reveal text-center">
-              <p className="overline">{dict.sections.featured}</p>
-              <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.featuredSub}</h2>
+              <p className="overline text-gold-soft">{dict.sections.featured}</p>
+              <h2 className="mt-5 font-serif text-4xl text-cream">{dict.sections.featuredSub}</h2>
               <div className="gold-rule mx-auto mt-7" />
             </div>
             <div className="reveal mt-14">
