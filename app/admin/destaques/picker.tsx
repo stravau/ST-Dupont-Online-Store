@@ -20,6 +20,9 @@ export interface PickerItem {
 
 const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 const MAX = 24;
+// 25 filas da grelha. A grelha vai até 3 colunas no ecrã largo, portanto
+// 25 × 3 = 75 artigos por página.
+const PER_PAGE = 75;
 
 // Duas colunas: à esquerda o catálogo com pesquisa, à direita a selecção pela
 // ordem em que vai aparecer no site. Escolher é um clique; ordenar é subir /
@@ -40,7 +43,15 @@ export function FeaturedPicker({
   const [selected, setSelected] = useState<string[]>(initial);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
+  const [stockFilter, setStockFilter] = useState<"" | "com" | "sem">("");
+  const [page, setPage] = useState(1);
   const [saving, setSaving] = useState(false);
+
+  // Mudar de filtro volta à primeira página — senão ficava-se numa página que
+  // já não existe no resultado novo e a lista aparecia vazia sem razão óbvia.
+  function reset<T>(set: (v: T) => void) {
+    return (v: T) => { set(v); setPage(1); };
+  }
 
   const bySku = useMemo(() => new Map(items.map((i) => [i.sku, i])), [items]);
   const chosen = useMemo(
@@ -61,6 +72,8 @@ export function FeaturedPicker({
     const term = q.trim().toLowerCase();
     return items.filter((i) => {
       if (cat && i.category !== cat) return false;
+      if (stockFilter === "com" && i.stock <= 0) return false;
+      if (stockFilter === "sem" && i.stock > 0) return false;
       if (!term) return true;
       return (
         i.sku.toLowerCase().includes(term) ||
@@ -69,7 +82,13 @@ export function FeaturedPicker({
         i.collection.toLowerCase().includes(term)
       );
     });
-  }, [items, q, cat]);
+  }, [items, q, cat, stockFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  // Clamp em vez de deixar a página passar do fim: apagar o texto da pesquisa
+  // encolhe o resultado e a página actual podia ficar fora de alcance.
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
 
   function toggle(sku: string) {
     setSelected((prev) => {
@@ -129,7 +148,7 @@ export function FeaturedPicker({
             <span className="overline mb-1.5 block text-[0.55rem] text-muted">Pesquisar</span>
             <input
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => reset(setQ)(e.target.value)}
               placeholder="REF, nome, colecção…"
               className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
             />
@@ -138,20 +157,33 @@ export function FeaturedPicker({
             <span className="overline mb-1.5 block text-[0.55rem] text-muted">Categoria</span>
             <select
               value={cat}
-              onChange={(e) => setCat(e.target.value)}
+              onChange={(e) => reset(setCat)(e.target.value)}
               className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
             >
               <option value="">Todas</option>
               {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
+          <label className="min-w-[9rem]">
+            <span className="overline mb-1.5 block text-[0.55rem] text-muted">Stock</span>
+            <select
+              value={stockFilter}
+              onChange={(e) => reset(setStockFilter)(e.target.value as "" | "com" | "sem")}
+              className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              <option value="">Todos</option>
+              <option value="com">Em stock</option>
+              <option value="sem">Esgotado</option>
+            </select>
+          </label>
           <p className="ml-auto text-[0.7rem] text-muted tabular-nums">
             {filtered.length.toLocaleString("pt-PT")} artigos
+            {totalPages > 1 ? ` · página ${safePage} / ${totalPages}` : ""}
           </p>
         </div>
 
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
-          {filtered.slice(0, 120).map((i) => {
+          {pageItems.map((i) => {
             const on = selected.includes(i.sku);
             return (
               <li key={i.sku}>
@@ -197,10 +229,34 @@ export function FeaturedPicker({
             );
           })}
         </ul>
-        {filtered.length > 120 && (
-          <p className="mt-3 text-[0.7rem] text-muted">
-            A mostrar os primeiros 120 de {filtered.length.toLocaleString("pt-PT")} — usa a pesquisa para chegar ao resto.
+        {pageItems.length === 0 && (
+          <p className="mt-4 border border-dashed border-line px-3 py-8 text-center text-[0.75rem] text-muted">
+            Nenhum artigo com estes filtros.
           </p>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-5 flex items-center justify-between text-xs">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="border border-line bg-paper px-3 py-2 tracking-[0.18em] uppercase transition-colors hover:border-gold disabled:opacity-30"
+            >
+              ← Anterior
+            </button>
+            <span className="text-muted tabular-nums">
+              Página {safePage} de {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+              className="border border-line bg-paper px-3 py-2 tracking-[0.18em] uppercase transition-colors hover:border-gold disabled:opacity-30"
+            >
+              Seguinte →
+            </button>
+          </div>
         )}
       </section>
 
