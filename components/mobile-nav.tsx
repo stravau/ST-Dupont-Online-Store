@@ -566,7 +566,12 @@ export function MobileNav({
                           <li key={store.key} className="border-t border-line/60">
                             <Tag
                               href={isCall ? store.phoneHref : `/${lang}/loja#${store.contactAnchor}`}
-                              onClick={() => { setSheet(null); close(); }}
+                              // Ligar NÃO fecha o menu — mesmo comportamento do
+                              // botão "Telefonar" do inquiry-modal. Se o cliente
+                              // desistir da chamada, volta ao sítio onde estava
+                              // em vez de encontrar o menu fechado. Ir para a
+                              // loja é navegação a sério, essa fecha.
+                              onClick={isCall ? undefined : () => { setSheet(null); close(); }}
                               className="flex items-center justify-between gap-4 py-4 text-ink transition-colors hover:text-gold"
                             >
                               <span className="min-w-0">
