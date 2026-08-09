@@ -7,7 +7,17 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 // re-fetches that window. The export button links to the same window's
 // .xlsx. Same-day export is still possible (from === to) and produces a
 // day-shaped report; wider ranges get a period-shaped one.
-export function ReportDatePicker({ from, to }: { from: string; to: string }) {
+export function ReportDatePicker({
+  from,
+  to,
+  // A página de Relatórios traz o seu próprio botão de exportar (com escolha
+  // de formato), por isso desliga o daqui em vez de mostrar dois.
+  showExport = true,
+}: {
+  from: string;
+  to: string;
+  showExport?: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
@@ -47,13 +57,15 @@ export function ReportDatePicker({ from, to }: { from: string; to: string }) {
           className="mt-2 block rounded-md border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-gold"
         />
       </label>
-      <a
-        href={`/api/admin/reports/export?from=${from}&to=${to}${exportQs}`}
-        download
-        className="inline-flex items-center gap-2 rounded-md bg-ink px-5 py-2.5 text-[0.7rem] tracking-[0.18em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
-      >
-        Exportar Excel ↓
-      </a>
+      {showExport && (
+        <a
+          href={`/api/admin/reports/export?from=${from}&to=${to}${exportQs}`}
+          download
+          className="inline-flex items-center gap-2 rounded-md bg-ink px-5 py-2.5 text-[0.7rem] tracking-[0.18em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
+        >
+          Exportar Excel ↓
+        </a>
+      )}
     </div>
   );
 }

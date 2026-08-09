@@ -372,3 +372,66 @@ export function monthRange(ym: string): { from: Date; to: Date; label: string } 
   const to = new Date(y, m, 0, 23, 59, 59, 999);
   return { from, to, label: from.toLocaleDateString("pt-PT", { month: "long", year: "numeric" }) };
 }
+
+// Ranking de artigos vendidos no período — uma linha por REF, do mais
+// vendido para o menos. Ao contrário de bestSellers(), que só conta VENDA e
+// serve a rail da montra, este abate as DEVOLUÇÕES: é o número que se leva a
+// uma reunião, não uma vitrina.
+//
+// Agrupa por SKU e não por (sku, descrição) porque a descrição é um snapshot
+// que pode ter mudado ao longo do tempo — agrupar pelas duas partiria o mesmo
+// artigo em várias linhas. Fica a descrição mais recente.
+export interface SoldProduct {
+  sku: string;
+  desc: string;
+  quantity: number; // venda − devolução
+  grossCents: number; // idem, com sinal
+}
+
+export async function soldProducts(
+  boutiques: BoutiqueCode[],
+  from: Date,
+  to: Date,
+): Promise<SoldProduct[]> {
+  const items = await prisma.saleItem.findMany({
+    where: {
+      sale: { boutique: { in: boutiques }, soldAt: { gte: from, lte: to }, voidedAt: null },
+    },
+    select: {
+      sku: true,
+      descSnapshot: true,
+      quantity: true,
+      grossCents: true,
+      sale: { select: { type: true, soldAt: true } },
+    },
+  });
+
+  const map = new Map<string, SoldProduct & { lastAt: number }>();
+  for (const it of items) {
+    const sign = it.sale.type === "DEVOLUCAO" ? -1 : 1;
+    const at = it.sale.soldAt.getTime();
+    const cur = map.get(it.sku);
+    if (!cur) {
+      map.set(it.sku, {
+        sku: it.sku,
+        desc: it.descSnapshot,
+        quantity: sign * it.quantity,
+        grossCents: sign * it.grossCents,
+        lastAt: at,
+      });
+      continue;
+    }
+    cur.quantity += sign * it.quantity;
+    cur.grossCents += sign * it.grossCents;
+    // Descrição mais recente ganha — a antiga pode ser de antes de uma
+    // correcção de nome no catálogo.
+    if (at > cur.lastAt) {
+      cur.desc = it.descSnapshot;
+      cur.lastAt = at;
+    }
+  }
+
+  return [...map.values()]
+    .map(({ lastAt: _lastAt, ...r }) => r)
+    .sort((a, b) => b.quantity - a.quantity || b.grossCents - a.grossCents);
+}

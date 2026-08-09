@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { currentStaff } from "@/lib/admin-auth";
 import { assertRateLimit } from "@/lib/admin-api";
 import { isStaffRole } from "@/lib/pos";
-import { saleLines, rangeWindow } from "@/lib/pos-reports";
-import { buildDailySalesWorkbook } from "@/lib/report-export";
+import { saleLines, soldProducts, rangeWindow } from "@/lib/pos-reports";
+import { buildDailySalesWorkbook, buildSoldProductsWorkbook } from "@/lib/report-export";
 import { boutiquesForRole, resolveScope } from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
@@ -45,10 +45,16 @@ export async function GET(req: Request) {
   const toDate = parseYmd(url.searchParams.get("to")) ?? fromDate;
 
   const { from, to } = rangeWindow(fromDate, toDate);
-  const lines = await saleLines(boutiques, from, to);
-  const buf = await buildDailySalesWorkbook({ from, to }, boutiques, lines, {
-    showCommission,
-  });
+  // ?modo=produtos → ranking por artigo (REF · descrição · qtd · valor, com
+  // total). Sem o parâmetro mantém-se o movimento linha-a-linha de sempre,
+  // para os links antigos não mudarem de comportamento.
+  const modo = url.searchParams.get("modo");
+  const buf =
+    modo === "produtos"
+      ? await buildSoldProductsWorkbook({ from, to }, boutiques, await soldProducts(boutiques, from, to))
+      : await buildDailySalesWorkbook({ from, to }, boutiques, await saleLines(boutiques, from, to), {
+          showCommission,
+        });
 
   const ymd = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -57,9 +63,10 @@ export async function GET(req: Request) {
   // depois Gaia do mesmo dia dava dois ficheiros com o mesmo nome e o segundo
   // aparecia como "(1)" na pasta de downloads.
   const suffix = boutiques.length === 1 ? `-${boutiques[0].toLowerCase()}` : "";
+  const base = modo === "produtos" ? "produtos-vendidos" : "relatorio-vendas";
   const filename = sameDay
-    ? `relatorio-vendas-${ymd(fromDate)}${suffix}.xlsx`
-    : `relatorio-vendas-${ymd(fromDate)}_${ymd(toDate)}${suffix}.xlsx`;
+    ? `${base}-${ymd(fromDate)}${suffix}.xlsx`
+    : `${base}-${ymd(fromDate)}_${ymd(toDate)}${suffix}.xlsx`;
 
   return new NextResponse(new Uint8Array(buf), {
     status: 200,

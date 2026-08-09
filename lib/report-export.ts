@@ -172,3 +172,102 @@ export async function buildDailySalesWorkbook(
   const buf = await wb.xlsx.writeBuffer();
   return Buffer.from(buf);
 }
+
+// ---------------------------------------------------------------------------
+// "Produtos vendidos" — o ranking, não o movimento
+// ---------------------------------------------------------------------------
+// Uma linha por artigo, do mais vendido para o menos, com o total em baixo.
+// Complementa o Mov_POS_Loja acima: aquele responde a "o que se passou ao
+// longo do período", este a "o que é que saiu mais".
+//
+// Devoluções entram com sinal negativo (é a mesma convenção do resto dos
+// relatórios), portanto um artigo devolvido mais vezes do que vendido pode
+// aparecer com quantidade negativa — o que é a verdade e não um erro.
+export interface SoldProductRow {
+  sku: string;
+  desc: string;
+  quantity: number;
+  grossCents: number;
+}
+
+export async function buildSoldProductsWorkbook(
+  range: { from: Date; to: Date },
+  boutiques: BoutiqueCode[],
+  rows: SoldProductRow[],
+): Promise<Buffer> {
+  const HDR = ["REF", "DESCRIÇÃO", "QTD VENDIDA", "VALOR VENDIDO"];
+  const W = [18, 52, 14, 16];
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "S.T. Dupont · Painel";
+  wb.created = range.from;
+  const ws = wb.addWorksheet("Produtos vendidos", {
+    views: [{ state: "frozen", ySplit: 2 }],
+    properties: { defaultRowHeight: 16 },
+  });
+  W.forEach((w, i) => (ws.getColumn(i + 1).width = w));
+
+  ws.mergeCells(1, 1, 1, HDR.length);
+  const sameDay = ddmmyyyy(range.from) === ddmmyyyy(range.to);
+  const dLabel = sameDay
+    ? range.from.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+    : `${ddmmyyyy(range.from)} → ${ddmmyyyy(range.to)}`;
+  const where = boutiques.map((b) => BOUTIQUE_NAME[b]).join(" + ");
+  const title = ws.getCell(1, 1);
+  title.value = `S.T. DUPONT · Produtos Vendidos · ${dLabel} · ${where}`;
+  title.font = { bold: true, size: 12, color: { argb: GOLD } };
+  title.alignment = { vertical: "middle" };
+  ws.getRow(1).height = 24;
+
+  const header = ws.getRow(2);
+  header.values = HDR;
+  header.height = 20;
+  header.eachCell((c) => {
+    c.font = { bold: true, size: 9, color: { argb: CREAM } };
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: INK } };
+    c.alignment = { vertical: "middle", horizontal: "center" };
+    c.border = { bottom: { style: "thin", color: { argb: INK } } };
+  });
+
+  let r = 3;
+  for (const row of rows) {
+    const line = ws.getRow(r);
+    line.getCell(1).value = row.sku;
+    line.getCell(2).value = row.desc;
+    line.getCell(3).value = row.quantity;
+    line.getCell(4).value = row.grossCents / 100;
+    line.getCell(1).font = { size: 9, name: "Consolas" };
+    line.getCell(2).font = { size: 9 };
+    line.getCell(3).alignment = { horizontal: "center" };
+    line.getCell(4).numFmt = MONEY;
+    // Quantidade negativa = devolveram mais do que compraram no período.
+    // A vermelho para não passar por um número normal.
+    if (row.quantity < 0) {
+      line.getCell(3).font = { size: 9, bold: true, color: { argb: RED } };
+    }
+    line.eachCell((c) => {
+      c.border = { bottom: { style: "hair", color: { argb: LINE } } };
+    });
+    r++;
+  }
+
+  // Totais — SUM sobre o intervalo em vez de um número pré-calculado, para
+  // continuar certo se alguém filtrar ou apagar linhas no Excel.
+  const first = 3;
+  const last = r - 1;
+  const total = ws.getRow(r);
+  total.getCell(1).value = "TOTAL";
+  total.getCell(3).value = last >= first ? { formula: `SUM(C${first}:C${last})` } : 0;
+  total.getCell(4).value = last >= first ? { formula: `SUM(D${first}:D${last})` } : 0;
+  total.getCell(4).numFmt = MONEY;
+  total.getCell(3).alignment = { horizontal: "center" };
+  total.height = 20;
+  total.eachCell((c) => {
+    c.font = { bold: true, size: 10, color: { argb: INK } };
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: CREAM } };
+    c.border = { top: { style: "medium", color: { argb: GOLD } } };
+  });
+
+  const buf = await wb.xlsx.writeBuffer();
+  return Buffer.from(buf);
+}

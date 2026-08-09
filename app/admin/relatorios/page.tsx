@@ -1,8 +1,9 @@
 import { currentStaff } from "@/lib/admin-auth";
 import { AdminHero } from "@/components/admin/admin-hero";
-import { MonthPicker } from "@/components/admin/month-picker";
+import { ReportDatePicker } from "@/components/admin/report-date-picker";
+import { ExportChoice } from "@/components/admin/export-choice";
 import { VoidSaleButton } from "@/components/admin/void-sale-button";
-import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange, type SaleLogEntry } from "@/lib/pos-reports";
+import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange, rangeWindow, type SaleLogEntry } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 import {
   BOUTIQUE_LABEL,
@@ -20,8 +21,16 @@ const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const dayLabel = (d: Date) =>
   d.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" });
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ month?: string; boutique?: string }> }) {
-  const { month, boutique } = await searchParams;
+const ymdOf = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const isYmd = (s: string | undefined): s is string => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string; month?: string; boutique?: string }>;
+}) {
+  const { from: fromParam, to: toParam, month, boutique } = await searchParams;
   const staff = await currentStaff();
   const allowed = boutiquesForRole(staff?.role ?? null);
   // ?boutique= re-escopa TUDO nesta página — totais, operadores, registo e
@@ -35,14 +44,29 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const pctLabel: Record<BoutiqueCode, string> = { LIS: "22%", VNG: "19%" };
 
   const now = new Date();
-  const ym = month && /^\d{4}-\d{2}$/.test(month)
-    ? month
-    : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const { from, to, label: monthName } = monthRange(ym);
+  // Passou de mês para intervalo livre. ?month= continua a ser aceite para os
+  // links antigos não morrerem — é convertido no intervalo desse mês; sem
+  // parâmetros nenhuns, abre no mês corrente até hoje, que era o antigo
+  // comportamento por omissão.
+  const legacy = month && /^\d{4}-\d{2}$/.test(month) ? monthRange(month) : null;
+  const fromYmd = isYmd(fromParam)
+    ? fromParam
+    : legacy
+      ? ymdOf(legacy.from)
+      : ymdOf(new Date(now.getFullYear(), now.getMonth(), 1));
+  const toYmd = isYmd(toParam) ? toParam : legacy ? ymdOf(legacy.to) : ymdOf(now);
 
-  // Preserva o mês ao trocar de loja e vice-versa.
+  const [fy, fm, fd] = fromYmd.split("-").map(Number);
+  const [ty, tm, td] = toYmd.split("-").map(Number);
+  const { from, to } = rangeWindow(new Date(fy, fm - 1, fd), new Date(ty, tm - 1, td));
+  const sameDay = fromYmd === toYmd;
+  const periodLabel = sameDay
+    ? from.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+    : `${from.toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" })} → ${to.toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" })}`;
+
+  // Preserva o intervalo ao trocar de loja e vice-versa.
   const hrefFor = (s: BoutiqueScope) => {
-    const params = new URLSearchParams({ month: ym });
+    const params = new URLSearchParams({ from: fromYmd, to: toYmd });
     if (s !== "all") params.set("boutique", s);
     return `/admin/relatorios?${params.toString()}`;
   };
@@ -87,8 +111,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       <AdminHero
         eyebrow="Operações"
         title="Relatórios"
-        subtitle={`Vendas de ${monthName} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
-        action={<MonthPicker month={ym} />}
+        subtitle={`${periodLabel} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
+        action={<ReportDatePicker from={fromYmd} to={toYmd} showExport={false} />}
       >
         {/* Totals per store dentro do hero — grande contraste sobre navy. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -129,8 +153,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
               Excel Estat_Calc pivot. Independent of the month filter above. */}
           {/* Filtro de loja imediatamente acima da primeira tabela que ele
               afecta — no hero ficava longe do conteúdo que re-escopa. */}
-          <div className="mt-8">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
             <BoutiqueScopeTabs scope={scope} allowed={allowed} hrefFor={hrefFor} />
+            <ExportChoice from={fromYmd} to={toYmd} boutique={scope === "all" ? "" : scope} />
           </div>
 
           <section className="mt-6">
@@ -260,7 +285,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <div className="border border-line bg-paper p-5">
             <h2 className="font-serif text-base text-ink">Mais vendidos</h2>
             <p className="mt-1 text-[0.65rem] text-muted">
-              {monthName}
+              {periodLabel}
               {multi ? "" : ` · ${BOUTIQUE_LABEL[boutiques[0]]}`}
             </p>
             {best.length === 0 ? (
