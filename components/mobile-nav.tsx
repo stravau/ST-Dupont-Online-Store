@@ -42,10 +42,12 @@ export function MobileNav({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
-  // "Contactar" abre a escolha da boutique — são duas lojas com contactos
-  // diferentes, e mandar toda a gente para a mesma âncora obrigava a
-  // procurar a loja certa dentro da página.
-  const [contactOpen, setContactOpen] = useState(false);
+  // Os dois botões do rodapé abrem a mesma folha de escolha da boutique, com
+  // destinos diferentes: "contact" liga (tel:), "store" salta para a secção
+  // dessa loja. São duas lojas com contactos e moradas diferentes — mandar
+  // toda a gente para a mesma âncora obrigava a procurar a certa na página.
+  const [sheet, setSheet] = useState<null | "contact" | "store">(null);
+  const contactOpen = sheet !== null;
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   // Focus trap engages while `open` is true. Focus is restored to the
   // hamburger trigger on close. This does NOT interfere with the
@@ -95,7 +97,7 @@ export function MobileNav({
     const t = setTimeout(() => {
       document.body.style.overflow = "";
       setSelected(null);
-      setContactOpen(false);
+      setSheet(null);
       setExpanded((prev) => (prev.size === 0 ? prev : new Set()));
     }, 300);
     return () => clearTimeout(t);
@@ -134,7 +136,7 @@ export function MobileNav({
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       // Escape fecha primeiro a folha de contactos; só depois o menu.
-      if (contactOpen) setContactOpen(false);
+      if (contactOpen) setSheet(null);
       else close();
     }
     document.addEventListener("keydown", onKey);
@@ -495,7 +497,7 @@ export function MobileNav({
                   type="button"
                   aria-haspopup="dialog"
                   aria-expanded={contactOpen}
-                  onClick={() => setContactOpen(true)}
+                  onClick={() => setSheet("contact")}
                   className="flex flex-col items-center gap-2 border-r border-line/60 py-5 text-ink transition-colors hover:text-gold"
                 >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -506,9 +508,11 @@ export function MobileNav({
                   </svg>
                   <span className="text-[0.65rem] tracking-[0.2em] uppercase">{contactLabel}</span>
                 </button>
-                <Link
-                  href={`/${lang}/loja#map`}
-                  onClick={close}
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={sheet === "store"}
+                  onClick={() => setSheet("store")}
                   className="flex flex-col items-center gap-2 py-5 text-ink transition-colors hover:text-gold"
                 >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -516,7 +520,7 @@ export function MobileNav({
                     <circle cx="12" cy="10" r="2.5" />
                   </svg>
                   <span className="text-[0.65rem] tracking-[0.2em] uppercase">{findStoreLabel}</span>
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -525,10 +529,10 @@ export function MobileNav({
             {contactOpen && (
               <div
                 className="absolute inset-0 z-10 flex flex-col justify-end bg-ink/45 backdrop-blur-[2px]"
-                onClick={() => setContactOpen(false)}
+                onClick={() => setSheet(null)}
                 role="dialog"
                 aria-modal="true"
-                aria-label={contactLabel}
+                aria-label={sheet === "store" ? findStoreLabel : contactLabel}
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
@@ -537,11 +541,11 @@ export function MobileNav({
                   <div className="mx-auto w-full max-w-sm">
                     <div className="flex items-baseline justify-between">
                       <p className="text-[0.62rem] tracking-[0.2em] text-muted uppercase">
-                        {contactLabel}
+                        {sheet === "store" ? findStoreLabel : contactLabel}
                       </p>
                       <button
                         type="button"
-                        onClick={() => setContactOpen(false)}
+                        onClick={() => setSheet(null)}
                         aria-label={labels.close ?? "Fechar"}
                         className="text-muted transition-colors hover:text-ink"
                       >
@@ -552,27 +556,47 @@ export function MobileNav({
                     </div>
 
                     <ul className="mt-3 flex flex-col">
-                      {[STORE_LIS, STORE_VNG].map((store) => (
-                        <li key={store.key} className="border-t border-line/60">
-                          <Link
-                            href={`/${lang}/loja#${store.contactAnchor}`}
-                            onClick={() => { setContactOpen(false); close(); }}
-                            className="flex items-center justify-between gap-4 py-4 text-ink transition-colors hover:text-gold"
-                          >
-                            <span className="min-w-0">
-                              <span className="block text-[0.8rem] font-medium tracking-[0.18em] uppercase">
-                                {store.labels[locale].name}
+                      {[STORE_LIS, STORE_VNG].map((store) => {
+                        const isCall = sheet === "contact";
+                        // Chamada: <a href="tel:"> abre o marcador já com o
+                        // número. Loja: <Link> para a secção dessa boutique,
+                        // que tem morada, horário e mapa.
+                        const Tag = (isCall ? "a" : Link) as React.ElementType;
+                        return (
+                          <li key={store.key} className="border-t border-line/60">
+                            <Tag
+                              href={isCall ? store.phoneHref : `/${lang}/loja#${store.contactAnchor}`}
+                              onClick={() => { setSheet(null); close(); }}
+                              className="flex items-center justify-between gap-4 py-4 text-ink transition-colors hover:text-gold"
+                            >
+                              <span className="min-w-0">
+                                <span className="block text-[0.8rem] font-medium tracking-[0.18em] uppercase">
+                                  {store.labels[locale].name}
+                                </span>
+                                <span className="mt-0.5 block truncate text-[0.78rem] text-muted">
+                                  {isCall ? (
+                                    <span className="font-mono">{store.phone}</span>
+                                  ) : (
+                                    `${store.street} · ${store.city}`
+                                  )}
+                                </span>
                               </span>
-                              <span className="mt-0.5 block truncate text-[0.7rem] text-muted">
-                                {store.phone}
-                              </span>
-                            </span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="shrink-0">
-                              <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </Link>
-                        </li>
-                      ))}
+                              {isCall ? (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0">
+                                  <path
+                                    d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2Z"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="shrink-0">
+                                  <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </Tag>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 </div>
