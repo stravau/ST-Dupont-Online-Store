@@ -889,3 +889,46 @@ export function formatPrice(cents: number, currency: string, locale: Locale): st
     maximumFractionDigits: 0,
   }).format(cents / 100);
 }
+
+// ---------------------------------------------------------------------------
+// Carrossel curado ("Em Destaque")
+// ---------------------------------------------------------------------------
+// Os artigos que o patrão escolhe a dedo em /admin/destaques, pela ordem que
+// definiu. Devolve pares {product, sku} porque o cartão da grelha é por
+// colourway, não por produto — a mesma forma que a home já usa para as
+// Novidades.
+//
+// Lista vazia devolve [] e a secção não é desenhada. Entradas cujo artigo
+// tenha sido apagado ou descontinuado são ignoradas em silêncio: o carrossel
+// não é sítio para mostrar um buraco.
+export async function getCuratedCards(
+  rail = "DESTAQUES",
+): Promise<{ product: Product; sku: string }[]> {
+  const picks = await prisma.homeCarouselItem.findMany({
+    where: { rail },
+    orderBy: { position: "asc" },
+    select: { sku: true },
+  });
+  if (picks.length === 0) return [];
+
+  const skus = picks.map((p) => p.sku);
+  const rows = await prisma.product.findMany({
+    where: { variants: { some: { sku: { in: skus } } } },
+    include: productInclude,
+  });
+  const bySku = new Map<string, Product>();
+  for (const row of rows) {
+    const p = mapProduct(row);
+    for (const v of p.variants) bySku.set(v.sku, p);
+  }
+
+  const out: { product: Product; sku: string }[] = [];
+  for (const { sku } of picks) {
+    const product = bySku.get(sku);
+    if (!product) continue;
+    const variant = product.variants.find((v) => v.sku === sku);
+    if (!variant || variant.status === "DESCONTINUADO") continue;
+    out.push({ product, sku });
+  }
+  return out;
+}

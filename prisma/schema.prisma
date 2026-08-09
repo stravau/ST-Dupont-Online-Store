@@ -754,3 +754,24 @@ model Reserva {
   @@index([customerPhone])
   @@index([variantId])
 }
+
+// Curadoria do carrossel "Em Destaque" da homepage — a lista que o patrão
+// escolhe a dedo em /admin/destaques. É um rail SEPARADO do "Últimas criações",
+// que continua automático (getNovelties). Sem linhas nenhumas, a secção
+// Em Destaque simplesmente não aparece no site.
+//
+// Guardado por SKU e não por variantId: o SKU é a chave natural que a loja
+// usa, sobrevive a uma reimportação de catálogo, e a leitura já ignora
+// entradas cujo artigo tenha desaparecido.
+model HomeCarouselItem {
+  id        String   @id @default(cuid())
+  // Qual carrossel. "DESTAQUES" hoje; deixa a porta aberta para curar as
+  // Novidades (ou outro rail) sem nova migração.
+  rail      String   @default("DESTAQUES")
+  sku       String // ProductVariant.sku
+  position  Int // ordem no carrossel, 0-based
+  createdAt DateTime @default(now())
+
+  @@unique([rail, sku])
+  @@index([rail, position])
+}

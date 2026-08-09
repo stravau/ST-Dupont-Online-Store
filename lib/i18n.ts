@@ -175,6 +175,8 @@ const dictionaries = {
     sections: {
       categories: "As Nossas Casas",
       novelties: "Novidades",
+      featured: "Em Destaque",
+      featuredSub: "Seleção da Maison",
       noveltyTag: "Novo",
       noveltiesSub: "As mais recentes criações da Maison",
       heritageEyebrow: "A Maison",
@@ -446,6 +448,8 @@ const dictionaries = {
     sections: {
       categories: "Our Maisons",
       novelties: "New Arrivals",
+      featured: "Featured",
+      featuredSub: "The Maison's selection",
       noveltyTag: "New",
       noveltiesSub: "The latest creations from the Maison",
       heritageEyebrow: "The Maison",

@@ -59,6 +59,12 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
 
   if (isAdmin) {
     sections.push({
+      title: "Site",
+      items: [
+        { href: "/admin/destaques", label: "Em Destaque", hint: "Carrossel da homepage", Icon: IconList },
+      ],
+    });
+    sections.push({
       title: "Sistema",
       items: [{ href: "/admin/audit", label: "Auditoria", hint: "Registo de todas as alterações", Icon: IconAudit }],
     });

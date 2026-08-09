@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import { localeCategorySlug } from "@/lib/category-slugs";
-import { getNovelties, expandProductCards } from "@/lib/catalog";
+import { getNovelties, expandProductCards, getCuratedCards } from "@/lib/catalog";
 import { STORES } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { LatestCarousel } from "@/components/latest-carousel";
@@ -82,6 +82,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   }
   const latest = [...byProduct.values()].slice(0, 10).map(({ product, sku }) => (
     <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
+  ));
+
+  // "Em Destaque" — rail curado à mão em /admin/destaques. Independente das
+  // Novidades acima, que continuam automáticas. Sem selecção, a secção não é
+  // desenhada de todo (em vez de aparecer vazia).
+  const curated = await getCuratedCards();
+  const featured = curated.map(({ product, sku }) => (
+    <ProductCard key={`feat-${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
 
   return (
@@ -227,6 +235,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           />
         </div>
       </section>
+
+      {/* Em Destaque — mesma mecânica de carrossel, conteúdo escolhido a dedo
+          no admin. Só existe se houver selecção. */}
+      {featured.length > 0 && (
+        <section className="bg-paper">
+          <div className="mx-auto max-w-7xl px-6 pt-20 pb-24">
+            <div className="reveal text-center">
+              <p className="overline">{dict.sections.featured}</p>
+              <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.featuredSub}</h2>
+              <div className="gold-rule mx-auto mt-7" />
+            </div>
+            <div className="reveal mt-14">
+              <LatestCarousel
+                items={featured}
+                prevLabel={dict.common.prev}
+                nextLabel={dict.common.next}
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Heritage — gold-on-black */}
       <section className="monogram-bg text-cream">
