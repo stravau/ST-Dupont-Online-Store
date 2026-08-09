@@ -243,13 +243,24 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         // se o ficheiro não estiver lá, a secção fica no navy de base em vez
         // de rebentar. bg-ink é essa base e também o que se vê nos bordos se
         // a foto não cobrir tudo.
+        // A geoda fica centrada nos dois eixos. A secção é uma faixa larga e
+        // baixa (3:2 da foto contra ~2:1 da faixa), portanto `cover` escala à
+        // largura e corta o que sobra em cima e em baixo — com a posição ao
+        // centro, o que se corta é o preto das margens e a cavidade de
+        // cristal fica no meio. bg-black em vez de bg-ink porque o fundo da
+        // própria foto é preto: assim a emenda não se vê se sobrar bordo.
         <section
-          className="relative bg-ink bg-cover bg-center bg-no-repeat text-cream"
-          style={{ backgroundImage: "url(/ss26/geode-bg.jpg)" }}
+          className="relative bg-black text-cream"
+          style={{
+            backgroundImage: "url(/ss26/geode-bg.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
+          }}
         >
-          {/* Véu escuro: a geoda tem zonas claras a meio e o texto cream
-              desaparecia por cima delas. */}
-          <div aria-hidden className="absolute inset-0 bg-ink/55" />
+          {/* Véu escuro: a geoda tem cristais claros a meio e o texto cream
+              desaparecia por cima deles. */}
+          <div aria-hidden className="absolute inset-0 bg-black/50" />
           <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24">
             <div className="reveal text-center">
               <p className="overline text-gold-soft">{dict.sections.featured}</p>
