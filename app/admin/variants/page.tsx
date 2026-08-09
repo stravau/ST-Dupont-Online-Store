@@ -10,6 +10,7 @@ import { StockTabs, type StockTab } from "@/components/admin/stock-tabs";
 import { VariantRow } from "./row-client";
 import { OtherBrandsView, getOtherBrandKpis, OtherBrandKpis } from "./other-brands-view";
 import { ArticleImportButton } from "@/components/admin/article-import";
+import { StockExportChoice } from "@/components/admin/stock-export-choice";
 import { buildVariantWhere } from "@/lib/variant-filter";
 import { SelectionProvider, SelectionToolbar, SelectAllCheckbox } from "./selection";
 
@@ -174,8 +175,9 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
       {/* Criar artigos por Excel — só ADMIN (o endpoint corre requireAdmin).
           Mesma mecânica da tab Outras marcas, endpoint diferente porque cá
           escrevemos Product + ProductVariant, lá OtherBrandItem. */}
-      {role === "ADMIN" && (
-        <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <StockExportChoice />
+        {role === "ADMIN" && (
           <ArticleImportButton
             endpoint="/api/admin/upload/new-articles"
             title="Criar artigos · S.T. Dupont"
@@ -187,8 +189,8 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
               "Sem CATEGORIA, cai em Acessórios.",
             ]}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       <form method="get" className="space-y-3 border border-line bg-paper p-5">
         <div className="relative">

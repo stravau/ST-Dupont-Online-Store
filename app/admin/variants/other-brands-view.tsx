@@ -7,6 +7,7 @@ import { IconSearch } from "@/components/admin/icons";
 import { OBSelectionProvider, OBSelectionToolbar, OBSelectAllCheckbox } from "./other-brand-selection";
 import { OtherBrandRow } from "./other-brand-row";
 import { ArticleImportButton } from "@/components/admin/article-import";
+import { StockExportChoice } from "@/components/admin/stock-export-choice";
 
 const PAGE_SIZE = 50;
 
@@ -97,8 +98,9 @@ export async function OtherBrandsView({ role, q, brand, stock, active, sort, pag
       filter={{ q, brand, stock, active }}
     >
       <div className="space-y-6">
-        {/* Os KPIs subiram para o hero — aqui fica só a acção de importar. */}
-        <div className="flex flex-wrap items-start justify-end gap-4">
+        {/* Os KPIs subiram para o hero — aqui ficam só as acções. */}
+        <div className="flex flex-wrap items-start justify-end gap-3">
+          <StockExportChoice />
           {canEdit && (
             <div className="flex flex-col items-end gap-1">
               <ArticleImportButton
