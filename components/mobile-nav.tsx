@@ -10,6 +10,8 @@ import { Logo } from "@/components/logo";
 import { useHeaderTransparent } from "@/components/header-shell";
 import { ACCESSORIES_NAV, LEATHER_NAV, WRITING_NAV, type MobileNavEntry, type MobileNavItem, type MobileNavSection } from "@/lib/collection-order";
 import { isNavPathLive, type LiveNavSignalsSerialized } from "@/lib/nav-liveness-shared";
+import { STORE_LIS, STORE_VNG } from "@/lib/store-info";
+import type { Locale } from "@/lib/i18n";
 
 // Mobile menu: a full-screen panel that drills down per Maison. The root
 // view shows the four maisons + About Us. Tapping a Maison swaps to its
@@ -40,6 +42,10 @@ export function MobileNav({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
+  // "Contactar" abre a escolha da boutique — são duas lojas com contactos
+  // diferentes, e mandar toda a gente para a mesma âncora obrigava a
+  // procurar a loja certa dentro da página.
+  const [contactOpen, setContactOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   // Focus trap engages while `open` is true. Focus is restored to the
   // hamburger trigger on close. This does NOT interfere with the
@@ -89,6 +95,7 @@ export function MobileNav({
     const t = setTimeout(() => {
       document.body.style.overflow = "";
       setSelected(null);
+      setContactOpen(false);
       setExpanded((prev) => (prev.size === 0 ? prev : new Set()));
     }, 300);
     return () => clearTimeout(t);
@@ -108,6 +115,8 @@ export function MobileNav({
   // Root entries — the four maisons + About Us.
   const aboutLink = links.find((l) => l.href.endsWith("/historia"));
   const contactLabel = labels.contactUs ?? (lang === "pt" ? "Contactar" : "Contact us");
+  // `lang` chega como string; as labels das lojas são indexadas por Locale.
+  const locale: Locale = lang === "en" ? "en" : "pt";
   const findStoreLabel = labels.findStore ?? (lang === "pt" ? "Encontrar Loja" : "Find Store");
 
   // Just flip `open` — the useEffect above already resets selected +
@@ -123,11 +132,14 @@ export function MobileNav({
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") close();
+      if (e.key !== "Escape") return;
+      // Escape fecha primeiro a folha de contactos; só depois o menu.
+      if (contactOpen) setContactOpen(false);
+      else close();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, contactOpen]);
 
   return (
     <div className="xl:hidden">
@@ -479,9 +491,11 @@ export function MobileNav({
                 of the panel; visible across both views. */}
             <div className="border-t border-line/60 bg-cream">
               <div className="mx-auto grid w-full max-w-sm grid-cols-2">
-                <Link
-                  href={`/${lang}/loja#contacto`}
-                  onClick={close}
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={contactOpen}
+                  onClick={() => setContactOpen(true)}
                   className="flex flex-col items-center gap-2 border-r border-line/60 py-5 text-ink transition-colors hover:text-gold"
                 >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -491,7 +505,7 @@ export function MobileNav({
                     />
                   </svg>
                   <span className="text-[0.65rem] tracking-[0.2em] uppercase">{contactLabel}</span>
-                </Link>
+                </button>
                 <Link
                   href={`/${lang}/loja#map`}
                   onClick={close}
@@ -505,6 +519,65 @@ export function MobileNav({
                 </Link>
               </div>
             </div>
+
+            {/* Escolha da boutique. Sobe de baixo, por cima do menu, porque é
+                onde o polegar está — a mesma zona do botão que a abriu. */}
+            {contactOpen && (
+              <div
+                className="absolute inset-0 z-10 flex flex-col justify-end bg-ink/45 backdrop-blur-[2px]"
+                onClick={() => setContactOpen(false)}
+                role="dialog"
+                aria-modal="true"
+                aria-label={contactLabel}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="border-t border-line bg-cream px-6 pt-5 pb-7"
+                >
+                  <div className="mx-auto w-full max-w-sm">
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-[0.62rem] tracking-[0.2em] text-muted uppercase">
+                        {contactLabel}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setContactOpen(false)}
+                        aria-label={labels.close ?? "Fechar"}
+                        className="text-muted transition-colors hover:text-ink"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <ul className="mt-3 flex flex-col">
+                      {[STORE_LIS, STORE_VNG].map((store) => (
+                        <li key={store.key} className="border-t border-line/60">
+                          <Link
+                            href={`/${lang}/loja#${store.contactAnchor}`}
+                            onClick={() => { setContactOpen(false); close(); }}
+                            className="flex items-center justify-between gap-4 py-4 text-ink transition-colors hover:text-gold"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-[0.8rem] font-medium tracking-[0.18em] uppercase">
+                                {store.labels[locale].name}
+                              </span>
+                              <span className="mt-0.5 block truncate text-[0.7rem] text-muted">
+                                {store.phone}
+                              </span>
+                            </span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="shrink-0">
+                              <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           </div>,
           document.body,
