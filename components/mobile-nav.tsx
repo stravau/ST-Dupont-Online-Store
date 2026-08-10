@@ -318,6 +318,13 @@ export function MobileNav({
                   }
                   return isNavPathLive(itemHref(it), liveSignals) ? it : null;
                 };
+                // Ordem alfabética no idioma activo. Os rótulos são bilingues e
+                // a ordem difere entre línguas (Cinzeiros/Ashtrays,
+                // Botões de Punho/Cufflinks), por isso ordena-se à apresentação
+                // e não na lista fixa. localeCompare trata acentos como se
+                // fossem a letra base (Órfão junto de O, não no fim).
+                const byLabel = (a: { label: { pt: string; en: string } }, b: { label: { pt: string; en: string } }) =>
+                  a.label[locale].localeCompare(b.label[locale], locale, { sensitivity: "base" });
                 const nav: MobileNavEntry[] | null = rawNav
                   ? rawNav
                       .map((entry): MobileNavEntry | null => {
@@ -326,12 +333,24 @@ export function MobileNav({
                         }
                         const items = entry.items
                           .map(pruneItem)
-                          .filter((x): x is MobileNavItem => x !== null);
+                          .filter((x): x is MobileNavItem => x !== null)
+                          // Ordena também os filhos (ex.: 1/2/3 Charutos).
+                          .map((it) => (it.children ? { ...it, children: [...it.children].sort(byLabel) } : it))
+                          .sort(byLabel);
                         if (items.length === 0) return null;
                         const section: MobileNavSection = { ...entry, items };
                         return section;
                       })
                       .filter((x): x is MobileNavEntry => x !== null)
+                      // Secções e itens de topo, também por ordem alfabética
+                      // (o título da secção é o que se lê na lista).
+                      .sort((a, b) =>
+                        (a.kind === "section" ? a.title[locale] : a.label[locale]).localeCompare(
+                          b.kind === "section" ? b.title[locale] : b.label[locale],
+                          locale,
+                          { sensitivity: "base" },
+                        ),
+                      )
                   : null;
                 if (nav) {
                   return (
@@ -473,7 +492,11 @@ export function MobileNav({
                         {labels.viewAll}
                       </Link>
                     </li>
-                    {selected.collections.map((col) => (
+                    {/* Isqueiros (e qualquer universo sem nav estruturado):
+                        nomes de linha únicos, também por ordem alfabética. */}
+                    {[...selected.collections]
+                      .sort((a, b) => a.localeCompare(b, locale, { sensitivity: "base" }))
+                      .map((col) => (
                       <li key={col} className="border-b border-line/60">
                         <Link
                           href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(col)}`}
