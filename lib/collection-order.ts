@@ -252,6 +252,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
     items: [
       { label: L("Line D Eternity", "Line D Eternity"), href: wr("ballpoint", "Line D Eternity") },
       { label: L("Line D", "Line D"),                   href: wr("ballpoint", "Line D") },
+      { label: L("Initial", "Initial"),                 href: wr("ballpoint", "Initial") },
       { label: L("Classique", "Classique"),             href: wr("ballpoint", "Classique") },
       { label: L("Défi Millennium", "Défi Millennium"), href: wr("ballpoint", "Défi Millennium") },
       { label: L("Liberté", "Liberté"),                 href: wr("ballpoint", "Liberté") },
@@ -266,6 +267,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
     items: [
       { label: L("Line D Eternity", "Line D Eternity"), href: wr("rollerball", "Line D Eternity") },
       { label: L("Line D", "Line D"),                   href: wr("rollerball", "Line D") },
+      { label: L("Initial", "Initial"),                 href: wr("rollerball", "Initial") },
       { label: L("Défi Millennium", "Défi Millennium"), href: wr("rollerball", "Défi Millennium") },
       { label: L("Liberté", "Liberté"),                 href: wr("rollerball", "Liberté") },
       { label: L("Eternity", "Eternity"),               href: wr("rollerball", "Eternity") },
@@ -278,6 +280,7 @@ export const WRITING_NAV: readonly MobileNavEntry[] = [
     items: [
       { label: L("Line D Eternity", "Line D Eternity"), href: wr("fountain", "Line D Eternity") },
       { label: L("Line D", "Line D"),                   href: wr("fountain", "Line D") },
+      { label: L("Initial", "Initial"),                 href: wr("fountain", "Initial") },
       { label: L("Défi Millennium", "Défi Millennium"), href: wr("fountain", "Défi Millennium") },
       { label: L("Liberté", "Liberté"),                 href: wr("fountain", "Liberté") },
       { label: L("Eternity", "Eternity"),               href: wr("fountain", "Eternity") },
