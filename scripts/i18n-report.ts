@@ -18,6 +18,12 @@ if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL não está definido. Aborta.");
   process.exit(1);
 }
+if (/localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL)) {
+  console.error("\n\u26a0  DATABASE_URL aponta para localhost \u2014 nao e a base de dados de producao.");
+  console.error("   Define-a nesta janela do terminal antes de correr:\n");
+  console.error('   $env:DATABASE_URL = "<connection string do Neon>"\n');
+  process.exit(1);
+}
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
 type L = { pt?: string; en?: string } | null | undefined;

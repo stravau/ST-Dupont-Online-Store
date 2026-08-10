@@ -8,11 +8,20 @@
 //
 // Só toca no campo `pt`; o `en` fica intacto. Idempotente.
 import "dotenv/config";
+import * as fs from "fs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../app/generated/prisma/client";
 
 const APPLY = process.argv.includes("--apply");
 if (!process.env.DATABASE_URL) { console.error("DATABASE_URL não definido."); process.exit(1); }
+// O .env local aponta para localhost. Sem $env:DATABASE_URL definido na sessão,
+// o dotenv carrega esse e o erro que sai é um ECONNREFUSED pouco esclarecedor.
+if (/localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL)) {
+  console.error("\n⚠  DATABASE_URL aponta para localhost — não é a base de dados de produção.");
+  console.error("   Define-a nesta janela do terminal antes de correr:\n");
+  console.error('   $env:DATABASE_URL = "<a connection string do Neon>"\n');
+  process.exit(1);
+}
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
 // Ordem importa: as expressões mais longas primeiro, senão "Card Holder"
@@ -135,7 +144,31 @@ type L = { pt?: string; en?: string } | null;
   });
   if (writes.length > 40) console.log(`  … e mais ${writes.length - 40}`);
 
-  if (!APPLY) { console.log("\nDry-run — corre com --apply para gravar.\n"); await prisma.$disconnect(); return; }
+  // No dry-run grava sempre a lista completa em ficheiro — 347 linhas não cabem
+  // no ecrã e é sobre a lista toda que se afinam as regras.
+  if (!APPLY) {
+    const dump = writes.map((w) => ({ tabela: w.tabela, ref: w.ref, antes: w.antes, depois: w.depois }));
+    // Todos os nomes PT actuais, mesmo os que nenhuma regra tocou — para se ver
+    // o que ficou por traduzir.
+    const intactos: { tabela: string; ref: string; nome: string }[] = [];
+    for (const p of prods) {
+      const pt = (p.name as L)?.pt?.trim();
+      if (pt && !writes.some((w) => w.tabela === "Product" && w.ref === p.slug)) {
+        intactos.push({ tabela: "Product", ref: p.slug, nome: pt });
+      }
+    }
+    for (const v of variants) {
+      const pt = (v.name as L)?.pt?.trim();
+      if (pt && !writes.some((w) => w.tabela === "Variant" && w.ref === v.sku)) {
+        intactos.push({ tabela: "Variant", ref: v.sku, nome: pt });
+      }
+    }
+    fs.writeFileSync("i18n-nomes-dryrun.json", JSON.stringify({ alterados: dump, intactos }, null, 1), "utf8");
+    console.log(`\n✓ i18n-nomes-dryrun.json — ${dump.length} alterados · ${intactos.length} intactos`);
+    console.log("Dry-run — nada gravado na base de dados.\n");
+    await prisma.$disconnect();
+    return;
+  }
   if (!writes.length) { console.log("Nada a fazer.\n"); await prisma.$disconnect(); return; }
 
   console.log("\nA gravar…");
