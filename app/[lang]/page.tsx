@@ -267,7 +267,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <h2 className="mt-5 font-serif text-4xl text-cream">{dict.sections.featuredSub}</h2>
               <div className="gold-rule mx-auto mt-7" />
             </div>
-            <div className="reveal mt-14">
+            {/* Os cards são desenhados para fundo claro (text-ink / text-muted).
+                Sobre a geoda escura ficavam ilegíveis, por isso repintamos aqui
+                os tokens de texto para cream — só dentro desta secção, sem tocar
+                no componente partilhado com o resto da montra.
+                As setas do carrossel ficam de fora (`:not(button *)` + `:not(button)`):
+                assentam num círculo bg-cream/80, portanto precisam de continuar
+                escuras para se verem. */}
+            <div className="reveal mt-14 [&_.text-ink:not(button):not(button_*)]:!text-cream [&_.text-muted:not(button):not(button_*)]:!text-cream/70">
               <LatestCarousel
                 items={featured}
                 prevLabel={dict.common.prev}
