@@ -37,6 +37,31 @@ bloqueio a uma entrega "a sério".
 > **Saída da Fase 0:** produção com segredos próprios, 3 logins a funcionar,
 > relatórios no fuso certo. A partir daqui pode-se entregar sem risco de acesso.
 
+### Migrações: passaram a ser manuais (2026-08-10)
+
+O `vercel-build` era `prisma migrate deploy && next build`. O Neon suspende a
+base de dados quando está sem uso, e o `migrate deploy` começa por pedir um
+advisory lock — se a BD estiver a acordar, esgota o timeout de 10s e devolve
+**P1002**, o build morre e **nada é publicado** (foi o que prendeu a imagem da
+geoda e o fix do texto dos cards). Verificado: não havia lock preso
+(`pg_locks` vazio) e o `next build` sozinho passava.
+
+Agora `vercel-build` é só `next build` — **o deploy do site nunca mais depende
+da base de dados**.
+
+**Quando há uma migração nova** (só quando o schema muda — campos/tabelas), com
+a `DATABASE_URL` de produção:
+
+```bash
+npm run db:migrate     # = prisma migrate deploy
+```
+
+Para alterações normais (texto, layout, lógica) não é preciso fazer nada: push
+e a Vercel publica. O risco a ter presente é o inverso do anterior: se houver
+uma migração por aplicar, o site vai ao ar com o schema antigo e as páginas que
+usam os campos novos dão erro — por isso corre o comando acima quando fores
+avisado de que há migração nova.
+
 ---
 
 ## FASE 1 — Fechar o site público (montra) ✅ (quase todo feito)
