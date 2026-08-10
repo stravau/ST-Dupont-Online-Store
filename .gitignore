@@ -49,3 +49,8 @@ server.err.log
 
 # DB export artefact
 db-export.xlsx
+
+# Artefactos gerados do fluxo de tradução (o i18n-traducoes.json é versionado)
+i18n-todo.csv
+i18n-review.html
+i18n-aprovado.json
