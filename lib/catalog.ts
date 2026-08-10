@@ -761,6 +761,11 @@ export function inferGender(p: Product): Gender {
   const c = p.collection.toLowerCase();
   if (/victoria|riviera|x-bag/.test(c)) return "women";
   if (/^apex-(?:nano-trunk|mini-trunk|trunk)/.test(s)) return "women";
+  // Monogram 1872 (malas): a mochila e a camera bag são unissexo; o resto da
+  // gama — shopping, tote, pouch — é de senhora. Indicação da boutique.
+  if (/monogram-1872/.test(s)) {
+    return /backpack|camera-bag/.test(s) ? "unisex" : "women";
+  }
   if (/explorer/.test(c)) return "men";
   if (/briefcase|document-holder|weekend-bag|travel-bag/.test(s)) return "men";
   return "unisex";
