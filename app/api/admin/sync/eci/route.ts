@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/app/generated/prisma/client";
 import { requireStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
+import { lisbonDayPlusSeconds } from "@/lib/tz";
 import { readWorkbookMatrix, detectEciStore, type Cell, type EciStore } from "@/lib/admin-upload";
 
 export const dynamic = "force-dynamic";
@@ -1027,8 +1028,10 @@ async function syncSales(matrix: Cell[][], store: EciStore, apply: boolean): Pro
     const ref = typeof r[7] === "string" ? r[7].trim() : (r[7] != null ? String(r[7]).trim() : "");
     if (!dateSerial || !ref || (vd !== "V" && vd !== "D")) { malformed++; continue; }
 
+    // A folha traz hora de PAREDE de Lisboa. Gravá-la como UTC punha as vendas
+    // uma hora à frente no ecrã durante o horário de verão.
     const base = excelDateToUTC(dateSerial);
-    const soldAt = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate()) + horaToSeconds(r[2]) * 1000);
+    const soldAt = lisbonDayPlusSeconds(base, horaToSeconds(r[2]));
     const q = Math.max(1, Math.round(num(r[6]) ?? 1));
     const gross = Math.abs(num(r[11]) ?? 0);
     const net = Math.abs(num(r[12]) ?? gross / 1.23);

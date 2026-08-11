@@ -12,6 +12,7 @@
 import "dotenv/config";
 import * as XLSX from "xlsx";
 import { prisma } from "../lib/prisma";
+import { lisbonDayPlusSeconds } from "../lib/tz";
 
 const FILE = process.argv.find((a) => a.endsWith(".xlsx")) ?? "C:/Users/luis_/Desktop/ECI_LIS_Controlo_v1_2_2026 (002).xlsx";
 const APPLY = process.argv.includes("--apply");
@@ -70,7 +71,8 @@ async function main() {
     if (typeof ref !== "string" || !ref.trim()) continue;
     if (vd !== "V" && vd !== "D") continue;
     const base = excelDateToUTC(dateSerial);
-    const soldAt = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate()) + horaToSeconds(hora) * 1000);
+    // A folha traz hora de PAREDE de Lisboa (ver lib/tz.ts).
+    const soldAt = lisbonDayPlusSeconds(base, horaToSeconds(hora));
     const q = typeof qty === "number" ? Math.round(qty) : 1;
     const gross = Math.abs(typeof valor === "number" ? valor : 0);
     const net = Math.abs(typeof vrec === "number" ? vrec : gross / 1.23);
