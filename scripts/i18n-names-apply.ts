@@ -27,6 +27,45 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: proc
 // Ordem importa: as expressões mais longas primeiro, senão "Card Holder"
 // seria apanhado por "Holder". Chaves em minúsculas; a comparação é
 // case-insensitive mas a substituição usa a forma da direita tal e qual.
+// Aplicadas ANTES dos TERMOS, sobre o nome inteiro. Duas famílias:
+//
+//  A) Caixas de recargas cujo segmento inglês é redundante — repete o prefixo
+//     PT e a cor que já vem no sufixo: "Caixa de 7 Recargas Esferográfica ·
+//     Red Ballpoint Pen — Vermelho". Traduzir o meio duplicaria a informação,
+//     por isso remove-se o segmento.
+//  B) Códigos ECI em maiúsculas que nunca foram traduzidos (NOTEBOOK A5 GREY,
+//     NIB SET WINGS…), reescritos como nome de produto legível.
+const OVERRIDES: [RegExp, string][] = [
+  // — A) segmento redundante nas recargas/pistões
+  [/\s*·\s*(?:Blue|Red|Green|Pink|Turquoise|Black|Grey)?\s*Ballpoint[-\s]?(?:Pen)?[-\s]?(?:Black|Blue|Red|Green|Pink|Turquoise)?(?=\s*(?:—|$))/gi, ""],
+  [/\s*·\s*Mechanical Pencil Mechanism(?=\s*(?:—|$))/gi, ""],
+  // "Firehead · Firehead Black Shoulder Bag" — a marca repete-se e a cor já
+  // vem no sufixo; fica só o tipo de artigo.
+  [/·\s*Firehead\s+(?:Black|Blue|Red|Green|Brown|Grey)\s+/gi, "· "],
+
+  // — B) códigos ECI
+  [/^NOTEBOOK A5 GREY$/i, "Caderno A5 — Cinzento"],
+  [/^NOTEBOOK A5 BLUE$/i, "Caderno A5 — Azul"],
+  [/^NOTEBOOK A5 BLACK$/i, "Caderno A5 — Preto"],
+  [/^NOTEBOOK A5 GREEN$/i, "Caderno A5 — Verde"],
+  [/^CINZEIRO GRANDE X\s+BLACK$/i, "Cinzeiro Grande — Preto"],
+  [/^CORTA-CHARUTOS TRADI\s+X\s+BLACK\/CHROME$/i, "Cortador de Charutos Tradicional — Preto/Cromado"],
+  [/^SET COLECIONADOR HC 24H LM\s+DIAM$/i, "Set de Colecionador Haute Création 24H LM · Diamante"],
+];
+
+// NIB SET WINGS <tamanho> 14K <metal> [3N|5N] <largura>
+//   F/M/B = Fine / Medium / Broad → Fino / Médio / Largo
+//   PLA e PAL = paládio · 3N/5N são tons de ouro e mantêm-se
+const NIB_RE = /^NIB SET WINGS\s+(XL|L|M|S)\s+14K\s+(GOLD|PLA|PAL)\s*(3N|5N)?\s+([FMB])$/i;
+const LARGURA: Record<string, string> = { F: "Fino", M: "Médio", B: "Largo" };
+function nibSet(nome: string): string | null {
+  const m = nome.trim().match(NIB_RE);
+  if (!m) return null;
+  const [, tam, metal, tom, larg] = m;
+  const met = /gold/i.test(metal) ? `Ouro 14K${tom ? " " + tom : ""}` : "Paládio 14K";
+  return `Conjunto de Aparos Wings ${tam.toUpperCase()} · ${met} — ${LARGURA[larg.toUpperCase()]}`;
+}
+
 const TERMOS: [RegExp, string][] = [
   // — compostos (têm de vir antes dos simples)
   [/\bbusiness card holder\b/gi, "Porta-Cartões de Visita"],
@@ -97,9 +136,23 @@ const PROTEGIDOS = [
 ];
 
 function traduzNome(nome: string): string {
+  // 0) casos que as regras genéricas não resolvem — códigos ECI e segmentos
+  //    ingleses redundantes. Corre primeiro e, quando dá um nome completo,
+  //    devolve-o logo.
+  const nib = nibSet(nome);
+  if (nib) return nib;
+  for (const [re, pt] of OVERRIDES) {
+    if (re.source.startsWith("^")) {
+      const m = nome.trim().match(re);
+      if (m) return pt;
+    }
+  }
+
   // 1) proteger nomes próprios com marcadores
   const guarda: string[] = [];
   let s = nome;
+  // remoções de segmento (as que não são o nome inteiro)
+  for (const [re, pt] of OVERRIDES) if (!re.source.startsWith("^")) s = s.replace(re, pt);
   PROTEGIDOS.forEach((p) => {
     const re = new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
     s = s.replace(re, (m) => { guarda.push(m); return `\u0000${guarda.length - 1}\u0000`; });
