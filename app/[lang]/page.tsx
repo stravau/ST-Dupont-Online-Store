@@ -285,8 +285,38 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </section>
       )}
 
-      {/* Heritage — gold-on-black */}
-      <section className="monogram-bg text-cream">
+      {/* Boutiques — agora antes do Heritage: quem chega ao fim da página deve
+          encontrar primeiro onde nos visitar, e só depois a história da Maison.
+          Duas lojas empilhadas no telemóvel, lado a lado a partir de md.
+          Cada uma liga directamente à sua âncora de contacto em /loja. */}
+      <section className="reveal mx-auto max-w-7xl px-6 pt-32 pb-28 text-center">
+        <p className="overline">{dict.sections.boutiqueEyebrow}</p>
+        <h2 className="mt-6 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
+        <div className="gold-rule mx-auto my-8" />
+        <p className="mx-auto max-w-2xl text-muted">{dict.sections.boutiqueBody}</p>
+        <div className="mt-12 grid gap-6 md:grid-cols-2 md:gap-8">
+          {STORES.map((store) => (
+            <Link
+              key={store.key}
+              href={`/${locale}/loja#${store.contactAnchor}`}
+              className="group flex flex-col items-center border border-line/60 bg-paper/40 px-8 py-10 transition-colors duration-300 hover:border-gold"
+            >
+              <p className="overline text-gold">{store.labels[locale].short}</p>
+              <p className="mt-4 font-serif text-xl text-ink md:text-2xl">{store.venue}</p>
+              <p className="mt-3 text-base text-muted">{store.street}</p>
+              <p className="text-base text-muted">{store.postcode}</p>
+              <span className="mt-6 inline-block border-b border-line/60 pb-1 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors group-hover:border-gold group-hover:text-gold">
+                {dict.footer.viewStore}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Heritage — gold-on-black, agora a fechar a página. Fica encostado ao
+          rodapé, que partilha o mesmo monogram-bg: o filete dourado no topo
+          marca a separação, senão os dois blocos escuros liam-se como um só. */}
+      <section className="monogram-bg border-t border-gold-soft/25 text-cream">
         <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 py-28 md:grid-cols-2">
           <div className="reveal text-center">
             <p className="overline text-gold-soft">{dict.sections.heritageEyebrow}</p>
@@ -311,37 +341,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               className="object-cover opacity-95"
             />
           </div>
-        </div>
-      </section>
-
-      {/* Boutiques — pb-20 instead of pb-32 so the dark monogram-bg
-          footer peeks above the fold and tells the user there's more
-          underneath the cream. The footer is position:sticky bottom-0
-          z-0; without this trim the reveal effect on long pages was
-          invisible to anyone who stopped reading at the CTA.
-          Two boutique blocks stack on mobile, sit side-by-side on md+.
-          Each links directly to its own contact anchor on /loja. */}
-      <section className="reveal mx-auto max-w-7xl px-6 pt-32 pb-20 text-center">
-        <p className="overline">{dict.sections.boutiqueEyebrow}</p>
-        <h2 className="mt-6 font-serif text-4xl text-ink">{dict.sections.boutiqueTitle}</h2>
-        <div className="gold-rule mx-auto my-8" />
-        <p className="mx-auto max-w-2xl text-muted">{dict.sections.boutiqueBody}</p>
-        <div className="mt-12 grid gap-6 md:grid-cols-2 md:gap-8">
-          {STORES.map((store) => (
-            <Link
-              key={store.key}
-              href={`/${locale}/loja#${store.contactAnchor}`}
-              className="group flex flex-col items-center border border-line/60 bg-paper/40 px-8 py-10 transition-colors duration-300 hover:border-gold"
-            >
-              <p className="overline text-gold">{store.labels[locale].short}</p>
-              <p className="mt-4 font-serif text-xl text-ink md:text-2xl">{store.venue}</p>
-              <p className="mt-3 text-base text-muted">{store.street}</p>
-              <p className="text-base text-muted">{store.postcode}</p>
-              <span className="mt-6 inline-block border-b border-line/60 pb-1 text-[0.65rem] tracking-[0.22em] text-ink uppercase transition-colors group-hover:border-gold group-hover:text-gold">
-                {dict.footer.viewStore}
-              </span>
-            </Link>
-          ))}
         </div>
       </section>
     </>
