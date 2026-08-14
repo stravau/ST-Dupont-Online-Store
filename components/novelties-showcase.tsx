@@ -33,12 +33,13 @@ export function NoveltiesShowcase({
 
   return (
     <section className="bg-cream lg:grid lg:grid-cols-2">
-      {/* Imagem de campanha. Prende-se exactamente por baixo da navbar e, no
-          desktop, estende-se até ao fundo do ecrã: `top: --nav-h` +
-          `height: --below-nav` (ambas definidas no globals.css, já a contar
-          com o zoom: 0.9 do body). No telemóvel fica mais baixa para o texto
-          poder subir à frente dela. */}
-      <div className="sticky top-[var(--nav-h)] z-0 h-[58svh] lg:h-[var(--below-nav)]">
+      {/* Imagem de campanha. Prende-se exactamente por baixo da navbar e
+          estende-se até ao fundo do ecrã: `top: --nav-h` + `height:
+          --below-nav` (ambas no globals.css, já a contar com o zoom: 0.9 do
+          body). Altura inteira também no telemóvel: com meio ecrã o centro da
+          foto — onde assenta o título — caía na faixa por onde o bloco cream
+          sobe, e o título era cortado a meio logo aos primeiros 150px. */}
+      <div className="sticky top-[var(--nav-h)] z-0 h-[var(--below-nav)]">
         <Image
           src={image}
           alt=""
@@ -47,15 +48,12 @@ export function NoveltiesShowcase({
           className="object-cover"
           priority={false}
         />
-        {/* No telemóvel o texto vive sobre a imagem; o véu garante que se lê
-            por cima da água clara da fotografia. Corpo contido e com espaçamento
-            largo — em tamanho grande e cerrado lia-se como manchete de jornal,
-            não como assinatura de campanha.
-            Encostado ao TOPO de propósito: o bloco cream sobe pelo fundo, por
-            isso um título em baixo desaparecia no exacto momento em que a
-            imagem prende na navbar. Em cima fica à vista durante todo o tempo
-            que ela está presa. */}
-        <div className="absolute inset-x-0 top-0 flex flex-col items-center bg-gradient-to-b from-ink/85 via-ink/35 to-transparent px-8 pt-8 pb-16 text-center text-cream lg:hidden">
+        {/* No telemóvel o texto vive sobre a imagem, centrado ao meio dela.
+            Corpo contido e com espaçamento largo — em tamanho grande e cerrado
+            lia-se como manchete de jornal, não como assinatura de campanha.
+            O véu é mais cerrado ao centro e alivia nas pontas: garante o
+            contraste onde as letras assentam sem apagar a fotografia toda. */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-ink/25 via-ink/70 to-ink/25 px-8 text-center text-cream lg:hidden">
           <p className="overline text-[0.55rem] text-gold-soft">{eyebrow}</p>
           <h2 className="mt-3 max-w-[16rem] font-serif text-[1.35rem] font-normal leading-snug tracking-[0.04em]">
             {title}
