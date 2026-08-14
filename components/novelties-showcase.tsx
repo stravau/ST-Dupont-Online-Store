@@ -50,8 +50,12 @@ export function NoveltiesShowcase({
         {/* No telemóvel o texto vive sobre a imagem; o véu garante que se lê
             por cima da água clara da fotografia. Corpo contido e com espaçamento
             largo — em tamanho grande e cerrado lia-se como manchete de jornal,
-            não como assinatura de campanha. */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-ink/85 via-ink/30 to-transparent px-8 pb-9 text-center text-cream lg:hidden">
+            não como assinatura de campanha.
+            Encostado ao TOPO de propósito: o bloco cream sobe pelo fundo, por
+            isso um título em baixo desaparecia no exacto momento em que a
+            imagem prende na navbar. Em cima fica à vista durante todo o tempo
+            que ela está presa. */}
+        <div className="absolute inset-x-0 top-0 flex flex-col items-center bg-gradient-to-b from-ink/85 via-ink/35 to-transparent px-8 pt-8 pb-16 text-center text-cream lg:hidden">
           <p className="overline text-[0.55rem] text-gold-soft">{eyebrow}</p>
           <h2 className="mt-3 max-w-[16rem] font-serif text-[1.35rem] font-normal leading-snug tracking-[0.04em]">
             {title}
