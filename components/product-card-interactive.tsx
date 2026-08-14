@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductImage } from "@/components/product-image";
@@ -88,6 +88,26 @@ export function ProductCardInteractive({
     hover && hoverable && safeIdx === 0 && len > 2 ? 2 : safeIdx;
   const image = imgSrc(gallery[shownIdx] ?? fallbackImage);
   const slide = (d: number) => setIdx((i) => i + d);
+
+  // Arrastar o dedo na horizontal muda de fotografia. Nunca chamamos
+  // preventDefault: o gesto só conta como "lateral" quando é claramente mais
+  // horizontal que vertical, por isso deslizar a página continua a funcionar
+  // mesmo com o polegar em cima da foto.
+  const toque = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    toque.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const ini = toque.current;
+    toque.current = null;
+    if (!ini || len < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - ini.x;
+    const dy = t.clientY - ini.y;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // scroll vertical
+    slide(dx < 0 ? 1 : -1);
+  };
   const price = active?.price ?? basePrice;
 
   return (
@@ -104,7 +124,11 @@ export function ProductCardInteractive({
         </span>
       )}
 
-      <div className="lux-hover relative aspect-[4/5] w-full shrink-0 overflow-hidden border border-line bg-paper">
+      <div
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="lux-hover relative aspect-[4/5] w-full shrink-0 overflow-hidden border border-line bg-paper"
+      >
         <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]">
           {image ? (
             <Image

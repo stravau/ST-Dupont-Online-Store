@@ -10,7 +10,7 @@ const STATIC_PATHS = ["", "/historia", "/loja", "/colecao", "/colecao/ss26", "/n
 const LEGAL_PATHS = ["/legal/privacidade", "/legal/termos", "/legal/devolucoes"] as const;
 // Cross-category collection themes — mirrors the THEMES map in
 // app/[lang]/colecao/[theme]/page.tsx.
-const COLLECTION_THEMES = ["cohiba", "monogram", "popote"] as const;
+const COLLECTION_THEMES = ["geode", "cohiba", "monogram", "popote"] as const;
 
 // Emit every public URL the Maison wants Google to crawl, per locale,
 // with hreflang alternates pointing at the sibling locale. Filtered /

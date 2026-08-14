@@ -24,6 +24,13 @@ import { Crest } from "@/components/crest";
 // Theme URL slug → human label map (the function needs the LABEL because the
 // existing slug-pattern table in lib/catalog.ts is keyed on labels).
 const THEMES: Record<string, { label: string; titlePt: string; titleEn: string; eyebrowPt: string; eyebrowEn: string }> = {
+  geode: {
+    label: "Géode",
+    titlePt: "Coleção Géode",
+    titleEn: "Géode Collection",
+    eyebrowPt: "Coleção da Maison",
+    eyebrowEn: "Maison Collection",
+  },
   cohiba: {
     label: "Cohiba",
     titlePt: "Coleção Cohiba",

@@ -6,6 +6,7 @@ import { localeCategorySlug } from "@/lib/category-slugs";
 import { getNovelties, expandProductCards, getCuratedCards } from "@/lib/catalog";
 import { STORES } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
+import { NoveltiesShowcase } from "@/components/novelties-showcase";
 import { LatestCarousel } from "@/components/latest-carousel";
 import { ScrollCue } from "@/components/scroll-cue";
 import { notFound } from "next/navigation";
@@ -219,22 +220,15 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* Novidades grid — top padding kept tight; the maisons grid above
-          already has pb-16/20/24 of breathing room. */}
-      <section className="mx-auto max-w-7xl px-6 pb-28 pt-10 sm:pt-12 lg:pt-16">
-        <div className="reveal text-center">
-          <p className="overline">{dict.sections.novelties}</p>
-          <h2 className="mt-5 font-serif text-4xl text-ink">{dict.sections.noveltiesSub}</h2>
-          <div className="gold-rule mx-auto mt-7" />
-        </div>
-        <div className="reveal mt-14">
-          <LatestCarousel
-            items={latest}
-            prevLabel={dict.common.prev}
-            nextLabel={dict.common.next}
-          />
-        </div>
-      </section>
+      {/* Novidades — imagem de campanha fixa a meia página, texto e produtos a
+          correr ao lado (mesma mecânica do site oficial). */}
+      <NoveltiesShowcase
+        items={latest}
+        image="/ss26/riviera.jpg"
+        eyebrow={dict.sections.novelties}
+        title={dict.sections.noveltiesSub}
+        body={dict.sections.noveltiesBody}
+      />
 
       {/* Em Destaque — mesma mecânica de carrossel, conteúdo escolhido a dedo
           no admin. Só existe se houver selecção. */}
@@ -280,6 +274,16 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 prevLabel={dict.common.prev}
                 nextLabel={dict.common.next}
               />
+            </div>
+            {/* Porta de entrada para a colecção Géode, que atravessa várias
+                categorias e por isso não vive numa página de categoria. */}
+            <div className="reveal mt-14 text-center">
+              <Link
+                href={`/${locale}/colecao/geode`}
+                className="inline-block border border-gold-soft/70 px-9 py-4 text-[0.7rem] tracking-[0.24em] text-gold-soft uppercase transition-colors hover:bg-gold hover:text-ink"
+              >
+                {dict.sections.geodeCta} →
+              </Link>
             </div>
           </div>
         </section>

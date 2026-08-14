@@ -1,19 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ReactNode, TransitionEvent } from "react";
+import type { ReactNode } from "react";
 
-const AUTO_MS = 5000; // advance one item every 5s
-const PAUSE_MS = 10_000; // after a manual arrow click, hold still for 10s
+const AUTO_MS = 5000; // avança um cartão de 5 em 5s
+const PAUSE_MS = 10_000; // depois de um toque/seta, fica quieto 10s
 
-// Auto-rotating product rail. Shows N cards at once (responsive), advances one
-// card every 5s, and offers prev/next arrows. Clicking an arrow pauses the
-// auto-advance for 10s so a card never appears to "run away" under the cursor.
+// Carril de produtos com rotação automática.
 //
-// The loop is seamless in BOTH directions: the belt is the item list tripled,
-// and the visible index is kept inside the middle copy — when a slide finishes
-// on an outer copy we reposition (with animation off) to the identical spot in
-// the middle copy, so the jump is invisible.
+// Assenta em SCROLL NATIVO (overflow-x + scroll-snap) e não em `transform`:
+// é o que dá arrasto lateral no telemóvel sem roubar o scroll vertical à
+// página — o browser trata dos dois eixos. Com transform era preciso apanhar
+// os eventos de toque à mão e qualquer gesto na diagonal prendia a página.
+//
+// O ciclo é infinito nos dois sentidos: a lista é triplicada e, quando o
+// scroll entra numa das cópias exteriores, reposicionamo-lo no ponto idêntico
+// da cópia do meio com o scroll suave desligado — o salto não se vê.
 export function LatestCarousel({
   items,
   prevLabel,
@@ -25,12 +27,12 @@ export function LatestCarousel({
 }) {
   const n = items.length;
   const [visible, setVisible] = useState(4);
-  const [index, setIndex] = useState(n); // start on the middle copy
-  const [animate, setAnimate] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
   const pausedUntil = useRef(0);
   const reduced = useRef(false);
+  const alinhado = useRef(false); // já centrámos na cópia do meio?
 
-  // Responsive: 1 / 2 / 3 / 4 cards per view.
+  // 1 / 2 / 3 / 4 cartões por vista.
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth;
@@ -49,58 +51,64 @@ export function LatestCarousel({
 
   const canRotate = n > visible;
 
-  // Re-enable the transition on the frame after an animation-off reposition.
+  // Largura de uma cópia da lista (= largura de um cartão × n).
+  const larguraCopia = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return 0;
+    return el.scrollWidth / 3;
+  }, []);
+
+  // Arrancar no início da cópia do meio.
   useEffect(() => {
-    if (animate) return;
-    const r = requestAnimationFrame(() => setAnimate(true));
-    return () => cancelAnimationFrame(r);
-  }, [animate]);
+    const el = trackRef.current;
+    if (!el || !canRotate || alinhado.current) return;
+    const copia = larguraCopia();
+    if (copia <= 0) return;
+    el.scrollLeft = copia;
+    alinhado.current = true;
+  }, [canRotate, larguraCopia, visible]);
+
+  // Manter o scroll dentro da cópia do meio — sem isto chegava-se ao fim.
+  const onScroll = useCallback(() => {
+    const el = trackRef.current;
+    if (!el || !canRotate) return;
+    const copia = larguraCopia();
+    if (copia <= 0) return;
+    const x = el.scrollLeft;
+    if (x < copia * 0.5 || x > copia * 1.5) {
+      const anterior = el.style.scrollBehavior;
+      el.style.scrollBehavior = "auto"; // o reposicionamento não pode animar
+      el.scrollLeft = x < copia * 0.5 ? x + copia : x - copia;
+      el.style.scrollBehavior = anterior;
+    }
+  }, [canRotate, larguraCopia]);
 
   const go = useCallback(
     (dir: number, manual: boolean) => {
-      if (!canRotate) return;
+      const el = trackRef.current;
+      if (!el || !canRotate) return;
       if (manual) pausedUntil.current = Date.now() + PAUSE_MS;
-      setAnimate(true);
-      setIndex((i) => i + dir);
+      const card = el.clientWidth / visible;
+      el.scrollBy({ left: dir * card, behavior: reduced.current ? "auto" : "smooth" });
     },
-    [canRotate],
+    [canRotate, visible],
   );
 
-  // Auto-advance (skipped under prefers-reduced-motion or while paused).
+  // Avanço automático. Pausa enquanto o dedo/rato está em cima, para o cartão
+  // não fugir enquanto se olha para ele.
   useEffect(() => {
     if (!canRotate || reduced.current) return;
     const id = setInterval(() => {
       if (Date.now() < pausedUntil.current) return;
-      setAnimate(true);
-      setIndex((i) => i + 1);
+      go(1, false);
     }, AUTO_MS);
     return () => clearInterval(id);
-  }, [canRotate]);
-
-  // Seamless wrap — keep the index inside the middle copy [n, 2n).
-  const onEnd = useCallback(
-    (e: TransitionEvent<HTMLDivElement>) => {
-      if (e.target !== e.currentTarget || e.propertyName !== "transform") return;
-      setIndex((i) => {
-        if (i >= 2 * n) {
-          setAnimate(false);
-          return i - n;
-        }
-        if (i < n) {
-          setAnimate(false);
-          return i + n;
-        }
-        return i;
-      });
-    },
-    [n],
-  );
+  }, [canRotate, go]);
 
   if (n === 0) return null;
 
   const belt = canRotate ? [...items, ...items, ...items] : items;
-  const pos = canRotate ? index : 0;
-  const basis = 100 / visible; // one card = basis% of the viewport width
+  const basis = 100 / visible;
   const arrow =
     "absolute top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center " +
     "rounded-full border border-line bg-cream/90 text-ink shadow-sm backdrop-blur " +
@@ -109,25 +117,23 @@ export function LatestCarousel({
 
   return (
     <div className="relative">
-      <div className="overflow-hidden">
-        <div
-          className="flex"
-          style={{
-            transform: `translateX(-${pos * basis}%)`,
-            transition: animate ? "transform 600ms cubic-bezier(0.4,0,0.2,1)" : "none",
-          }}
-          onTransitionEnd={onEnd}
-        >
-          {belt.map((node, i) => (
-            <div
-              key={i}
-              className="shrink-0 px-2.5 sm:px-3.5 lg:px-4"
-              style={{ flexBasis: `${basis}%`, maxWidth: `${basis}%` }}
-            >
-              {node}
-            </div>
-          ))}
-        </div>
+      <div
+        ref={trackRef}
+        onScroll={onScroll}
+        onPointerEnter={() => { pausedUntil.current = Date.now() + PAUSE_MS; }}
+        onTouchStart={() => { pausedUntil.current = Date.now() + PAUSE_MS; }}
+        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain
+                   [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {belt.map((node, i) => (
+          <div
+            key={i}
+            className="shrink-0 snap-start px-2.5 sm:px-3.5 lg:px-4"
+            style={{ flexBasis: `${basis}%`, maxWidth: `${basis}%` }}
+          >
+            {node}
+          </div>
+        ))}
       </div>
 
       {canRotate && (
