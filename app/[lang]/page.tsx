@@ -226,8 +226,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         items={latest}
         image="/ss26/riviera.jpg"
         eyebrow={dict.sections.novelties}
-        title={dict.sections.noveltiesSub}
-        body={dict.sections.noveltiesBody}
+        title={dict.sections.rivieraTitle}
+        body={dict.sections.rivieraBody}
       />
 
       {/* Em Destaque — mesma mecânica de carrossel, conteúdo escolhido a dedo

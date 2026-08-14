@@ -179,8 +179,11 @@ const dictionaries = {
       featuredSub: "Seleção da Maison",
       noveltyTag: "Novo",
       noveltiesSub: "As mais recentes criações da Maison",
-      noveltiesBody:
-        "Um verão na Riviera Francesa. Peças que atravessam o dia — da piscina ao jantar — no encontro entre a laca, o couro e o metal que distinguem a Maison desde 1872.",
+      // Campanha da estação. Chaves próprias — `noveltiesSub` continua a
+      // servir o título da página /novidades, que não é campanha nenhuma.
+      rivieraTitle: "Um verão na Riviera Francesa",
+      rivieraBody:
+        "Para o verão de 2026, a S.T. Dupont inspira-se na atmosfera única da Riviera Francesa e na sua elegância intemporal. Banhada pela luz deslumbrante do Mediterrâneo e pelo calor suave dos longos dias de verão, esta estação celebra um modo de vida feito de requinte e liberdade. Conjugando herança e modernidade, savoir-faire de exceção e espírito de evasão, a Maison reinterpreta o seu estilo característico com uma energia solar, convidando a saborear a beleza dos instantes suspensos no tempo.",
       geodeCta: "Descobrir Géode",
       heritageEyebrow: "A Maison",
       heritageTitle: "A marca por trás de reis, rainhas e estadistas",
@@ -455,8 +458,9 @@ const dictionaries = {
       featuredSub: "The Maison's selection",
       noveltyTag: "New",
       noveltiesSub: "The latest creations from the Maison",
-      noveltiesBody:
-        "A summer on the French Riviera. Pieces made for the whole day — from the pool to dinner — where the lacquer, leather and metal that have defined the Maison since 1872 come together.",
+      rivieraTitle: "A summer on the French Riviera",
+      rivieraBody:
+        "For summer 2026, S.T. Dupont draws inspiration from the unique atmosphere of the French Riviera and its timeless elegance. Bathed in the dazzling light of the Mediterranean and the gentle warmth of long summer days, this season celebrates a way of life marked by refinement and freedom. Blending heritage with modernity, exceptional craftsmanship with a spirit of escape, the House reinterprets its signature style with a sunny energy, inviting you to savour the beauty of moments frozen in time.",
       geodeCta: "Discover Géode",
       heritageEyebrow: "The Maison",
       heritageTitle: "The brand behind kings, queens and statesmen",

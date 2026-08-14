@@ -33,8 +33,11 @@ export function NoveltiesShowcase({
 
   return (
     <section className="bg-cream lg:grid lg:grid-cols-2">
-      {/* Imagem de campanha */}
-      <div className="sticky top-20 z-0 h-[58vh] sm:top-24 lg:top-0 lg:h-screen">
+      {/* Imagem de campanha. Prende-se exactamente por baixo da navbar e
+          estende-se até ao fundo do ecrã — daí o `top: --nav-h` combinado com
+          `height: 100svh - --nav-h` (svh e não vh: no telemóvel a barra do
+          browser recolhe e o vh saltava). */}
+      <div className="sticky top-[var(--nav-h)] z-0 h-[58svh] lg:h-[calc(100svh-var(--nav-h))]">
         <Image
           src={image}
           alt=""
@@ -44,10 +47,15 @@ export function NoveltiesShowcase({
           priority={false}
         />
         {/* No telemóvel o texto vive sobre a imagem; o véu garante que se lê
-            por cima da água clara da fotografia. */}
-        <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/85 via-ink/35 to-transparent px-6 pb-10 text-cream lg:hidden">
-          <p className="overline text-gold-soft">{eyebrow}</p>
-          <h2 className="mt-3 font-serif text-3xl leading-tight">{title}</h2>
+            por cima da água clara da fotografia. Corpo contido e com espaçamento
+            largo — em tamanho grande e cerrado lia-se como manchete de jornal,
+            não como assinatura de campanha. */}
+        <div className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-ink/85 via-ink/30 to-transparent px-8 pb-9 text-center text-cream lg:hidden">
+          <p className="overline text-[0.55rem] text-gold-soft">{eyebrow}</p>
+          <h2 className="mt-3 max-w-[16rem] font-serif text-[1.35rem] font-normal leading-snug tracking-[0.04em]">
+            {title}
+          </h2>
+          <div className="gold-rule mt-4" />
         </div>
       </div>
 

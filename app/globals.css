@@ -7,6 +7,11 @@
 --------------------------------------------------------------------------- */
 
 :root {
+  /* Altura da navbar (que é sticky top-0), medida no browser: 74px no
+     telemóvel e 87px a partir de sm. As secções que se prendem por baixo dela
+     usam esta variável em vez de repetirem o número. */
+  --nav-h: 74px;
+
   /* Deep navy → mid-blue (from the brand gradient); used for dark sections */
   --navy-deep: #061020;
   --navy: #15314f;
@@ -44,6 +49,13 @@
   --admin-hero-bottom:  #234770;
   --admin-hero-card:    #1b2f4c;
   --admin-hero-line:    #2a4670;
+}
+
+/* A navbar cresce a partir de sm (logótipo maior). */
+@media (min-width: 640px) {
+  :root {
+    --nav-h: 87px;
+  }
 }
 
 @theme inline {
