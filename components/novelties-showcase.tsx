@@ -33,11 +33,12 @@ export function NoveltiesShowcase({
 
   return (
     <section className="bg-cream lg:grid lg:grid-cols-2">
-      {/* Imagem de campanha. Prende-se exactamente por baixo da navbar e
-          estende-se até ao fundo do ecrã — daí o `top: --nav-h` combinado com
-          `height: 100svh - --nav-h` (svh e não vh: no telemóvel a barra do
-          browser recolhe e o vh saltava). */}
-      <div className="sticky top-[var(--nav-h)] z-0 h-[58svh] lg:h-[calc(100svh-var(--nav-h))]">
+      {/* Imagem de campanha. Prende-se exactamente por baixo da navbar e, no
+          desktop, estende-se até ao fundo do ecrã: `top: --nav-h` +
+          `height: --below-nav` (ambas definidas no globals.css, já a contar
+          com o zoom: 0.9 do body). No telemóvel fica mais baixa para o texto
+          poder subir à frente dela. */}
+      <div className="sticky top-[var(--nav-h)] z-0 h-[58svh] lg:h-[var(--below-nav)]">
         <Image
           src={image}
           alt=""

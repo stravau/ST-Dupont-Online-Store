@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ProductImage } from "@/components/product-image";
 import { VariantSelector, type VariantOption, type SelectorLabels } from "@/components/variant-selector";
@@ -105,6 +105,28 @@ export function ProductDetail({
   const hasMany = gallery.length > 1;
   const go = (d: number) => setIdx((i) => i + d);
 
+  // Arrastar o dedo na horizontal muda de fotografia. Nunca chamamos
+  // preventDefault: o gesto só conta como "lateral" quando é claramente mais
+  // horizontal que vertical, por isso deslizar a página continua a funcionar
+  // com o polegar em cima da foto. O zoom é `pointerType === "mouse"`, logo
+  // não há gestos a competir no telemóvel.
+  const toque = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    toque.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const ini = toque.current;
+    toque.current = null;
+    if (!ini || !hasMany) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - ini.x;
+    const dy = t.clientY - ini.y;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // scroll vertical
+    // Travado nas pontas, tal como as setas: não dá a volta.
+    setIdx((i) => Math.min(Math.max(i + (dx < 0 ? 1 : -1), 0), gallery.length - 1));
+  };
+
   return (
     <>
     <div className="mt-10 grid gap-14 md:grid-cols-2">
@@ -113,6 +135,8 @@ export function ProductDetail({
         onPointerEnter={onZoomMove}
         onPointerMove={onZoomMove}
         onPointerLeave={onZoomLeave}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
       >
         {gallery.length > 0 ? (
           // Sliding track: all of the colourway's photos laid side by side,
