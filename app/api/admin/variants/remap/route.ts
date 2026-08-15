@@ -33,11 +33,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "sku e productSlug obrigatórios" }, { status: 400 });
   }
 
+  // Cor opcional. Sem ela a variante entra no produto sem etiqueta nem
+  // swatch, identificada só pela REF — que é o que faltava para estes artigos
+  // ficarem completos depois de ligados.
+  const corLabel = typeof body.corLabel === "string" ? body.corLabel.trim().slice(0, 40) : "";
+  const corHex = Array.isArray(body.corHex)
+    ? (body.corHex as unknown[]).filter((h): h is string => typeof h === "string" && /^#[0-9a-fA-F]{6}$/.test(h)).slice(0, 2)
+    : [];
+
   try {
     const [variant, product] = await Promise.all([
       prisma.productVariant.findUnique({
         where: { sku },
-        select: { id: true, sku: true, status: true, active: true, product: { select: { slug: true } } },
+        select: { id: true, sku: true, status: true, active: true, attributes: true, product: { select: { slug: true } } },
       }),
       prisma.product.findUnique({ where: { slug: productSlug }, select: { id: true, slug: true, active: true } }),
     ]);
@@ -50,10 +58,19 @@ export async function POST(req: Request) {
     const paraOSaco = productSlug === "unmapped-inventory";
 
     await prisma.$transaction(async (tx) => {
+      // A cor entra no `attributes`, ao lado do que lá estiver (finish, type).
+      // Substituir o objecto todo apagaria esses outros eixos.
+      const attrs = (variant.attributes as Record<string, unknown> | null) ?? {};
+      const attrsNovos =
+        corLabel && corHex.length > 0
+          ? { ...attrs, color: { label: { pt: corLabel, en: corLabel }, hex: corHex } }
+          : attrs;
+
       await tx.productVariant.update({
         where: { id: variant.id },
         data: {
           productId: product.id,
+          ...(corLabel && corHex.length > 0 ? { attributes: attrsNovos as object } : {}),
           // Ao sair do saco a variante tem de ficar publicável, senão muda de
           // pai e continua invisível — que era o problema que viemos resolver.
           // A voltar para o saco faz-se o inverso.

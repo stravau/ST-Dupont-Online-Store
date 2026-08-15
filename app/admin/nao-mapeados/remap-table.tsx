@@ -19,6 +19,8 @@ export interface UnmappedRow {
   stockLis: number;
   stockVng: number;
   suggestion: string | null;
+  corLabel: string | null;
+  corHex: string[] | null;
   valorCents: number;
 }
 
@@ -52,6 +54,11 @@ export function RemapTable({
   const [escolha, setEscolha] = useState<Record<string, string>>(() =>
     Object.fromEntries(rows.map((r) => [r.sku, r.suggestion ?? ""])),
   );
+  // Cor lida da descrição do ECI, editável: é a fonte fiável (o EAN confirmou-a
+  // nas malas Victoria) mas nem sempre a descrição tem cor.
+  const [cores, setCores] = useState<Record<string, string>>(() =>
+    Object.fromEntries(rows.map((r) => [r.sku, r.corLabel ?? ""])),
+  );
   const [busy, setBusy] = useState<string | null>(null);
   const [feito, setFeito] = useState<Set<string>>(new Set());
   const [filtro, setFiltro] = useState("");
@@ -74,7 +81,12 @@ export function RemapTable({
       const res = await fetch("/api/admin/variants/remap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sku, productSlug: slug }),
+        body: JSON.stringify({
+          sku,
+          productSlug: slug,
+          corLabel: cores[sku] || undefined,
+          corHex: cores[sku] ? rows.find((r) => r.sku === sku)?.corHex ?? undefined : undefined,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) { toast.push("error", data.error ?? `HTTP ${res.status}`); return; }
@@ -126,6 +138,7 @@ export function RemapTable({
               <th className="px-4 py-3 text-right font-medium">LIS</th>
               <th className="px-4 py-3 text-right font-medium">VNG</th>
               <th className="px-4 py-3 text-right font-medium">Valor</th>
+              <th className="px-4 py-3 text-left font-medium">Cor</th>
               <th className="px-4 py-3 text-left font-medium">Ligar ao produto</th>
               <th className="px-4 py-3" />
             </tr>
@@ -145,6 +158,29 @@ export function RemapTable({
                   <td className="px-4 py-2.5 text-right tabular-nums">{r.stockVng || "—"}</td>
                   <td className="px-4 py-2.5 text-right font-medium tabular-nums whitespace-nowrap text-ink">
                     {eur(r.valorCents)}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      {r.corHex && r.corHex.length > 0 && (
+                        <span
+                          aria-hidden
+                          className="inline-block h-4 w-4 shrink-0 rounded-full border border-line"
+                          style={{
+                            background:
+                              r.corHex.length > 1
+                                ? `linear-gradient(135deg, ${r.corHex[0]} 50%, ${r.corHex[1]} 50%)`
+                                : r.corHex[0],
+                          }}
+                        />
+                      )}
+                      <input
+                        value={cores[r.sku] ?? ""}
+                        onChange={(e) => setCores((p) => ({ ...p, [r.sku]: e.target.value }))}
+                        disabled={done}
+                        placeholder="—"
+                        className="w-28 border border-line bg-paper px-2 py-1.5 text-[0.75rem] outline-none focus:border-gold"
+                      />
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">
                     <select

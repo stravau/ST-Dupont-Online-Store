@@ -5,6 +5,7 @@ import { AdminHero } from "@/components/admin/admin-hero";
 import { EmptyState } from "@/components/admin/empty-state";
 import { RemapTable, type UnmappedRow, type ProductOption, type CategoryOption } from "./remap-table";
 import { criarSugeridor } from "@/lib/remap-suggest";
+import { corDaDescricao } from "@/lib/cor-from-desc";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,10 @@ export default async function NaoMapeadosPage() {
       const desc = pt(v.name) || v.sku;
       const stock = (v.stockLis ?? 0) + (v.stockVng ?? 0);
       const sug = sugerir(desc);
+      // A cor vem da descrição do ECI, que é a fonte fiável: nas malas Victoria
+      // a REF 1VI333BE1 parecia bege pelo sufixo mas o EAN confirmou a
+      // descrição, que dizia preta.
+      const cor = corDaDescricao(desc);
       return {
         sku: v.sku,
         ean: v.ean,
@@ -73,6 +78,8 @@ export default async function NaoMapeadosPage() {
         stockLis: v.stockLis ?? 0,
         stockVng: v.stockVng ?? 0,
         suggestion: sug?.slug ?? null,
+        corLabel: cor?.label ?? null,
+        corHex: cor?.hex ?? null,
         valorCents: stock * v.priceCents,
       };
     })
