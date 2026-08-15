@@ -28,9 +28,27 @@ const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency"
 // sugestão vem pré-seleccionada quando o servidor encontrou uma com confiança
 // suficiente — mas fica sempre editável, porque a semelhança de texto acerta
 // muitas vezes e erra outras tantas.
-export function RemapTable({ rows, options }: { rows: UnmappedRow[]; options: ProductOption[] }) {
+export interface CategoryOption {
+  slug: string;
+  label: string;
+}
+
+export function RemapTable({
+  rows,
+  options,
+  categories,
+}: {
+  rows: UnmappedRow[];
+  options: ProductOption[];
+  categories: CategoryOption[];
+}) {
   const router = useRouter();
   const toast = useToast();
+  // Artigo em que se carregou "Criar produto" — abre a caixa por baixo da
+  // linha. Nem tudo o que está no saco pertence a um produto existente: um
+  // Line D Vitruvian é uma linha que nunca foi criada, e ligá-lo a outra
+  // coisa qualquer seria pior do que deixá-lo invisível.
+  const [criar, setCriar] = useState<UnmappedRow | null>(null);
   const [escolha, setEscolha] = useState<Record<string, string>>(() =>
     Object.fromEntries(rows.map((r) => [r.sku, r.suggestion ?? ""])),
   );
@@ -149,14 +167,25 @@ export function RemapTable({ rows, options }: { rows: UnmappedRow[]; options: Pr
                     )}
                   </td>
                   <td className="px-4 py-2.5 whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={() => ligar(r.sku)}
-                      disabled={done || busy === r.sku || !escolha[r.sku]}
-                      className="border border-gold bg-gold px-3 py-1.5 text-[0.62rem] tracking-[0.14em] text-ink uppercase transition-colors hover:bg-ink hover:text-cream disabled:opacity-30"
-                    >
-                      {done ? "Ligado" : busy === r.sku ? "…" : "Ligar"}
-                    </button>
+                    <div className="flex flex-col items-stretch gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => ligar(r.sku)}
+                        disabled={done || busy === r.sku || !escolha[r.sku]}
+                        className="border border-gold bg-gold px-3 py-1.5 text-[0.62rem] tracking-[0.14em] text-ink uppercase transition-colors hover:bg-ink hover:text-cream disabled:opacity-30"
+                      >
+                        {done ? "Ligado" : busy === r.sku ? "…" : "Ligar"}
+                      </button>
+                      {!done && (
+                        <button
+                          type="button"
+                          onClick={() => setCriar(r)}
+                          className="border border-line px-3 py-1.5 text-[0.6rem] tracking-[0.12em] text-muted uppercase transition-colors hover:border-gold hover:text-ink"
+                        >
+                          Criar produto
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
@@ -166,11 +195,157 @@ export function RemapTable({ rows, options }: { rows: UnmappedRow[]; options: Pr
       </div>
 
       <p className="mt-4 max-w-3xl text-[0.72rem] text-muted">
-        Ligar move a variante para o produto escolhido e torna-a visível no site.
-        O stock, o EAN e o PVP não mudam. A variante passa a herdar a página, a
-        categoria e — se não tiver imagem própria — a fotografia desse produto,
-        por isso vale a pena confirmar que a foto faz sentido para a cor certa.
+        <strong>Ligar</strong> move a variante para um produto que já existe — herda a
+        página, a categoria e a fotografia dele. <strong>Criar produto</strong> é para
+        quando não existe onde encaixar: nasce uma página nova, publicada mas sem
+        fotografia, que fica a faltar. Em qualquer dos casos o stock, o EAN e o PVP
+        não mudam.
       </p>
+
+      {criar && (
+        <CriarProdutoModal
+          row={criar}
+          categories={categories}
+          onClose={() => setCriar(null)}
+          onDone={(sku) => {
+            setFeito((prev) => new Set(prev).add(sku));
+            setCriar(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Criar uma página de raiz a partir da variante. O nome vem pré-preenchido com
+// a descrição do ECI, que costuma ser abreviada e em maiúsculas — por isso o
+// campo é editável e o aviso pede para o rever antes de gravar.
+function CriarProdutoModal({
+  row,
+  categories,
+  onClose,
+  onDone,
+}: {
+  row: UnmappedRow;
+  categories: CategoryOption[];
+  onClose: () => void;
+  onDone: (sku: string) => void;
+}) {
+  const toast = useToast();
+  const [nome, setNome] = useState(row.desc);
+  const [categoria, setCategoria] = useState(categories[0]?.slug ?? "");
+  const [colecao, setColecao] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    if (!nome.trim()) { setErro("O nome é obrigatório."); return; }
+    if (!categoria) { setErro("Escolhe a categoria."); return; }
+    setBusy(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/admin/variants/promote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sku: row.sku, nome: nome.trim(), categorySlug: categoria, collection: colecao.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) { setErro(data.error ?? `HTTP ${res.status}`); return; }
+      toast.push("success", `Produto criado: /${data.slug}`);
+      onDone(row.sku);
+    } catch (err) {
+      setErro((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm"
+      onClick={busy ? undefined : onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg border border-gold/40 bg-paper p-6 shadow-2xl"
+      >
+        <h2 className="font-serif text-xl text-ink">Criar produto</h2>
+        <p className="mt-1 font-mono text-[0.72rem] text-muted">
+          {row.sku}
+          {row.ean ? ` · ${row.ean}` : ""} · {eur(row.priceCents)}
+        </p>
+
+        <label className="mt-5 block">
+          <span className="overline mb-1.5 block text-[0.55rem] text-muted">Nome do produto *</span>
+          <input
+            autoFocus
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+          <span className="mt-1.5 block text-[0.66rem] text-muted italic">
+            Vem da descrição do ECI, abreviada e em maiúsculas. É este o nome que
+            o cliente vê — vale a pena reescrevê-lo por extenso.
+          </span>
+        </label>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="overline mb-1.5 block text-[0.55rem] text-muted">Categoria *</span>
+            <select
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="overline mb-1.5 block text-[0.55rem] text-muted">Colecção</span>
+            <input
+              value={colecao}
+              onChange={(e) => setColecao(e.target.value)}
+              placeholder="Ex.: Line D Vitruvian"
+              className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
+            />
+          </label>
+        </div>
+
+        <p className="mt-4 border border-gold/40 bg-gold/5 px-3 py-2 text-[0.72rem] text-[#7e5e00]">
+          O produto fica publicado <strong>sem fotografia</strong> — essa não vem do
+          Excel. Aparece com a imagem provisória até alguém carregar a foto em
+          Consultar Stock → imagens.
+        </p>
+
+        {erro && (
+          <p className="mt-3 border border-[#b94a3a]/40 bg-[#b94a3a]/10 px-3 py-2 text-sm text-[#8c2a2a]">{erro}</p>
+        )}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="border border-line bg-paper px-4 py-2 text-[0.65rem] tracking-[0.14em] text-ink uppercase transition-colors hover:border-gold disabled:opacity-40"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={busy}
+            className="bg-ink px-5 py-2 text-[0.65rem] tracking-[0.14em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink disabled:opacity-40"
+          >
+            {busy ? "A criar…" : "Criar e publicar"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

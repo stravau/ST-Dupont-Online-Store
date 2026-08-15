@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { currentStaff } from "@/lib/admin-auth";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { EmptyState } from "@/components/admin/empty-state";
-import { RemapTable, type UnmappedRow, type ProductOption } from "./remap-table";
+import { RemapTable, type UnmappedRow, type ProductOption, type CategoryOption } from "./remap-table";
 import { criarSugeridor } from "@/lib/remap-suggest";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ export default async function NaoMapeadosPage() {
   const staff = await currentStaff();
   if (staff?.role !== "ADMIN") redirect("/admin/pos");
 
-  const [unmapped, products] = await Promise.all([
+  const [unmapped, products, cats] = await Promise.all([
     prisma.productVariant.findMany({
       where: { product: { slug: "unmapped-inventory" } },
       select: {
@@ -34,6 +34,7 @@ export default async function NaoMapeadosPage() {
       select: { slug: true, name: true, collection: true, category: { select: { slug: true } } },
       orderBy: { slug: "asc" },
     }),
+    prisma.category.findMany({ select: { slug: true, name: true }, orderBy: { slug: "asc" } }),
   ]);
 
   const pt = (j: unknown) => {
@@ -56,6 +57,8 @@ export default async function NaoMapeadosPage() {
       texto: [pt(p.name), p.collection ?? "", p.slug.replace(/-/g, " ")].join(" "),
     })),
   );
+
+  const categories: CategoryOption[] = cats.map((c) => ({ slug: c.slug, label: pt(c.name) || c.slug }));
 
   const rows: UnmappedRow[] = unmapped
     .map((v) => {
@@ -112,7 +115,7 @@ export default async function NaoMapeadosPage() {
       {comStock.length === 0 ? (
         <EmptyState title="Nada por ligar" body="Todos os artigos com stock têm ficha no site." />
       ) : (
-        <RemapTable rows={comStock} options={options} />
+        <RemapTable rows={comStock} options={options} categories={categories} />
       )}
     </div>
   );
