@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, EB_Garamond } from "next/font/google";
+import { Cormorant_Garamond, EB_Garamond, Marcellus } from "next/font/google";
 import { AnalyticsClient } from "@/components/analytics-client";
 import "./globals.css";
 
@@ -20,6 +20,20 @@ const bodySans = EB_Garamond({
   variable: "--font-body-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// Aproximação livre à SangBleu OG Sans que a Maison usa no site oficial (essa
+// é da Swiss Typefaces e paga). A Marcellus é um romano inscricional de hastes
+// aflautadas — o mesmo registo editorial, sobretudo em caixa alta, e bastante
+// mais moderna do que a Cormorant que temos nos títulos.
+//
+// Carregada aqui mas aplicada SÓ onde a classe .font-editorial for usada, para
+// se poder avaliar numa secção antes de decidir alastrar ao site inteiro.
+const editorialSerif = Marcellus({
+  variable: "--font-editorial",
+  subsets: ["latin"],
+  weight: ["400"],
   display: "swap",
 });
 
@@ -44,7 +58,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} h-full motion-safe:scroll-smooth`}>
+    <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} ${editorialSerif.variable} h-full motion-safe:scroll-smooth`}>
       <body className="min-h-full bg-cream text-ink">
         {children}
         {/* AnalyticsClient hosts the Vercel Analytics + Speed

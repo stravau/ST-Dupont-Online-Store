@@ -935,3 +935,18 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
     print-color-adjust: exact;
   }
 }
+
+/* Registo editorial — aproximação à SangBleu OG Sans do site oficial.
+   Aplicada por escolha, secção a secção, em vez de global: trocar a fonte
+   dos títulos sente-se no site inteiro, e vale a pena ver numa secção antes
+   de decidir. O tracking ligeiramente aberto é o que faz a caixa alta ler
+   como no material da Maison — sem ele a Marcellus fica apertada. */
+.font-editorial {
+  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
+  letter-spacing: 0.02em;
+}
+.font-editorial-caps {
+  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

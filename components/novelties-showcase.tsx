@@ -67,13 +67,13 @@ export function NoveltiesShowcase({
       <div className="relative z-10 bg-cream">
         <div className="hidden px-10 pt-28 xl:px-16 lg:block">
           <p className="overline">{eyebrow}</p>
-          <h2 className="mt-5 font-serif text-4xl leading-tight text-ink">{title}</h2>
+          <h2 className="font-editorial-caps mt-5 text-3xl leading-tight text-ink">{title}</h2>
           <div className="gold-rule mt-7" />
-          <p className="mt-7 max-w-md text-muted">{body}</p>
+          <p className="font-editorial mt-7 max-w-md leading-relaxed text-muted">{body}</p>
         </div>
 
         {/* Mobile: o texto de apoio fica aqui (o título já está sobre a foto). */}
-        <p className="px-6 pt-10 text-muted lg:hidden">{body}</p>
+        <p className="font-editorial px-6 pt-10 leading-relaxed text-muted lg:hidden">{body}</p>
 
         {/* Produtos — carril lateral no telemóvel, grelha de dois no desktop.
             O carril é scroll nativo: o polegar arrasta na horizontal e a
