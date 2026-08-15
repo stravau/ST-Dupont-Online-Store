@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, EB_Garamond, Marcellus } from "next/font/google";
+import { Cormorant_Garamond, EB_Garamond, Julius_Sans_One, Tenor_Sans } from "next/font/google";
 import { AnalyticsClient } from "@/components/analytics-client";
 import "./globals.css";
 
@@ -23,15 +23,26 @@ const bodySans = EB_Garamond({
   display: "swap",
 });
 
-// Aproximação livre à SangBleu OG Sans que a Maison usa no site oficial (essa
-// é da Swiss Typefaces e paga). A Marcellus é um romano inscricional de hastes
-// aflautadas — o mesmo registo editorial, sobretudo em caixa alta, e bastante
-// mais moderna do que a Cormorant que temos nos títulos.
+// Par editorial que aproxima a SangBleu OG Sans do site oficial (essa é da
+// Swiss Typefaces e paga). São duas porque nenhuma serve para as duas coisas:
 //
-// Carregada aqui mas aplicada SÓ onde a classe .font-editorial for usada, para
-// se poder avaliar numa secção antes de decidir alastrar ao site inteiro.
-const editorialSerif = Marcellus({
-  variable: "--font-editorial",
+//   Julius Sans One — sans de alto contraste, é a que mais se parece com o
+//     alvo em caixa alta, mas só tem um peso e em texto corrido fica leve.
+//     Fica nos títulos, onde brilha.
+//   Tenor Sans — humanista de modulação suave, menos dramática mas legível
+//     em parágrafos. Fica no corpo, onde a outra falha.
+//
+// É a mesma lógica que a Maison usa (SangBleu para uns sítios, Assistant para
+// outros). Carregadas aqui, aplicadas só onde .editorial-scope for usada.
+const editorialDisplay = Julius_Sans_One({
+  variable: "--font-editorial-display",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+});
+
+const editorialBody = Tenor_Sans({
+  variable: "--font-editorial-body",
   subsets: ["latin"],
   weight: ["400"],
   display: "swap",
@@ -58,7 +69,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} ${editorialSerif.variable} h-full motion-safe:scroll-smooth`}>
+    <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} ${editorialDisplay.variable} ${editorialBody.variable} h-full motion-safe:scroll-smooth`}>
       <body className="min-h-full bg-cream text-ink">
         {children}
         {/* AnalyticsClient hosts the Vercel Analytics + Speed
