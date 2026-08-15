@@ -950,3 +950,24 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+
+/* Página inteira no registo editorial. Envolve tudo — corpo E títulos —
+   porque a pergunta que isto responde é "como é ler bastante texto nesta
+   fonte", e para isso não chega ver um título. Os .overline ficam de fora:
+   são etiquetas de sistema, não texto de leitura, e mantêm a coerência com
+   o resto do site. */
+.editorial-scope {
+  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
+  letter-spacing: 0.015em;
+}
+.editorial-scope h1,
+.editorial-scope h2,
+.editorial-scope h3,
+.editorial-scope .font-serif {
+  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
+  letter-spacing: 0.03em;
+}
+.editorial-scope .overline {
+  font-family: var(--font-sans), sans-serif;
+  letter-spacing: var(--tracking-luxe);
+}

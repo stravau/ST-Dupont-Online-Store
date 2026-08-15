@@ -27,7 +27,9 @@ export default async function HistoryPage({
   const dict = getDictionary(l);
 
   return (
-    <div>
+    // Página inteira em Marcellus para se avaliar a fonte com volume de texto
+    // a sério, e não só num título. Ver .editorial-scope em globals.css.
+    <div className="editorial-scope">
       {/* Hero — full-bleed history photo + ink scrim + staggered fade-ins */}
       <section className="monogram-bg relative isolate overflow-hidden text-cream">
         <Image
