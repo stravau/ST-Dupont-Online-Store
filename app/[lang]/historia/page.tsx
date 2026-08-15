@@ -27,10 +27,7 @@ export default async function HistoryPage({
   const dict = getDictionary(l);
 
   return (
-    // Par editorial em avaliação: títulos em Julius Sans One, corpo em Tenor
-    // Sans. Ver .editorial-scope em globals.css. A História é a página com
-    // mais prosa do site, logo a melhor para julgar se o corpo aguenta.
-    <div className="editorial-scope">
+    <div>
       {/* Hero — full-bleed history photo + ink scrim + staggered fade-ins */}
       <section className="monogram-bg relative isolate overflow-hidden text-cream">
         <Image

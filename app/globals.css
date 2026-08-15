@@ -935,32 +935,3 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
     print-color-adjust: exact;
   }
 }
-
-
-/* Registo editorial — par que aproxima a SangBleu OG Sans do site oficial.
-   Títulos em Julius Sans One (sans de alto contraste, o mais parecido com o
-   alvo em caixa alta), corpo em Tenor Sans (humanista, aguenta parágrafos).
-   Duas fontes porque nenhuma serve para as duas coisas.
-
-   Aplicado por escopo, página a página, em vez de global: trocar a tipografia
-   sente-se no site inteiro e vale a pena ver antes de decidir. */
-.editorial-scope {
-  font-family: var(--font-editorial-body), ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: 0.015em;
-}
-.editorial-scope h1,
-.editorial-scope h2,
-.editorial-scope h3,
-.editorial-scope .font-serif {
-  font-family: var(--font-editorial-display), ui-sans-serif, system-ui, sans-serif;
-  /* A Julius Sans One tem um só peso e é naturalmente leve — sem tracking
-     aberto os títulos grandes ficam densos e perdem o ar da campanha. */
-  letter-spacing: 0.08em;
-  font-weight: 400;
-}
-/* Os .overline ficam de fora: são etiquetas de sistema, não texto de leitura,
-   e mantêm a coerência com o resto do site. */
-.editorial-scope .overline {
-  font-family: var(--font-sans), sans-serif;
-  letter-spacing: var(--tracking-luxe);
-}
