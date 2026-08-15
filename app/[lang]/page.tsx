@@ -94,11 +94,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ));
 
   return (
-    // Homepage inteira no registo editorial, para se avaliar a fonte com a
-    // mistura toda: título de campanha, prosa, cartões de produto, categorias.
-    // Um <div> sem estilos de posicionamento não interfere com as margens
-    // negativas do hero — só carrega a família e o tracking por herança.
-    <div className="editorial-scope">
+    <>
       {/* Cinematic hero: full-viewport Maison video. The negative top margin
           slides the section up to the very top of the viewport so the video
           sits behind the (transparent at first paint) sticky header — and
@@ -351,6 +347,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }
