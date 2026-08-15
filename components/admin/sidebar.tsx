@@ -43,6 +43,11 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
       // Uploads (Sincronizar ECI Controlo) — as boutiques também precisam
       // durante a fase de transição em que o Excel ainda é a fonte da verdade.
       { href: "/admin/uploads", label: "Importar Ficheiros", hint: "Sincronizar Excel ECI Controlo", Icon: IconUpload },
+      // Só ADMIN: ligar um artigo a um produto é decisão de catálogo, não de
+      // operação de loja.
+      ...(role === "ADMIN"
+        ? [{ href: "/admin/nao-mapeados", label: "Artigos sem ficha", hint: "Stock que não aparece no site", Icon: IconList }]
+        : []),
     ],
   });
 
