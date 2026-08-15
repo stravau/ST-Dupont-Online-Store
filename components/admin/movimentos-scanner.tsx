@@ -30,6 +30,16 @@ interface HistoryEntry {
 
 const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
+// Motivos possíveis para um movimento. Fechado numa lista em vez de texto
+// livre: o campo era opcional e ficava vazio, o que tornava o histórico
+// impossível de ler — "entrou stock" sem se saber de onde. Com três opções
+// fixas o livro passa a responder "veio do fornecedor" ou "veio da outra loja".
+const NOTE_OPTIONS = [
+  { value: "TRF VNG", label: "TRF VNG — transferência de/para V. N. Gaia" },
+  { value: "TRF LIS", label: "TRF LIS — transferência de/para Lisboa" },
+  { value: "FORN", label: "FORN — fornecedor" },
+] as const;
+
 function hhmm(d = new Date()) {
   return d.toLocaleTimeString("pt-PT", { timeZone: "Europe/Lisbon", hour: "2-digit", minute: "2-digit" });
 }
@@ -38,11 +48,25 @@ function hhmm(d = new Date()) {
 // article into a basket (stand-by, with PVP + editable quantity); nothing is
 // written until "Registar entrada / saída". Left: scan + basket. Right: the
 // session log of what has been committed + running totals.
-export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) {
+export function MovimentosScanner({
+  boutiques,
+  operators,
+}: {
+  boutiques: BoutiqueCode[];
+  operators: { boutique: BoutiqueCode; initials: string }[];
+}) {
   const [boutique, setBoutique] = useState<BoutiqueCode>(boutiques[0]);
   const [type, setType] = useState<MovType>("ENTRADA");
   const [scan, setScan] = useState("");
   const [note, setNote] = useState("");
+  const [operator, setOperator] = useState("");
+
+  // Operadores da loja seleccionada. No admin chegam os das duas, e trocar de
+  // loja tem de limpar a escolha — senão ficava lá o operador da outra.
+  const storeOperators = useMemo(
+    () => operators.filter((o) => o.boutique === boutique).map((o) => o.initials),
+    [operators, boutique],
+  );
   const [lines, setLines] = useState<Line[]>([]);
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
@@ -116,6 +140,11 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
   const register = useCallback(async () => {
     if (busy) return;
     if (lines.length === 0) { setFlash({ kind: "err", msg: "Sem artigos — lê um código primeiro" }); return; }
+    // Operador e motivo passaram a obrigatórios: sem eles o histórico não
+    // diz quem fez nem porquê, que são as duas perguntas que se faz a um
+    // livro de movimentos.
+    if (!operator) { setFlash({ kind: "err", msg: "Escolhe o operador" }); return; }
+    if (!note) { setFlash({ kind: "err", msg: "Escolhe o motivo do movimento" }); return; }
     setBusy(true);
     setFlash(null);
     let ok = 0;
@@ -130,7 +159,8 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
             boutique,
             type,
             quantity: l.quantity,
-            note: note.trim() || undefined,
+            note,
+            operatorInitials: operator,
             ...(l.ean ? { ean: l.ean } : { sku: l.sku }),
           }),
         });
@@ -149,14 +179,15 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
     if (failed.length === 0) {
       setFlash({ kind: "ok", msg: `${type === "ENTRADA" ? "Entrada" : "Saída"} registada · ${ok} artigos` });
       setLines([]);
-      setNote("");
+      // Motivo e operador ficam preenchidos: numa recepção de fornecedor
+      // registam-se vários lotes seguidos com os mesmos dois valores.
     } else {
       setLines(lines.filter((l) => failed.some((f) => f.startsWith(l.sku)))); // keep only the ones that failed
       setFlash({ kind: "err", msg: `${ok} registados · ${failed.length} falharam (${failed[0]})` });
     }
     setBusy(false);
     refocus();
-  }, [busy, lines, boutique, type, note]);
+  }, [busy, lines, boutique, type, note, operator]);
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
@@ -168,7 +199,7 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
               <button
                 key={b}
                 type="button"
-                onClick={() => { setBoutique(b); setLines([]); setHistory([]); }}
+                onClick={() => { setBoutique(b); setLines([]); setHistory([]); setOperator(""); }}
                 className={`px-4 py-1.5 text-xs tracking-[0.15em] uppercase transition-colors ${
                   b === boutique ? "bg-ink text-cream" : "text-ink hover:text-gold"
                 }`}
@@ -259,14 +290,39 @@ export function MovimentosScanner({ boutiques }: { boutiques: BoutiqueCode[] }) 
       {/* Right — confirm panel + session history */}
       <aside className="h-fit border border-line bg-paper p-5 lg:sticky lg:top-6">
         <label className="block">
-          <span className="overline text-[0.55rem] text-muted">Nota (opcional)</span>
-          <input
-            type="text"
+          <span className="overline text-[0.55rem] text-muted">Motivo *</span>
+          <select
             value={note}
-            onChange={(e) => setNote(e.target.value.slice(0, 300))}
-            placeholder="Ex.: fornecedor, transferência LIS→VNG"
+            onChange={(e) => setNote(e.target.value)}
             className="mt-2 w-full border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-gold"
-          />
+          >
+            <option value="">— escolher —</option>
+            {NOTE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </label>
+
+        {/* Operador — quem fez o movimento. Obrigatório: sem ele o histórico
+            regista o quê e o quando mas não o quem. Lista filtrada pela loja
+            escolhida, como no /admin/pos. */}
+        <label className="mt-4 block">
+          <span className="overline text-[0.55rem] text-muted">Operador *</span>
+          <select
+            value={operator}
+            onChange={(e) => setOperator(e.target.value)}
+            className="mt-2 w-full border border-line bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-gold"
+          >
+            <option value="">— escolher —</option>
+            {storeOperators.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
+          {storeOperators.length === 0 && (
+            <span className="mt-1.5 block text-[0.68rem] text-[#8c2a2a]">
+              Sem operadores activos nesta loja — cria um antes de registar.
+            </span>
+          )}
         </label>
 
         <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4 text-sm">

@@ -1,4 +1,6 @@
 import { currentStaff } from "@/lib/admin-auth";
+import { prisma } from "@/lib/prisma";
+import type { BoutiqueCode } from "@/lib/pos";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { MovimentosScanner } from "@/components/admin/movimentos-scanner";
 import { MovementHistory, type HistoryParams } from "./history";
@@ -25,6 +27,15 @@ export default async function MovimentosPage({
   }
   const boutiques = boutiquesForRole(role ?? null);
 
+  // Operadores para o selector — os das lojas que este login pode operar.
+  // No admin vêm os das duas; o scanner filtra pela loja escolhida. Mesmo
+  // padrão do /admin/pos.
+  const operators = await prisma.operator.findMany({
+    where: { boutique: { in: boutiques }, active: true },
+    orderBy: [{ boutique: "asc" }, { initials: "asc" }],
+    select: { boutique: true, initials: true },
+  });
+
   const scope =
     boutiques.length === 1
       ? boutiques[0] === "LIS"
@@ -44,7 +55,10 @@ export default async function MovimentosPage({
         subtitle={`Entradas e saídas por código de barras · ${scope}`}
       />
       <div className="mx-auto max-w-5xl">
-        <MovimentosScanner boutiques={boutiques} />
+        <MovimentosScanner
+          boutiques={boutiques}
+          operators={operators as { boutique: BoutiqueCode; initials: string }[]}
+        />
       </div>
       {/* O histórico usa a largura toda — é uma tabela de oito colunas e
           espremê-la nos 5xl do scanner não ajudava ninguém. */}

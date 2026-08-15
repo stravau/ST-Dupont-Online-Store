@@ -54,7 +54,35 @@ export async function POST(req: Request) {
   }
   const qty = rawQty;
   const sign = type === "ENTRADA" ? 1 : -1;
-  const noteRaw = typeof body.note === "string" ? body.note.slice(0, 300) : null;
+
+  // Motivo e operador passaram a obrigatórios. Sem eles o livro de movimentos
+  // regista o quê e o quando mas não o quem nem o porquê — que são as duas
+  // perguntas que se lhe faz quando o stock não bate certo.
+  const NOTE_VALUES = ["TRF VNG", "TRF LIS", "FORN"];
+  const noteRaw = typeof body.note === "string" ? body.note.trim() : "";
+  if (!NOTE_VALUES.includes(noteRaw)) {
+    return NextResponse.json(
+      { ok: false, error: `motivo obrigatório (${NOTE_VALUES.join(" | ")})` },
+      { status: 400 },
+    );
+  }
+
+  const initials = typeof body.operatorInitials === "string" ? body.operatorInitials.trim().toUpperCase() : "";
+  if (!initials) {
+    return NextResponse.json({ ok: false, error: "operador obrigatório" }, { status: 400 });
+  }
+  // O operador tem de existir E ser desta loja: aceitar iniciais à solta
+  // deixaria entrar gralhas e operadores da outra boutique no livro.
+  const operator = await prisma.operator.findFirst({
+    where: { boutique, initials },
+    select: { id: true },
+  });
+  if (!operator) {
+    return NextResponse.json(
+      { ok: false, error: `operador "${initials}" não existe em ${boutique}` },
+      { status: 400 },
+    );
+  }
 
   const where = ean ? { ean } : { sku: sku! };
 
@@ -87,7 +115,7 @@ export async function POST(req: Request) {
         const m = await tx.stockMovement.create({
           data: {
             boutique, variantId: variant.id, sku: variant.sku, ean: variant.ean,
-            type, quantity: sign * qty, note: noteRaw,
+            type, quantity: sign * qty, note: noteRaw, operatorId: operator.id,
           },
         });
         await tx.productVariant.update({
@@ -100,7 +128,7 @@ export async function POST(req: Request) {
             entityType: "STOCK_MOVEMENT",
             action: "CREATE",
             entityId: m.id,
-            after: { boutique, type, sku: variant.sku, quantity: sign * qty, newStock: next },
+            after: { boutique, type, sku: variant.sku, quantity: sign * qty, newStock: next, operador: initials, motivo: noteRaw },
           },
         });
         return m;
@@ -157,7 +185,7 @@ export async function POST(req: Request) {
           action: type,
           entityId: ob.sku,
           before: { stock: ob.stock },
-          after: { stock: nextStock, brand: ob.brand, quantity: sign * qty, note: noteRaw },
+          after: { stock: nextStock, brand: ob.brand, quantity: sign * qty, note: noteRaw, operador: initials },
         },
       });
       return { updated, actionId: a.id };
