@@ -125,9 +125,13 @@ function Copy({
           </p>
           {/* 6.8pt é o mínimo que uma térmica de 203 dpi ainda resolve com
               nitidez; abaixo disso as hastes das letras caem entre pontos. */}
-          <ol className="mt-1 list-decimal space-y-[2px] pl-3">
+          {/* Entrelinha apertada de propósito. As condições são trinta e tal
+              linhas — é aqui que está a altura toda do talão, e cada décima
+              que se tira à entrelinha vale um milímetro no fim. A letra fica
+              nos 6.8pt: é o chão da nitidez a 203 dpi e não se mexe. */}
+          <ol className="mt-1 list-decimal space-y-px pl-3">
             {REPAIR_TERMS.map((t) => (
-              <li key={t.title} className="text-[6.8pt] leading-[1.25]">
+              <li key={t.title} className="text-[6.8pt] leading-[1.18]">
                 <span className="font-bold">{t.title}:</span> {t.body}
               </li>
             ))}
@@ -135,16 +139,19 @@ function Copy({
         </div>
       )}
 
-      <div className="mt-3">
-        <div className="border-b border-black" style={{ marginTop: "7mm" }} />
-        <p className="mt-0.5 text-[6pt] tracking-[0.1em] uppercase">Cliente</p>
+      {/* Os espaços de assinatura passam de 7 e 6 mm para 6 e 5. Continua a
+          dar para assinar à vontade — uma assinatura ocupa 4 mm — e devolve
+          2 mm ao fim do talão, que é onde a folga faltava. */}
+      <div className="mt-2">
         <div className="border-b border-black" style={{ marginTop: "6mm" }} />
+        <p className="mt-0.5 text-[6pt] tracking-[0.1em] uppercase">Cliente</p>
+        <div className="border-b border-black" style={{ marginTop: "5mm" }} />
         <p className="mt-0.5 text-[6pt] tracking-[0.1em] uppercase">
           Colaborador{repair.staff ? ` · ${repair.staff}` : ""}
         </p>
       </div>
 
-      <p className="mt-2 text-center text-[6pt] tracking-[0.14em] uppercase">
+      <p className="mt-1.5 text-center text-[6pt] tracking-[0.14em] uppercase">
         {full ? "Via do cliente" : "Via da loja"}
       </p>
     </section>
