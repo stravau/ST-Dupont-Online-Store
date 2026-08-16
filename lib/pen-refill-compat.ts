@@ -126,7 +126,37 @@ export function tipoDaCaneta(nome: string | null | undefined): TipoCaneta | null
  * família. É preferível mostrar a esferográfica e o cartucho ao cliente e
  * deixá-lo escolher, do que não mostrar nada.
  */
-export function penRefillRefsFor(nomeProduto: string | null | undefined): string[] {
+// Ao contrário de `tipoDaCaneta`, que devolve o primeiro que casa, esta
+// devolve TODOS os que o texto menciona. É a diferença entre "esta caneta é
+// uma esferográfica" e "este texto fala de esferográfica e de lapiseira".
+const TODOS_OS_TIPOS: [RegExp, TipoCaneta][] = [
+  [/tinta permanente|fountain pen|aparo|stylo plume/i, "aparo"],
+  [/rollerball|roller ball/i, "rollerball"],
+  [/esferogr[aá]fica|ballpoint/i, "esferografica"],
+  [/porta-?minas|lapiseira|mechanical pencil/i, "lapiseira"],
+];
+
+function tiposMencionados(texto: string | null | undefined): TipoCaneta[] {
+  if (!texto) return [];
+  return TODOS_OS_TIPOS.filter(([re]) => re.test(texto)).map(([, t]) => t);
+}
+
+/**
+ * As REF que servem este instrumento de escrita.
+ *
+ * O tipo sai do nome quando lá está. Quando não está — há 26 fichas assim,
+ * "Classique · Popote", "Défi Millennium" — usam-se os tipos que a DESCRIÇÃO
+ * menciona, que já reduz bastante: a do Popote fala de esferográfica e de
+ * lapiseira, e sem isto a ficha oferecia também roller e cartuchos de tinta.
+ *
+ * Só quando nem a descrição diz nada é que se dão os três tipos de escrita. A
+ * lapiseira nunca entra nesse último caso — é rara, e as minas e as borrachas
+ * seriam o mais provável de estar a mais.
+ */
+export function penRefillRefsFor(
+  nomeProduto: string | null | undefined,
+  descricao?: string | null,
+): string[] {
   const familia = familiaDaCaneta(nomeProduto);
   const tipo = tipoDaCaneta(nomeProduto);
 
@@ -141,8 +171,9 @@ export function penRefillRefsFor(nomeProduto: string | null | undefined): string
 
   const quadro = PEN_COMPAT[familia];
   if (tipo) return quadro[tipo] ?? [];
-  // Ficha que cobre a linha toda ("Défi Millennium", sem tipo no nome): dão-se
-  // as dos três tipos de escrita. A lapiseira fica de fora — é rara, e as
-  // minas e borrachas seriam o mais provável de estar a mais.
-  return [...new Set([quadro.esferografica ?? [], quadro.rollerball ?? [], quadro.aparo ?? []].flat())];
+
+  const daDescricao = tiposMencionados(descricao);
+  const tipos: TipoCaneta[] =
+    daDescricao.length > 0 ? daDescricao : ["esferografica", "rollerball", "aparo"];
+  return [...new Set(tipos.flatMap((t) => quadro[t] ?? []))];
 }

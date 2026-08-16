@@ -127,23 +127,29 @@ export default async function ProductPage({
   // O nome vai junto porque a maioria dos isqueiros está agrupada pela edição
   // ("Ligne 2 · Cohiba" na colecção "Cohiba") e é o nome que traz o modelo.
   const modelName = product.name.pt ?? product.name[locale];
-  const refsDoQuadro =
-    product.categorySlug === "escrita"
-      ? penRefillRefsFor(modelName)
-      : refillRefsFor(product.collection, modelName);
-  // Quando o quadro conhece o modelo, MANDA ele. A descrição é copy da marca
-  // e fala dos submodelos todos — 78 das 102 fichas de isqueiro trazem REF, e
-  // várias de Ligne 2 apontam para a recarga vermelha, que é do CXXXXX e não
-  // se vende aqui. A descrição só entra onde o quadro nada diz: canetas,
-  // acessórios, cortadores.
-  const compatibleRefs = [
-    ...new Set(
-      (refsDoQuadro.length > 0
-        ? refsDoQuadro
-        : parseCompatibleRefs(product.description[locale])
-      ).flatMap(expandeRef),
-    ),
-  ];
+  const refsDaDescricao = parseCompatibleRefs(product.description[locale]);
+
+  // A precedência é inversa nas duas famílias, e por boas razões.
+  //
+  // ISQUEIROS: manda o quadro. A descrição é copy da marca e fala dos
+  // submodelos todos — várias fichas de Ligne 2 apontam para a recarga
+  // vermelha, que é do CXXXXX e não se vende aqui.
+  //
+  // CANETAS: manda a descrição. Aqui ela não generaliza, nomeia a REF do
+  // artigo concreto — 50 das 75 fichas trazem-na, e sempre de acordo com o
+  // quadro. O quadro entra quando a descrição se cala.
+  const escrita = product.categorySlug === "escrita";
+  const doQuadro = escrita
+    ? penRefillRefsFor(modelName, product.description.pt ?? product.description[locale])
+    : refillRefsFor(product.collection, modelName);
+  const escolhidas = escrita
+    ? refsDaDescricao.length > 0
+      ? refsDaDescricao
+      : doQuadro
+    : doQuadro.length > 0
+      ? doQuadro
+      : refsDaDescricao;
+  const compatibleRefs = [...new Set(escolhidas.flatMap(expandeRef))];
   const compatibleProducts = await getProductsByVariantSkus(compatibleRefs);
   const refillNote = refillNoteFor(product.collection, modelName);
   const compatibleSummary = compatibleProducts.map((p) => ({
