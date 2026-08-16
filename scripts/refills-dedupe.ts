@@ -50,6 +50,9 @@ const REFS = [
     // o roller mini do Néo-Classique Président e a recarga de gancho.
     ...CLASSIQUE_ANTES_1999,
     "040205", "040207", "040208", "040201", "040843", "000444",
+    // Os dois "Frasco de Tinta (Cx. 5)" sem EAN nem stock: resíduo do seed,
+    // porque os frascos a sério são a 040165–040170, com EAN e em loja.
+    "040159", "040161",
   ]),
 ].sort();
 
@@ -126,6 +129,28 @@ async function main() {
       ` mov:${v._count.stockMovements} enc:${v._count.orderItems} res:${v._count.reservas}`;
 
     if (g.length === 1 && keeper) {
+      // Uma ficha pode ter a REF certa e mesmo assim ser resíduo do seed. A
+      // assinatura é inconfundível: sem EAN, sem vendas, sem movimentos, e a
+      // coluna `stock` a declarar unidades que nenhuma das duas lojas tem. Um
+      // artigo novo a sério não declara stock que não está em lado nenhum.
+      const residuo =
+        !keeper.ean &&
+        keeper._count.saleItems === 0 &&
+        keeper._count.stockMovements === 0 &&
+        stockReal(keeper) === 0 &&
+        keeper.stock > 0;
+      if (residuo) {
+        if (APAGAR_ORFAS) {
+          console.log(`${ref}  → APAGAR ${keeper.sku} (órfã, confirmada com --apagar-orfas)`);
+          console.log(line(keeper, "✗"));
+          toDelete.push(keeper);
+        } else {
+          console.log(`${ref}  ? ÓRFÃ — REF certa mas sem EAN, sem vendas e sem stock em loja`);
+          console.log(line(keeper, " "));
+          orphans.push(keeper);
+        }
+        continue;
+      }
       console.log(`${ref}  ✓ única ficha, REF já certa`);
       console.log(line(keeper, " "));
       continue;

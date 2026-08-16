@@ -181,6 +181,11 @@ const CATEGORY_OVERRIDES: Record<string, CategorySlug> = {
   // actually a desk pen cup (Copo de Secretária). Category shifts to
   // Acessórios; the display name is fixed in fix-line-d-2-desk-cup.ts.
   "line-d-2-pencil":          "acessorios",
+  // Os frascos de tinta estavam em escrita, e a página Recargas & Tintas só
+  // puxa de acessórios — os seis frascos que a boutique tem em stock nunca lá
+  // apareciam. São consumível, como os cartuchos e as recargas, que já vivem
+  // todos em acessórios.
+  "inkwell":                  "acessorios",
 };
 
 // Infer the pen-type localised label for a writing variant where the

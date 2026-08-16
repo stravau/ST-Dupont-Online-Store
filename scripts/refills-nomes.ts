@@ -67,6 +67,16 @@ const NOMES: Record<string, Nome> = {
   "408811": { pt: "Mecanismo de Lapiseira", en: "Propelling Pencil Mechanism" },
   // Défi Multifunção — esferográfica preta, azul e vermelha, marcador e stylus.
   "040208": { pt: "Recargas Défi Multifunção (Cx. 5)", en: "Défi Multifunction Refills (Box of 5)" },
+
+  // Frascos de tinta. As cores tinham sido traduzidas palavra a palavra do
+  // inglês — "Royal Blue" saiu "Real & Azul", "Midnight Blue" saiu "Escuro &
+  // Azul", "Turquoise" saiu "Turquesa & Azul".
+  "040165": { pt: "Frasco de Tinta — Preto", en: "Ink Bottle — Black" },
+  "040166": { pt: "Frasco de Tinta — Azul Real", en: "Ink Bottle — Royal Blue" },
+  "040167": { pt: "Frasco de Tinta — Vermelho", en: "Ink Bottle — Red" },
+  "040168": { pt: "Frasco de Tinta — Verde", en: "Ink Bottle — Green" },
+  "040169": { pt: "Frasco de Tinta — Turquesa", en: "Ink Bottle — Turquoise" },
+  "040170": { pt: "Frasco de Tinta — Azul Meia-Noite", en: "Ink Bottle — Midnight Blue" },
 };
 
 // Produtos que juntam mais do que uma referência precisam de um nome que
@@ -74,6 +84,9 @@ const NOMES: Record<string, Nome> = {
 const NOMES_PRODUTO: Record<string, Nome> = {
   "box-10-refills-lead-0-7mm": { pt: "Minas 0,7 mm", en: "Pencil Leads 0.7 mm" },
   "box-10-refills-eraser": { pt: "Borrachas (Cx. 5)", en: "Erasers (Box of 5)" },
+  // Seis cores num produto só. "Tinteiro" é o pote de secretária em que se
+  // molha o aparo; isto são frascos de 32 €, que é outra coisa.
+  inkwell: { pt: "Frasco de Tinta", en: "Ink Bottle" },
 };
 
 // A etiqueta de cor é o que a listagem escreve por baixo do título, e nestas
