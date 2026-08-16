@@ -187,6 +187,24 @@ export const productGroups: Record<string, ProductGroup> = {
     title: t("Recargas & Tintas", "Refills & Inks"),
     eyebrow: "L'Art de l'Écriture",
     categorySlug: "acessorios",
+    // Separado pelo tipo de escrita, que é como o cliente procura: quem vem
+    // buscar recarga sabe se a caneta é esferográfica ou de aparo, não sabe a
+    // referência. Os matchers são mutuamente exclusivos de propósito — cada
+    // artigo aparece num separador só.
+    types: [
+      // A caixa do Défi Multifunção são cinco recargas de esferográfica
+      // (preta, azul, vermelha) mais marcador e stylus.
+      { key: "ballpoint", label: t("Esferográfica", "Ballpoint"), match: re(/ballpoint|multiple-inks/) },
+      { key: "rollerball", label: t("Rollerball", "Rollerball"), match: re(/rollerball|felt/) },
+      {
+        key: "fountain",
+        label: t("Tinta Permanente", "Fountain Pen"),
+        // O pistão vive aqui: é o conversor que troca o cartucho por tinta de
+        // frasco, e só faz sentido para quem tem uma caneta de aparo.
+        match: re(/(?:^|-)ink(?:$|-)|ink-bottle|inkwell|pistons/),
+      },
+      { key: "pencil", label: t("Lapiseira", "Pencil"), match: re(/lead|eraser|pencil-mechanism/) },
+    ],
     match: isInkOrRefill,
   },
 

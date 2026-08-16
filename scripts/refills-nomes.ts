@@ -57,8 +57,12 @@ const NOMES: Record<string, Nome> = {
   "040202": { pt: "Minas 0,5 mm", en: "Pencil Leads 0.5 mm" },
   "040203": { pt: "Minas 0,7 mm", en: "Pencil Leads 0.7 mm" },
   "040205": { pt: "Minas 0,7 mm (Cx. 12)", en: "Pencil Leads 0.7 mm (Box of 12)" },
+  // As duas borrachas não se distinguem pela cor — os tubos são ambos pretos.
+  // A 040206 é a normal (secção Classique do catálogo); a 040207 é a Défi, e
+  // serve o Défi Multifunção, o Liberté–Line D e o Mini Olympio. Vem escrito
+  // na própria embalagem: "5 gommes" contra "5 gommes Défi".
   "040206": { pt: "Borrachas (Cx. 5)", en: "Erasers (Box of 5)" },
-  "040207": { pt: "Borrachas (Cx. 5)", en: "Erasers (Box of 5)" },
+  "040207": { pt: "Borrachas Défi (Cx. 5)", en: "Défi Erasers (Box of 5)" },
   "040201": { pt: "Minas HB 0,5 mm e 2 Borrachas", en: "HB Leads 0.5 mm and 2 Erasers" },
   "408811": { pt: "Mecanismo de Lapiseira", en: "Propelling Pencil Mechanism" },
   // Défi Multifunção — esferográfica preta, azul e vermelha, marcador e stylus.
@@ -70,6 +74,17 @@ const NOMES: Record<string, Nome> = {
 const NOMES_PRODUTO: Record<string, Nome> = {
   "box-10-refills-lead-0-7mm": { pt: "Minas 0,7 mm", en: "Pencil Leads 0.7 mm" },
   "box-10-refills-eraser": { pt: "Borrachas (Cx. 5)", en: "Erasers (Box of 5)" },
+};
+
+// A etiqueta de cor é o que a listagem escreve por baixo do título, e nestas
+// duas fichas de duas variantes ela dizia "Preto" e "Branco" — os tubos são
+// ambos pretos, e o que separa os artigos não é a cor. Nos dois casos os dois
+// cartões saíam iguais, indistinguíveis para quem procura.
+const ETIQUETAS: Record<string, Nome> = {
+  "040203": { pt: "Standard", en: "Standard" },
+  "040205": { pt: "Cx. 12", en: "Box of 12" },
+  "040206": { pt: "Standard", en: "Standard" },
+  "040207": { pt: "Défi", en: "Défi" },
 };
 
 async function main() {
@@ -124,7 +139,20 @@ async function main() {
     console.log(`          → ${novo.pt}`);
   }
 
-  console.log(`\nResumo: ${variantes} variantes e ${prods} produtos a renomear.`);
+  console.log("\n═══ ETIQUETAS ═══\n");
+  let etiquetas = 0;
+  for (const [sku, nova] of Object.entries(ETIQUETAS)) {
+    const v = vs.find((x) => x.sku === sku);
+    if (!v) continue;
+    const atual = (v.attributes as { color?: { label?: Nome } } | null)?.color?.label;
+    if (atual?.pt === nova.pt) continue;
+    etiquetas++;
+    console.log(`  ${sku}  "${atual?.pt ?? "-"}"  →  "${nova.pt}"`);
+  }
+
+  console.log(
+    `\nResumo: ${variantes} variantes, ${prods} produtos e ${etiquetas} etiquetas a corrigir.`,
+  );
   if (!APPLY) {
     console.log("\nSimulação — nada foi escrito. Corre outra vez com --apply para aplicar.");
     return;
@@ -132,7 +160,18 @@ async function main() {
 
   await prisma.$transaction(async (tx) => {
     for (const v of vs) {
-      await tx.productVariant.update({ where: { id: v.id }, data: { name: NOMES[v.sku] } });
+      const etiqueta = ETIQUETAS[v.sku];
+      const attrs = (v.attributes ?? {}) as Record<string, unknown>;
+      const cor = attrs.color as { hex?: string[] } | undefined;
+      await tx.productVariant.update({
+        where: { id: v.id },
+        data: {
+          name: NOMES[v.sku],
+          ...(etiqueta
+            ? { attributes: { ...attrs, color: { label: etiqueta, hex: cor?.hex ?? ["#15171c"] } } }
+            : {}),
+        },
+      });
     }
     for (const [id, nome] of produtos) {
       await tx.product.update({ where: { id }, data: { name: nome } });
