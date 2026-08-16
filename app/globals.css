@@ -914,16 +914,25 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   .ticket-roll * {
     visibility: visible;
   }
+  /* Encher a PÁGINA que a impressora der, em vez de assumir 80mm de papel.
+     O Chrome nem sempre consegue ler os tamanhos do driver — nesta Zebra o
+     campo "Tamanho do papel" fica vazio — e nesses casos compõe numa página
+     por defeito, maior. O talão saía estreito no meio da folha e obrigava a
+     corrigir à mão com uma escala de 145%, que é por máquina e por destino:
+     no PC do lado sairia a 69% do tamanho e ninguém saberia porquê.
+     Com largura total a escala fica nos 100% e o desenho acompanha o papel
+     que estiver na máquina, seja ele de 80mm ou de 102mm. */
   .ticket-roll {
     position: absolute;
     left: 0;
     top: 0;
     margin: 0;
     padding: 0;
-    width: var(--roll-width);
+    width: 100%;
   }
   .ticket-copy {
     outline: none;
+    width: 100%;
   }
   .no-print {
     display: none !important;
