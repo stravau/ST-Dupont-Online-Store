@@ -12,6 +12,7 @@ import {
   formatPrice,
 } from "@/lib/catalog";
 import { parseCompatibleRefs } from "@/lib/compatibility";
+import { refillRefsFor, refillNoteFor } from "@/lib/refill-compat";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
@@ -104,8 +105,29 @@ export default async function ProductPage({
   // pattern — and resolve them to catalogue products. Surfaces in
   // the "Compatible with" row of every variant's spec list and is
   // prepended to the "Pode também gostar" carousel.
-  const compatibleRefs = parseCompatibleRefs(product.description[locale]);
+  // Duas fontes de compatibilidade, unidas: as REF que a própria descrição
+  // menciona, e o quadro oficial de recargas/pedras por colecção. O quadro
+  // cobre os isqueiros todos; a descrição cobre casos avulsos.
+  //
+  // Cada REF é expandida com a cascata 000NNN ↔ 900NNN porque as recargas
+  // existem no catálogo sob as duas formas — assim resolve antes e depois de
+  // as REF duplicadas serem alinhadas.
+  const expandeRef = (r: string): string[] => {
+    const t = r.replace(/^STD/, "");
+    const o = [t];
+    if (/^000\d{3}$/.test(t)) o.push("9" + t.slice(1));
+    if (/^900\d{3}$/.test(t)) o.push("000" + t.slice(3));
+    if (r !== t) o.push(r);
+    return o;
+  };
+  const compatibleRefs = [
+    ...new Set(
+      [...parseCompatibleRefs(product.description[locale]), ...refillRefsFor(product.collection)]
+        .flatMap(expandeRef),
+    ),
+  ];
   const compatibleProducts = await getProductsByVariantSkus(compatibleRefs);
+  const refillNote = refillNoteFor(product.collection);
   const compatibleSummary = compatibleProducts.map((p) => ({
     slug: p.slug,
     label: p.name[locale],
@@ -330,7 +352,14 @@ export default async function ProductPage({
         <SimilarProducts
           items={compatibleItems}
           title={dict.product.compatibleRefills}
-          subtitle={dict.product.compatibleRefillsSub}
+          // Quando o quadro oficial distingue submodelos (Ligne 1 grande vs
+          // pequeno, Ligne 2 vs série CXXXXX…) listamos as recargas todas e a
+          // ressalva vai no subtítulo, senão o cliente leva a errada.
+          subtitle={
+            refillNote
+              ? `${dict.product.compatibleRefillsSub} — ${refillNote}`
+              : dict.product.compatibleRefillsSub
+          }
           minItems={1}
         />
       )}
