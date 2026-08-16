@@ -307,7 +307,10 @@ async function getCategoryDb(slug: string): Promise<Category | undefined> {
 // catches every product whose slug contains the theme — exactly what the
 // navbar intends. Keys are the labels the navbar uses (matching what we pass
 // in the URL); values are a lowercase, hyphenated slug fragment.
-const COLLECTION_SLUG_PATTERNS: Record<string, string> = {
+// Exportado porque a liveness da navbar precisa exactamente do mesmo mapa: se
+// as duas listas divergirem, o menu mostra entradas que a página de categoria
+// não sabe filtrar, ou esconde outras que resolveriam bem.
+export const COLLECTION_SLUG_PATTERNS: Record<string, string> = {
   "Géode": "geode",
   "Popote": "popote",
   "Maki-e": "maki-e",
@@ -388,12 +391,16 @@ function widenedCategoryWhere(slug: string, collection?: string) {
   // EITHER literal collection match OR slug-contains. Otherwise stick with
   // strict equality (so Ligne 2 doesn't accidentally pick up unrelated
   // ligne-2-monogram if "Monogram 1872" wasn't asked for).
-  // `collection` aceita várias, separadas por vírgula ("Maxijet,Minijet,Slim 7").
+  // `collection` aceita várias, separadas por "|" ("Maxijet|Minijet|Slim 7").
   // Há entradas de menu que agrupam linhas irmãs — a de isqueiros diz
   // "Maxijet, Minijet & Slim 7" — e antes só passava a primeira, pelo que o
   // link mostrava um terço do que prometia.
+  //
+  // A barra e não a vírgula porque há colecções com vírgula no nome — a
+  // "20,000 Leagues Under The Sea" — e separar por vírgula partia-a em "20" e
+  // "000 Leagues Under The Sea", nenhuma das quais existe.
   const nomes = (collection ?? "")
-    .split(",")
+    .split("|")
     .map((c) => c.trim())
     .filter(Boolean);
 

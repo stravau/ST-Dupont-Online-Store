@@ -138,15 +138,15 @@ export const categoryArt: Record<string, CategoryArt> = {
           // As três linhas irmãs numa entrada só. O `col` aceita lista
           // separada por vírgulas — antes passava só "Maxijet" e o link
           // mostrava um terço do que o nome prometia.
-          { label: t("Maxijet, Minijet & Slim 7", "Maxijet, Minijet & Slim 7"), href: col("isqueiros", "Maxijet,Minijet,Slim 7") },
+          { label: t("Maxijet, Minijet & Slim 7", "Maxijet, Minijet & Slim 7"), href: col("isqueiros", "Maxijet|Minijet|Slim 7") },
           // A família Défi está gravada com três grafias diferentes no
           // catálogo — Extreme, Xtreme e XXtreme — e o Windproof é irmão
           // delas. Todas na mesma entrada, senão cada link mostra um pedaço.
           {
             label: t("Windproof & Défi Extrême", "Windproof & Défi Extrême"),
-            href: col("isqueiros", "Windproof,Défi Extreme,Défi Xtreme,Défi XXtreme"),
+            href: col("isqueiros", "Windproof|Défi Extreme|Défi Xtreme|Défi XXtreme"),
           },
-          { label: t("Table Lighter & Torch", "Table Lighter & Torch"), href: col("isqueiros", "Table lighter,Torch") },
+          { label: t("Table Lighter & Torch", "Table Lighter & Torch"), href: col("isqueiros", "Table lighter|Torch") },
         ],
       },
       {

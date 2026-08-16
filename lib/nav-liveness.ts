@@ -12,7 +12,12 @@
 // the same request).
 import "server-only";
 import { cache } from "react";
-import { getProductsByCategory, type Product, type CategorySlug } from "@/lib/catalog";
+import {
+  getProductsByCategory,
+  COLLECTION_SLUG_PATTERNS,
+  type Product,
+  type CategorySlug,
+} from "@/lib/catalog";
 import { productGroups } from "@/lib/product-groups";
 import { isNavPathLive as isNavPathLiveShared } from "@/lib/nav-liveness-shared";
 import type { LiveNavSignalsSerialized } from "@/lib/nav-liveness-shared";
@@ -36,73 +41,6 @@ export interface LiveNavSignals {
   usages: Set<string>;
 }
 
-// Slug-substring patterns from lib/catalog.ts. Kept in sync here so the
-// nav can resolve theme labels to slug fragments without importing the
-// catalog private map. Missing labels here just fall back to strict
-// `collection` equality — same as the catalogue query does.
-const COLLECTION_SLUG_PATTERNS: Record<string, string> = {
-  "Géode": "geode",
-  "Popote": "popote",
-  "Maki-e": "maki-e",
-  "Orlinski": "orlinski",
-  "Monogram 1872": "monogram",
-  "Horse Mane": "horse-mane",
-  "DC Comics": "dc-comics",
-  "Snake Skin": "snake-skin",
-  "Fire X": "fire-x",
-  "Camo": "camo",
-  "Dragon": "dragon",
-  "Fender": "fender",
-  "Fuente": "fuente",
-  "Cohiba-Behike": "cohiba-behike",
-  "Cohiba": "cohiba",
-  "Diamond head": "diamond-head",
-  "Diamond Head": "diamond-head",
-  "Casino": "casino",
-  "Behike": "behike",
-  "Padron": "padron",
-  "Padrón": "padron",
-  "Snake": "snake-skin",
-  "Horse": "horse-mane",
-  "Joker": "joker",
-  "Marker Necklace": "marker-necklace",
-  "Lighter Necklace": "lighter-necklace",
-  "Romeo-y-Julieta": "romeo-y-julieta",
-  "Montecristo": "montecristo",
-  "20,000 Leagues Under The Sea": "20000",
-  "Harley Quinn": "harley-quinn",
-  "Stones of Fortune": "stones-of-fortune",
-  "Haute Création": "haute-creation",
-  "Cohiba 60th": "cohiba",
-  "Cohiba 60th Anniversary": "cohiba",
-  "Ligne 2": "ligne-2",
-  "Ligne 1": "ligne-1",
-  "Le Grand Dupont": "le-grand-dupont",
-  "Twiggy": "twiggy",
-  "Slimmy": "slimmy",
-  "Biggy": "biggy",
-  "Slim 7": "slim-7",
-  "Maxijet": "maxijet",
-  "Minijet": "minijet",
-  "Megajet": "megajet",
-  "Initial": "initial",
-  "Classique": "classique",
-  "Liberté": "liberte",
-  "Eternity": "eternity",
-  "Line D Eternity": "line-d-eternity",
-  "Line D": "line-d",
-  "Défi Millennium": "defi-millennium",
-  "Défi Extreme": "defi-extreme",
-  "Apex": "apex",
-  "Atelier": "atelier",
-  "Firehead": "firehead",
-  "Neo Capsule": "neo-capsule",
-  "Victoria": "victoria",
-  "Riviera": "riviera",
-  "Classic": "classic",
-  "X-bag": "x-bag",
-  "Défi Explorer": "defi-explorer",
-};
 
 function isLive(p: Product): boolean {
   return p.variants.some((v) => v.status !== "DESCONTINUADO");

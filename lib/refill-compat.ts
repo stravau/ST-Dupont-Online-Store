@@ -23,9 +23,8 @@ export interface Compat {
 
 // Chave = Product.collection, como está na base.
 export const REFILL_COMPAT: Record<string, Compat> = {
-  // O quadro separa Grand e Petit modèle (vermelha e amarela). Os dois Ligne 1
-  // do catálogo trazem 900435 — a vermelha — na ficha oficial da marca, o que
-  // os põe no modelo grande. Por confirmar com a boutique.
+  // O quadro separa Grand e Petit modèle (vermelha e amarela). A boutique só
+  // trabalha o grande — confirmado pelo Miguel — logo, sempre a vermelha.
   "Ligne 1": {
     gas: ["000435"],
     flint: ["000601"],

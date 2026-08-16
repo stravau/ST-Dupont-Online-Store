@@ -124,15 +124,18 @@ export default async function CategoryPage({
   if (!cat) notFound();
   const dict = getDictionary(locale);
   const collections = await getCollections(category);
-  // `col` pode trazer várias colecções separadas por vírgula. Cada uma tem de
+  // `col` pode trazer várias colecções separadas por "|". Cada uma tem de
   // existir nesta categoria; as que não existirem são ignoradas em vez de
   // invalidarem o filtro todo, para um link antigo com uma linha entretanto
   // renomeada continuar a mostrar as restantes.
+  // A barra e não a vírgula: há colecções com vírgula no nome, como a
+  // "20,000 Leagues Under The Sea", que uma separação por vírgula partiria em
+  // duas metades inexistentes — e o filtro devolvia zero artigos.
   const pedidas = (col ?? "")
-    .split(",")
+    .split("|")
     .map((c) => c.trim())
     .filter((c) => c && collections.includes(c));
-  const activeCol = pedidas.length ? pedidas.join(",") : undefined;
+  const activeCol = pedidas.length ? pedidas.join("|") : undefined;
   // Para a UI: com uma só colecção o chip fica marcado como antes; com várias
   // nenhum chip individual fica activo, porque nenhum sozinho descreve o filtro.
   const activeColSingle = pedidas.length === 1 ? pedidas[0] : undefined;

@@ -56,7 +56,20 @@ export function isNavPathLive(href: string, signals: LiveNavSignalsSerialized): 
     if (!KNOWN_CATEGORIES.has(canonical)) return true;
     if (!s.categories.has(canonical)) return false;
     const col = params.get("col");
-    if (col && !s.collections.has(col)) return false;
+    // O filtro aceita várias colecções separadas por "|" — a entrada
+    // "Maxijet, Minijet & Slim 7" da navbar aponta para
+    // col=Maxijet|Minijet|Slim 7 — e a página de categoria faz OR entre elas.
+    // Aqui tem de ser o mesmo OR: basta uma ter stock para a entrada valer a
+    // pena. A comparar a string toda contra as colecções vivas, nenhuma
+    // entrada agrupada sobrevivia e os jets, os Défi e o Windproof sumiam.
+    //
+    // A barra e não a vírgula porque há colecções com vírgula no nome — a
+    // "20,000 Leagues Under The Sea" — e separá-las por vírgula fazia
+    // desaparecer essas em vez das outras.
+    if (col) {
+      const nomes = col.split("|").map((c) => c.trim()).filter(Boolean);
+      if (nomes.length > 0 && !nomes.some((n) => s.collections.has(n))) return false;
+    }
     const usage = params.get("usage");
     if (usage && !s.usages.has(usage)) return false;
     return true;
