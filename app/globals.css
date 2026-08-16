@@ -850,6 +850,15 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
      maneiras diferentes, o padding é respeitado por todos. */
   --roll-width: 80mm;
   --roll-quiet: 4mm; /* margem interna: nada de texto encostado ao bordo */
+  /* Avanço no topo. Depois de rasgar, o papel fica posicionado com o início
+     do talão seguinte praticamente em cima da barra de corte, e o logótipo
+     saía colado ao rasgo. Este centímetro afasta-o. */
+  --roll-lead: 10mm;
+  /* Zona de silêncio menor à esquerda do que à direita, de propósito: o
+     driver declara 1mm de área não imprimível à esquerda contra 3mm à
+     direita, e essa assimetria empurra o desenho todo para a direita. Isto
+     devolve-o ao centro do papel. */
+  --roll-quiet-left: 2mm;
   font-family: var(--font-admin-body), system-ui, sans-serif;
   color: #000;
   background: #fff;
@@ -857,7 +866,9 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
 .ticket-copy {
   box-sizing: border-box;
   width: var(--roll-width);
-  padding: var(--roll-quiet);
+  /* topo · direita · fundo · esquerda */
+  padding: calc(var(--roll-quiet) + var(--roll-lead)) var(--roll-quiet) var(--roll-quiet)
+    var(--roll-quiet-left);
   font-size: 8.5pt;
   line-height: 1.25;
 }
