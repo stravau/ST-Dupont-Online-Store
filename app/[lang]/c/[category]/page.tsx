@@ -124,7 +124,18 @@ export default async function CategoryPage({
   if (!cat) notFound();
   const dict = getDictionary(locale);
   const collections = await getCollections(category);
-  const activeCol = col && collections.includes(col) ? col : undefined;
+  // `col` pode trazer várias colecções separadas por vírgula. Cada uma tem de
+  // existir nesta categoria; as que não existirem são ignoradas em vez de
+  // invalidarem o filtro todo, para um link antigo com uma linha entretanto
+  // renomeada continuar a mostrar as restantes.
+  const pedidas = (col ?? "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter((c) => c && collections.includes(c));
+  const activeCol = pedidas.length ? pedidas.join(",") : undefined;
+  // Para a UI: com uma só colecção o chip fica marcado como antes; com várias
+  // nenhum chip individual fica activo, porque nenhum sozinho descreve o filtro.
+  const activeColSingle = pedidas.length === 1 ? pedidas[0] : undefined;
   const art = categoryArt[category];
   // Model line-up for the horizontal hero slider — one thumbnail per signature
   // model (Ligne 2, Apex, …) drawn from the category's curated lineup. Falls
@@ -343,7 +354,11 @@ export default async function CategoryPage({
           items={[
             { label: dict.common.home, href: `/${locale}` },
             { label: cat.name[locale], href: base },
-            ...(activeCol ? [{ label: activeCol }] : []),
+            // Com várias colecções o miolo lê melhor com "&" do que com as
+            // vírgulas do parâmetro: "Maxijet, Minijet & Slim 7".
+            ...(pedidas.length
+              ? [{ label: pedidas.length > 1 ? pedidas.slice(0, -1).join(", ") + " & " + pedidas.at(-1) : pedidas[0] }]
+              : []),
           ]}
         />
 
@@ -387,7 +402,13 @@ export default async function CategoryPage({
             <div className="flex flex-wrap items-center justify-center gap-2">
               {art.groups.map((g) => {
                 const colName = g.href.match(/[?&]col=([^&]+)/);
-                const isActive = colName ? decodeURIComponent(colName[1]) === activeCol : false;
+                // Compara o conjunto e não a string: o chip de um grupo com
+                // várias colecções tem de acender mesmo que a ordem no URL
+                // difira da do href.
+                const doChip = colName
+                  ? decodeURIComponent(colName[1]).split(",").map((s) => s.trim()).sort().join("|")
+                  : null;
+                const isActive = doChip !== null && doChip === [...pedidas].sort().join("|");
                 return (
                   <Link
                     key={g.href}

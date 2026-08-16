@@ -135,7 +135,10 @@ export const categoryArt: Record<string, CategoryArt> = {
           { label: t("Ligne 1", "Ligne 1"), href: col("isqueiros", "Ligne 1") },
           { label: t("Twiggy", "Twiggy"), href: col("isqueiros", "Twiggy") },
           { label: t("Colar Isqueiro", "Lighter Necklace"), href: "/t/lighter-necklace" },
-          { label: t("Maxijet, Minijet & Slim 7", "Maxijet, Minijet & Slim 7"), href: col("isqueiros", "Maxijet") },
+          // As três linhas irmãs numa entrada só. O `col` aceita lista
+          // separada por vírgulas — antes passava só "Maxijet" e o link
+          // mostrava um terço do que o nome prometia.
+          { label: t("Maxijet, Minijet & Slim 7", "Maxijet, Minijet & Slim 7"), href: col("isqueiros", "Maxijet,Minijet,Slim 7") },
           { label: t("Windproof & Défi Extrême", "Windproof & Défi Extrême"), href: col("isqueiros", "Défi Extreme") },
           { label: t("Table Lighter & Torch", "Table Lighter & Torch"), href: col("isqueiros", "Table lighter") },
         ],

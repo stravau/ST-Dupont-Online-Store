@@ -382,14 +382,30 @@ function widenedCategoryWhere(slug: string, collection?: string) {
   // EITHER literal collection match OR slug-contains. Otherwise stick with
   // strict equality (so Ligne 2 doesn't accidentally pick up unrelated
   // ligne-2-monogram if "Monogram 1872" wasn't asked for).
-  const collectionPattern = collection
-    ? COLLECTION_SLUG_PATTERNS[collection]
-    : undefined;
-  const collectionFilter = collection
-    ? collectionPattern
-      ? { OR: [{ collection }, { slug: { contains: collectionPattern } }] }
-      : { collection }
-    : {};
+  // `collection` aceita várias, separadas por vírgula ("Maxijet,Minijet,Slim 7").
+  // Há entradas de menu que agrupam linhas irmãs — a de isqueiros diz
+  // "Maxijet, Minijet & Slim 7" — e antes só passava a primeira, pelo que o
+  // link mostrava um terço do que prometia.
+  const nomes = (collection ?? "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+
+  const porNome = (nome: string) => {
+    const padrao = COLLECTION_SLUG_PATTERNS[nome];
+    return padrao
+      ? { OR: [{ collection: nome }, { slug: { contains: padrao } }] }
+      : { collection: nome };
+  };
+
+  const collectionFilter =
+    nomes.length === 0
+      ? {}
+      : nomes.length === 1
+        ? porNome(nomes[0])
+        : // Várias: qualquer uma serve. O OR aninhado é intencional — cada nome
+          // pode ele próprio expandir para {collection} OR {slug contains}.
+          { OR: nomes.map(porNome) };
   return {
     active: true,
     OR: [
