@@ -22,7 +22,7 @@
  *   $env:DATABASE_URL="<url de produção>"; npx tsx scripts/refills-dedupe.ts --apply
  */
 import { prisma } from "@/lib/prisma";
-import { REFILL_COMPAT, refillRefsFor } from "@/lib/refill-compat";
+import { REFILL_COMPAT, baseModelFor } from "@/lib/refill-compat";
 
 const APPLY = process.argv.includes("--apply");
 const FORCE_STOCK = process.argv.includes("--force-stock");
@@ -49,6 +49,17 @@ function money(cents: number) {
   return (cents / 100).toFixed(2).replace(".", ",") + " €";
 }
 
+/**
+ * O stock a sério é o das boutiques. A coluna `stock` é um total
+ * desnormalizado que o seed encheu com um valor fixo e que só volta a ser
+ * recalculado quando o sync do ERP toca na ficha — nas fichas duplicadas,
+ * que o ERP nunca encontrou, ficou o valor do seed lá para sempre. Guardar
+ * por `stock` recusaria apagar fichas cujo stock nunca existiu.
+ */
+function stockReal(v: { stockLis: number; stockVng: number }) {
+  return v.stockLis + v.stockVng;
+}
+
 async function main() {
   const host = (process.env.DATABASE_URL ?? "").replace(/\/\/[^@]*@/, "//***@");
   console.log(`DB: ${host || "(não definida)"}`);
@@ -72,6 +83,7 @@ async function main() {
   const toDelete: typeof rows = [];
   const toRename: { v: (typeof rows)[number]; to: string }[] = [];
   const conflicts: string[] = [];
+  const orphans: typeof rows = [];
 
   console.log("═══ RECARGAS E PEDRAS ═══\n");
   for (const ref of REFS) {
@@ -86,7 +98,8 @@ async function main() {
     const line = (v: (typeof rows)[number], tag: string) =>
       `      ${tag} ${v.sku.padEnd(9)} ${v.product.slug.padEnd(22)} stock ${String(v.stock).padStart(3)}` +
       ` (LIS ${v.stockLis} / VNG ${v.stockVng})  ${String(v.images.length).padStart(2)} fotos  ${money(v.priceCents).padStart(9)}` +
-      `  ${v.ean ?? "sem EAN"}  vendas:${v._count.saleItems}`;
+      `  ${v.ean ?? "sem EAN"}  vendas:${v._count.saleItems}` +
+      ` mov:${v._count.stockMovements} enc:${v._count.orderItems} res:${v._count.reservas}`;
 
     if (g.length === 1 && keeper) {
       console.log(`${ref}  ✓ única ficha, REF já certa`);
@@ -95,6 +108,15 @@ async function main() {
     }
     if (g.length === 1 && !keeper) {
       const v = g[0];
+      // Sem EAN, sem vendas e sem stock em loja não é uma ficha que o ERP
+      // alguma vez tenha visto — é resíduo do seed. Renomeá-la dava-lhe um
+      // ar de canónica que não tem, por isso fica de fora e vai a relatório.
+      if (!v.ean && v._count.saleItems === 0 && stockReal(v) === 0) {
+        console.log(`${ref}  ? ÓRFÃ — ${v.sku} não tem EAN, nem vendas, nem stock em loja`);
+        console.log(line(v, " "));
+        orphans.push(v);
+        continue;
+      }
       console.log(`${ref}  → RENOMEAR ${v.sku} para ${ref} (ficha, fotos e stock mantêm-se)`);
       console.log(line(v, " "));
       toRename.push({ v, to: ref });
@@ -103,14 +125,14 @@ async function main() {
     // Duplicados.
     if (!keeper) {
       // Nenhuma tem a REF certa: fica a que tem mais stock, depois mais fotos.
-      const sorted = [...g].sort((a, b) => b.stock - a.stock || b.images.length - a.images.length);
+      const sorted = [...g].sort((a, b) => stockReal(b) - stockReal(a) || b.images.length - a.images.length);
       const k = sorted[0];
       console.log(`${ref}  → DUPLICADO sem ficha canónica: fica ${k.sku} (renomeada para ${ref}), apaga-se o resto`);
       console.log(line(k, "✓"));
       toRename.push({ v: k, to: ref });
       for (const l of sorted.slice(1)) {
         console.log(line(l, "✗"));
-        if (l.stock > 0 && !FORCE_STOCK) conflicts.push(`${l.sku} (${l.product.slug}) tem ${l.stock} de stock`);
+        if (stockReal(l) > 0 && !FORCE_STOCK) conflicts.push(`${l.sku} (${l.product.slug}) tem ${stockReal(l)} em loja`);
         else toDelete.push(l);
       }
       continue;
@@ -119,42 +141,66 @@ async function main() {
     console.log(line(keeper, "✓"));
     for (const l of losers) {
       console.log(line(l, "✗"));
-      if (l.stock > 0 && !FORCE_STOCK) conflicts.push(`${l.sku} (${l.product.slug}) tem ${l.stock} de stock`);
+      if (stockReal(l) > 0 && !FORCE_STOCK) conflicts.push(`${l.sku} (${l.product.slug}) tem ${stockReal(l)} em loja`);
       else toDelete.push(l);
     }
   }
 
   if (conflicts.length) {
-    console.log("\n⚠ NÃO APAGADAS (têm stock — confirmar antes):");
+    console.log("\n⚠ NÃO APAGADAS (têm stock em loja — confirmar antes):");
     for (const c of conflicts) console.log("   " + c);
+  }
+  if (orphans.length) {
+    console.log("\n? ÓRFÃS — decidir o que fazer (o script não lhes toca):");
+    for (const o of orphans) {
+      console.log(`   ${o.sku} (${o.product.slug})  stock declarado ${o.stock}, em loja 0`);
+    }
+  }
+  // A coluna `stock` fora de sincronia com as boutiques é o rasto do seed —
+  // e é ela que a loja mostra, portanto aparecem disponíveis artigos que não
+  // existem em lado nenhum.
+  const fantasma = rows.filter((v) => v.stock !== stockReal(v));
+  if (fantasma.length) {
+    console.log("\n⚠ STOCK FANTASMA (coluna `stock` ≠ LIS + VNG):");
+    for (const v of fantasma) {
+      console.log(`   ${v.sku} (${v.product.slug})  declara ${v.stock}, em loja ${stockReal(v)}`);
+    }
   }
 
   // ─── Cobertura do quadro de compatibilidades ──────────────────────────
+  //
+  // Por PRODUTO e não por colecção: a maioria dos isqueiros está agrupada
+  // pela edição ("Cohiba", "Géode", "Dragon") e é o nome que diz o modelo.
   console.log("\n═══ ISQUEIROS: QUE RECARGAS FICAM ASSOCIADAS ═══\n");
-  const lighters = await prisma.product.groupBy({
-    by: ["collection"],
+  const lighters = await prisma.product.findMany({
     where: { category: { slug: "isqueiros" }, active: true },
-    _count: { _all: true },
-    orderBy: { collection: "asc" },
+    select: { slug: true, collection: true, name: true },
+    orderBy: [{ collection: "asc" }, { slug: "asc" }],
   });
+  const porModelo = new Map<string, string[]>();
   const semQuadro: string[] = [];
-  for (const l of lighters) {
-    const refs = refillRefsFor(l.collection);
-    const n = String(l._count._all).padStart(3);
-    if (refs.length === 0) {
-      semQuadro.push(`${n} × ${l.collection}`);
+  for (const p of lighters) {
+    const nome = (p.name as { pt?: string })?.pt ?? "";
+    const modelo = baseModelFor(p.collection, nome);
+    if (!modelo) {
+      semQuadro.push(`${nome}  (${p.collection} · ${p.slug})`);
       continue;
     }
-    const c = REFILL_COMPAT[l.collection.trim()];
+    porModelo.set(modelo, [...(porModelo.get(modelo) ?? []), nome]);
+  }
+  for (const modelo of [...porModelo.keys()].sort()) {
+    const c = REFILL_COMPAT[modelo];
+    const fichas = porModelo.get(modelo)!;
     console.log(
-      `${n} × ${l.collection.padEnd(24)} gás ${c.gas.join(" / ").padEnd(24)} ${
+      `${String(fichas.length).padStart(3)} × ${modelo.padEnd(22)} gás ${c.gas.join(" / ").padEnd(24)} ${
         c.flint.length ? "pedras " + c.flint.join(" / ") : "sem pedra"
       }`,
     );
     if (c.nota) console.log(`      ↳ ${c.nota}`);
   }
+  console.log(`\n${lighters.length - semQuadro.length}/${lighters.length} isqueiros cobertos.`);
   if (semQuadro.length) {
-    console.log("\n⚠ Colecções de isqueiros SEM entrada no quadro (não mostram recargas):");
+    console.log("\n⚠ Sem modelo identificável (não mostram recargas):");
     for (const s of semQuadro) console.log("   " + s);
   }
 

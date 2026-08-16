@@ -87,16 +87,96 @@ export const REFILL_COMPAT: Record<string, Compat> = {
   "Colar Isqueiro": { gas: ["000430"], flint: [] },
 };
 
+// A maioria dos isqueiros do catálogo está agrupada pela EDIÇÃO e não pelo
+// modelo — "Cohiba", "Géode", "Dragon", "Romeo y Julieta". Nesses casos a
+// colecção não diz nada sobre que gás leva, mas o nome diz sempre:
+// "Ligne 2 · Cohiba", "Maxijet · Camo", "Slim7 · Horse Mane". Daí esta
+// segunda passagem pelo nome.
+//
+// Ordem importa: o padrão mais específico tem de vir primeiro, senão
+// "Défi Xtreme" apanha na entrada do "Défi XXtreme" e o "Le Grand Dupont"
+// no "Le Grand".
+const MODELO_POR_NOME: [RegExp, string][] = [
+  [/\bperfect cling\b/, "Line 2 Perfect Cling"],
+  [/\bmonogram\b/, "Monogram 1872"],
+  [/\ble grand dupont\b/, "Le Grand Dupont"],
+  [/\ble grand\b/, "Le Grand"],
+  [/\binitial cinatic\b/, "Initial Cinatic"],
+  [/\binitial\b/, "Initial"],
+  [/\bligne ?2\b/, "Ligne 2"],
+  [/\bligne ?1\b/, "Ligne 1"],
+  [/\bligne ?8\b/, "Ligne 8"],
+  [/\bline d\b/, "Line D"],
+  [/\bmon dupont\b/, "Mon Dupont"],
+  [/\bgatsby\b/, "Gatsby"],
+  [/\bliberte\b/, "Liberté"],
+  [/\bd ?light\b/, "D-Light"],
+  [/\burban\b/, "Urban"],
+  [/\bsoubreny\b/, "Soubreny"],
+  [/\bmegajet\b/, "Megajet"],
+  [/\bmaxijet\b/, "Maxijet"],
+  [/\bminijet\b/, "Minijet"],
+  [/\bultrajet\b/, "Ultrajet"],
+  [/\bslim ?7\b/, "Slim 7"],
+  [/\bdefi xxtreme\b/, "Défi XXtreme"],
+  [/\bdefi xtreme\b/, "Défi Xtreme"],
+  [/\bdefi\b/, "Défi Extreme"],
+  [/\bwindproof\b/, "Windproof"],
+  [/\btorch\b/, "Torch"],
+  [/\bisqueiro de mesa\b|\btable lighter\b/, "Table lighter"],
+  [/\bslimmy\b/, "Slimmy"],
+  [/\bbiggy\b/, "Biggy"],
+  [/\btwiggy\b/, "Twiggy"],
+  [/\bcolar\b|\bnecklace\b/, "Colar Isqueiro"],
+];
+
+function normaliza(s: string): string {
+  return s
+    .normalize("NFD")
+    // \p{Diacritic} em vez do intervalo U+0300–U+036F escrito à mão: os
+    // diacríticos combinantes são invisíveis no editor e não sobrevivem a
+    // uma conversão de encoding distraída.
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 /**
- * As REF de recargas e pedras que servem este produto, ou [] se a colecção
- * não estiver no quadro (acessórios, cortadores, etc.).
+ * O modelo do quadro a que este produto corresponde: a colecção quando ela
+ * própria é um modelo, senão o modelo que o nome anuncia. null quando não é
+ * possível decidir (sets de colecionador, "Diverso", "Haute Création").
  */
-export function refillRefsFor(collection: string | null | undefined): string[] {
-  const c = REFILL_COMPAT[(collection ?? "").trim()];
+export function baseModelFor(
+  collection: string | null | undefined,
+  name?: string | null,
+): string | null {
+  const c = (collection ?? "").trim();
+  if (REFILL_COMPAT[c]) return c;
+  if (!name) return null;
+  const n = normaliza(name);
+  for (const [re, modelo] of MODELO_POR_NOME) if (re.test(n)) return modelo;
+  return null;
+}
+
+/**
+ * As REF de recargas e pedras que servem este produto, ou [] quando não há
+ * modelo identificável (acessórios, cortadores, sets).
+ */
+export function refillRefsFor(
+  collection: string | null | undefined,
+  name?: string | null,
+): string[] {
+  const m = baseModelFor(collection, name);
+  const c = m ? REFILL_COMPAT[m] : undefined;
   if (!c) return [];
   return [...c.gas, ...c.flint];
 }
 
-export function refillNoteFor(collection: string | null | undefined): string | undefined {
-  return REFILL_COMPAT[(collection ?? "").trim()]?.nota;
+export function refillNoteFor(
+  collection: string | null | undefined,
+  name?: string | null,
+): string | undefined {
+  const m = baseModelFor(collection, name);
+  return m ? REFILL_COMPAT[m]?.nota : undefined;
 }

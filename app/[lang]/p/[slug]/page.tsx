@@ -120,14 +120,19 @@ export default async function ProductPage({
     if (r !== t) o.push(r);
     return o;
   };
+  // O nome vai junto porque a maioria dos isqueiros está agrupada pela edição
+  // ("Ligne 2 · Cohiba" na colecção "Cohiba") e é o nome que traz o modelo.
+  const modelName = product.name.pt ?? product.name[locale];
   const compatibleRefs = [
     ...new Set(
-      [...parseCompatibleRefs(product.description[locale]), ...refillRefsFor(product.collection)]
-        .flatMap(expandeRef),
+      [
+        ...parseCompatibleRefs(product.description[locale]),
+        ...refillRefsFor(product.collection, modelName),
+      ].flatMap(expandeRef),
     ),
   ];
   const compatibleProducts = await getProductsByVariantSkus(compatibleRefs);
-  const refillNote = refillNoteFor(product.collection);
+  const refillNote = refillNoteFor(product.collection, modelName);
   const compatibleSummary = compatibleProducts.map((p) => ({
     slug: p.slug,
     label: p.name[locale],
