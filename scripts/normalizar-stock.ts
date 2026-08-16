@@ -7,9 +7,12 @@
  * foram recalculadas. As outras ficaram a declarar unidades que não estão em
  * loja nenhuma.
  *
- * Não afecta o que a loja mostra: a disponibilidade lê stockLis + stockVng
- * desde que isso foi corrigido. Afecta o que o admin conta e o que os
- * ficheiros de stock exportam.
+ * ATENÇÃO ao que isto NÃO é: estes artigos não são duplicados nem lixo. São
+ * peças reais da Maison que neste momento não têm stock. Nenhuma ficha é
+ * apagada, nenhuma sai do site. O que está errado é o NÚMERO na coluna, não o
+ * artigo — e depois de corrigido eles continuam no site, marcados como sem
+ * stock, que é o que já acontece hoje (a disponibilidade lê stockLis +
+ * stockVng desde que isso foi corrigido).
  *
  * Só toca na coluna `stock`. Nunca inventa stock de loja a partir do total —
  * seria o erro inverso e muito pior, porque punha a loja a anunciar artigos
@@ -69,8 +72,8 @@ async function main() {
     console.log(`      ${l.sku.padEnd(10)} declara ${l.stock}, em loja ${l.lis + l.vng}   ${l.slug}`);
   }
 
-  const totalFantasma = aMais.reduce((s, l) => s + (l.stock - l.lis - l.vng), 0);
-  console.log(`\n  unidades declaradas que não existem: ${totalFantasma}`);
+  const totalAMais = aMais.reduce((s, l) => s + (l.stock - l.lis - l.vng), 0);
+  console.log(`\n  unidades declaradas que não existem: ${totalAMais}`);
 
   // Uma ficha com vendas ou movimentos já passou pelas mãos da aplicação, que
   // mantém a coluna certa — se mesmo assim está torta, não é resíduo do seed e

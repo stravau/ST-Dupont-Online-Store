@@ -216,7 +216,7 @@ async function main() {
   // existem em lado nenhum.
   const fantasma = rows.filter((v) => v.stock !== stockReal(v));
   if (fantasma.length) {
-    console.log("\n⚠ STOCK FANTASMA (coluna `stock` ≠ LIS + VNG):");
+    console.log("\n⚠ COLUNA `stock` DESALINHADA (declara o que as lojas não têm):");
     for (const v of fantasma) {
       console.log(`   ${v.sku} (${v.product.slug})  declara ${v.stock}, em loja ${stockReal(v)}`);
     }

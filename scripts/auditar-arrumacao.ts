@@ -138,7 +138,7 @@ async function main() {
     ];
     for (const h of hrefs) {
       const col = new URLSearchParams(h.split("?")[1] ?? "").get("col");
-      if (col) for (const c of col.split(",")) nosMenus.add(norm(c));
+      if (col) for (const c of col.split("|")) nosMenus.add(norm(c));
     }
   }
   let n4 = 0;
@@ -154,7 +154,8 @@ async function main() {
   if (!n4) console.log("  (nada)");
 
   // ─── 5. Stock fantasma em todo o catálogo ─────────────────────────────
-  console.log("\n═══ 5. STOCK FANTASMA (coluna `stock` ≠ LIS + VNG) ═══\n");
+  console.log("\n═══ 5. COLUNA `stock` DESALINHADA DAS LOJAS ═══");
+  console.log("  (artigos reais sem stock — não são duplicados, ninguém os tira do site)\n");
   const fantasma = await prisma.$queryRaw<{ sku: string; stock: number; lis: number; vng: number; slug: string }[]>`
     SELECT v."sku", v."stock", v."stockLis" AS lis, v."stockVng" AS vng, p."slug"
     FROM "ProductVariant" v JOIN "Product" p ON p."id" = v."productId"
