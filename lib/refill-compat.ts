@@ -23,27 +23,31 @@ export interface Compat {
 
 // Chave = Product.collection, como está na base.
 export const REFILL_COMPAT: Record<string, Compat> = {
-  // O quadro separa Grand e Petit modèle, com gás diferente. A colecção na
-  // base é uma só, por isso listam-se os dois e a nota explica.
+  // O quadro separa Grand e Petit modèle (vermelha e amarela). Os dois Ligne 1
+  // do catálogo trazem 900435 — a vermelha — na ficha oficial da marca, o que
+  // os põe no modelo grande. Por confirmar com a boutique.
   "Ligne 1": {
-    gas: ["000435", "000432"],
+    gas: ["000435"],
     flint: ["000601"],
-    nota: "Modelo grande leva a recarga vermelha; modelo pequeno, a amarela.",
   },
-  // Idem: Ligne 2, Ligne 2 pequeno e a série CXXXXX levam gás diferente.
+  // O quadro distingue Ligne 2, Ligne 2 pequeno e a série CXXXXX, com gás
+  // diferente em cada. A boutique só trabalha o Ligne 2 normal — confirmado
+  // pelo Miguel — por isso listar os outros dois era mandar o cliente comprar
+  // a recarga errada.
   "Ligne 2": {
-    gas: ["000432", "000435", "000433"],
+    gas: ["000432"],
     flint: ["000601"],
-    nota: "Ligne 2 leva a amarela; a série CXXXXX, a vermelha; o modelo pequeno, a verde.",
   },
+  // Famílias do Ligne 2 — seguem o normal, o único que a boutique trabalha.
+  // (Nenhuma tem produtos próprios no catálogo: os Monogram estão gravados
+  // como "Ligne 2 · Monogram" e resolvem por aí. Ficam por segurança.)
   "Line 2 Perfect Cling": {
-    gas: ["000432", "000435"],
+    gas: ["000432"],
     flint: ["000601"],
   },
   "Monogram 1872": {
-    gas: ["000432", "000435"],
+    gas: ["000432"],
     flint: ["000601"],
-    nota: "Segue o modelo base sobre o qual é feito (Ligne 2 na maioria).",
   },
   Gatsby: { gas: ["000433"], flint: ["000601"] },
   "Le Grand Dupont": { gas: ["000435"], flint: ["000651"] },

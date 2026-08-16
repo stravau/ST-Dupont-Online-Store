@@ -123,12 +123,18 @@ export default async function ProductPage({
   // O nome vai junto porque a maioria dos isqueiros está agrupada pela edição
   // ("Ligne 2 · Cohiba" na colecção "Cohiba") e é o nome que traz o modelo.
   const modelName = product.name.pt ?? product.name[locale];
+  const refsDoQuadro = refillRefsFor(product.collection, modelName);
+  // Quando o quadro conhece o modelo, MANDA ele. A descrição é copy da marca
+  // e fala dos submodelos todos — 78 das 102 fichas de isqueiro trazem REF, e
+  // várias de Ligne 2 apontam para a recarga vermelha, que é do CXXXXX e não
+  // se vende aqui. A descrição só entra onde o quadro nada diz: canetas,
+  // acessórios, cortadores.
   const compatibleRefs = [
     ...new Set(
-      [
-        ...parseCompatibleRefs(product.description[locale]),
-        ...refillRefsFor(product.collection, modelName),
-      ].flatMap(expandeRef),
+      (refsDoQuadro.length > 0
+        ? refsDoQuadro
+        : parseCompatibleRefs(product.description[locale])
+      ).flatMap(expandeRef),
     ),
   ];
   const compatibleProducts = await getProductsByVariantSkus(compatibleRefs);
@@ -154,12 +160,19 @@ export default async function ProductPage({
   // like" row, so the recommendation is precise (the EXACT consumables
   // the product copy names) rather than mixed in with broader same-
   // category picks.
+  // Só as REF pedidas. expandProductCards abre um cartão por cor, e as pedras
+  // de sílex cinzenta e vermelha são duas variantes do MESMO produto — sem
+  // este filtro, pedir a cinzenta trazia a vermelha atrás, que serve outros
+  // modelos.
+  const refsPedidas = new Set(compatibleRefs);
   const compatibleItems = compatibleProducts
     .flatMap((p) =>
-      expandProductCards(p).map(({ sku }) => ({
-        key: `cr-${p.slug}-${sku}`,
-        node: <ProductCard key={`cr-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
-      })),
+      expandProductCards(p)
+        .filter(({ sku }) => refsPedidas.has(sku))
+        .map(({ sku }) => ({
+          key: `cr-${p.slug}-${sku}`,
+          node: <ProductCard key={`cr-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
+        })),
     )
     .slice(0, 15);
   // Broader "You may also like" — same-category recommendations from the
