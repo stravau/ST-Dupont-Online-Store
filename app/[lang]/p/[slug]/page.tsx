@@ -13,7 +13,7 @@ import {
 } from "@/lib/catalog";
 import { parseCompatibleRefs } from "@/lib/compatibility";
 import { refillRefsFor, refillNoteFor } from "@/lib/refill-compat";
-import { penRefillRefsFor } from "@/lib/pen-refill-compat";
+import { penRefillRefsFor, tipoDaCaneta } from "@/lib/pen-refill-compat";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
@@ -135,17 +135,19 @@ export default async function ProductPage({
   // submodelos todos — várias fichas de Ligne 2 apontam para a recarga
   // vermelha, que é do CXXXXX e não se vende aqui.
   //
-  // CANETAS: manda a descrição. Aqui ela não generaliza, nomeia a REF do
-  // artigo concreto — 50 das 75 fichas trazem-na, e sempre de acordo com o
-  // quadro. O quadro entra quando a descrição se cala.
+  // CANETAS: manda o TÍTULO quando diz o tipo — "Défi Millennium · Rollerball"
+  // não deixa dúvida, e a descrição daquela ficha traz as REF copiadas da
+  // versão esferográfica da mesma linha. Só quando o título se cala é que a
+  // descrição entra, e aí é boa: nomeia a REF do artigo concreto em 50 das 75
+  // fichas. O quadro fecha o que sobra.
   const escrita = product.categorySlug === "escrita";
   const doQuadro = escrita
     ? penRefillRefsFor(modelName, product.description.pt ?? product.description[locale])
     : refillRefsFor(product.collection, modelName);
   const escolhidas = escrita
-    ? refsDaDescricao.length > 0
-      ? refsDaDescricao
-      : doQuadro
+    ? tipoDaCaneta(modelName) || refsDaDescricao.length === 0
+      ? doQuadro
+      : refsDaDescricao
     : doQuadro.length > 0
       ? doQuadro
       : refsDaDescricao;
