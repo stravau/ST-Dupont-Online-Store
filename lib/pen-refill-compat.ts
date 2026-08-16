@@ -104,6 +104,44 @@ const TIPO_POR_NOME: [RegExp, TipoCaneta][] = [
   [/\bporta minas\b|\blapiseira\b|\bpencil\b|\bmine\b/, "lapiseira"],
 ];
 
+export const TIPO_LABEL: Record<TipoCaneta, { pt: string; en: string }> = {
+  esferografica: { pt: "Esferográfica", en: "Ballpoint" },
+  rollerball: { pt: "Rollerball", en: "Rollerball" },
+  aparo: { pt: "Tinta Permanente", en: "Fountain Pen" },
+  lapiseira: { pt: "Lapiseira", en: "Mechanical Pencil" },
+};
+
+// Fichas cujo tipo não está escrito em lado nenhum — nem no nome, nem no
+// slug, nem nos nomes das variantes, nem na descrição. Só se sabe tendo a
+// peça na mão, por isso ficam aqui à mão mesmo, uma linha cada.
+const TIPO_MANUAL: Record<string, TipoCaneta> = {
+  // As cinco variantes têm "Esferográfica" gravado no atributo `type`.
+  classique: "esferografica",
+  // Confirmado pelo Miguel.
+  "classique-popote": "esferografica",
+};
+
+/**
+ * O tipo a escrever por baixo do título no cartão de listagem. Sai do nome
+ * quando lá está; senão, da descrição, e só quando ela menciona um tipo e um
+ * só — uma descrição que fala dos três não identifica a peça, identifica a
+ * linha, e rotulá-la com um deles seria inventar.
+ *
+ * Vale a pena mesmo quando o nome já o diz: os nomes longos são cortados por
+ * reticências no cartão e é justamente o tipo, que vem no fim, que desaparece.
+ */
+export function tipoParaEtiqueta(
+  nome: string | null | undefined,
+  descricao?: string | null,
+  slug?: string | null,
+): TipoCaneta | null {
+  if (slug && TIPO_MANUAL[slug]) return TIPO_MANUAL[slug];
+  const doNome = tipoDaCaneta(nome);
+  if (doNome) return doNome;
+  const mencionados = tiposMencionados(descricao);
+  return mencionados.length === 1 ? mencionados[0] : null;
+}
+
 export function familiaDaCaneta(nome: string | null | undefined): FamiliaCaneta | null {
   if (!nome) return null;
   const n = normaliza(nome);

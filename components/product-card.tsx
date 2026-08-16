@@ -1,6 +1,7 @@
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
 import { type Product, formatPrice } from "@/lib/catalog";
+import { tipoParaEtiqueta, TIPO_LABEL } from "@/lib/pen-refill-compat";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 import { compareSwatch } from "@/lib/swatch-order";
 import { STORE_LIS, STORE_VNG } from "@/lib/store-info";
@@ -116,7 +117,16 @@ export function ProductCard({
   // SKUs share the same colour AND price (genuine separate inventory, e.g.
   // slim-7-geode 027035/036 or Line D belts by size) the colour can't
   // disambiguate, so a discreet "· Ref. <SKU>" is appended.
-  let variantLabel: string | undefined;
+  // Nas canetas o tipo vai sempre por baixo do título, ao lado da cor. Os
+  // nomes são compridos — "Line D Eternity · Montecristo · L'Aurore ·
+  // Rollerball" — e as reticências comem exactamente o fim, que é onde o tipo
+  // está. Duas peças visualmente parecidas ficavam sem nada que as separasse.
+  const tipoCaneta =
+    product.categorySlug === "escrita"
+      ? tipoParaEtiqueta(product.name.pt, product.description.pt, product.slug)
+      : null;
+
+  let detalhe: string | undefined;
   if (variantSku) {
     const photoKeys = new Set(
       product.variants
@@ -133,7 +143,7 @@ export function ProductCard({
         const vColour = v.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
         return v.name[lang]?.toLowerCase().trim() === myName && v.priceCents === myPrice && vColour === myColour;
       });
-      variantLabel =
+      detalhe =
         sameColourSiblings.length > 1
           ? colour
             ? `${colour} · Ref. ${base.sku}`
@@ -141,6 +151,10 @@ export function ProductCard({
           : colour;
     }
   }
+
+  const variantLabel =
+    [tipoCaneta ? TIPO_LABEL[tipoCaneta][lang] : null, detalhe].filter(Boolean).join(" · ") ||
+    undefined;
 
   // Disponibilidade da COLOURWAY que este cartão mostra — nunca o máximo do
   // produto. O cartão é fixo numa cor (a de `initialSwatch`, que também é a
