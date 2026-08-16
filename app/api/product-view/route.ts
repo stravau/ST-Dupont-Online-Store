@@ -40,6 +40,11 @@ export async function GET() {
 // (backs the admin analytics view). Anonymous: no userId, no IP, just the
 // slug. Failures swallow silently — a missed view is acceptable, breaking
 // the page isn't.
+// Nota: esta escrita NÃO invalida o cache do catálogo, ao contrário de todas
+// as outras. Corre a cada abertura de ficha de produto — invalidar aqui era
+// deitar o cache fora a cada visita e voltar ao que esgotou a quota da base.
+// O único leitor afectado é o carrossel "Mais vistos", e esse pode muito bem
+// andar cinco minutos atrasado.
 export async function POST(req: Request) {
   // Unauthenticated + writes to the DB on every call — throttle per IP so it
   // can't be scripted to bloat ProductView or skew the "Most viewed" carousel.

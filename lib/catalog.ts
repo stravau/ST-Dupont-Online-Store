@@ -7,6 +7,7 @@ import type { Locale } from "@/lib/i18n";
 import type { SortKey } from "@/lib/sort";
 import { prisma } from "@/lib/prisma";
 import { collectionRank } from "@/lib/collection-order";
+import { comCache } from "@/lib/catalog-cache";
 
 export type Localized = Record<Locale, string>;
 export type CategorySlug = "isqueiros" | "escrita" | "pele" | "acessorios";
@@ -269,7 +270,7 @@ const productInclude = {
   variants: { orderBy: { priceCents: "asc" as const } },
 };
 
-export async function getCategories(): Promise<Category[]> {
+async function getCategoriesDb(): Promise<Category[]> {
   const rows = await prisma.category.findMany({ orderBy: { createdAt: "asc" } });
   return rows.map((c) => ({
     slug: c.slug as CategorySlug,
@@ -279,7 +280,7 @@ export async function getCategories(): Promise<Category[]> {
   }));
 }
 
-export async function getCategory(slug: string): Promise<Category | undefined> {
+async function getCategoryDb(slug: string): Promise<Category | undefined> {
   const c = await prisma.category.findUnique({ where: { slug } });
   return c
     ? {
@@ -415,7 +416,7 @@ function widenedCategoryWhere(slug: string, collection?: string) {
   };
 }
 
-export async function getProductsByCategory(
+async function getProductsByCategoryDb(
   slug: string,
   collection?: string,
 ): Promise<Product[]> {
@@ -435,7 +436,7 @@ export async function getProductsByCategory(
 //
 // Match is the same slug-substring strategy as the per-category col filter
 // (COLLECTION_SLUG_PATTERNS), but unscoped to a category.
-export async function getProductsByTheme(themeLabel: string): Promise<Product[]> {
+async function getProductsByThemeDb(themeLabel: string): Promise<Product[]> {
   const pattern = COLLECTION_SLUG_PATTERNS[themeLabel];
   const where = pattern
     ? { active: true, OR: [{ collection: themeLabel }, { slug: { contains: pattern } }] }
@@ -528,7 +529,7 @@ export async function getCollections(categorySlug: string): Promise<string[]> {
   );
 }
 
-export async function getProduct(slug: string): Promise<Product | undefined> {
+async function getProductDb(slug: string): Promise<Product | undefined> {
   const p = await prisma.product.findUnique({ where: { slug }, include: productInclude });
   return p ? mapProduct(p) : undefined;
 }
@@ -588,7 +589,7 @@ function hashCode(s: string): number {
 // current product when a slug is passed in so the carousel under a PDP
 // never recommends the page you're already on. Limit defaults match the
 // rest of the catalogue helpers.
-export async function getMostViewed(
+async function getMostViewedDb(
   limit = 12,
   excludeSlug?: string,
 ): Promise<Product[]> {
@@ -623,7 +624,7 @@ export async function getMostViewed(
 // the "Compatible with" row in SpecDetails and the related-products
 // carousel both surface the refills / flints in the same sequence the
 // description mentions them.
-export async function getProductsByVariantSkus(skus: string[]): Promise<Product[]> {
+async function getProductsByVariantSkusDb(skus: string[]): Promise<Product[]> {
   if (skus.length === 0) return [];
   const rows = await prisma.product.findMany({
     where: { active: true, variants: { some: { sku: { in: skus } } } },
@@ -644,7 +645,7 @@ export async function getProductsByVariantSkus(skus: string[]): Promise<Product[
   });
 }
 
-export async function getNovelties(limit = 6): Promise<Product[]> {
+async function getNoveltiesDb(limit = 6): Promise<Product[]> {
   // "New Releases by the Maison" — bias toward exclusive, higher-end
   // lighters so the home grid leads with the Maison's signature pieces
   // (Maki-e, Architecture, Fuente, Orlinski, Le Grand Dupont, …) rather
@@ -721,7 +722,7 @@ function termMatches(term: string, blob: string, words: string[]): boolean {
 // We DELIBERATELY no longer search the body description — the long-form
 // brand copy was polluting matches (a search for "ligne 2" was pulling in
 // any product whose description happened to mention 'ligne' or '2').
-export async function searchProducts(query: string): Promise<Product[]> {
+async function searchProductsDb(query: string): Promise<Product[]> {
   const q = normalize(query);
   if (!q) return [];
   const terms = q.split(/\s+/).filter(Boolean);
@@ -922,7 +923,7 @@ export function formatPrice(cents: number, currency: string, locale: Locale): st
 // Lista vazia devolve [] e a secção não é desenhada. Entradas cujo artigo
 // tenha sido apagado ou descontinuado são ignoradas em silêncio: o carrossel
 // não é sítio para mostrar um buraco.
-export async function getCuratedCards(
+async function getCuratedCardsDb(
   rail = "DESTAQUES",
 ): Promise<{ product: Product; sku: string }[]> {
   const picks = await prisma.homeCarouselItem.findMany({
@@ -952,4 +953,63 @@ export async function getCuratedCards(
     out.push({ product, sku });
   }
   return out;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Leituras em cache
+//
+// Todas as funções acima que tocam em Postgres estão declaradas como *Db e
+// são exportadas aqui envolvidas em cache, com a etiqueta `catalogo`. Quem
+// as chama — páginas e as próprias funções derivadas (getRelatedProducts,
+// getCollections, getCategoryModelThumbnails, que só filtram em memória o
+// que getProductsByCategory devolve) — não muda nada.
+//
+// Ver lib/catalog-cache.ts para o porquê e para a invalidação nas escritas.
+// ─────────────────────────────────────────────────────────────────────────
+
+// O cache serializa em JSON e as datas voltam de lá como string. No Product
+// só promoEndDate é Date, portanto reidrata-se à saída para o tipo declarado
+// não passar a mentir.
+function reidrata<T extends Product | undefined>(p: T): T {
+  if (!p) return p;
+  for (const v of p.variants) {
+    if (typeof (v.promoEndDate as unknown) === "string") {
+      v.promoEndDate = new Date(v.promoEndDate as unknown as string);
+    }
+  }
+  return p;
+}
+
+function cacheProdutos<A extends unknown[]>(
+  fn: (...args: A) => Promise<Product[]>,
+  chave: string,
+) {
+  const emCache = comCache(fn, chave);
+  return async (...args: A): Promise<Product[]> => (await emCache(...args)).map(reidrata);
+}
+
+export const getCategories = comCache(getCategoriesDb, "getCategories");
+export const getCategory = comCache(getCategoryDb, "getCategory");
+export const getProductsByCategory = cacheProdutos(getProductsByCategoryDb, "getProductsByCategory");
+export const getProductsByTheme = cacheProdutos(getProductsByThemeDb, "getProductsByTheme");
+export const getMostViewed = cacheProdutos(getMostViewedDb, "getMostViewed");
+export const getProductsByVariantSkus = cacheProdutos(
+  getProductsByVariantSkusDb,
+  "getProductsByVariantSkus",
+);
+export const getNovelties = cacheProdutos(getNoveltiesDb, "getNovelties");
+export const searchProducts = cacheProdutos(searchProductsDb, "searchProducts");
+
+const getProductEmCache = comCache(getProductDb, "getProduct");
+export async function getProduct(slug: string): Promise<Product | undefined> {
+  // O cache guarda a ausência como null, não como undefined.
+  return reidrata((await getProductEmCache(slug)) ?? undefined);
+}
+
+const getCuratedCardsEmCache = comCache(getCuratedCardsDb, "getCuratedCards");
+export async function getCuratedCards(
+  rail = "DESTAQUES",
+): Promise<{ product: Product; sku: string }[]> {
+  const cards = await getCuratedCardsEmCache(rail);
+  return cards.map((c) => ({ ...c, product: reidrata(c.product) }));
 }

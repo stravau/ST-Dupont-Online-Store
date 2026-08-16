@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { put } from "@vercel/blob";
 import { assertRateLimit, assertSameOrigin, isValidImageUrl, safeError, validateImageUpload } from "@/lib/admin-api";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,7 @@ export async function PUT(
         },
       }),
     ]);
+    invalidarCatalogo();
     return NextResponse.json({ ok: true });
   } catch (e) {
     return safeError(e);
@@ -137,6 +139,7 @@ export async function POST(
         after: { url: blob.url, size: file.size, mime: file.type } as object,
       },
     });
+    invalidarCatalogo();
     return NextResponse.json({ ok: true, url: blob.url });
   } catch (e) {
     return safeError(e, "upload failed");

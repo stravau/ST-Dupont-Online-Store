@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -99,6 +100,7 @@ export async function POST(req: Request) {
       return p;
     });
 
+    invalidarCatalogo();
     return NextResponse.json({ ok: true, slug: created.slug });
   } catch (e) {
     return safeError(e);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,7 @@ export async function PUT(req: Request) {
         },
       }),
     ]);
+    invalidarCatalogo();
     return NextResponse.json({ ok: true, count: skus.length });
   } catch (e) {
     return safeError(e, "não consegui gravar o carrossel");

@@ -4,6 +4,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { currentStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { buildVariantWhere, type VariantFilterParams } from "@/lib/variant-filter";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -151,6 +152,7 @@ export async function POST(req: Request) {
       },
     });
 
+    invalidarCatalogo();
     return NextResponse.json({ ok: true, affected: ids.length, note });
   } catch (e) {
     return safeError(e, "bulk update failed");

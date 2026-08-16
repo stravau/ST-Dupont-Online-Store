@@ -4,6 +4,7 @@
 // (mirrors the ECI Excel), then writes the Sale + lines + signed stock
 // movements + stock-cache update + audit row in ONE transaction.
 import { prisma } from "@/lib/prisma";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 import {
   lineGrossCents,
   netFromGross,
@@ -174,7 +175,7 @@ export async function createSale(input: CreateSaleInput) {
   const sign = stockType === "DEVOLUCAO" ? 1 : -1; // a return puts stock back
   const col = stockColumnFor(boutique);
 
-  return prisma.$transaction(async (tx) => {
+  const venda = await prisma.$transaction(async (tx) => {
     const sale = await tx.sale.create({
       data: {
         boutique,
@@ -240,6 +241,10 @@ export async function createSale(input: CreateSaleInput) {
 
     return sale;
   });
+  // Fora da transação de propósito: um rollback não deve deitar fora o cache
+  // da loja por causa de uma venda que nunca chegou a existir.
+  invalidarCatalogo();
+  return venda;
 }
 
 // REPARACAO pick-up — the customer collects their repaired article and pays
@@ -265,7 +270,7 @@ async function createRepairSale(input: CreateSaleInput, operatorId: string) {
   const desc = `Reparação · ${REPAIR_LABEL[r.subtype]}`;
   const sku = REPAIR_SKU[r.subtype];
 
-  return prisma.$transaction(async (tx) => {
+  const levantamento = await prisma.$transaction(async (tx) => {
     // If a Repair record is linked, verify it exists and belongs to this
     // boutique before touching it. A missing / other-boutique row aborts
     // so a mis-clicked pick-up doesn't close someone else's ticket.
@@ -332,6 +337,8 @@ async function createRepairSale(input: CreateSaleInput, operatorId: string) {
 
     return sale;
   });
+  invalidarCatalogo();
+  return levantamento;
 }
 
 // ---------------------------------------------------------------------------
@@ -357,7 +364,7 @@ export async function voidSale(input: {
 }) {
   const { saleId, reason } = input;
 
-  return prisma.$transaction(async (tx) => {
+  const anulada = await prisma.$transaction(async (tx) => {
     const sale = await tx.sale.findUnique({
       where: { id: saleId },
       include: { items: true, operator: { select: { initials: true } } },
@@ -446,4 +453,7 @@ export async function voidSale(input: {
 
     return voided;
   });
+  // A anulação repõe stock — a loja tem de voltar a mostrá-lo.
+  invalidarCatalogo();
+  return anulada;
 }

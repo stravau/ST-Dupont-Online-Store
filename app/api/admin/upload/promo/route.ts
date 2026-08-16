@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { readUploadedSheet, pick, asString, asNumber, asDate, batchResolveVariants } from "@/lib/admin-upload";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -126,5 +127,6 @@ export async function POST(req: Request) {
     return safeError(e, "batch summary write failed");
   }
 
+  invalidarCatalogo();
   return NextResponse.json({ ok: true, total: rows.length, updated, unchanged, unmatched, skipped, unmatchedSample });
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 import { requireStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
 import { boutiqueFromRole, stockColumnFor, type BoutiqueCode } from "@/lib/pos";
@@ -133,6 +134,9 @@ export async function POST(req: Request) {
         });
         return m;
       });
+
+      // A entrada/saída acabou de mexer no stock que a loja mostra.
+      invalidarCatalogo();
 
       const vName = (variant.name as { pt?: string; en?: string } | null) ?? {};
       const pName = (variant.product?.name as { pt?: string; en?: string } | null) ?? {};

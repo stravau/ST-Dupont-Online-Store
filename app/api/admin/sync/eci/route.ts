@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { invalidarCatalogo } from "@/lib/catalog-cache";
 import { Prisma } from "@/app/generated/prisma/client";
 import { requireStaff } from "@/lib/admin-auth";
 import { assertRateLimit, assertSameOrigin, safeError } from "@/lib/admin-api";
@@ -314,6 +315,10 @@ export async function POST(req: Request) {
     // Uma folha ter falhado NÃO faz o request falhar (as outras foram
     // aplicadas correctamente). O cliente vê o "failed" no relatório.
     const failedCount = reports.filter((r) => r.status === "failed").length;
+    // O sync mexe em stock e preços de meio catálogo, e faz muita coisa por
+    // SQL directo que passa ao lado do Prisma — daí a invalidação viver aqui
+    // e não colada a cada escrita.
+    if (apply) invalidarCatalogo();
     return NextResponse.json({
       ok: true,
       store,
