@@ -34,7 +34,7 @@ export type TipoCaneta = "esferografica" | "rollerball" | "aparo" | "lapiseira";
  *   B  Défi · Liberté · Line D · Streamliner-R · D-Initial · New Line D
  *      The Sword
  */
-export type FamiliaCaneta = "A" | "B" | "Classique";
+export type FamiliaCaneta = "A" | "B";
 
 const ROLLER = ["040840", "040841", "040830", "040831"];
 const APARO = ["040110", "040112", "040364", "040362", "040363", "408812"];
@@ -53,14 +53,14 @@ export const PEN_COMPAT: Record<FamiliaCaneta, Partial<Record<TipoCaneta, string
     // A linha "Liberté – Line D" do quadro: minas de 0,7 e borrachas.
     lapiseira: ["040205", "040207"],
   },
-  // Os Classique anteriores a 1999 têm secção própria, com esferográfica que
-  // mais nenhum modelo usa. O "Classique 2" moderno é família A — se o
-  // Classique do catálogo for o novo, muda-se a entrada do resolvedor.
-  Classique: {
-    esferografica: ["040770", "040771"],
-    lapiseira: ["408811", "040205", "040206"],
-  },
 };
+
+// As REF da secção "CLASSIQUE REFILLS", que é a dos Classique anteriores a
+// 1999: esferográfica 040770/040771, mecanismo 408811, borrachas 040206.
+// Existem no catálogo e há stock delas, mas os Classique da boutique são os
+// modernos (família A) — confirmado pelo Miguel — por isso não entram em
+// quadro nenhum e não aparecem como compatíveis com nada.
+export const CLASSIQUE_ANTES_1999 = ["040770", "040771", "408811", "040206"];
 
 function normaliza(s: string): string {
   return s
@@ -75,11 +75,9 @@ function normaliza(s: string): string {
 // canetas pela edição ("Géode", "Snake Skin", "Orlinski") e é o nome que traz
 // o modelo — "Eternity · Snake Skin · Rollerball".
 //
-// Ordem importa: "Classique" antes de tudo, senão "Néo-Classique" cai lá.
 const FAMILIA_POR_NOME: [RegExp, FamiliaCaneta][] = [
-  [/\bneo classique\b/, "A"],
-  [/\bclassique 2\b/, "A"],
-  [/\bclassique\b/, "Classique"],
+  // Classique, Néo-Classique e Classique 2 caem todos na família A.
+  [/\bclassique\b/, "A"],
   [/\bolympio\b/, "A"],
   [/\bfidelio\b/, "A"],
   [/\bellipsis\b/, "A"],

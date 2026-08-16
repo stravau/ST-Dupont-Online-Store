@@ -28,7 +28,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { REFILL_COMPAT, baseModelFor } from "@/lib/refill-compat";
-import { PEN_COMPAT } from "@/lib/pen-refill-compat";
+import { PEN_COMPAT, CLASSIQUE_ANTES_1999 } from "@/lib/pen-refill-compat";
 
 const APPLY = process.argv.includes("--apply");
 const FORCE_STOCK = process.argv.includes("--force-stock");
@@ -44,7 +44,12 @@ const REFS = [
   ...new Set([
     ...Object.values(REFILL_COMPAT).flatMap((c) => [...c.gas, ...c.flint]),
     ...Object.values(PEN_COMPAT).flatMap((f) => Object.values(f).flat()),
-    "000444",
+    // Fora dos quadros activos, mas existem no catálogo e convém vigiá-las
+    // na mesma: as do Classique anterior a 1999, as minas 0,7 em caixa de 12
+    // e as borrachas, a esferográfica do Défi Multifonção, a de Montparnasse,
+    // o roller mini do Néo-Classique Président e a recarga de gancho.
+    ...CLASSIQUE_ANTES_1999,
+    "040205", "040207", "040208", "040201", "040843", "000444",
   ]),
 ].sort();
 
