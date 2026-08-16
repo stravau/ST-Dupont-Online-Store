@@ -13,6 +13,7 @@ import {
 } from "@/lib/catalog";
 import { parseCompatibleRefs } from "@/lib/compatibility";
 import { refillRefsFor, refillNoteFor } from "@/lib/refill-compat";
+import { penRefillRefsFor } from "@/lib/pen-refill-compat";
 import { localeCategorySlug } from "@/lib/category-slugs";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StatusPill } from "@/components/status-pill";
@@ -112,18 +113,24 @@ export default async function ProductPage({
   // Cada REF é expandida com a cascata 000NNN ↔ 900NNN porque as recargas
   // existem no catálogo sob as duas formas — assim resolve antes e depois de
   // as REF duplicadas serem alinhadas.
+  // A cascata é a troca do dígito da frente: 000434 ↔ 900434 nas recargas de
+  // gás, 040850 ↔ 940850 nas de caneta. Mesma regra, e é a que o catálogo
+  // usou ao criar as fichas em duplicado.
   const expandeRef = (r: string): string[] => {
     const t = r.replace(/^STD/, "");
     const o = [t];
-    if (/^000\d{3}$/.test(t)) o.push("9" + t.slice(1));
-    if (/^900\d{3}$/.test(t)) o.push("000" + t.slice(3));
+    if (/^0\d{5}$/.test(t)) o.push("9" + t.slice(1));
+    if (/^9\d{5}$/.test(t)) o.push("0" + t.slice(1));
     if (r !== t) o.push(r);
     return o;
   };
   // O nome vai junto porque a maioria dos isqueiros está agrupada pela edição
   // ("Ligne 2 · Cohiba" na colecção "Cohiba") e é o nome que traz o modelo.
   const modelName = product.name.pt ?? product.name[locale];
-  const refsDoQuadro = refillRefsFor(product.collection, modelName);
+  const refsDoQuadro =
+    product.categorySlug === "escrita"
+      ? penRefillRefsFor(modelName)
+      : refillRefsFor(product.collection, modelName);
   // Quando o quadro conhece o modelo, MANDA ele. A descrição é copy da marca
   // e fala dos submodelos todos — 78 das 102 fichas de isqueiro trazem REF, e
   // várias de Ligne 2 apontam para a recarga vermelha, que é do CXXXXX e não
@@ -171,10 +178,16 @@ export default async function ProductPage({
         .filter(({ sku }) => refsPedidas.has(sku))
         .map(({ sku }) => ({
           key: `cr-${p.slug}-${sku}`,
+          disponivel: p.variants.find((v) => v.sku === sku)?.status === "DISPONIVEL",
           node: <ProductCard key={`cr-${p.slug}-${sku}`} product={p} lang={locale} variantSku={sku} />,
         })),
     )
-    .slice(0, 15);
+    // O que há em loja primeiro. Uma caneta chega a ter dezasseis consumíveis
+    // compatíveis e o carrossel só mostra quinze — sem isto, as recargas de
+    // cor esgotadas podiam empurrar para fora as que o cliente pode levar hoje.
+    .sort((a, b) => Number(b.disponivel) - Number(a.disponivel))
+    .slice(0, 15)
+    .map(({ key, node }) => ({ key, node }));
   // Broader "You may also like" — same-category recommendations from the
   // related-products scorer. Refills are NOT prepended here any more
   // (they live in their own dedicated carousel) so this stays cleanly

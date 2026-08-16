@@ -28,6 +28,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { REFILL_COMPAT, baseModelFor } from "@/lib/refill-compat";
+import { PEN_COMPAT } from "@/lib/pen-refill-compat";
 
 const APPLY = process.argv.includes("--apply");
 const FORCE_STOCK = process.argv.includes("--force-stock");
@@ -36,16 +37,25 @@ const FORCE_STOCK = process.argv.includes("--force-stock");
 // existe. Com esta flag são apagadas — usar depois de confirmar à mão.
 const APAGAR_ORFAS = process.argv.includes("--apagar-orfas");
 
-// Todas as REF de recargas/pedras que o quadro menciona, mais a 000444
-// (recarga de gancho) que existe no catálogo mas não consta do quadro.
+// Todas as REF que os dois quadros mencionam — recargas de gás e pedras dos
+// isqueiros, recargas e cartuchos das canetas — mais a 000444 (recarga de
+// gancho) que existia no catálogo sem constar de quadro nenhum.
 const REFS = [
-  ...new Set([...Object.values(REFILL_COMPAT).flatMap((c) => [...c.gas, ...c.flint]), "000444"]),
+  ...new Set([
+    ...Object.values(REFILL_COMPAT).flatMap((c) => [...c.gas, ...c.flint]),
+    ...Object.values(PEN_COMPAT).flatMap((f) => Object.values(f).flat()),
+    "000444",
+  ]),
 ].sort();
 
-/** A REF canónica (forma 000NNN) de um SKU do catálogo. */
+/**
+ * A REF canónica de um SKU do catálogo. A duplicação sempre trocou o dígito
+ * da frente: 000434 ↔ 900434 nas recargas de gás, 040850 ↔ 940850 nas de
+ * caneta. A forma com 0 à frente é a que o ERP usa.
+ */
 function canonical(sku: string): string {
   const t = sku.replace(/^STD/, "");
-  return /^900\d{3}$/.test(t) ? "000" + t.slice(3) : t;
+  return /^9\d{5}$/.test(t) ? "0" + t.slice(1) : t;
 }
 
 /** Todas as formas sob as quais uma REF canónica pode estar gravada. */

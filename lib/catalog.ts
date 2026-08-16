@@ -1006,6 +1006,23 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
   return reidrata((await getProductEmCache(slug)) ?? undefined);
 }
 
+// As versões sem cache, para scripts de diagnóstico e manutenção. As
+// exportadas acima só funcionam dentro de um pedido do Next — fora dele o
+// unstable_cache rebenta com "Invariant: incrementalCache missing". E um
+// script quer sempre o estado real da base, não uma cópia de há cinco minutos.
+export const semCache = {
+  getCategories: getCategoriesDb,
+  getCategory: getCategoryDb,
+  getProductsByCategory: getProductsByCategoryDb,
+  getProductsByTheme: getProductsByThemeDb,
+  getProduct: getProductDb,
+  getMostViewed: getMostViewedDb,
+  getProductsByVariantSkus: getProductsByVariantSkusDb,
+  getNovelties: getNoveltiesDb,
+  searchProducts: searchProductsDb,
+  getCuratedCards: getCuratedCardsDb,
+};
+
 const getCuratedCardsEmCache = comCache(getCuratedCardsDb, "getCuratedCards");
 export async function getCuratedCards(
   rail = "DESTAQUES",
