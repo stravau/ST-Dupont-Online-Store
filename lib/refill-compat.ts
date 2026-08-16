@@ -45,14 +45,30 @@ export const REFILL_COMPAT: Record<string, Compat> = {
     flint: ["000601"],
     nota: "Segue o modelo base sobre o qual é feito (Ligne 2 na maioria).",
   },
+  Gatsby: { gas: ["000433"], flint: ["000601"] },
   "Le Grand Dupont": { gas: ["000435"], flint: ["000651"] },
   "Le Grand": { gas: ["000435"], flint: ["000651"] },
   "Initial Cinatic": { gas: ["000434"], flint: ["000651"] },
+  Initial: { gas: ["000434"], flint: ["000651"] },
+  "Ligne 8": { gas: ["000434"], flint: ["000651"] },
+  "Line D": { gas: ["000434"], flint: ["000651"] },
+  "Mon Dupont": { gas: ["000434"], flint: ["000651"] },
+  Urban: { gas: ["000434"], flint: ["000601"] },
+  Soubreny: { gas: ["000434"], flint: ["000601"] },
+  Liberté: { gas: ["000430"], flint: ["000651"] },
+  // A pedra do D-Light é a azul, que a boutique vende a granel — não tem REF
+  // no catálogo, por isso fica de fora da lista e vai só na nota.
+  "D-Light": {
+    gas: ["000434"],
+    flint: [],
+    nota: "Leva a pedra azul, disponível na boutique (não tem referência própria).",
+  },
 
   // Família a jato — sem pedra, todos com o spray preto.
   Minijet: { gas: ["000430"], flint: [] },
   Maxijet: { gas: ["000430"], flint: [] },
   Megajet: { gas: ["000430"], flint: [] },
+  Ultrajet: { gas: ["000430"], flint: [] },
   "Slim 7": { gas: ["000430"], flint: [] },
 
   // Défi — spray vermelho próprio.
