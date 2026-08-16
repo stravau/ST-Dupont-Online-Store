@@ -20,12 +20,21 @@
  * Uso (SEM --apply não escreve nada):
  *   $env:DATABASE_URL="<url de produção>"; npx tsx scripts/refills-dedupe.ts
  *   $env:DATABASE_URL="<url de produção>"; npx tsx scripts/refills-dedupe.ts --apply
+ *
+ * Flags:
+ *   --apagar-orfas  apaga também as fichas sem EAN, sem vendas e sem stock
+ *                   em loja, que por defeito só são reportadas
+ *   --force-stock   apaga duplicados mesmo com stock em loja
  */
 import { prisma } from "@/lib/prisma";
 import { REFILL_COMPAT, baseModelFor } from "@/lib/refill-compat";
 
 const APPLY = process.argv.includes("--apply");
 const FORCE_STOCK = process.argv.includes("--force-stock");
+// Fichas sem EAN, sem vendas e sem stock em loja: por defeito só são
+// reportadas, porque "não tem rasto no ERP" não prova que o artigo não
+// existe. Com esta flag são apagadas — usar depois de confirmar à mão.
+const APAGAR_ORFAS = process.argv.includes("--apagar-orfas");
 
 // Todas as REF de recargas/pedras que o quadro menciona, mais a 000444
 // (recarga de gancho) que existe no catálogo mas não consta do quadro.
@@ -112,9 +121,15 @@ async function main() {
       // alguma vez tenha visto — é resíduo do seed. Renomeá-la dava-lhe um
       // ar de canónica que não tem, por isso fica de fora e vai a relatório.
       if (!v.ean && v._count.saleItems === 0 && stockReal(v) === 0) {
-        console.log(`${ref}  ? ÓRFÃ — ${v.sku} não tem EAN, nem vendas, nem stock em loja`);
-        console.log(line(v, " "));
-        orphans.push(v);
+        if (APAGAR_ORFAS) {
+          console.log(`${ref}  → APAGAR ${v.sku} (órfã, confirmada com --apagar-orfas)`);
+          console.log(line(v, "✗"));
+          toDelete.push(v);
+        } else {
+          console.log(`${ref}  ? ÓRFÃ — ${v.sku} não tem EAN, nem vendas, nem stock em loja`);
+          console.log(line(v, " "));
+          orphans.push(v);
+        }
         continue;
       }
       console.log(`${ref}  → RENOMEAR ${v.sku} para ${ref} (ficha, fotos e stock mantêm-se)`);
