@@ -61,8 +61,13 @@ async function createWithTicketNumber(
   boutique: BoutiqueCode,
 ) {
   for (let attempt = 0; attempt < 4; attempt++) {
+    // `ticketNumber: { not: null }` não é defensivo, é obrigatório: a coluna é
+    // nullable e o Postgres ordena NULLS FIRST num DESC. Bastava UMA ficha sem
+    // número — e havia uma — para esta consulta a devolver sempre a ela, o
+    // próximo sair 0+1=1, chocar com a LIS-0001 e o registo falhar. Sempre, e
+    // não de vez em quando: as quatro tentativas recalculavam o mesmo 1.
     const last = await prisma.repair.findFirst({
-      where: { boutique },
+      where: { boutique, ticketNumber: { not: null } },
       orderBy: { ticketNumber: "desc" },
       select: { ticketNumber: true },
     });
