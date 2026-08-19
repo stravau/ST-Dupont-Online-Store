@@ -20,6 +20,23 @@ const nextConfig: NextConfig = {
     // Modern formats for product photography — Vercel Image Optimization
     // negociateia AVIF/WebP automaticamente e cachea no edge (~30d).
     formats: ["image/avif", "image/webp"],
+    // Larguras que o optimizador pode gerar. Sem isto o Next usa as
+    // predefinidas — 8 de ecrã e 8 de elemento — e cada fotografia rende mais
+    // de dez transformações distintas. A Vercel cobra por combinação única de
+    // imagem e largura, e com ~4350 fotos no catálogo foi assim que a quota se
+    // esgotou em Agosto de 2026.
+    //
+    // O tecto é 2048 porque é esse o tamanho das fotos de origem (o CDN da
+    // Starbrands serve 2048×2048, os webp locais 1280×1280). Pedir 3840, como
+    // a predefinição faz, nunca devolvia mais pixels — só gastava quota.
+    //
+    // Não há perda de qualidade em nenhum ponto: o Next escolhe sempre a
+    // largura disponível mais próxima ACIMA da necessária, portanto tirar
+    // valores intermédios só faz servir uma imagem ligeiramente maior. Os
+    // casos extremos foram conferidos — o cartão de catálogo a 22vw num ecrã
+    // de 1440 com DPR 2 precisa de 634px e continua a receber 640.
+    deviceSizes: [640, 1280, 2048],
+    imageSizes: [64, 128, 256, 384],
     // Hosts externos permitidos. images.starbrands.pt é o CDN oficial da
     // Starbrands (dona da loja e da marca dos produtos) — é a fonte da
     // verdade das fotos de catálogo, referenciada directamente no
