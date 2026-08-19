@@ -57,6 +57,9 @@ export interface Product {
   categorySlug: CategorySlug;
   image: string | null;
   novelty: boolean;
+  // Despublicada. As grelhas e o sitemap ja filtram por isto na consulta; a
+  // PDP precisa do campo para tambem recusar o acesso por URL directo.
+  active: boolean;
   variants: Variant[];
 }
 
@@ -115,6 +118,7 @@ type ProductRow = {
   collection: string;
   image: string | null;
   featured: boolean;
+  active: boolean;
   category: { slug: string };
   variants: VariantRow[];
 };
@@ -230,6 +234,7 @@ function mapProduct(p: ProductRow): Product {
     categorySlug,
     image: p.image,
     novelty: p.featured,
+    active: p.active,
     variants: p.variants.map((v) => {
       const attrs = (v.attributes ?? {}) as VariantAttributes;
       const vName = loc(v.name);

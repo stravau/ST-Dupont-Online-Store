@@ -78,6 +78,12 @@ export default async function ProductPage({
   // treat it as not-found rather than ship a 500 the moment a SKU is
   // (de)activated in admin or a reseed lands a half-baked row.
   if (!product || product.variants.length === 0) notFound();
+  // Uma ficha despublicada (active: false) sai das grelhas e do sitemap, mas
+  // até aqui continuava a abrir por URL directo — quem tivesse o link, ou o
+  // tivesse indexado antes, via na mesma uma página que decidimos esconder.
+  // É por isso que as fichas sem fotografia ficam mesmo fora do site, e não
+  // só fora dos menus.
+  if (!product.active) notFound();
   // Hide DESCONTINUADO variants from the PDP. If every variant of a
   // product is DESCONTINUADO, the product itself disappears.
   product.variants = product.variants.filter((v) => v.status !== "DESCONTINUADO");
