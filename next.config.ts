@@ -2,6 +2,21 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // TRAVÃO DE EMERGÊNCIA (19/08/2026): a quota de optimização de imagem da
+    // Vercel esgotou-se e o /_next/image passou a responder 402 Payment
+    // Required a TUDO — o site ficou sem uma única fotografia. Os ficheiros
+    // estavam bons (o /products/*.webp servia 200); era só o optimizador.
+    //
+    // Com isto as imagens são servidas tal como estão, sem passar por lá.
+    // O custo é o peso: os webp locais são quase todos < 200 KB e não se
+    // nota, mas as ~2069 fotos que ainda vêm do CDN da Starbrands são JPEG
+    // de ~1 MB e vão pesar no telemóvel.
+    //
+    // PARA REVERTER, quando a quota renovar ou o plano subir: apagar esta
+    // linha. A correcção de fundo é descarregar as fotos do CDN para
+    // public/products/ em webp, como já está feito para as outras 2281 —
+    // aí o peso deixa de ser problema mesmo sem optimizador.
+    unoptimized: true,
     // Modern formats for product photography — Vercel Image Optimization
     // negociateia AVIF/WebP automaticamente e cachea no edge (~30d).
     formats: ["image/avif", "image/webp"],
