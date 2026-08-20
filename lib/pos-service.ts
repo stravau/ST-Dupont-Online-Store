@@ -424,7 +424,7 @@ export async function voidSale(input: {
     if (sale.repairId) {
       await tx.repair.update({
         where: { id: sale.repairId },
-        data: { status: "AGUARDANDO_CLIENTE" },
+        data: { status: "AGUARDANDO_RECOLHA" },
       });
     }
 

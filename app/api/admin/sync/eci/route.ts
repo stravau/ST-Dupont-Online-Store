@@ -1248,18 +1248,19 @@ async function syncRepairSheet(
     }
     return null;
   };
-  const mapStatus = (raw: Cell): "AGUARDANDO_CLIENTE" | "AGUARDANDO_STD" | "AGUARDANDO_JM" | "AGUARDANDO_PR" | "ART_EM_REPARACAO" | "RESOLVIDO" | "POR_DAR_RESPOSTA" | "POR_VERIFICAR" => {
+  // O Excel continua a trazer os oito estados antigos; a base so tem quatro.
+  // A traducao e a mesma da migracao 20260820140000: o que estava com JM, PR
+  // ou por dar resposta esta na pratica a ser visto na loja, e um artigo "em
+  // reparacao" esta fora, na marca.
+  const mapStatus = (raw: Cell): "EM_VERIFICACAO_LOJA" | "AGUARDANDO_STD" | "AGUARDANDO_RECOLHA" | "RESOLVIDO" => {
     const s = cell(raw).toLowerCase();
     if (s.includes("resolv")) return "RESOLVIDO";
     if (s.includes("std")) return "AGUARDANDO_STD";
-    if (s.includes("jm")) return "AGUARDANDO_JM";
-    if (s.includes("aguardando pr")) return "AGUARDANDO_PR";
-    if (s.includes("cliente")) return "AGUARDANDO_CLIENTE";
-    if (s.includes("repara")) return "ART_EM_REPARACAO";
-    if (s.includes("resposta")) return "POR_DAR_RESPOSTA";
-    if (s.includes("verific")) return "POR_VERIFICAR";
-    return "POR_VERIFICAR";
+    if (s.includes("repara")) return "AGUARDANDO_STD";
+    if (s.includes("cliente") || s.includes("recolha")) return "AGUARDANDO_RECOLHA";
+    return "EM_VERIFICACAO_LOJA";
   };
+
 
   interface Rec {
     firstVisitAt: Date | null;

@@ -43,7 +43,7 @@ const eur = (cents: number) =>
 // observations + confirm bar:
 //   • Venda / Devolução — scan a barcode, basket builds up, ring up totals.
 //   • Reparação — pick a customer waiting to collect (only rows in
-//     AGUARDANDO_CLIENTE are searchable), choose subtype (escrita/isqueiro/
+//     AGUARDANDO_RECOLHA are searchable), choose subtype (escrita/isqueiro/
 //     pele), set the labour fee, confirm. The same transaction closes the
 //     Repair (→ RESOLVIDO). No stock movement.
 // Totals mirror the ECI Excel (net = gross/1.23, ECI fee = net * rate).

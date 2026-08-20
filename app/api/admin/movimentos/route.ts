@@ -59,7 +59,10 @@ export async function POST(req: Request) {
   // Motivo e operador passaram a obrigatórios. Sem eles o livro de movimentos
   // regista o quê e o quando mas não o quem nem o porquê — que são as duas
   // perguntas que se lhe faz quando o stock não bate certo.
-  const NOTE_VALUES = ["TRF VNG", "TRF LIS", "FORN"];
+  // Tem de espelhar NOTE_OPTIONS em components/admin/movimentos-scanner.tsx:
+  // o ecra so oferece estes, mas a rota e que garante que nao entra outra
+  // coisa por um pedido feito a mao.
+  const NOTE_VALUES = ["TRF VNG", "TRF LIS", "FORN", "ARMAZEM"];
   const noteRaw = typeof body.note === "string" ? body.note.trim() : "";
   if (!NOTE_VALUES.includes(noteRaw)) {
     return NextResponse.json(

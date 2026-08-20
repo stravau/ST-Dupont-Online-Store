@@ -7,28 +7,24 @@ import { BOUTIQUE_LABEL, BOUTIQUE_SHORT } from "@/components/admin/boutique-scop
 
 // ----- shared vocab (mirrors the Excel Reparações dropdowns) -----
 
-// Exactly the "Estado" dropdown from the Excel Reparações sheet, same order.
+// Os quatro estados que a boutique usa. Cada um diz ONDE esta a peca, que e
+// a pergunta que o cliente faz ao telefone. Ordem = percurso normal de uma
+// reparacao, da entrada ate a entrega.
 export const REPAIR_STATUSES = [
-  { value: "AGUARDANDO_CLIENTE", label: "Aguardando Cliente" },
-  { value: "AGUARDANDO_STD", label: "Aguardando STD" },
-  { value: "AGUARDANDO_JM", label: "Aguardando JM" },
-  { value: "AGUARDANDO_PR", label: "Aguardando PR" },
-  { value: "ART_EM_REPARACAO", label: "Art. em Reparação" },
+  { value: "EM_VERIFICACAO_LOJA", label: "Em verificação em loja" },
+  { value: "AGUARDANDO_STD", label: "Aguardando S.T. Dupont" },
+  { value: "AGUARDANDO_RECOLHA", label: "Aguardando recolha em loja" },
   { value: "RESOLVIDO", label: "Resolvido" },
-  { value: "POR_DAR_RESPOSTA", label: "Por dar Resposta !" },
-  { value: "POR_VERIFICAR", label: "Por Verificar !!" },
 ] as const;
 
 const STATUS_LABEL: Record<string, string> = Object.fromEntries(REPAIR_STATUSES.map((s) => [s.value, s.label]));
+// Cor a acompanhar o percurso: ambar enquanto esta em casa, azul enquanto
+// esta fora, dourado quando ja da para telefonar ao cliente, verde no fim.
 const STATUS_TONE: Record<string, string> = {
-  AGUARDANDO_CLIENTE: "bg-[#d4a017]/12 text-[#8a6d0f]",
+  EM_VERIFICACAO_LOJA: "bg-[#c07a2c]/12 text-[#8a5518]",
   AGUARDANDO_STD: "bg-[#3b6ea5]/12 text-[#2c5580]",
-  AGUARDANDO_JM: "bg-[#7a5cc0]/12 text-[#5a3fa0]",
-  AGUARDANDO_PR: "bg-[#2c8a8a]/12 text-[#1c6060]",
-  ART_EM_REPARACAO: "bg-[#5c6cc0]/12 text-[#3f4fa0]",
+  AGUARDANDO_RECOLHA: "bg-[#d4a017]/12 text-[#8a6d0f]",
   RESOLVIDO: "bg-[#2bb673]/14 text-[#1c8a54]",
-  POR_DAR_RESPOSTA: "bg-[#c07a2c]/12 text-[#8a5518]",
-  POR_VERIFICAR: "bg-[#b94a3a]/12 text-[#8a2f22]",
 };
 
 // Contact methods seen in the Excel "Último_Contato" column.
@@ -97,7 +93,7 @@ const emptyForm = (boutique: BoutiqueCode, today: string): FormState => ({
   boutique,
   firstVisit: today,
   staff: "",
-  status: "POR_VERIFICAR",
+  status: "EM_VERIFICACAO_LOJA",
   customerName: "",
   repairType: "",
   modelName: "",

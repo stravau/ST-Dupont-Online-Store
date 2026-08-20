@@ -32,12 +32,14 @@ const eur = (c: number) => (c / 100).toLocaleString("pt-PT", { style: "currency"
 
 // Motivos possíveis para um movimento. Fechado numa lista em vez de texto
 // livre: o campo era opcional e ficava vazio, o que tornava o histórico
-// impossível de ler — "entrou stock" sem se saber de onde. Com três opções
-// fixas o livro passa a responder "veio do fornecedor" ou "veio da outra loja".
+// impossível de ler — "entrou stock" sem se saber de onde. Com a lista fixa o
+// livro passa a responder "veio do fornecedor", "veio da outra loja" ou
+// "veio do armazém".
 const NOTE_OPTIONS = [
   { value: "TRF VNG", label: "TRF VNG — transferência de/para V. N. Gaia" },
   { value: "TRF LIS", label: "TRF LIS — transferência de/para Lisboa" },
   { value: "FORN", label: "FORN — fornecedor" },
+  { value: "ARMAZEM", label: "ARMAZÉM — entrada/saída do armazém" },
 ] as const;
 
 function hhmm(d = new Date()) {

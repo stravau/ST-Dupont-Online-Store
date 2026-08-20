@@ -20,28 +20,23 @@ const RESET = process.argv.includes("--reset");
 const BOUTIQUE = "LIS" as const;
 
 type RepairStatus =
-  | "AGUARDANDO_CLIENTE"
+  | "EM_VERIFICACAO_LOJA"
   | "AGUARDANDO_STD"
-  | "AGUARDANDO_JM"
-  | "AGUARDANDO_PR"
-  | "ART_EM_REPARACAO"
-  | "RESOLVIDO"
-  | "POR_DAR_RESPOSTA"
-  | "POR_VERIFICAR";
+  | "AGUARDANDO_RECOLHA"
+  | "RESOLVIDO";
 
-// The Excel "Estado" values map 1:1 to the enum. Kept tolerant (substring) in
-// case of trailing spaces / minor variants; unknown → "Por Verificar !!".
+// O Excel traz os oito estados antigos; a base so tem quatro desde a migracao
+// 20260820140000. A traducao e a mesma que essa migracao usou nos registos
+// que ja la estavam: o que estava com JM, PR ou por dar resposta esta na
+// pratica a ser visto na loja, e um artigo "em reparacao" esta fora, na marca.
+// Tolerante a espacos e variantes; desconhecido cai em verificacao na loja.
 function mapStatus(raw: unknown): RepairStatus {
   const s = String(raw ?? "").toLowerCase().trim();
   if (s.includes("resolv")) return "RESOLVIDO";
   if (s.includes("std")) return "AGUARDANDO_STD";
-  if (s.includes("jm")) return "AGUARDANDO_JM";
-  if (s.includes("aguardando pr")) return "AGUARDANDO_PR";
-  if (s.includes("cliente")) return "AGUARDANDO_CLIENTE";
-  if (s.includes("repara")) return "ART_EM_REPARACAO";
-  if (s.includes("resposta")) return "POR_DAR_RESPOSTA";
-  if (s.includes("verific")) return "POR_VERIFICAR";
-  return "POR_VERIFICAR";
+  if (s.includes("repara")) return "AGUARDANDO_STD";
+  if (s.includes("cliente") || s.includes("recolha")) return "AGUARDANDO_RECOLHA";
+  return "EM_VERIFICACAO_LOJA";
 }
 
 // Parse a date cell: a real Date (cellDates), or free text containing dd/mm/yyyy.

@@ -7,7 +7,7 @@ import { assertRateLimit } from "@/lib/admin-api";
 export const dynamic = "force-dynamic";
 
 // GET /api/admin/pos/repairs-waiting?boutique=LIS&q=<name>
-//   Lists Repair rows with status = AGUARDANDO_CLIENTE, filtered by boutique
+//   Lists Repair rows with status = AGUARDANDO_RECOLHA, filtered by boutique
 //   (LOJA_* forced to their store; ADMIN passes it via query) and optionally
 //   narrowed by a case-insensitive customerName substring. Response is a
 //   trimmed shape suitable for the POS reparação picker — id, name,
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
   const rows = await prisma.repair.findMany({
     where: {
       boutique,
-      status: "AGUARDANDO_CLIENTE",
+      status: "AGUARDANDO_RECOLHA",
       ...(q ? { customerName: { contains: q, mode: "insensitive" } } : {}),
     },
     orderBy: { firstVisitAt: "desc" },

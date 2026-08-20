@@ -112,19 +112,14 @@ enum RepairType {
   PELE
 }
 
-// Repair-ticket lifecycle — the exact "Estado" dropdown from the Excel
-// Reparações sheet. UI labels: Aguardando Cliente · Aguardando STD ·
-// Aguardando JM · Aguardando PR · Art. em Reparação · Resolvido ·
-// Por dar Resposta ! · Por Verificar !!
+// Estados de uma reparação. Eram os oito da folha de Excel; passaram aos
+// quatro que a boutique usa mesmo, cada um a dizer ONDE está a peça —
+// que é a pergunta que o cliente faz ao telefone.
 enum RepairStatus {
-  AGUARDANDO_CLIENTE // aguarda levantamento / decisão do cliente
-  AGUARDANDO_STD // aguarda resposta da S.T. Dupont (técnico / Espanha)
-  AGUARDANDO_JM // aguarda tratamento por JM
-  AGUARDANDO_PR // aguarda tratamento por PR
-  ART_EM_REPARACAO // artigo em reparação
-  RESOLVIDO // concluído / entregue
-  POR_DAR_RESPOSTA // falta dar resposta ao cliente
-  POR_VERIFICAR // acabou de dar entrada, por verificar
+  EM_VERIFICACAO_LOJA // deu entrada, está a ser visto na boutique
+  AGUARDANDO_STD // foi para a S.T. Dupont e espera resposta ou devolução
+  AGUARDANDO_RECOLHA // pronto, à espera que o cliente venha levantar
+  RESOLVIDO // entregue / fechado
 }
 
 // Every stock-affecting event. Theoretical stock for a variant in a boutique =
@@ -680,7 +675,7 @@ model Repair {
   // porque o histórico importado tem linhas com data desconhecida ("??").
   firstVisitAt DateTime?    @default(now())
   staff        String // Staff — iniciais do operador (PR, MA, …)
-  status       RepairStatus @default(POR_VERIFICAR) // Estado [Ir atualizando]
+  status       RepairStatus @default(EM_VERIFICACAO_LOJA) // Estado [Ir atualizando]
   customerName String // Cli_Nome
   reference    String // Ref. — histórico ECI (mantido; a UI usa repairType + modelName)
   repairType   RepairType? // Tipo — Isqueiro / Escrita / Pele (null = por definir)
