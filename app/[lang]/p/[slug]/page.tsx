@@ -33,7 +33,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang, slug } = await params;
   const product = await getProduct(slug);
-  if (!isLocale(lang) || !product) return {};
+  // As mesmas condições que fazem a página em baixo dar notFound(). Não é
+  // duplicação por descuido: os metadados resolvem PRIMEIRO e a resposta
+  // começa a sair, portanto quando o corpo decidia o 404 já os cabeçalhos
+  // tinham ido e o estado ficava em 200. O visitante via "não encontrada"
+  // — nada era exposto — mas para o Google era um soft 404, uma página
+  // válida a indexar. Devolver {} aqui deixa o 404 sair com o estado certo.
+  if (!isLocale(lang) || !product || !product.active || product.variants.length === 0) return {};
   const locale = lang as Locale;
   const title = product.name[locale];
   const full = product.description[locale] ?? "";
