@@ -60,14 +60,23 @@ async function main() {
     String((p.name as Record<string, string> | null)?.pt ?? p.slug);
 
   // Quais foram escondidas por nós — só essas podem ser republicadas.
+  //
+  // O marcador guarda o ID, não o slug: os slugs mudaram depois de as fichas
+  // terem sido escondidas (passaram de português para a convenção inglesa dos
+  // irmãos) e o reconhecimento por slug deixou de bater. O id não muda nunca.
   const marcas = await prisma.adminAction.findMany({
     where: { entityType: "PRODUCT", action: "UPDATE", note: MARCA },
-    select: { entityId: true },
+    select: { entityId: true, after: true },
   });
-  const nossas = new Set(marcas.map((m) => m.entityId).filter(Boolean) as string[]);
+  const nossas = new Set<string>();
+  for (const m of marcas) {
+    if (m.entityId) nossas.add(m.entityId);
+    const id = (m.after as { id?: string } | null)?.id;
+    if (id) nossas.add(id);
+  }
 
   const esconder = ps.filter((p) => p.active && semFoto(p));
-  const republicar = ps.filter((p) => !p.active && !semFoto(p) && nossas.has(p.slug));
+  const republicar = ps.filter((p) => !p.active && !semFoto(p) && (nossas.has(p.slug) || nossas.has(p.id)));
 
   if (esconder.length) {
     console.log("A ESCONDER (activas, sem uma unica fotografia):");
@@ -92,7 +101,7 @@ async function main() {
         prisma.adminAction.create({
           data: {
             entityType: "PRODUCT", action: "UPDATE", entityId: p.slug, note: MARCA,
-            before: { active: true } as object, after: { active: false } as object,
+            before: { active: true } as object, after: { active: false, id: p.id } as object,
           },
         }),
       ]);
