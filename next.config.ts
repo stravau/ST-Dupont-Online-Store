@@ -44,6 +44,12 @@ const nextConfig: NextConfig = {
     // AVIF/WebP no tamanho pedido pelo browser, e serve do edge.
     remotePatterns: [
       { protocol: "https", hostname: "images.starbrands.pt" },
+      // Vercel Blob — onde aterra tudo o que for carregado pelo admin (fotos
+      // de variante, fundo do "Em Destaque"). Sem isto, o dia em que o
+      // optimizador voltar a ser ligado, essas imagens passavam a dar erro:
+      // o next/image recusa hosts que nao estejam nesta lista. O fundo em si
+      // entra por CSS e nao passa por aqui, mas as fotos de produto sim.
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
   },
   // Baseline security headers for every route. Deliberately NOT a strict
