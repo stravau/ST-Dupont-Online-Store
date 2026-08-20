@@ -70,6 +70,28 @@ export function ProductCard({
       });
     }
   }
+  // Nenhuma variante trazia cor. Sem isto o cartão ficava sem swatch nenhum e
+  // caía numa única fotografia — sem setas, sem pontos, sem troca no hover —
+  // mesmo quando a variante tem cinco fotos. Acontece com tudo o que entra
+  // pelo Excel do ERP, que traz `{brand, source}` e nada de cor.
+  //
+  // Só corre quando NENHUMA tem cor: num produto misto, deixar as sem-cor de
+  // fora continua a ser o comportamento certo — são colourways por identificar,
+  // não uma linha à parte.
+  if (swatches.length === 0) {
+    for (const v of variantsForSwatches) {
+      swatches.push({
+        sku: v.sku,
+        label: v.name[lang],
+        hex: [],
+        image: v.image ?? product.image,
+        hoverImage: v.images?.[2] ?? null,
+        images: v.images && v.images.length ? v.images : v.image ? [v.image] : [],
+        price: formatPrice(v.priceCents, v.currency, lang),
+      });
+    }
+  }
+
   swatches.sort(compareSwatch);
 
   // Show a different colourway per card by default (deterministic per item).
