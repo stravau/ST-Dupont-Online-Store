@@ -24,6 +24,7 @@ export function BackgroundBox({
   const [aDecorrer, setADecorrer] = useState(false);
   const [sobre, setSobre] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [endereco, setEndereco] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
   const mostrado = previa ?? url ?? original;
@@ -55,6 +56,29 @@ export function BackgroundBox({
     }
   }
 
+  // Gravar um endereço em vez de enviar um ficheiro. Existe por duas razões:
+  // o envio depende do Vercel Blob estar configurado, e há fotografias que já
+  // vivem algures — em /public ou no CDN da marca — e não vale a pena duplicar.
+  async function gravarEndereco(valor: string) {
+    setErro(null);
+    setADecorrer(true);
+    try {
+      const res = await fetch("/api/admin/home-background", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: valor.trim() }),
+      });
+      const j = (await res.json()) as { ok?: boolean; url?: string; error?: string };
+      if (!res.ok || !j.ok) throw new Error(j.error ?? "não consegui gravar");
+      setUrl(j.url ?? null);
+      setEndereco("");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "não consegui gravar");
+    } finally {
+      setADecorrer(false);
+    }
+  }
+
   async function repor() {
     setErro(null);
     setADecorrer(true);
@@ -78,10 +102,11 @@ export function BackgroundBox({
     <section className="mt-8 border border-line bg-paper p-5">
       <h2 className="font-serif text-lg text-ink">Fotografia de fundo</h2>
       <p className="mt-1 max-w-2xl text-[0.8rem] leading-relaxed text-muted">
-        A imagem por trás da faixa. Arrasta um ficheiro para a caixa ou clica para
-        escolher. Fica escurecida no site para as letras se lerem, portanto uma
-        fotografia com muito detalhe ao centro perde-se — as que resultam melhor
-        são largas e com o motivo fora do meio.
+        A imagem por trás da faixa. Arrasta um ficheiro para a caixa, clica para
+        escolher, ou cola o endereço de uma que já exista. Fica escurecida no site
+        para as letras se lerem, portanto uma fotografia com muito detalhe ao
+        centro perde-se — as que resultam melhor são largas e com o motivo fora
+        do meio.
       </p>
 
       <div
@@ -132,9 +157,35 @@ export function BackgroundBox({
         }}
       />
 
+      {/* Alternativa ao envio: apontar para uma fotografia que ja existe. Nao
+          precisa do Vercel Blob configurado, e serve para reaproveitar o que
+          esta em /public ou no CDN da marca sem duplicar o ficheiro. */}
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="min-w-[18rem] flex-1">
+          <span className="overline block text-[0.55rem] text-muted">
+            ou o endereço de uma imagem
+          </span>
+          <input
+            type="text"
+            value={endereco}
+            onChange={(e) => setEndereco(e.target.value)}
+            placeholder="/ss26/geode-bg.jpg  ou  https://…"
+            className="mt-1.5 w-full border border-line bg-paper px-3 py-2 text-[0.82rem] text-ink outline-none focus:border-gold"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => void gravarEndereco(endereco)}
+          disabled={aDecorrer || !endereco.trim()}
+          className="border border-ink px-5 py-2 text-[0.7rem] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-cream disabled:opacity-40"
+        >
+          Usar este
+        </button>
+      </div>
+
       <div className="mt-3 flex items-center gap-4">
         <span className="text-[0.72rem] text-muted">
-          {url ? "A usar uma fotografia carregada por ti." : "A usar a fotografia original."}
+          {url ? "A usar uma fotografia escolhida por ti." : "A usar a fotografia original."}
         </span>
         {url && (
           <button
