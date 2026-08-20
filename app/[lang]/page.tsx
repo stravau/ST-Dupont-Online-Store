@@ -9,6 +9,7 @@ import {
   getCuratedCards,
   getSiteSetting,
   FUNDO_DESTAQUES,
+  familiaComum,
 } from "@/lib/catalog";
 import { STORES } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
@@ -114,8 +115,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // O botao por baixo do carrossel diz o que ha do outro lado. Quando tudo o
   // que esta la dentro e da mesma coleccao, anuncia essa coleccao pelo nome;
   // com coleccoes misturadas, nao ha nome honesto a dar e fica "Destaques".
-  const coleccoes = new Set(curated.map(({ product }) => product.collection).filter(Boolean));
-  const coleccaoUnica = coleccoes.size === 1 ? [...coleccoes][0] : null;
+  const coleccaoUnica = familiaComum(curated.map(({ product }) => product.collection));
   const rotuloDescobrir = coleccaoUnica
     ? `${dict.sections.discoverPrefix} ${coleccaoUnica}`
     : dict.sections.discoverFeatured;

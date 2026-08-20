@@ -38,7 +38,14 @@ export default async function DestaquesPage({
       select: { sku: true },
     }),
     prisma.productVariant.findMany({
-      where: { status: { not: "DESCONTINUADO" } },
+      // Alem dos descontinuados, ficam de fora as fichas despublicadas e o
+      // saco `unmapped-inventory`. O saco tem 161 variantes com fotografia e
+      // todas se chamam "Inventario nao mapeado": escolher uma punha esse
+      // nome na montra, que foi exactamente o que aconteceu.
+      where: {
+        status: { not: "DESCONTINUADO" },
+        product: { active: true, slug: { not: "unmapped-inventory" } },
+      },
       orderBy: [{ product: { collection: "asc" } }, { sku: "asc" }],
       select: {
         sku: true, name: true, images: true, priceCents: true,

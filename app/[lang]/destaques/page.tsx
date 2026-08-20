@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
-import { getCuratedCards } from "@/lib/catalog";
+import { getCuratedCards, familiaComum } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +17,7 @@ const RAIL = "DESTAQUES";
 // misturadas fica "Em Destaque", que é o que a selecção é de facto.
 async function carregar(locale: Locale) {
   const curated = await getCuratedCards(RAIL);
-  const coleccoes = new Set(curated.map(({ product }) => product.collection).filter(Boolean));
-  const unica = coleccoes.size === 1 ? [...coleccoes][0] : null;
+  const unica = familiaComum(curated.map(({ product }) => product.collection));
   const dict = getDictionary(locale);
   return {
     curated,

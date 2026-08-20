@@ -973,8 +973,12 @@ async function getCuratedCardsDb(
   if (picks.length === 0) return [];
 
   const skus = picks.map((p) => p.sku);
+  // `active: true` nao estava aqui, e era a unica consulta do catalogo sem
+  // ele: bastava escolher no admin uma variante presa no saco
+  // `unmapped-inventory` (que e uma ficha inactiva) para o carrossel a
+  // mostrar na montra com o nome do saco, "Inventario nao mapeado".
   const rows = await prisma.product.findMany({
-    where: { variants: { some: { sku: { in: skus } } } },
+    where: { active: true, variants: { some: { sku: { in: skus } } } },
     include: productInclude,
   });
   const bySku = new Map<string, Product>();
@@ -1072,6 +1076,26 @@ async function getSiteSettingDb(key: string): Promise<string | null> {
   return row?.value ?? null;
 }
 export const getSiteSetting = comCache(getSiteSettingDb, "getSiteSetting");
+
+// O nome a anunciar quando o carrossel e todo da mesma familia.
+//
+// Igualdade exacta nao chegava: "Cohiba" e "Cohiba Behike" sao duas coleccoes
+// na base mas uma so familia para quem olha para a montra, e o botao caia no
+// generico so por causa disso.
+//
+// A regra e estreita de proposito: so junta quando a coleccao mais curta E, ela
+// propria, o inicio de todas as outras. Assim {"Cohiba", "Cohiba Behike"} da
+// "Cohiba", mas {"Ligne 1", "Ligne 2"} nao da "Ligne" — que nao e o nome de
+// coleccao nenhuma e prometia ao cliente uma coisa que nao existe.
+export function familiaComum(coleccoes: string[]): string | null {
+  const uniq = [...new Set(coleccoes.map((c) => c.trim()).filter(Boolean))];
+  if (uniq.length === 0) return null;
+  if (uniq.length === 1) return uniq[0];
+  const curta = uniq.reduce((a, b) => (b.length < a.length ? b : a));
+  return uniq.every((c) => c === curta || c.startsWith(curta + " ") || c.startsWith(curta + " · "))
+    ? curta
+    : null;
+}
 
 const getCuratedCardsEmCache = comCache(getCuratedCardsDb, "getCuratedCards");
 export async function getCuratedCards(
