@@ -1060,7 +1060,18 @@ export const semCache = {
   getNovelties: getNoveltiesDb,
   searchProducts: searchProductsDb,
   getCuratedCards: getCuratedCardsDb,
+  getSiteSetting: getSiteSettingDb,
 };
+
+// Fotografia de fundo da faixa "Em Destaque", escolhida pelo patrao no admin.
+// Devolve null quando nunca foi trocada — a homepage cai no ficheiro que vem
+// com o codigo, para a faixa nunca aparecer sem fundo.
+export const FUNDO_DESTAQUES = "home.featured.background";
+async function getSiteSettingDb(key: string): Promise<string | null> {
+  const row = await prisma.siteSetting.findUnique({ where: { key }, select: { value: true } });
+  return row?.value ?? null;
+}
+export const getSiteSetting = comCache(getSiteSettingDb, "getSiteSetting");
 
 const getCuratedCardsEmCache = comCache(getCuratedCardsDb, "getCuratedCards");
 export async function getCuratedCards(

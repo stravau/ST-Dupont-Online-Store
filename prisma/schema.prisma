@@ -763,6 +763,19 @@ model Reserva {
 // Guardado por SKU e não por variantId: o SKU é a chave natural que a loja
 // usa, sobrevive a uma reimportação de catálogo, e a leitura já ignora
 // entradas cujo artigo tenha desaparecido.
+// Definições do site, em chave/valor. Nasceu para o patrão poder trocar a
+// fotografia de fundo da faixa "Em Destaque" sem mexer no código nem esperar
+// por um deploy — mas serve qualquer ajuste de montra que não justifique uma
+// tabela própria.
+//
+// Chaves em uso:
+//   home.featured.background   URL da fotografia de fundo do "Em Destaque"
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model HomeCarouselItem {
   id        String   @id @default(cuid())
   // Qual carrossel. "DESTAQUES" hoje; deixa a porta aberta para curar as

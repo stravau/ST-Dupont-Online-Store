@@ -185,6 +185,11 @@ const dictionaries = {
       rivieraBody:
         "Para o verão de 2026, a S.T. Dupont inspira-se na atmosfera única da Riviera Francesa e na sua elegância intemporal. Banhada pela luz deslumbrante do Mediterrâneo e pelo calor suave dos longos dias de verão, esta estação celebra um modo de vida feito de requinte e liberdade. Conjugando herança e modernidade, savoir-faire de exceção e espírito de evasão, a Maison reinterpreta o seu estilo característico com uma energia solar, convidando a saborear a beleza dos instantes suspensos no tempo.",
       geodeCta: "Descobrir Géode",
+      // Rotulo do botao por baixo do carrossel Em Destaque. Junta-se ao nome
+      // da coleccao quando o carrossel so tem artigos de uma; com coleccoes
+      // misturadas usa-se o segundo, que nao promete o que nao ha.
+      discoverPrefix: "Descobrir",
+      discoverFeatured: "Descobrir os Destaques",
       heritageEyebrow: "A Maison",
       heritageTitle: "A marca por trás de reis, rainhas e estadistas",
       heritageBody:
@@ -462,6 +467,8 @@ const dictionaries = {
       rivieraBody:
         "For summer 2026, S.T. Dupont draws inspiration from the unique atmosphere of the French Riviera and its timeless elegance. Bathed in the dazzling light of the Mediterranean and the gentle warmth of long summer days, this season celebrates a way of life marked by refinement and freedom. Blending heritage with modernity, exceptional craftsmanship with a spirit of escape, the House reinterprets its signature style with a sunny energy, inviting you to savour the beauty of moments frozen in time.",
       geodeCta: "Discover Géode",
+      discoverPrefix: "Discover",
+      discoverFeatured: "Discover the Highlights",
       heritageEyebrow: "The Maison",
       heritageTitle: "The brand behind kings, queens and statesmen",
       heritageBody:

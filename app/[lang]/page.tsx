@@ -3,7 +3,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { isLocale, getDictionary, locales, type Locale } from "@/lib/i18n";
 import { localeCategorySlug } from "@/lib/category-slugs";
-import { getNovelties, expandProductCards, getCuratedCards } from "@/lib/catalog";
+import {
+  getNovelties,
+  expandProductCards,
+  getCuratedCards,
+  getSiteSetting,
+  FUNDO_DESTAQUES,
+} from "@/lib/catalog";
 import { STORES } from "@/lib/store-info";
 import { ProductCard } from "@/components/product-card";
 import { NoveltiesShowcase } from "@/components/novelties-showcase";
@@ -81,7 +87,15 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   for (const c of novelties.flatMap(expandProductCards)) {
     if (!byProduct.has(c.product.slug)) byProduct.set(c.product.slug, c);
   }
-  const latest = [...byProduct.values()].slice(0, 10).map(({ product, sku }) => (
+  // O carril das Novidades pode ser curado a mao em /admin/destaques?tab=novidades.
+  // Enquanto nao houver escolha, mantem-se automatico — as ultimas criacoes,
+  // uma por produto. Assim o site nunca fica com o carril vazio a espera de
+  // alguem o preencher.
+  const curadasNovidades = await getCuratedCards("NOVIDADES");
+  const fonteNovidades = curadasNovidades.length
+    ? curadasNovidades
+    : [...byProduct.values()].slice(0, 10);
+  const latest = fonteNovidades.map(({ product, sku }) => (
     <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
 
@@ -92,6 +106,19 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const featured = curated.map(({ product, sku }) => (
     <ProductCard key={`feat-${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
   ));
+
+  // Fundo da faixa, escolhido no admin. Sem escolha, fica o que vem com o
+  // codigo — a faixa nunca aparece sem fundo.
+  const fundoDestaques = (await getSiteSetting(FUNDO_DESTAQUES)) ?? "/ss26/geode-bg.jpg";
+
+  // O botao por baixo do carrossel diz o que ha do outro lado. Quando tudo o
+  // que esta la dentro e da mesma coleccao, anuncia essa coleccao pelo nome;
+  // com coleccoes misturadas, nao ha nome honesto a dar e fica "Destaques".
+  const coleccoes = new Set(curated.map(({ product }) => product.collection).filter(Boolean));
+  const coleccaoUnica = coleccoes.size === 1 ? [...coleccoes][0] : null;
+  const rotuloDescobrir = coleccaoUnica
+    ? `${dict.sections.discoverPrefix} ${coleccaoUnica}`
+    : dict.sections.discoverFeatured;
 
   return (
     <>
@@ -246,7 +273,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <section
           className="relative bg-black text-cream"
           style={{
-            backgroundImage: "url(/ss26/geode-bg.jpg)",
+            backgroundImage: `url(${fundoDestaques})`,
             backgroundSize: "cover",
             backgroundPosition: "center center",
             backgroundRepeat: "no-repeat",
@@ -275,14 +302,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 nextLabel={dict.common.next}
               />
             </div>
-            {/* Porta de entrada para a colecção Géode, que atravessa várias
-                categorias e por isso não vive numa página de categoria. */}
+            {/* Abre a compilação: a mesma selecção do carrossel, numa grelha
+                onde se vê tudo de uma vez em vez de a passar de três em três. */}
             <div className="reveal mt-14 text-center">
               <Link
-                href={`/${locale}/colecao/geode`}
+                href={`/${locale}/destaques`}
                 className="inline-block border border-gold-soft/70 px-9 py-4 text-[0.7rem] tracking-[0.24em] text-gold-soft uppercase transition-colors hover:bg-gold hover:text-ink"
               >
-                {dict.sections.geodeCta} →
+                {rotuloDescobrir} →
               </Link>
             </div>
           </div>
