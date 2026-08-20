@@ -828,10 +828,19 @@ export function isUsage(value: unknown): value is Usage {
 // devolve um tipo único, uma variante nunca conta para dois filtros.
 //
 //   420/460/410 = tinta permanente · 422/412 = rollerball · 425/265/820/830 = esferográfica
+// Os prefixos foram DEDUZIDOS do catalogo, nao adivinhados: para cada prefixo
+// de tres digitos contaram-se os tipos declarados nos nomes das suas fichas, e
+// so entram os que sao unanimes. O padrao que daí saiu é o terceiro digito —
+// 0 tinta permanente, 2 rollerball, 5 esferografica — repetido em todas as
+// familias (26x, 27x, 40x, 41x, 42x, 46x).
+//
+// A lista é explicita e nao uma regra sobre o digito, porque 830/835 tambem
+// acabam em 0 e 5 e sao CINTOS (Line D · Cinto Reversivel). Estavam na lista
+// dos esferograficos e faziam cintos aparecer no filtro das canetas.
 const SINAIS: { usage: Usage; keys: RegExp; sku: RegExp }[] = [
-  { usage: "fountain", keys: /(fountain\s?pen|foutain\s?pen|tinta permanente)/i, sku: /^(?:STD)?(420|460|410)/i },
-  { usage: "rollerball", keys: /(roller\s?ball)/i, sku: /^(?:STD)?(422|412)/i },
-  { usage: "ballpoint", keys: /(ballpoint|esferogr[áa]fica)/i, sku: /^(?:STD)?(425|265|820|830)/i },
+  { usage: "fountain", keys: /(fountain\s?pen|foutain\s?pen|tinta permanente)/i, sku: /^(?:STD)?(260|270|400|410|420|460)/i },
+  { usage: "rollerball", keys: /(roller\s?ball)/i, sku: /^(?:STD)?(262|272|402|412|422|462)/i },
+  { usage: "ballpoint", keys: /(ballpoint|esferogr[áa]fica)/i, sku: /^(?:STD)?(045|265|275|405|425|465|700)/i },
 ];
 
 export function variantUsage(p: Product, v: Product["variants"][number]): Usage | null {
