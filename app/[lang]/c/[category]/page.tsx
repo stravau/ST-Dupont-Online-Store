@@ -12,6 +12,7 @@ import {
   expandProductCards,
   inferGender,
   hasUsage,
+  variantUsage,
   isUsage,
   priceInRange,
   productMinEur,
@@ -251,8 +252,13 @@ export default async function CategoryPage({
       // filtro, pedir "em stock em Lisboa" devolvia também as cores irmãs
       // sem stock nenhum — cada uma com o seu selo verde.
       .filter(({ sku }) => {
-        if (activeStock === "all") return true;
         const v = p.variants.find((x) => x.sku === sku);
+        // Mesma razao que o filtro de stock logo abaixo: a ficha do Popote tem
+        // a caneta de tinta permanente E o rollerball la dentro, e o filtro de
+        // cima é ao nivel do PRODUTO. Sem esta segunda passagem, escolher
+        // "Tinta Permanente" trazia tambem os cartoes do rollerball irmao.
+        if (activeUsage && (!v || variantUsage(p, v) !== activeUsage)) return false;
+        if (activeStock === "all") return true;
         return v ? stockOk(v) : false;
       })
       .map(({ sku }) => ({

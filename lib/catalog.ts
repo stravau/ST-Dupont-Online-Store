@@ -815,26 +815,39 @@ export function isUsage(value: unknown): value is Usage {
   return value === "ballpoint" || value === "rollerball" || value === "fountain";
 }
 
+// Que tipo de escrita É esta variante — uma resposta só, nunca duas.
+//
+// Antes, `hasUsage` respondia ao nível do PRODUTO e a grelha desenha um cartão
+// por VARIANTE. O Popoté é uma ficha com a caneta de tinta permanente (420316M)
+// e o rollerball (422316M) lá dentro: bastava a variante 420 para o produto
+// inteiro passar no filtro "Tinta Permanente", e os cartões do rollerball iam
+// atrás. O mesmo erro que o filtro de stock já tinha tido, e pela mesma razão.
+//
+// A ordem dos sinais importa: primeiro o que descreve a VARIANTE (a etiqueta
+// explícita, o nome dela, a referência), e só no fim o nome do produto. Como
+// devolve um tipo único, uma variante nunca conta para dois filtros.
+//
+//   420/460/410 = tinta permanente · 422/412 = rollerball · 425/265/820/830 = esferográfica
+const SINAIS: { usage: Usage; keys: RegExp; sku: RegExp }[] = [
+  { usage: "fountain", keys: /(fountain\s?pen|foutain\s?pen|tinta permanente)/i, sku: /^(?:STD)?(420|460|410)/i },
+  { usage: "rollerball", keys: /(roller\s?ball)/i, sku: /^(?:STD)?(422|412)/i },
+  { usage: "ballpoint", keys: /(ballpoint|esferogr[áa]fica)/i, sku: /^(?:STD)?(425|265|820|830)/i },
+];
+
+export function variantUsage(p: Product, v: Product["variants"][number]): Usage | null {
+  const tipo = v.attributes.type;
+  for (const s of SINAIS) {
+    if (tipo?.en && s.keys.test(tipo.en)) return s.usage;
+    if (tipo?.pt && s.keys.test(tipo.pt)) return s.usage;
+  }
+  for (const s of SINAIS) if (s.keys.test(v.name.en) || s.keys.test(v.name.pt)) return s.usage;
+  for (const s of SINAIS) if (s.sku.test(v.sku)) return s.usage;
+  for (const s of SINAIS) if (s.keys.test(p.name.en) || s.keys.test(p.name.pt)) return s.usage;
+  return null;
+}
+
 export function hasUsage(p: Product, usage: Usage): boolean {
-  // Only 4 of 57 writing products carry an explicit attributes.type tag;
-  // the rest came in untyped from the EN/www imports. Fall back to keyword
-  // checks on the variant + product names, then to SKU prefix patterns
-  // (Eternity / Line D Eternity family: 420=FP, 422=RB, 425=BP) so each
-  // usage chip resolves to a meaningful subset instead of repeating the
-  // same handful of ballpoints across all three filters.
-  const patterns =
-    usage === "ballpoint"
-      ? { keys: /\b(ballpoint|esferográfica)\b/i, sku: /^(425|265|820|830)/i }
-      : usage === "rollerball"
-        ? { keys: /\b(roller\s?ball)\b/i, sku: /^(422|412)/i }
-        : { keys: /\b(fountain\s?pen|foutain\s?pen|tinta permanente)\b/i, sku: /^(420|460|410)/i };
-  return p.variants.some((v) => {
-    if (v.attributes.type?.en && patterns.keys.test(v.attributes.type.en)) return true;
-    if (patterns.keys.test(v.name.en) || patterns.keys.test(v.name.pt)) return true;
-    if (patterns.keys.test(p.name.en) || patterns.keys.test(p.name.pt)) return true;
-    if (patterns.sku.test(v.sku)) return true;
-    return false;
-  });
+  return p.variants.some((v) => variantUsage(p, v) === usage);
 }
 
 // Price-bucket filter (chip row on every catalogue page). Matches against
