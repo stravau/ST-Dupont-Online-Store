@@ -221,8 +221,13 @@ export function VariantSelector({
             {active.color && <span className="text-sm text-gold">{active.color.label}</span>}
           </div>
           {colorList.length > 1 ? (
+            // Passa à linha em vez de correr para fora do ecrã. Era
+            // `overflow-x-auto` com a barra escondida: num artigo com muitas
+            // cores, as últimas ficavam fora de vista E sem nada a indicar que
+            // existiam — nem barra, nem corte visível. Envolvidas, vêem-se
+            // todas e chega-se a qualquer uma sem arrastar.
             <div
-              className="no-scrollbar mt-4 flex gap-2 overflow-x-auto sm:gap-3"
+              className="mt-4 flex flex-wrap gap-2 sm:gap-3"
               role="radiogroup"
               aria-label={labels.selectColor}
             >

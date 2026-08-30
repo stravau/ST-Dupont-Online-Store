@@ -26,6 +26,7 @@ export function ProductCardInteractive({
   title,
   collection,
   variantLabel,
+  refLabel,
   noveltyLabel,
   availableLabel,
   indisponivel = false,
@@ -41,6 +42,10 @@ export function ProductCardInteractive({
   // Distinguisher shown on the subtitle line when the card is one colourway of
   // a multi-card product (usually the colour). Falls back to `collection`.
   variantLabel?: string;
+  // Referência do artigo que ESTE cartão mostra. Linha própria por baixo do
+  // subtítulo: encavalitada no fim da cor, desaparecia nas reticências
+  // precisamente nos nomes compridos, que são onde ela mais faz falta.
+  refLabel?: string;
   noveltyLabel: string | null;
   availableLabel: string;
   // When true, the green-dot chip turns amber and the rendered text is
@@ -209,6 +214,11 @@ export function ProductCardInteractive({
         <p className="line-clamp-1 text-[0.55rem] tracking-[0.14em] text-muted uppercase sm:text-[0.65rem]">
           {variantLabel ?? collection}
         </p>
+        {refLabel && (
+          <p className="line-clamp-1 text-[0.5rem] tracking-[0.12em] text-muted/75 uppercase sm:text-[0.58rem]">
+            Ref. {refLabel}
+          </p>
+        )}
         <p className="mt-1 font-serif text-base font-semibold text-ink sm:mt-1.5 sm:text-xl">{price}</p>
       </div>
     </article>

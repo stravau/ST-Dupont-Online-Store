@@ -148,32 +148,21 @@ export function ProductCard({
       ? tipoParaEtiqueta(product.name.pt, product.description.pt, product.slug)
       : null;
 
-  let detalhe: string | undefined;
-  if (variantSku) {
-    const photoKeys = new Set(
-      product.variants
-        .filter((v) => v.status !== "DESCONTINUADO" && (v.image || v.images?.length || product.image))
-        .map((v) => (v.image || v.images?.[0] || product.image || v.sku).toLowerCase()),
-    );
-    if (photoKeys.size > 1) {
-      const colour = base.attributes.color?.label[lang];
-      const myName = base.name[lang]?.toLowerCase().trim();
-      const myColour = colour?.toLowerCase().trim() ?? "";
-      const myPrice = base.priceCents;
-      const sameColourSiblings = product.variants.filter((v) => {
-        if (v.status === "DESCONTINUADO") return false;
-        const vColour = v.attributes.color?.label[lang]?.toLowerCase().trim() ?? "";
-        return v.name[lang]?.toLowerCase().trim() === myName && v.priceCents === myPrice && vColour === myColour;
-      });
-      detalhe =
-        sameColourSiblings.length > 1
-          ? colour
-            ? `${colour} · Ref. ${base.sku}`
-            : `Ref. ${base.sku}`
-          : colour;
-    }
-  }
+  // A variante que ESTE cartão mostra. Decidida aqui em cima porque a cor e a
+  // referência abaixo têm de vir os dois dela — antes, a cor saía do `base`
+  // (o mais barato do produto) e podia não ser a da fotografia.
+  const shownSku = swatches[initialSwatch]?.sku ?? variantSku ?? base.sku;
+  const shown = product.variants.find((v) => v.sku === shownSku) ?? base;
 
+  // Cor SEMPRE que a variante a declare — não só quando o produto rende vários
+  // cartões, como era. Cartões irmãos mostravam a cor e um artigo de cor única
+  // não mostrava nada, e a linha ficava diferente de cartão para cartão sem
+  // razão visível para quem olha.
+  const detalhe = shown.attributes.color?.label[lang];
+
+  // Tipo · cor. A referência já não entra aqui: vai numa linha própria, para
+  // as três informações aparecerem sempre pela mesma ordem em todos os
+  // cartões, em vez de a ref surgir ora colada à cor ora não surgir de todo.
   const variantLabel =
     [tipoCaneta ? TIPO_LABEL[tipoCaneta][lang] : null, detalhe].filter(Boolean).join(" · ") ||
     undefined;
@@ -183,8 +172,6 @@ export function ProductCard({
   // foto grande), portanto dizer "Disponível em Lisboa" porque uma cor
   // *irmã* tem stock era simplesmente falso. `status` já vem derivado do
   // stock por effectiveStatus() em lib/catalog.
-  const shownSku = swatches[initialSwatch]?.sku ?? variantSku ?? base.sku;
-  const shown = product.variants.find((v) => v.sku === shownSku) ?? base;
   const isIndisponivel = shown.status !== "DISPONIVEL";
   const cardLis = shown.stockLis ?? 0;
   const cardVng = shown.stockVng ?? 0;
@@ -205,6 +192,7 @@ export function ProductCard({
       title={title}
       collection={categoryLabel}
       variantLabel={variantLabel}
+      refLabel={shown.sku}
       noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
       availableLabel={availableLabel}
       indisponivel={isIndisponivel}
