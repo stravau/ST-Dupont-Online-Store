@@ -724,8 +724,24 @@ function lev(a: string, b: string, max: number): number {
 // every "lighter" / "line" / "lined…" mention in body copy). New rule:
 // fuzzy only on multi-word queries' SHORT (≤6 char) terms, edit distance
 // 1 only. Anything longer requires an exact substring hit.
-function termMatches(term: string, blob: string, words: string[]): boolean {
-  if (blob.includes(term)) return true;
+// Um termo bate EXACTAMENTE.
+//
+// Termos numericos e de uma ou duas letras so contam como PALAVRA inteira. O
+// `includes` cru fazia o "2" de "ligne 2" casar com o 2 que ha dentro de
+// qualquer referencia — 422317L, 016296 — e a pesquisa devolvia meio
+// catalogo de canetas.
+function termoExacto(term: string, blob: string, words: string[]): boolean {
+  if (term.length <= 2 || /^\d+$/.test(term)) return words.includes(term);
+  return blob.includes(term);
+}
+
+// Um termo bate A MENOS DE UMA LETRA — tolerancia a erro de escrita.
+//
+// So se usa quando a pesquisa exacta nao devolveu NADA. Aplicada sempre, esta
+// regra juntava "ligne" a "line": uma letra de distancia, mas neste catalogo
+// sao duas familias diferentes (Ligne 1 / Ligne 2 contra Line D), e procurar
+// por uma trazia a outra.
+function termoAproximado(term: string, words: string[]): boolean {
   if (term.length < 4 || term.length > 6) return false;
   for (const w of words) {
     if (Math.abs(w.length - term.length) > 1) continue;
@@ -733,6 +749,7 @@ function termMatches(term: string, blob: string, words: string[]): boolean {
   }
   return false;
 }
+
 
 // Full-catalogue search. Each term must match (AND) somewhere across product
 // name (PT/EN), collection, category slug + name, and variant name / SKU.
@@ -754,7 +771,7 @@ async function searchProductsDb(query: string): Promise<Product[]> {
   ]);
   const catName = new Map(cats.map((c) => [c.slug, c.name as Record<string, string>]));
 
-  return rows.map(mapProduct).filter((p) => {
+  const candidatos = rows.map(mapProduct).map((p) => {
     const cn = catName.get(p.categorySlug);
     const blob = normalize(
       [
@@ -769,9 +786,18 @@ async function searchProductsDb(query: string): Promise<Product[]> {
         .filter(Boolean)
         .join(" "),
     );
-    const words = blob.split(/\s+/).filter(Boolean);
-    return terms.every((t) => termMatches(t, blob, words));
+    return { p, blob, words: blob.split(/\s+/).filter(Boolean) };
   });
+
+  // Duas passagens. A tolerancia a erro de escrita e uma REDE DE SEGURANCA
+  // para quando nao ha nada, nao um alargamento da pesquisa: aplicada sempre,
+  // procurar "ligne 2" trazia os Line D todos.
+  const exactos = candidatos.filter((c) => terms.every((t) => termoExacto(t, c.blob, c.words)));
+  if (exactos.length) return exactos.map((c) => c.p);
+
+  return candidatos
+    .filter((c) => terms.every((t) => termoExacto(t, c.blob, c.words) || termoAproximado(t, c.words)))
+    .map((c) => c.p);
 }
 
 // --- pure helpers (no DB) ---
