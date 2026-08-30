@@ -59,6 +59,35 @@ const FAMILIAS: { slug: string; pt: string; en: string; skus: string[] }[] = [
     en: "Ligne 2 · Diamond Head",
     skus: ["016184", "016284", "016424"],
   },
+  // As tres da primeira fotografia que o patrao mandou — a laca brilhante. O
+  // oficial chama-lhes "natural lacquer" e sao exactamente tres, o que bate
+  // com a imagem.
+  {
+    slug: "ligne-2-laca-natural",
+    pt: "Ligne 2 · Laca Natural",
+    en: "Ligne 2 · Natural Lacquer",
+    skus: ["016134", "016296", "016884"],
+  },
+  // As duas fotografias seguintes — a laca mate. O C16601 e explicitamente
+  // "matt black lacquer" no oficial; o C16457 e o par azul, com a mesma
+  // construcao.
+  //
+  // Nota: o oficial arruma o C16601 na familia "microdiamond head", ao lado
+  // do C16455 e do C16602. Aqui manda a leitura do patrao, que agrupa pelo
+  // acabamento da laca — e e ele que atende quem entra na loja.
+  {
+    slug: "ligne-2-laca-mate",
+    pt: "Ligne 2 · Laca Mate",
+    en: "Ligne 2 · Matt Lacquer",
+    skus: ["C16457", "C16601"],
+  },
+  // Quarta e quinta fotografias: o par de linhas verticais, prata e dourado.
+  {
+    slug: "ligne-2-vertical-lines",
+    pt: "Ligne 2 · Vertical Lines",
+    en: "Ligne 2 · Vertical Lines",
+    skus: ["016817", "016827"],
+  },
 ];
 
 const loc = (j: unknown, k: "pt" | "en" = "pt") =>
