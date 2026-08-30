@@ -124,7 +124,12 @@ export function ProductCardInteractive({
       <Link href={href} aria-label={title} className="card-tap absolute inset-0 z-10" />
 
       {noveltyLabel && (
-        <span className="absolute left-2.5 top-2.5 z-20 overline min-w-0 max-w-[60%] truncate rounded-full bg-gold px-3 py-1 text-[0.6rem] text-ink">
+        <span className="absolute left-2.5 top-2.5 z-20 overline min-w-0 max-w-[60%] truncate rounded-full bg-gold px-3 py-1 text-[0.6rem] !text-ink"
+          /* O `!` e preciso: a classe .overline do globals.css fixa
+             color: var(--gold), e o Tailwind nao a vence. Sobre o fundo
+             dourado novo, as letras ficavam douradas sobre dourado —
+             invisiveis. No selo escuro antigo o defeito passava
+             despercebido porque dourado sobre azul le-se na mesma. */>
           {noveltyLabel}
         </span>
       )}

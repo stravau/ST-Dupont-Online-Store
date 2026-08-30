@@ -34,6 +34,10 @@ const APLICAR = process.argv.includes("--apply");
 const loc = (j: unknown, k: "pt" | "en" = "pt") =>
   String(((j ?? {}) as Record<string, string>)[k] ?? "");
 
+// O /pen-case-3-pen-case (ref 007113) NAO entra: apesar do slug, o patrao
+// confirmou que e um estojo normal e nao um estojo de canetas. Tem entrada
+// propria no GENERICOS, mais abaixo.
+//
 // slug -> quantas canetas leva. Os que não trazem número no nome levam uma —
 // "Estojo de Caneta", no singular, é um estojo para uma caneta.
 // O XL não declara contagem em lado nenhum, por isso mantém-se o tamanho como
@@ -42,12 +46,18 @@ const CAPACIDADE: Record<string, number | "XL"> = {
   "pen-case": 1,
   "pen-case-2-1-pen-case": 1,
   "pen-case-3-1-pen-case": 1,
-  "pen-case-3-pen-case": 1,
   "pen-case-2-2-pen-case": 2,
   "pen-case-3-2-pen-case": 2,
   "pen-case-3-3-pen-case": 3,
   "pen-case-3-10-pen-case": 10,
   "pen-case-3-pen-case-xl": "XL",
+};
+
+// Estojos que nao sao de canetas, apesar de estarem na mesma familia de
+// slugs. Ficam com o nome generico em vez de anunciarem uma funcao que nao
+// tem.
+const GENERICOS: Record<string, { pt: string; en: string }> = {
+  "pen-case-3-pen-case": { pt: "Estojo", en: "Case" },
 };
 
 const nomePt = (c: number | "XL") =>
@@ -60,7 +70,14 @@ async function main() {
   let fichas = 0;
   let variantes = 0;
 
-  for (const [slug, cap] of Object.entries(CAPACIDADE)) {
+  const alvos: [string, { pt: string; en: string }][] = [
+    ...Object.entries(CAPACIDADE).map(
+      ([slug, cap]) => [slug, { pt: nomePt(cap), en: nomeEn(cap) }] as [string, { pt: string; en: string }],
+    ),
+    ...Object.entries(GENERICOS),
+  ];
+
+  for (const [slug, novo] of alvos) {
     const p = await prisma.product.findUnique({
       where: { slug },
       select: { id: true, name: true, variants: { select: { id: true, sku: true, name: true } } },
@@ -70,7 +87,6 @@ async function main() {
       continue;
     }
 
-    const novo = { pt: nomePt(cap), en: nomeEn(cap) };
     const antigoPt = loc(p.name);
     if (antigoPt !== novo.pt) {
       fichas++;
