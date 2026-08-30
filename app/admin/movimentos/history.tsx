@@ -101,6 +101,18 @@ export async function MovementHistory({
     return `/admin/movimentos${s ? `?${s}` : ""}#historico`;
   };
 
+  // Exportar leva os MESMOS filtros do ecrã, mas nunca a página: a tabela
+  // mostra 50 de cada vez, o ficheiro leva a selecção inteira.
+  const hrefExport = (() => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (type) p.set("type", type);
+    if (isYmd(params.from)) p.set("from", params.from);
+    if (isYmd(params.to)) p.set("to", params.to);
+    const s = p.toString();
+    return `/api/admin/movimentos/export${s ? `?${s}` : ""}`;
+  })();
+
   const dt = (d: Date) =>
     d.toLocaleString("pt-PT", {
       day: "2-digit", month: "2-digit", year: "2-digit",
@@ -150,7 +162,7 @@ export async function MovementHistory({
           <span className="overline mb-1.5 block text-[0.55rem] text-muted">Até</span>
           <input type="date" name="to" defaultValue={isYmd(params.to) ? params.to : ""} className="w-full border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold" />
         </label>
-        <div className="flex items-end gap-3 sm:col-span-2 lg:col-span-5">
+        <div className="flex flex-wrap items-end gap-3 sm:col-span-2 lg:col-span-5">
           <button type="submit" className="bg-ink px-5 py-2 text-xs tracking-[0.2em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink">
             Filtrar
           </button>
@@ -158,6 +170,18 @@ export async function MovementHistory({
             <Link href="/admin/movimentos#historico" className="text-[0.65rem] tracking-[0.18em] text-muted uppercase transition-colors hover:text-gold">
               Limpar
             </Link>
+          )}
+          {/* Encostado à direita, no fundo da caixa dos filtros: leva o que
+              está filtrado, portanto o sítio dele é ao lado de quem filtra.
+              <a> e não <Link> — isto devolve um ficheiro, não navega, e o
+              Link tentava tratar a resposta como uma página. */}
+          {total > 0 && (
+            <a
+              href={hrefExport}
+              className="ml-auto border border-ink px-4 py-2 text-[0.65rem] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-cream"
+            >
+              Exportar Excel
+            </a>
           )}
         </div>
       </form>
