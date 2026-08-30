@@ -124,7 +124,10 @@ export default async function SearchPage({
       <div className="gold-rule mx-auto my-5" />
 
       <form action={pathname} method="get" className="mx-auto max-w-xl">
-        <div className="flex border border-line bg-paper">
+        {/* Mesma forma da caixa que cai da navbar: arredondada e com
+            overflow-hidden, para o botão encostado à direita seguir a curva
+            em vez de a cortar num canto recto. */}
+        <div className="flex overflow-hidden rounded-full border border-line bg-paper">
           <input
             type="search"
             name="q"
@@ -132,11 +135,11 @@ export default async function SearchPage({
             autoFocus
             placeholder={s.placeholder}
             aria-label={s.title}
-            className="w-full bg-transparent px-5 py-4 text-sm text-ink outline-none"
+            className="w-full bg-transparent px-7 py-4 text-sm text-ink outline-none"
           />
           <button
             type="submit"
-            className="bg-ink px-6 text-xs tracking-[0.2em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
+            className="bg-ink px-7 text-xs tracking-[0.2em] text-cream uppercase transition-colors hover:bg-gold hover:text-ink"
           >
             {s.submit}
           </button>

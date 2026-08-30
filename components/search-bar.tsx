@@ -32,7 +32,6 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1);
-  const [recent, setRecent] = useState<string[]>([]);
 
   // Portal the dropdown to document.body so it escapes the transparent
   // header's CSS cascade (the rule that forces every descendant's
@@ -40,37 +39,8 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
   // the input + hit titles invisible until the user hovered the navbar).
   useEffect(() => {
     queueMicrotask(() => setMounted(true));
-    // Restore the last few queries the user committed in this browser.
-    // Best-effort — private mode / quota errors are swallowed.
-    try {
-      const raw = window.localStorage.getItem("std:search:recent");
-      if (raw) {
-        const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed)) {
-          setRecent(parsed.filter((x): x is string => typeof x === "string").slice(0, 5));
-        }
-      }
-    } catch {
-      /* ignore */
-    }
   }, []);
 
-  // Push the current query onto the recent stack — called from
-  // navigate() when the user actually commits to a result or the
-  // full-search page (typing alone doesn't count).
-  const rememberRecent = useCallback((query: string) => {
-    const norm = query.trim();
-    if (norm.length < 2) return;
-    setRecent((prev) => {
-      const next = [norm, ...prev.filter((x) => x.toLowerCase() !== norm.toLowerCase())].slice(0, 5);
-      try {
-        window.localStorage.setItem("std:search:recent", JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  }, []);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -161,15 +131,8 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
   function goToSearch() {
     const term = q.trim();
     if (term) {
-      rememberRecent(term);
       navigate(`/${lang}/pesquisa?q=${encodeURIComponent(term)}`);
     }
-  }
-
-  function pickRecent(term: string) {
-    setQ(term);
-    rememberRecent(term);
-    navigate(`/${lang}/pesquisa?q=${encodeURIComponent(term)}`);
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -182,7 +145,6 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (active >= 0 && hits[active]) {
-        rememberRecent(q);
         navigate(`/${lang}/p/${hits[active].slug}`);
       } else {
         goToSearch();
@@ -215,11 +177,11 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
             ref={panelRef}
             role="dialog"
             aria-label={t.title}
-            className="fixed left-1/2 top-[5.25rem] z-[70] isolate w-[min(92vw,30rem)] -translate-x-1/2 origin-top transform-gpu border border-line bg-cream shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:left-auto sm:right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] sm:translate-x-0 sm:origin-top-right"
+            className="fixed left-1/2 top-[5.25rem] z-[70] isolate w-[min(92vw,30rem)] -translate-x-1/2 origin-top transform-gpu overflow-hidden rounded-[1.75rem] border border-line bg-cream shadow-[0_30px_70px_-30px_rgba(6,16,32,0.55)] motion-safe:animate-[fadeIn_180ms_ease-out] sm:left-auto sm:right-[max(1.5rem,calc((100vw_-_80rem)/2_+_1.5rem))] sm:translate-x-0 sm:origin-top-right"
             style={{ color: "var(--ink)" }}
           >
             {/* Input */}
-            <div className="flex items-center gap-3 border-b border-line px-5 py-4">
+            <div className="flex items-center gap-3 border-b border-line px-6 py-4">
               <svg
                 width="18"
                 height="18"
@@ -252,35 +214,9 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
             {/* Body */}
             <div className="max-h-[60vh] overflow-y-auto">
               {q.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().length < 2 ? (
-                recent.length > 0 ? (
-                  <div className="px-5 py-5">
-                    <p className="overline text-[0.55rem]" style={{ color: "var(--muted)" }}>
-                      {t.start}
-                    </p>
-                    <ul className="mt-3 flex flex-col gap-1">
-                      {recent.map((r) => (
-                        <li key={r}>
-                          <button
-                            type="button"
-                            onClick={() => pickRecent(r)}
-                            className="flex w-full items-center gap-2 py-1.5 text-left text-sm transition-colors hover:text-gold"
-                            style={{ color: "var(--ink)" }}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ color: "var(--muted)" }}>
-                              <circle cx="12" cy="12" r="9" />
-                              <path d="M12 7v5l3 2" strokeLinecap="round" />
-                            </svg>
-                            {r}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
-                    {t.start}
-                  </p>
-                )
+                <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
+                  {t.start}
+                </p>
               ) : loading ? (
                 <p role="status" aria-live="polite" className="px-5 py-8 text-center text-sm" style={{ color: "var(--muted)" }}>
                   {t.searching}
@@ -296,12 +232,12 @@ export function SearchBar({ lang, t }: { lang: string; t: SearchStrings }) {
                       <button
                         type="button"
                         onMouseEnter={() => setActive(i)}
-                        onClick={() => { rememberRecent(q); navigate(`/${lang}/p/${h.slug}`); }}
+                        onClick={() => navigate(`/${lang}/p/${h.slug}`)}
                         className={`flex w-full items-center gap-4 px-5 py-3 text-left transition-colors ${
                           active === i ? "bg-cream" : "hover:bg-cream"
                         }`}
                       >
-                        <span className="h-14 w-12 shrink-0 overflow-hidden border border-line">
+                        <span className="h-14 w-12 shrink-0 overflow-hidden rounded-xl border border-line">
                           <ProductMedia
                             image={h.image}
                             seed={h.slug}
