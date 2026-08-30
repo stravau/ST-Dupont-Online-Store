@@ -1065,6 +1065,7 @@ export const semCache = {
   searchProducts: searchProductsDb,
   getCuratedCards: getCuratedCardsDb,
   getSiteSetting: getSiteSettingDb,
+  getNovidadeSkus: getNovidadeSkusDb,
 };
 
 // Fotografia de fundo da faixa "Em Destaque", escolhida pelo patrao no admin.
@@ -1096,6 +1097,37 @@ export function familiaComum(coleccoes: string[]): string | null {
     ? curta
     : null;
 }
+
+// Que REFERENCIAS levam o selo "Novidade".
+//
+// E a mesma seleccao que o carrossel das Novidades mostra: os artigos que o
+// patrao escolheu em /admin/destaques?tab=novidades e, enquanto nao escolher
+// nenhum, as ultimas criacoes que o carril mostra sozinho. Assim o selo e o
+// carrossel nunca discordam.
+//
+// Por REFERENCIA e nao por produto: o admin escolhe SKUs, portanto e o SKU
+// escolhido que leva o selo. Uma cor irma do mesmo modelo, que nao foi
+// escolhida, nao se anuncia como novidade.
+async function getNovidadeSkusDb(): Promise<string[]> {
+  const escolhidos = await prisma.homeCarouselItem.findMany({
+    where: { rail: "NOVIDADES" },
+    orderBy: { position: "asc" },
+    select: { sku: true },
+  });
+  if (escolhidos.length) return escolhidos.map((e) => e.sku);
+
+  // Sem curadoria, o carril mostra as ultimas criacoes — uma por produto, as
+  // primeiras dez. O selo segue exactamente essas.
+  const recentes = await getNoveltiesDb(14);
+  const porProduto = new Map<string, string>();
+  for (const prod of recentes) {
+    for (const c of expandProductCards(prod)) {
+      if (!porProduto.has(c.product.slug)) porProduto.set(c.product.slug, c.sku);
+    }
+  }
+  return [...porProduto.values()].slice(0, 10);
+}
+export const getNovidadeSkus = comCache(getNovidadeSkusDb, "getNovidadeSkus");
 
 const getCuratedCardsEmCache = comCache(getCuratedCardsDb, "getCuratedCards");
 export async function getCuratedCards(

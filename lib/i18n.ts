@@ -177,7 +177,7 @@ const dictionaries = {
       novelties: "Novidades",
       featured: "Em Destaque",
       featuredSub: "Seleção da Maison",
-      noveltyTag: "Novo",
+      noveltyTag: "Novidade",
       noveltiesSub: "As mais recentes criações da Maison",
       // Campanha da estação. Chaves próprias — `noveltiesSub` continua a
       // servir o título da página /novidades, que não é campanha nenhuma.
@@ -461,7 +461,7 @@ const dictionaries = {
       novelties: "New Arrivals",
       featured: "Featured",
       featuredSub: "The Maison's selection",
-      noveltyTag: "New",
+      noveltyTag: "New In",
       noveltiesSub: "The latest creations from the Maison",
       rivieraTitle: "A summer on the French Riviera",
       rivieraBody:

@@ -1,12 +1,12 @@
 import type { Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n";
-import { type Product, formatPrice } from "@/lib/catalog";
+import { type Product, formatPrice, getNovidadeSkus } from "@/lib/catalog";
 import { tipoParaEtiqueta, TIPO_LABEL } from "@/lib/pen-refill-compat";
 import { ProductCardInteractive, type CardSwatch } from "@/components/product-card-interactive";
 import { compareSwatch } from "@/lib/swatch-order";
 import { STORE_LIS, STORE_VNG } from "@/lib/store-info";
 
-export function ProductCard({
+export async function ProductCard({
   product,
   lang,
   variantType,
@@ -24,6 +24,12 @@ export function ProductCard({
   variantSku?: string;
 }) {
   const dict = getDictionary(lang);
+  // O selo "Novidade" deixa de sair do `featured`, que era um sinal antigo e
+  // solto, e passa a sair da MESMA lista que alimenta o carrossel das
+  // Novidades. Assim o que o site anuncia como novidade e o que la esta, sem
+  // duas fontes de verdade a discordarem. A leitura e cacheada, portanto os
+  // cartoes de uma grelha nao fazem uma consulta cada um.
+  const novidades = await getNovidadeSkus();
   // Overline above the card name = the category (Lighters / Writing / …).
   const categoryLabel =
     ({
@@ -193,7 +199,7 @@ export function ProductCard({
       collection={categoryLabel}
       variantLabel={variantLabel}
       refLabel={shown.sku}
-      noveltyLabel={product.novelty ? dict.sections.noveltyTag : null}
+      noveltyLabel={novidades.includes(shown.sku) ? dict.sections.noveltyTag : null}
       availableLabel={availableLabel}
       indisponivel={isIndisponivel}
       fromLabel={dict.product.from}
