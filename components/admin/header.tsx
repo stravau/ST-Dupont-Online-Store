@@ -204,9 +204,9 @@ export function AdminHeader({
   const filtroLoja =
     role !== "ADMIN" ? null : (
       <div className="flex shrink-0 items-stretch gap-4 sm:gap-6">
-        <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />
+        <span aria-hidden className="hidden w-px shrink-0 bg-cream/15 sm:block" />
         <div className="flex shrink-0 flex-col">
-          <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
+          <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-cream/50 uppercase sm:text-left">
             Boutique
           </p>
           <div role="group" aria-label="Filtrar por loja" className="flex flex-1 flex-col gap-1.5">
@@ -223,8 +223,8 @@ export function AdminHeader({
                   aria-current={activa ? "true" : undefined}
                   className={`inline-flex min-h-[34px] flex-1 items-center justify-center rounded-full px-3 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
                     activa
-                      ? "bg-ink text-cream shadow-sm"
-                      : "border border-line bg-paper text-ink hover:border-gold hover:text-gold"
+                      ? "bg-paper text-ink shadow-sm"
+                      : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
                   }`}
                 >
                   {o.label}
@@ -237,26 +237,26 @@ export function AdminHeader({
     );
 
   return (
-    <header ref={ref} className="sticky top-0 z-40 border-b border-line bg-paper">
+    <header ref={ref} className="admin-topo sticky top-0 z-40">
       {/* Faixa de identidade */}
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-7">
         <Link href={home} className="group flex min-w-0 items-baseline gap-3">
-          <span className="font-serif text-xl leading-none text-ink">S.T. Dupont</span>
-          <span className="hidden truncate text-[0.63rem] tracking-[0.16em] text-muted uppercase sm:block">
+          <span className="font-serif text-xl leading-none text-cream">S.T. Dupont</span>
+          <span className="hidden truncate text-[0.63rem] tracking-[0.16em] text-cream/60 uppercase sm:block">
             {locationFor(role)}
           </span>
         </Link>
 
         <form action={signOutAction} className="flex shrink-0 items-center gap-3">
           <span
-            className="hidden max-w-[14rem] truncate text-[0.7rem] text-muted md:block"
+            className="hidden max-w-[14rem] truncate text-[0.7rem] text-cream/60 md:block"
             title={email}
           >
             {email}
           </span>
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-[0.7rem] font-medium tracking-[0.12em] text-ink uppercase transition-colors hover:border-gold hover:text-gold"
+            className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-4 py-2 text-[0.7rem] font-medium tracking-[0.12em] text-cream uppercase transition-colors hover:border-gold-soft hover:text-gold-soft"
           >
             <IconSignOut className="h-4 w-4" /> Sair
           </button>
@@ -268,7 +268,7 @@ export function AdminHeader({
           Loja 3+2. As áreas de um destino só (Geral, Sistema) recebem-no maior
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
-      <div className="border-t border-line/70 bg-cream/40">
+      <div className="border-t border-white/10 bg-white/[0.03]">
         <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-4 px-4 py-3 sm:justify-between sm:px-7">
           {sections.map((sec, i) => (
             <Fragment key={sec.title}>
@@ -277,9 +277,9 @@ export function AdminHeader({
                   destino principal e não perdido no fim da fila. */}
               {i === 1 && filtroLoja}
             <div className="flex shrink-0 items-stretch gap-4 sm:gap-6">
-              {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />}
+              {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-cream/15 sm:block" />}
               <div className="flex shrink-0 flex-col">
-                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
+                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-cream/50 uppercase sm:text-left">
                   {sec.title}
                 </p>
                 {/* justify-center no eixo vertical: é o que põe o botão solitário
@@ -303,8 +303,8 @@ export function AdminHeader({
                                     : "min-h-[38px] rounded-full px-3 py-2 text-[0.78rem]"
                               } ${
                                 active
-                                  ? "bg-ink text-cream shadow-sm"
-                                  : "border border-line bg-paper text-ink hover:border-gold hover:text-gold"
+                                  ? "bg-paper text-ink shadow-sm"
+                                  : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
                               }`}
                             >
                               <it.Icon

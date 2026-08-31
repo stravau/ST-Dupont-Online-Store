@@ -219,55 +219,38 @@ h1, h2, h3, .font-serif {
   font-family: var(--font-display-serif), Georgia, "Times New Roman", serif;
 }
 
-/* Dark hero band for admin pages — the executive strip at the top of the
-   dashboard / reports / POS that houses live totals. Same monogram texture
-   as .monogram-bg but com um tom navy mais lift (não tão preto), gerido
-   por tokens dedicados (--admin-hero-top/-bottom) para não afectar login
-   ou storefront. Hairline gold em baixo anchor a transição para o cream. */
-/* Sobre a faixa escura o dourado da marca brilha a 6:1 — o tom fundo e que
-   la se apagaria. Repoe-se o original so aqui dentro. */
-.admin-scope .admin-hero {
-  --gold: var(--gold-base);
-}
+/* Cabeçalho de página do admin. Já foi uma banda azul escura com monograma;
+   agora é só o título assente no marfim, como tudo o resto. O azul saiu daqui
+   e foi todo para a navegação — uma cor institucional dominante chega, e ter
+   dois blocos azuis por página fazia o conteúdo parecer encaixotado.
 
+   Só o FUNDO saiu. O que estava por cima — título, legenda, os cartões de
+   números à direita — ficou onde estava; virou-se-lhe a cor do texto, que era
+   creme para fundo escuro e sobre marfim não se via. */
 .admin-hero {
-  background-color: var(--admin-hero-top);
-  background-image:
-    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.03) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.03) 0 1px, transparent 1px 26px),
-    linear-gradient(180deg, var(--admin-hero-top) 0%, var(--admin-hero-bottom) 100%);
-  color: var(--cream);
-  border-bottom: 1px solid rgba(181, 138, 52, 0.4);
   position: relative;
 }
-/* The hairline bottom border becomes a full-strength gold divider — a
-   1px gradient that dissolves at the edges to feel intentional, not clinical. */
-.admin-hero::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--gold) 70%, transparent 100%);
-  pointer-events: none;
-}
-
-/* Card elevated OVER the .admin-hero — mesma família mas mais lift ainda.
-   Border em --admin-hero-line (também mais claro que ink-line) para o
-   contorno ler bem sobre o novo background. */
+/* Cartão de números do cabeçalho de página. Era escuro porque assentava na
+   banda azul; sem ela passa a claro, com a mesma sombra fraca dos cartões do
+   painel. Continua a ser o mesmo bloco, no mesmo sítio — mudou a superfície
+   debaixo dele. */
 .admin-hero-card {
-  background-color: var(--admin-hero-card);
-  border: 1px solid var(--admin-hero-line);
-  color: var(--cream);
+  background: var(--paper);
+  border: 1px solid rgba(30, 36, 48, 0.05);
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  color: var(--ink);
+  transition: box-shadow 0.3s ease;
 }
 .admin-hero-card:hover {
-  border-color: rgba(181, 138, 52, 0.35);
-  transition: border-color 0.3s ease;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.09);
 }
 
-/* Big display number for hero KPIs — Georgia serif, gold-glow, tabular. */
+/* O número grande dos KPI. O gold-glow era para brilhar sobre azul; sobre
+   branco é o tom fundo que se lê (4,6:1). */
 .hero-number {
   font-family: var(--font-serif), Georgia, serif;
-  color: var(--gold-glow);
+  color: var(--gold-deep);
   font-variant-numeric: tabular-nums;
   line-height: 1;
   font-weight: 400;
@@ -1050,3 +1033,21 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   color: var(--gold-deep);
 }
 
+
+/* --- Cabeçalho do painel ---------------------------------------------------
+   O azul institucional vive aqui, e só aqui. Era ele que pintava a banda de
+   cada página; passou para a navegação, que é onde uma cor de marca se usa
+   sem competir com a informação.
+
+   Sobre azul o dourado volta ao tom da marca — o tom fundo do .admin-scope é
+   para texto sobre claro e aqui apagava-se. */
+.admin-topo {
+  background-color: var(--admin-hero-top);
+  background-image: linear-gradient(
+    180deg,
+    var(--admin-hero-top) 0%,
+    var(--admin-hero-bottom) 100%
+  );
+  border-bottom: 1px solid rgba(181, 138, 52, 0.35);
+  --gold: var(--gold-base);
+}

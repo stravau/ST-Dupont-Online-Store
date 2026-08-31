@@ -46,15 +46,15 @@ export function AdminHero({
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div>
           {eyebrow && (
-            <p className="overline text-[0.55rem] tracking-[0.22em] text-gold-soft">
+            <p className="overline text-[0.55rem] tracking-[0.22em] text-gold">
               {eyebrow}
             </p>
           )}
-          <h1 className="mt-2 font-serif text-3xl leading-tight text-cream md:text-4xl">
+          <h1 className="mt-2 font-serif text-3xl leading-tight text-ink md:text-4xl">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-2 max-w-2xl text-sm text-cream/70">{subtitle}</p>
+            <p className="mt-2 max-w-2xl text-sm text-muted">{subtitle}</p>
           )}
         </div>
         {action && (
