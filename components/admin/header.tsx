@@ -51,7 +51,7 @@ function sectionsFor(role?: string): { title: string; items: NavItem[] }[] {
   sections.push({
     title: "Loja",
     items: [
-      { href: "/admin/pos", label: "Registar Venda", hint: "Vender por código de barras", Icon: IconPos },
+      { href: "/admin/pos", label: "Vender", hint: "Registar venda por código de barras", Icon: IconPos },
       { href: "/admin/movimentos", label: "Movimentos", hint: "Entradas e saídas por scan", Icon: IconPos },
       { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports },
       { href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar },
@@ -149,19 +149,22 @@ export function AdminHeader({
         </form>
       </div>
 
-      {/* Faixa de navegação. Rola na horizontal quando não cabe, em vez de
-          quebrar de linha — assim a altura do cabeçalho é sempre a mesma e o
-          conteúdo da página não salta ao mudar de secção. */}
+      {/* Faixa de navegação. QUEBRA de linha quando não cabe — nunca rola.
+          Com onze destinos nao ha ecra que os ponha todos numa linha sem os
+          encolher ate a ilegibilidade, e uma barra que se arrasta esconde
+          metade das areas de quem nao sabe que ela se arrasta. A altura do
+          cabecalho varia com isso, e por isso e que ela e medida em vez de
+          fixada. */}
       <div className="border-t border-line/70 bg-cream/40">
-        <nav className="mx-auto flex w-full max-w-[1600px] gap-5 overflow-x-auto px-4 py-3 sm:gap-7 sm:px-7">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-start gap-x-4 gap-y-3 px-4 py-3 sm:gap-x-6 sm:px-7">
           {sections.map((sec, i) => (
-            <div key={sec.title} className="flex shrink-0 items-center gap-5 sm:gap-7">
-              {i > 0 && <span aria-hidden className="h-9 w-px shrink-0 bg-line" />}
+            <div key={sec.title} className="flex shrink-0 items-start gap-4 sm:gap-6">
+              {i > 0 && <span aria-hidden className="mt-5 hidden h-8 w-px shrink-0 bg-line sm:block" />}
               <div className="shrink-0">
-                <p className="mb-1.5 px-1 text-[0.58rem] font-semibold tracking-[0.18em] text-muted uppercase">
+                <p className="mb-1.5 px-1 text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase">
                   {sec.title}
                 </p>
-                <ul className="flex items-center gap-2">
+                <ul className="flex flex-wrap items-center gap-1.5">
                   {sec.items.map((it) => {
                     const active = isActive(it.href);
                     return (
@@ -170,13 +173,13 @@ export function AdminHeader({
                           href={it.href}
                           aria-current={active ? "page" : undefined}
                           title={it.hint}
-                          className={`inline-flex min-h-[42px] items-center gap-2 rounded-full px-4 py-2 text-[0.82rem] font-medium whitespace-nowrap transition-colors ${
+                          className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
                             active
                               ? "bg-ink text-cream shadow-sm"
                               : "border border-line bg-paper text-ink hover:border-gold hover:text-gold"
                           }`}
                         >
-                          <it.Icon className="h-[18px] w-[18px] shrink-0" />
+                          <it.Icon className="h-4 w-4 shrink-0" />
                           {it.label}
                         </Link>
                       </li>
