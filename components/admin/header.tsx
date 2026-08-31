@@ -380,21 +380,23 @@ export function AdminHeader({
         </Link>
 
         <div className="flex shrink-0 items-center gap-3">
-          <ReporteBotao />
-        <form action={signOutAction} className="flex shrink-0 items-center gap-3">
-          <span
-            className="hidden max-w-[14rem] truncate text-[0.7rem] text-cream/60 md:block"
-            title={email}
-          >
-            {email}
-          </span>
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-4 py-2 text-[0.7rem] font-medium tracking-[0.12em] text-cream uppercase transition-colors hover:border-gold-soft hover:text-gold-soft"
-          >
-            <IconSignOut className="h-4 w-4" /> Sair
-          </button>
+          <form action={signOutAction} className="flex shrink-0 items-center gap-3">
+            <span
+              className="hidden max-w-[14rem] truncate text-[0.7rem] text-cream/60 md:block"
+              title={email}
+            >
+              {email}
+            </span>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-4 py-2 text-[0.7rem] font-medium tracking-[0.12em] text-cream uppercase transition-colors hover:border-gold-soft hover:text-gold-soft"
+            >
+              <IconSignOut className="h-4 w-4" /> Sair
+            </button>
           </form>
+          {/* Depois do Sair, e nao antes: o Sair remata a faixa de identidade,
+              e o reporte e um extra que nao deve empurrar o resto para dentro. */}
+          <ReporteBotao />
         </div>
       </div>
 

@@ -7,21 +7,52 @@ import { useToast } from "@/components/admin/toast";
 
 // Botão de reportar problema — o ponto de exclamação no canto do cabeçalho.
 //
-// Pede DOIS cliques e nada mais: uma categoria e se a pessoa está bloqueada. O
-// texto é opcional de propósito. Quem está ao balcão com um cliente à frente
-// escreve "não deu", e um formulário que exija mais do que isso não é
-// preenchido — fica-se sem reporte nenhum, que é pior do que um reporte curto.
+// Pede uma categoria, se a pessoa está bloqueada, e uma descrição. A caixa de
+// texto só aparece DEPOIS de haver categoria escolhida, e com a pergunta certa
+// por cima — quem já escolheu está a meio, e uma pergunta concreta ("que
+// artigo?") responde-se; um campo vazio a dizer "observações" salta-se.
+//
+// A descrição é obrigatória no formulário mas NÃO no servidor: os reportes de
+// origem AUTOMATICO não têm ninguém para a escrever.
 //
 // O que dá valor ao reporte vai anexado sozinho: os últimos passos, os erros
 // que o browser apanhou, os pedidos que falharam, a versão em produção e o
 // estado do ecrã. Ver lib/reporte-recolha.ts.
 
+// A "dica" é a pergunta que aparece por cima da caixa de texto depois de a
+// pessoa escolher. Uma pergunta concreta — "que artigo?" — enche-se muito mais
+// vezes do que um campo vazio a dizer "observações".
 const CATEGORIAS = [
-  { v: "VENDA", label: "Não consigo registar uma venda" },
-  { v: "ARTIGO", label: "Um artigo aparece errado" },
-  { v: "PAGINA", label: "A página não carrega ou dá erro" },
-  { v: "NUMEROS", label: "Os números não batem certo" },
-  { v: "OUTRO", label: "Outro" },
+  {
+    v: "VENDA",
+    label: "Não consigo registar uma venda",
+    dica: "O que estavas a fazer quando falhou?",
+    exemplo: "Ex.: li o código, meti a quantidade e ao carregar em finalizar não aconteceu nada",
+  },
+  {
+    v: "ARTIGO",
+    label: "Um artigo aparece errado",
+    dica: "Que artigo é, e o que está errado nele?",
+    exemplo: "Ex.: a Ligne 2 preta aparece sem stock mas tenho duas na gaveta",
+  },
+  {
+    v: "PAGINA",
+    label: "A página não carrega ou dá erro",
+    dica: "Que página era, e o que apareceu no ecrã?",
+    exemplo: "Ex.: abri as reparações e ficou a carregar sem fim",
+  },
+  {
+    v: "NUMEROS",
+    label: "Os números não batem certo",
+    dica: "Que número está errado, e qual devia ser?",
+    exemplo: "Ex.: as vendas de hoje dizem 3 e eu fiz 5",
+  },
+  {
+    v: "OUTRO",
+    label: "Outro",
+    dica: "Conta o que aconteceu.",
+    exemplo: "Ex.: o que fizeste, e o que esperavas que acontecesse",
+  },
 ] as const;
 
 export function ReporteBotao() {
@@ -91,6 +122,8 @@ export function ReporteBotao() {
       setEnviando(false);
     }
   }
+
+  const escolhida = CATEGORIAS.find((c) => c.v === categoria);
 
   return (
     <>
@@ -164,23 +197,39 @@ export function ReporteBotao() {
               Estou bloqueado — não consigo continuar o que estava a fazer
             </label>
 
-            <label className="mt-4 block">
-              <span className="text-[0.55rem] font-semibold tracking-[0.12em] text-muted uppercase">
-                Queres acrescentar alguma coisa? (opcional)
-              </span>
-              <textarea
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                rows={3}
-                placeholder="Ex.: li o código e não aconteceu nada"
-                className="mt-1.5 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
-              />
-            </label>
+            {/* A caixa só abre depois de haver escolha. Um campo de texto vazio
+                logo à partida é um campo que se salta; um que aparece a seguir a
+                uma escolha, com a pergunta certa por cima, pede resposta. */}
+            {escolhida && (
+              <label key={escolhida.v} className="card-in mt-4 block">
+                {/* Pergunta em caixa normal, e não a etiqueta minúscula em
+                    maiúsculas do resto do formulário: uma pergunta legível
+                    responde-se, uma etiqueta de campo salta-se. */}
+                <span className="block text-[0.82rem] text-ink">
+                  {escolhida.dica}
+                </span>
+                <textarea
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  rows={3}
+                  placeholder={escolhida.exemplo}
+                  className="mt-1.5 w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </label>
+            )}
 
             <p className="mt-3 text-[0.68rem] leading-relaxed text-muted">
               Vão anexados: a página onde estás, os teus últimos passos, os erros que o
               computador registou e a versão do site. <strong>Não vão dados de clientes.</strong>
             </p>
+
+            {/* Um botão apagado sem explicação lê-se como avaria. Se falta o
+                que escrever, o formulário di-lo por palavras. */}
+            {categoria && descricao.trim().length < 3 && (
+              <p className="mt-2 text-[0.7rem] text-muted">
+                Escreve o que aconteceu para poderes enviar — nem que seja uma linha.
+              </p>
+            )}
 
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -193,10 +242,10 @@ export function ReporteBotao() {
               <button
                 type="button"
                 onClick={enviar}
-                disabled={enviando || !categoria}
+                disabled={enviando || !categoria || descricao.trim().length < 3}
                 className="rounded-full bg-ink px-5 py-2 text-[0.72rem] font-medium tracking-[0.12em] text-cream uppercase transition-opacity disabled:opacity-40"
               >
-                {enviando ? "A enviar…" : "Enviar reporte"}
+                {enviando ? "A enviar…" : "Reportar problema"}
               </button>
             </div>
           </div>

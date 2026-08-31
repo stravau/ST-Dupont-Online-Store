@@ -44,8 +44,34 @@ const ROTULO: Record<string, string> = {
   AUTOMATICO: "Falha automática (ninguém reportou)",
 };
 
+// O mesmo título no assunto e na primeira linha do corpo. Quem recebe isto no
+// telemóvel vê a notificação e o corpo em sítios diferentes, e a mesma palavra
+// nos dois liga um ao outro sem ter de pensar.
+const TITULO = "PROBLEMA REPORTADO";
+
 const hora = (n: number) =>
   new Date(n).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+/**
+ * O ecrã, o browser e o fuso horário não se leem — despejavam dez linhas em
+ * todos os emails e nenhuma delas mudava a decisão de quem os lê. Fica só o
+ * que EXPLICA a falha: sem rede, rede muito fraca, ou relógio da máquina
+ * errado (que estraga as horas das vendas). Se estiver tudo normal não
+ * aparece nada — o silêncio aqui também é informação. O resto continua
+ * guardado na base e vê-se em /admin/reportes quando fizer falta.
+ */
+function notasDaMaquina(amb: Record<string, unknown>): string {
+  const notas: string[] = [];
+  if (amb.online === false) notas.push("  A máquina estava SEM ligação à internet.");
+  if (amb.ligacao === "slow-2g" || amb.ligacao === "2g")
+    notas.push(`  Ligação muito fraca (${String(amb.ligacao)}) — pode ser só lentidão.`);
+  const desvio = typeof amb.desvioRelogioMs === "number" ? amb.desvioRelogioMs : 0;
+  if (Math.abs(desvio) > 120_000)
+    notas.push(
+      `  O relógio da máquina está ${Math.round(Math.abs(desvio) / 60_000)} min ${desvio > 0 ? "à frente" : "atrasado"} — as horas que ela regista não são de fiar.`,
+    );
+  return bloco("Atenção", notas);
+}
 
 function bloco(titulo: string, linhas: string[]): string {
   if (linhas.length === 0) return "";
@@ -67,10 +93,15 @@ export function corpoDoEmail(r: ReporteParaEmail): string {
   const amb = (r.ambiente as Record<string, unknown> | null) ?? {};
 
   return [
+    TITULO,
+    "═".repeat(TITULO.length),
     `${ROTULO[r.categoria] ?? r.categoria}${r.bloqueado ? "  ·  BLOQUEADO" : ""}`,
     r.ocorrencias > 1 ? `Já aconteceu ${r.ocorrencias} vezes.` : "",
-    "",
-    `Quem      ${r.email ?? "?"} (${r.role ?? "?"})`,
+    // A linha em branco vai colada ao "Quem" porque o .filter(Boolean) lá em
+    // baixo come as strings vazias — e sem ela o subtítulo fica agarrado aos
+    // dados, que era o que se via nos emails até agora.
+    `
+Quem      ${r.email ?? "?"} (${r.role ?? "?"})`,
     `Onde      ${r.url}`,
     `Versão    ${r.commit?.slice(0, 8) ?? "local"}`,
     `Origem    ${r.origem}`,
@@ -101,10 +132,7 @@ export function corpoDoEmail(r: ReporteParaEmail): string {
           `  ${new Date(a.createdAt).toLocaleString("pt-PT")}  ${a.action} ${a.entityType}${a.entityId ? ` ${a.entityId}` : ""}${a.note ? ` — ${a.note}` : ""}`,
       ),
     ),
-    bloco(
-      "Máquina",
-      Object.entries(amb).map(([k, v]) => `  ${k}: ${String(v)}`),
-    ),
+    notasDaMaquina(amb),
     "",
     `Reporte ${r.id}`,
   ]
@@ -126,13 +154,33 @@ export async function enviarReporte(r: ReporteParaEmail): Promise<boolean> {
     return false;
   }
   const urgente = r.bloqueado || r.origem !== "BOTAO";
-  const assunto = `${urgente ? "[URGENTE] " : ""}${ROTULO[r.categoria] ?? r.categoria} · ${new URL(r.url).pathname}`;
+  // Título e, a seguir, o subtítulo — a categoria por palavras. O caminho da
+  // página ficou de fora: no telemóvel o assunto é cortado aos poucos caracteres
+  // e o que interessa ver na notificação é O QUE se passou, não onde. O onde
+  // está na primeira linha do corpo.
+  const assunto = `${urgente ? "[URGENTE] " : ""}${TITULO} · ${ROTULO[r.categoria] ?? r.categoria}`;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${chave}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: DE, to: [PARA], subject: assunto, text: corpoDoEmail(r) }),
+      body: JSON.stringify({
+        from: DE,
+        to: [PARA],
+        subject: assunto,
+        text: corpoDoEmail(r),
+        // Responder ao email responde a quem reportou. Dá jeito, e é o sinal
+        // mais forte que existe de que isto é correio de pessoa para pessoa e
+        // não uma newsletter — que é metade da razão por que o Gmail atira
+        // mensagens destas para o separador das promoções.
+        ...(r.email ? { reply_to: r.email } : {}),
+        headers: {
+          // Sem List-Unsubscribe DE PROPÓSITO: é esse o cabeçalho que marca
+          // uma mensagem como envio em massa. Aqui só faria mal.
+          "X-Entity-Ref-ID": r.id, // impede o Gmail de agrupar reportes distintos
+          ...(urgente ? { Importance: "high", "X-Priority": "1 (Highest)" } : {}),
+        },
+      }),
     });
     if (!res.ok) {
       console.error("[reporte] Resend devolveu", res.status, (await res.text()).slice(0, 300));
