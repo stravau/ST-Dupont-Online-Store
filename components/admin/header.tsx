@@ -306,10 +306,16 @@ export function AdminHeader({
       </div>
 
       {/* O alinhamento depende de quem entrou, porque as duas vistas não têm
-          nada a ver uma com a outra. O patrão tem cinco áreas e onze destinos
-          que quase enchem a linha — alinhados à esquerda, como um menu. Um
-          login de loja tem duas áreas e seis destinos, e à esquerda ficava a
-          faixa toda a pender para um lado; centrados, a margem reparte-se.
+          nada a ver uma com a outra.
+
+          O patrão tem cinco áreas e onze destinos que quase enchem a linha:
+          distribuem-se por ela e ocupam-na toda, com o espaço que sobra
+          repartido pelas fronteiras.
+
+          Um login de loja tem duas áreas e seis destinos. Distribuí-las
+          atirava-as para os extremos opostos, com meia tela de vazio no meio —
+          foi o que aconteceu quando esta regra era única. Centradas, a margem
+          reparte-se pelos dois lados e o bloco fica coeso.
 
           Cada área é uma COLUNA, e dentro dela os botões
           organizam-se em filas centradas umas sobre as outras — Catálogo 2+1,
@@ -319,7 +325,7 @@ export function AdminHeader({
       <div className="border-t border-white/10 bg-white/[0.03]">
         <nav
           className={`mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-3 px-4 py-2.5 sm:px-7 ${
-            ehPatrao ? "sm:justify-start" : "sm:justify-center"
+            ehPatrao ? "sm:justify-between" : "sm:justify-center"
           }`}
         >
           {sections.map((sec, i) => (
