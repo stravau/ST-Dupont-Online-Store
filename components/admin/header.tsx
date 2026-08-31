@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
@@ -190,6 +190,52 @@ export function AdminHeader({
   const sections = sectionsFor(role);
   const home = role === "ADMIN" ? "/admin" : "/admin/pos";
 
+  // As três lojas empilhadas. É a coluna mais alta da faixa, e é ela que passa
+  // a mandar na altura do cabeçalho — o Painel estica-se até lá e as áreas de
+  // duas filas centram-se contra ela.
+  //
+  // Mesma cor dos destinos, e não a dourada que tinha antes: o filtro deixou
+  // de ser um controlo avulso dentro de cada página e passou a ser contexto do
+  // painel inteiro, ao lado do Painel. Duas linguagens visuais ali lado a lado
+  // liam-se como duas coisas diferentes quando já são a mesma.
+  //
+  // Só para o patrão: um login de loja tem uma boutique só, e o filtro seria
+  // um botão único e inerte.
+  const filtroLoja =
+    role !== "ADMIN" ? null : (
+      <div className="flex shrink-0 items-stretch gap-5 sm:gap-7">
+        <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />
+        <div className="flex shrink-0 flex-col">
+          <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
+            Boutique
+          </p>
+          <div role="group" aria-label="Filtrar por loja" className="flex flex-1 flex-col gap-1.5">
+            {[
+              { v: "all", label: "Geral" },
+              { v: "LIS", label: BOUTIQUE_SHORT.LIS },
+              { v: "VNG", label: BOUTIQUE_SHORT.VNG },
+            ].map((o) => {
+              const activa = (boutique ?? "all") === o.v;
+              return (
+                <Link
+                  key={o.v}
+                  href={hrefLoja(o.v)}
+                  aria-current={activa ? "true" : undefined}
+                  className={`inline-flex min-h-[34px] flex-1 items-center justify-center rounded-full px-4 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+                    activa
+                      ? "bg-ink text-cream shadow-sm"
+                      : "border border-line bg-paper text-ink hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  {o.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+
   return (
     <header ref={ref} className="sticky top-0 z-40 border-b border-line bg-paper">
       {/* Faixa de identidade */}
@@ -225,7 +271,12 @@ export function AdminHeader({
       <div className="border-t border-line/70 bg-cream/40">
         <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-x-5 gap-y-4 px-4 py-3 sm:justify-start sm:gap-x-7 sm:px-7">
           {sections.map((sec, i) => (
-            <div key={sec.title} className="flex shrink-0 items-stretch gap-5 sm:gap-7">
+            <Fragment key={sec.title}>
+              {/* O filtro de loja entra logo a seguir ao Painel: é o contexto
+                  em que tudo o resto é lido, e por isso vive ao lado do
+                  destino principal e não perdido no fim da fila. */}
+              {i === 1 && filtroLoja}
+            <div className="flex shrink-0 items-stretch gap-5 sm:gap-7">
               {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />}
               <div className="flex shrink-0 flex-col">
                 <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
@@ -271,52 +322,8 @@ export function AdminHeader({
                 </div>
               </div>
             </div>
+            </Fragment>
           ))}
-
-          {/* Área de filtro, não de navegação — e por isso desenhada de outra
-              maneira: activo em dourado sobre dourado ténue, em vez da tinta
-              cheia dos destinos. Uma pastilha que muda ONDE se está não pode
-              parecer igual a uma que muda O QUE se vê.
-
-              Só para o patrão: um login de loja tem uma boutique só, e o
-              filtro seria um botão único e inerte. */}
-          {role === "ADMIN" && (
-            <div className="flex shrink-0 items-stretch gap-5 sm:gap-7">
-              <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />
-              <div className="flex shrink-0 flex-col">
-                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
-                  Boutique
-                </p>
-                <div
-                  role="group"
-                  aria-label="Filtrar por loja"
-                  className="flex flex-1 flex-wrap items-center justify-center gap-1.5"
-                >
-                  {[
-                    { v: "all", label: "Geral" },
-                    { v: "LIS", label: BOUTIQUE_SHORT.LIS },
-                    { v: "VNG", label: BOUTIQUE_SHORT.VNG },
-                  ].map((o) => {
-                    const activa = (boutique ?? "all") === o.v;
-                    return (
-                      <Link
-                        key={o.v}
-                        href={hrefLoja(o.v)}
-                        aria-current={activa ? "true" : undefined}
-                        className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3.5 py-2 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
-                          activa
-                            ? "border border-gold bg-gold/10 text-gold"
-                            : "border border-line bg-paper text-muted hover:border-gold/60 hover:text-ink"
-                        }`}
-                      >
-                        {o.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
         </nav>
       </div>
     </header>

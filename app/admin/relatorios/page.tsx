@@ -7,7 +7,6 @@ import { salesByStore, bestSellers, salesLog, operatorLifetimeTotals, monthRange
 import type { BoutiqueCode } from "@/lib/pos";
 import {
   BOUTIQUE_LABEL,
-  BoutiqueScopeTabs,
   boutiquesForRole,
   resolveScope,
   type BoutiqueScope,
@@ -64,12 +63,6 @@ export default async function ReportsPage({
     ? from.toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
     : `${from.toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" })} → ${to.toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" })}`;
 
-  // Preserva o intervalo ao trocar de loja e vice-versa.
-  const hrefFor = (s: BoutiqueScope) => {
-    const params = new URLSearchParams({ from: fromYmd, to: toYmd });
-    if (s !== "all") params.set("boutique", s);
-    return `/admin/relatorios?${params.toString()}`;
-  };
   const exportQs = scope === "all" ? "" : `&boutique=${scope}`;
 
   const [stores, best, log, operators] = await Promise.all([
@@ -151,10 +144,9 @@ export default async function ReportsPage({
         <div className="min-w-0 flex-1">
           {/* Vendas por operador — cumulative (all-time) totals, mirroring the
               Excel Estat_Calc pivot. Independent of the month filter above. */}
-          {/* Filtro de loja imediatamente acima da primeira tabela que ele
-              afecta — no hero ficava longe do conteúdo que re-escopa. */}
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-            <BoutiqueScopeTabs scope={scope} allowed={allowed} hrefFor={hrefFor} />
+          {/* O filtro de loja subiu para o cabeçalho, onde vale para o painel
+              todo. Aqui fica só a exportação, que continua a herdar o âmbito. */}
+          <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
             <ExportChoice from={fromYmd} to={toYmd} boutique={scope === "all" ? "" : scope} />
           </div>
 

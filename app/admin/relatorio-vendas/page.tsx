@@ -5,7 +5,6 @@ import { salesByStore, salesLog, rangeWindow } from "@/lib/pos-reports";
 import type { BoutiqueCode } from "@/lib/pos";
 import {
   BOUTIQUE_LABEL,
-  BoutiqueScopeTabs,
   boutiquesForRole,
   resolveScope,
   type BoutiqueScope,
@@ -69,12 +68,6 @@ export default async function DailyReportPage({
   // row skips the pct chip because the two rates differ.
   const pctLabel: Record<BoutiqueCode, string> = { LIS: "22%", VNG: "19%" };
 
-  // Preserva o intervalo de datas ao trocar de loja.
-  const hrefFor = (s: BoutiqueScope) => {
-    const params = new URLSearchParams({ from: fromYmd, to: toYmd });
-    if (s !== "all") params.set("boutique", s);
-    return `/admin/relatorio-vendas?${params.toString()}`;
-  };
 
   return (
     <div>
@@ -120,12 +113,6 @@ export default async function DailyReportPage({
           )}
         </div>
       </AdminHero>
-
-      {/* Filtro de loja junto ao Registo, que é o que ele re-escopa (e o que
-          o botão de exportar vai buscar) — no hero ficava desligado disso. */}
-      <div className="mt-8">
-        <BoutiqueScopeTabs scope={scope} allowed={allowed} hrefFor={hrefFor} />
-      </div>
 
       {/* The window's register — a preview of what the Excel export contains. */}
       <section className="mt-6">
