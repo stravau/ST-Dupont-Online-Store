@@ -16,9 +16,15 @@ import {
   IconSignOut,
 } from "@/components/admin/icons";
 
+type Peso = "primario" | "secundario" | "terciario";
+
 interface NavItem {
   href: string;
   label: string;
+  /** Quanto pesa no dia-a-dia. Nem todos os destinos valem o mesmo: quem esta
+   *  ao balcao vai a Vender dezenas de vezes por dia e a Auditoria uma vez por
+   *  mes, e a interface deve dizer isso sem ninguem ter de aprender. */
+  peso?: Peso;
   hint: string; // uma linha a dizer o que a secção tem
   Icon: (p: { className?: string }) => React.ReactElement;
 }
@@ -59,7 +65,7 @@ function sectionsFor(role?: string): Section[] {
     title: "Catálogo",
     rows: [
       [
-        { href: "/admin/variants", label: "Stock", hint: "Preços, stock e estado", Icon: IconList },
+        { href: "/admin/variants", label: "Stock", hint: "Preços, stock e estado", Icon: IconList, peso: "secundario" },
         { href: "/admin/uploads", label: "Importar", hint: "Sincronizar Excel ECI Controlo", Icon: IconUpload },
       ],
       ...(isAdmin
@@ -72,9 +78,9 @@ function sectionsFor(role?: string): Section[] {
     title: "Loja",
     rows: [
       [
-        { href: "/admin/pos", label: "Vender", hint: "Registar venda por código de barras", Icon: IconPos },
-        { href: "/admin/movimentos", label: "Movimentos", hint: "Entradas e saídas por scan", Icon: IconPos },
-        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports },
+        { href: "/admin/pos", label: "Vender", hint: "Registar venda por código de barras", Icon: IconPos, peso: "primario" },
+        { href: "/admin/movimentos", label: "Movimentos", hint: "Entradas e saídas por scan", Icon: IconPos, peso: "secundario" },
+        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports, peso: "secundario" },
       ],
       [
         { href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar },
@@ -101,6 +107,24 @@ function sectionsFor(role?: string): Section[] {
   }
 
   return sections;
+}
+
+/**
+ * O aspecto de uma pastilha, conforme o estado e o peso.
+ *
+ * Activo ganha sempre: branco solido, 15,6:1. Onde se esta e mais importante
+ * do que para onde se pode ir.
+ *
+ * Depois os tres pesos. Primario cheio a champanhe (5,0:1) — e o Vender, e ve-se
+ * de longe. Secundario a contorno (13,5:1). Terciario sem contorno nenhum
+ * (7,0:1), presente mas sem reclamar atencao. Todos passam AA com folga: o que
+ * muda e a proeminencia, nunca a legibilidade.
+ */
+function estado(activo: boolean, peso?: Peso): string {
+  if (activo) return "bg-paper text-ink shadow-sm";
+  if (peso === "primario") return "bg-gold-soft/90 text-ink hover:bg-gold-soft";
+  if (peso === "secundario") return "border border-cream/30 text-cream hover:border-gold-soft hover:text-gold-soft";
+  return "border border-transparent text-cream/65 hover:bg-white/10 hover:text-cream";
 }
 
 // A boutique por baixo do wordmark, conforme o login. O patrão vê as duas
@@ -203,10 +227,10 @@ export function AdminHeader({
   // um botão único e inerte.
   const filtroLoja =
     role !== "ADMIN" ? null : (
-      <div className="flex shrink-0 items-stretch gap-4 sm:gap-6">
-        <span aria-hidden className="hidden w-px shrink-0 bg-cream/15 sm:block" />
+      <div className="flex shrink-0 items-stretch gap-3 sm:gap-5">
+        <span aria-hidden className="hidden w-px shrink-0 bg-white/[0.07] sm:block" />
         <div className="flex shrink-0 flex-col">
-          <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-cream/50 uppercase sm:text-left">
+          <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.12em] text-cream/50 uppercase sm:text-left">
             Boutique
           </p>
           <div role="group" aria-label="Filtrar por loja" className="flex flex-1 flex-col gap-1.5">
@@ -221,7 +245,7 @@ export function AdminHeader({
                   key={o.v}
                   href={hrefLoja(o.v)}
                   aria-current={activa ? "true" : undefined}
-                  className={`inline-flex min-h-[34px] flex-1 items-center justify-center rounded-full px-3 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+                  className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
                     activa
                       ? "bg-paper text-ink shadow-sm"
                       : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
@@ -239,7 +263,7 @@ export function AdminHeader({
   return (
     <header ref={ref} className="admin-topo sticky top-0 z-40">
       {/* Faixa de identidade */}
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-7">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-2 sm:px-7">
         <Link href={home} className="group flex min-w-0 items-baseline gap-3">
           <span className="font-serif text-xl leading-none text-cream">S.T. Dupont</span>
           <span className="hidden truncate text-[0.63rem] tracking-[0.16em] text-cream/60 uppercase sm:block">
@@ -269,17 +293,17 @@ export function AdminHeader({
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
       <div className="border-t border-white/10 bg-white/[0.03]">
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-4 px-4 py-3 sm:justify-between sm:px-7">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-3 px-4 py-2.5 sm:justify-between sm:px-7">
           {sections.map((sec, i) => (
             <Fragment key={sec.title}>
               {/* O filtro de loja entra logo a seguir ao Painel: é o contexto
                   em que tudo o resto é lido, e por isso vive ao lado do
                   destino principal e não perdido no fim da fila. */}
               {i === 1 && filtroLoja}
-            <div className="flex shrink-0 items-stretch gap-4 sm:gap-6">
-              {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-cream/15 sm:block" />}
+            <div className="flex shrink-0 items-stretch gap-3 sm:gap-5">
+              {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-white/[0.07] sm:block" />}
               <div className="flex shrink-0 flex-col">
-                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-cream/50 uppercase sm:text-left">
+                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.12em] text-cream/50 uppercase sm:text-left">
                   {sec.title}
                 </p>
                 {/* justify-center no eixo vertical: é o que põe o botão solitário
@@ -297,15 +321,11 @@ export function AdminHeader({
                               title={it.hint}
                               className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
                                 sec.hero
-                                  ? "h-full w-full rounded-xl px-10 py-3 text-[0.95rem] font-semibold"
+                                  ? "h-full w-full rounded-xl px-8 py-2 text-[0.9rem] font-semibold"
                                   : sec.solo
-                                    ? "min-h-[44px] rounded-full px-5 py-2.5 text-[0.86rem]"
-                                    : "min-h-[38px] rounded-full px-3 py-2 text-[0.78rem]"
-                              } ${
-                                active
-                                  ? "bg-paper text-ink shadow-sm"
-                                  : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
-                              }`}
+                                    ? "min-h-[40px] rounded-full px-5 py-2 text-[0.84rem]"
+                                    : "min-h-[34px] rounded-full px-3 py-1.5 text-[0.78rem]"
+                              } ${estado(active, it.peso)}`}
                             >
                               <it.Icon
                                 className={

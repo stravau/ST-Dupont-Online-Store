@@ -72,7 +72,7 @@ export function TopOperatorsBar({
   return (
     <section className="painel-card card-in p-5">
       <div className="flex items-baseline justify-between border-b border-line pb-3">
-        <h2 className="text-[0.62rem] font-semibold tracking-[0.18em] text-gold uppercase">Top vendedores</h2>
+        <h2 className="text-[0.62rem] font-semibold tracking-[0.12em] text-gold uppercase">Desempenho por vendedor</h2>
         <span className="text-[0.6rem] tracking-[0.14em] text-muted uppercase capitalize">
           {monthName}
         </span>

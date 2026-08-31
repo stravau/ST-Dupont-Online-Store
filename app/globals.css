@@ -238,12 +238,19 @@ h1, h2, h3, .font-serif {
   background: var(--paper);
   border: 1px solid rgba(30, 36, 48, 0.05);
   border-radius: 0.85rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  /* Duas sombras em vez de uma. A curta e apertada assenta o cartao na
+     superficie; a longa e fraca da-lhe a altura. Uma sombra so tem de escolher
+     entre parecer colada ou parecer a flutuar — duas fazem as duas coisas. */
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.04),
+    0 14px 34px rgba(0, 0, 0, 0.05);
   color: var(--ink);
   transition: box-shadow 0.3s ease;
 }
 .admin-hero-card:hover {
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.09);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    0 18px 40px rgba(0, 0, 0, 0.08);
 }
 
 /* O número grande dos KPI. O gold-glow era para brilhar sobre azul; sobre
@@ -1024,7 +1031,12 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   background: var(--paper);
   border: 1px solid rgba(30, 36, 48, 0.05);
   border-radius: 1rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  /* Duas sombras em vez de uma. A curta e apertada assenta o cartao na
+     superficie; a longa e fraca da-lhe a altura. Uma sombra so tem de escolher
+     entre parecer colada ou parecer a flutuar — duas fazem as duas coisas. */
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.04),
+    0 14px 34px rgba(0, 0, 0, 0.05);
   color: var(--ink);
 }
 

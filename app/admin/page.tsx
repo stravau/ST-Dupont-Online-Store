@@ -65,20 +65,26 @@ export default async function AdminHome() {
           É este o único serif do painel. Todos os outros títulos passam a
           sans — a serif deixa de ser decoração repetida e volta a marcar o que
           é o topo da página. */}
-      <header>
-        <p className="overline text-[0.55rem] tracking-[0.22em] text-gold">Painel</p>
-        <h1 className="mt-2 font-serif text-3xl leading-tight text-ink md:text-4xl">{greeting}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
-          Vendas ao vivo, tendência dos últimos 30 dias e ritmo semanal.
-        </p>
-      </header>
+      {/* Cumprimento e KPI colados num bloco so. Estavam separados pelo mesmo
+          vazio que separa seccoes independentes, e nao sao independentes: os
+          numeros sao a continuacao da frase, nao o capitulo seguinte. O filete
+          fecha o cabecalho e abre os dados. */}
+      <section className="space-y-4">
+        <header className="border-b border-line pb-4">
+          <p className="text-[0.55rem] font-semibold tracking-[0.12em] text-gold uppercase">Painel</p>
+          <h1 className="mt-1.5 font-serif text-3xl leading-tight text-ink md:text-4xl">{greeting}</h1>
+          <p className="mt-1.5 max-w-2xl text-sm text-muted">
+            Movimento comercial ao vivo, tendência dos últimos 30 dias e ritmo semanal.
+          </p>
+        </header>
 
-      <DashboardHeroScope
-        kpis={kpisPerScope}
-        monthName={snapshot.monthName}
-        ticker={ticker}
-        boutiques={BOTH}
-      />
+        <DashboardHeroScope
+          kpis={kpisPerScope}
+          monthName={snapshot.monthName}
+          ticker={ticker}
+          boutiques={BOTH}
+        />
+      </section>
 
       {/* Tendência 30 dias + Heatmap 8 semanas lado a lado — dois ângulos do
           mesmo dado. O bar chart mostra volume ao longo do tempo; o heatmap

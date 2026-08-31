@@ -78,9 +78,9 @@ export function SalesTrend({ points, action }: { points: DayPoint[]; action?: Re
     <section className="painel-card flex h-full flex-col p-6">
       {/* "últimos 30 dias" vive por baixo do título, não à direita dele: com
           as tabs de loja no canto direito os dois textos sobrepunham-se. */}
-      <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
+      <div className="flex items-start justify-between gap-4 border-b border-line pb-2">
         <div className="min-w-0">
-          <h2 className="text-[0.62rem] font-semibold tracking-[0.18em] text-gold uppercase">Tendência de vendas</h2>
+          <h2 className="text-[0.62rem] font-semibold tracking-[0.12em] text-gold uppercase">Tendência de vendas</h2>
           <p className="mt-1 text-[0.6rem] tracking-[0.18em] text-muted uppercase">últimos 30 dias</p>
         </div>
         {action && <div className="shrink-0">{action}</div>}
@@ -92,7 +92,7 @@ export function SalesTrend({ points, action }: { points: DayPoint[]; action?: Re
         máx/dia <span className="font-medium text-ink tabular-nums">{eur0(max)}</span>
       </p>
 
-      <div className="mt-4 flex h-40 items-end gap-[2px] border-b border-line" role="img" aria-label={`Vendas diárias dos últimos ${points.length} dias`}>
+      <div className="mt-3 flex h-56 items-end gap-[2px] border-b border-line" role="img" aria-label={`Vendas diárias dos últimos ${points.length} dias`}>
         {points.map((p, i) => {
           const h = p.grossCents > 0 ? Math.max(3, Math.round((p.grossCents / max) * 100)) : 0;
           const isToday = i === points.length - 1;

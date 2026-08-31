@@ -49,10 +49,10 @@ export function BigKPIs({
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {/* HOJE */}
-      <div className="painel-card hero-reveal p-4" style={{ animationDelay: "0ms" }}>
+      <div className="painel-card hero-reveal px-5 pt-3.5 pb-4" style={{ animationDelay: "0ms" }}>
         <div className="flex items-baseline justify-between">
-          <p className="overline text-[0.6rem] text-gold">Hoje</p>
-          <p className="text-[0.62rem] tracking-[0.12em] text-muted uppercase tabular-nums">
+          <p className="text-[0.6rem] font-semibold tracking-[0.12em] text-gold uppercase">Hoje</p>
+          <p className="text-[0.55rem] tracking-[0.16em] text-muted/70 uppercase tabular-nums">
             {new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "long" })}
           </p>
         </div>
@@ -76,9 +76,9 @@ export function BigKPIs({
       </div>
 
       {/* ESTE MÊS */}
-      <div className="painel-card hero-reveal p-4" style={{ animationDelay: "120ms" }}>
+      <div className="painel-card hero-reveal px-5 pt-3.5 pb-4" style={{ animationDelay: "120ms" }}>
         <div className="flex items-baseline justify-between">
-          <p className="overline text-[0.6rem] text-gold">Este mês</p>
+          <p className="text-[0.6rem] font-semibold tracking-[0.12em] text-gold uppercase">Mês corrente</p>
           <p className="text-[0.62rem] tracking-[0.12em] text-muted uppercase capitalize">
             {monthName}
           </p>

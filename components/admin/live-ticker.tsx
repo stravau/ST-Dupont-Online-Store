@@ -65,7 +65,7 @@ function TickerColumn({
         <div className="mb-2 flex items-center gap-2">
           <span className="live-dot" />
           <p className="overline text-[0.55rem] text-gold">
-            {BOUTIQUE_LABEL[boutique]} · últimas {rows.length}
+            Boutique {BOUTIQUE_LABEL[boutique]} · últimas {rows.length}
           </p>
         </div>
       )}
