@@ -12,6 +12,7 @@ import { OtherBrandsView, getOtherBrandKpis, OtherBrandKpis } from "./other-bran
 import { ArticleImportButton } from "@/components/admin/article-import";
 import { StockExportChoice } from "@/components/admin/stock-export-choice";
 import { buildVariantWhere } from "@/lib/variant-filter";
+import { boutiquesForRole, resolveScope } from "@/components/admin/boutique-scope";
 import { SelectionProvider, SelectionToolbar, SelectAllCheckbox } from "./selection";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ interface SearchProps {
     published?: string;
     brand?: string;
     active?: string; // só da tab "outras" — filtro de ativo/inactivo
+    boutique?: string;
     sort?: string;
     page?: string;
   }>;
@@ -54,12 +56,19 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
   const published = sp.published;
   const brand = (sp.brand ?? "").trim();
   const sort = sp.sort ?? "updated";
+  // Loja vinda do cabeçalho, intersectada com o que o papel permite.
+  const { scope: loja } = resolveScope(sp.boutique, boutiquesForRole(rawRole ?? null));
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
 
   // Only ADMIN + LOJA_VNG can see the "Outras marcas" tab — LOJA_LIS has no
   // non-Dupont inventory to inspect, so we hide the tab and force them back
   // to the S.T. Dupont view if they land on ?tab=outras via a stale bookmark.
-  const showOutras = role === "ADMIN" || role === "LOJA_VNG";
+  // Filtrar por Lisboa nao e o mesmo que ser um login de Lisboa: esse ve o
+  // catalogo todo, este mostra so o que existe la. Mas a aba das outras marcas
+  // desaparece nos dois casos, por razoes diferentes — o login por permissao,
+  // o filtro porque o OtherBrandItem nao tem coluna de loja: sao todas de
+  // Gaia, logo sob um filtro de Lisboa nao ha nada para mostrar.
+  const showOutras = (role === "ADMIN" || role === "LOJA_VNG") && loja !== "LIS";
   const activeTab: StockTab = tab === "outras" && showOutras ? "outras" : "stdupont";
 
   // Short-circuit: if the boss picked the Outras Marcas tab, delegate the
@@ -93,7 +102,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
 
   // Same WHERE builder the bulk-apply endpoint uses, so "select all filtered"
   // targets exactly these rows.
-  const where = buildVariantWhere({ q, status, stock, ean, promo, unmapped, published });
+  const where = buildVariantWhere({ q, status, stock, ean, promo, unmapped, published, boutique: loja });
 
   const orderBy: Prisma.ProductVariantOrderByWithRelationInput =
     sort === "sku" ? { sku: "asc" } :
@@ -246,7 +255,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
       <SelectionProvider
         pageIds={rows.map((v) => v.id)}
         totalFiltered={total}
-        filter={{ q, status, stock, ean, promo, unmapped, published }}
+        filter={{ q, status, stock, ean, promo, unmapped, published, boutique: loja }}
       >
         {role === "ADMIN" && <SelectionToolbar />}
         <div className="overflow-x-auto border border-line bg-paper">

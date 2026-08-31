@@ -11,6 +11,8 @@ export interface VariantFilterParams {
   promo?: string;
   unmapped?: string;
   published?: string;
+  /** Loja do filtro do cabeçalho: LIS | VNG. Vazio = as duas. */
+  boutique?: string;
 }
 
 export function buildVariantWhere(p: VariantFilterParams): Prisma.ProductVariantWhereInput {
@@ -25,6 +27,11 @@ export function buildVariantWhere(p: VariantFilterParams): Prisma.ProductVariant
   if (p.status === "DISPONIVEL" || p.status === "INDISPONIVEL" || p.status === "DESCONTINUADO") {
     where.status = p.status;
   }
+  // Filtrar por loja e olhar para a coluna dessa loja, nao para o total: um
+  // artigo com 3 em Gaia e 0 em Lisboa tem stock, mas nao TEM stock em Lisboa,
+  // que e a pergunta que o filtro faz.
+  if (p.boutique === "LIS") where.stockLis = { gt: 0 };
+  else if (p.boutique === "VNG") where.stockVng = { gt: 0 };
   if (p.stock === "zero") where.stock = { lte: 0 };
   else if (p.stock === "low") where.stock = { gt: 0, lte: 5 };
   else if (p.stock === "in") where.stock = { gt: 5 };
