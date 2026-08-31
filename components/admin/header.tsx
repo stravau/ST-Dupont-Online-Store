@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
 import {
   IconDashboard,
   IconList,
@@ -163,6 +164,29 @@ export function AdminHeader({
     }
     return true;
   };
+  // A loja escolhida viaja com o utilizador. Sem isto, o filtro do cabecalho
+  // era um filtro de pagina disfarcado de global: escolhia-se Lisboa nos
+  // Relatorios e ao clicar em Reparacoes voltava a Geral sem aviso.
+  const boutique = search.get("boutique");
+  const comBoutique = (href: string) => {
+    if (!boutique || boutique === "all") return href;
+    const [path, qs] = href.split("?");
+    const q = new URLSearchParams(qs ?? "");
+    q.set("boutique", boutique);
+    return `${path}?${q}`;
+  };
+
+  // Trocar de loja preserva tudo o resto da query — mes, intervalo de datas,
+  // pagina. Quem esta a ver Marco em Lisboa e muda para Gaia quer Marco em
+  // Gaia, nao Marco perdido.
+  const hrefLoja = (v: string) => {
+    const q = new URLSearchParams(search.toString());
+    if (v === "all") q.delete("boutique");
+    else q.set("boutique", v);
+    const s = q.toString();
+    return s ? `${pathname}?${s}` : pathname;
+  };
+
   const sections = sectionsFor(role);
   const home = role === "ADMIN" ? "/admin" : "/admin/pos";
 
@@ -217,7 +241,7 @@ export function AdminHeader({
                         return (
                           <li key={it.href} className={sec.hero ? "flex flex-1" : undefined}>
                             <Link
-                              href={it.href}
+                              href={comBoutique(it.href)}
                               aria-current={active ? "page" : undefined}
                               title={it.hint}
                               className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
@@ -248,6 +272,51 @@ export function AdminHeader({
               </div>
             </div>
           ))}
+
+          {/* Área de filtro, não de navegação — e por isso desenhada de outra
+              maneira: activo em dourado sobre dourado ténue, em vez da tinta
+              cheia dos destinos. Uma pastilha que muda ONDE se está não pode
+              parecer igual a uma que muda O QUE se vê.
+
+              Só para o patrão: um login de loja tem uma boutique só, e o
+              filtro seria um botão único e inerte. */}
+          {role === "ADMIN" && (
+            <div className="flex shrink-0 items-stretch gap-5 sm:gap-7">
+              <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />
+              <div className="flex shrink-0 flex-col">
+                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
+                  Boutique
+                </p>
+                <div
+                  role="group"
+                  aria-label="Filtrar por loja"
+                  className="flex flex-1 flex-wrap items-center justify-center gap-1.5"
+                >
+                  {[
+                    { v: "all", label: "Geral" },
+                    { v: "LIS", label: BOUTIQUE_SHORT.LIS },
+                    { v: "VNG", label: BOUTIQUE_SHORT.VNG },
+                  ].map((o) => {
+                    const activa = (boutique ?? "all") === o.v;
+                    return (
+                      <Link
+                        key={o.v}
+                        href={hrefLoja(o.v)}
+                        aria-current={activa ? "true" : undefined}
+                        className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3.5 py-2 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+                          activa
+                            ? "border border-gold bg-gold/10 text-gold"
+                            : "border border-line bg-paper text-muted hover:border-gold/60 hover:text-ink"
+                        }`}
+                      >
+                        {o.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
       </div>
     </header>

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { AdminHero } from "@/components/admin/admin-hero";
 import { RepairsManager, type RepairRow } from "@/components/admin/repairs-manager";
 import type { BoutiqueCode } from "@/lib/pos";
-import { boutiquesForRole } from "@/components/admin/boutique-scope";
+import { boutiquesForRole, resolveScope } from "@/components/admin/boutique-scope";
 
 export const dynamic = "force-dynamic";
 
