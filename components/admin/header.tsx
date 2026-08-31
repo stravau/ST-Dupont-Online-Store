@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
+import { ReporteBotao } from "@/components/admin/reporte-botao";
 import {
   IconDashboard,
   IconList,
@@ -105,8 +106,10 @@ function sectionsFor(role?: string): Section[] {
     });
     sections.push({
       title: "Sistema",
-      solo: true,
-      rows: [[{ href: "/admin/audit", label: "Auditoria", hint: "Registo de todas as alterações", Icon: IconAudit }]],
+      rows: [
+        [{ href: "/admin/audit", label: "Auditoria", hint: "Registo de todas as alterações", Icon: IconAudit }],
+        [{ href: "/admin/reportes", label: "Problemas", hint: "Reportes das lojas e falhas automáticas", Icon: IconAudit }],
+      ],
     });
   }
 
@@ -376,6 +379,8 @@ export function AdminHeader({
           </span>
         </Link>
 
+        <div className="flex shrink-0 items-center gap-3">
+          <ReporteBotao />
         <form action={signOutAction} className="flex shrink-0 items-center gap-3">
           <span
             className="hidden max-w-[14rem] truncate text-[0.7rem] text-cream/60 md:block"
@@ -389,7 +394,8 @@ export function AdminHeader({
           >
             <IconSignOut className="h-4 w-4" /> Sair
           </button>
-        </form>
+          </form>
+        </div>
       </div>
 
       {/* O alinhamento depende de quem entrou, porque as duas vistas não têm

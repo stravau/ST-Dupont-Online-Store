@@ -152,12 +152,12 @@ model User {
   passwordHash  String? // null for OAuth-only accounts
   role          UserRole  @default(CUSTOMER)
 
-  accounts  Account[]
-  sessions  Session[]
-  addresses Address[]
-  cart      Cart?
-  orders    Order[]
-  wishlist  WishlistItem[]
+  accounts     Account[]
+  sessions     Session[]
+  addresses    Address[]
+  cart         Cart?
+  orders       Order[]
+  wishlist     WishlistItem[]
   adminActions AdminAction[]
 
   createdAt DateTime @default(now())
@@ -246,12 +246,12 @@ model Address {
 // Localized text fields hold { "pt": "...", "en": "..." } as JSON so DB
 // content stays bilingual (matches the Localized shape used in the UI).
 model Category {
-  id        String    @id @default(cuid())
-  slug      String    @unique
-  name      Json // Localized
-  tagline   Json // Localized
-  history   Json? // Localized — brief heritage of the category/craft
-  products  Product[]
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     Json // Localized
+  tagline  Json // Localized
+  history  Json? // Localized — brief heritage of the category/craft
+  products Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -274,10 +274,10 @@ model Product {
   // reporting (time-series, traffic source) when admin needs to drill in.
   viewCount   Int     @default(0)
 
-  category Category         @relation(fields: [categoryId], references: [id])
-  variants ProductVariant[]
+  category      Category         @relation(fields: [categoryId], references: [id])
+  variants      ProductVariant[]
   wishlistItems WishlistItem[]
-  views    ProductView[]
+  views         ProductView[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -304,45 +304,45 @@ model ProductView {
 }
 
 model ProductVariant {
-  id            String   @id @default(cuid())
-  productId     String
-  sku           String   @unique
-  name          Json // Localized — e.g. { pt: "Paládio", en: "Palladium" }
+  id              String        @id @default(cuid())
+  productId       String
+  sku             String        @unique
+  name            Json // Localized — e.g. { pt: "Paládio", en: "Palladium" }
   // Optional per-colourway override of the parent Product.description.
   // Set when a single colourway has its own copy (special edition, limited
   // run, finish-specific story). Null = inherit from Product. Localized
   // shape { pt, en } same as Product.description.
-  description   Json?
-  attributes    Json     @default("{}") // { finish: "palladium", color: "black" }
-  priceCents    Int
-  currency      String   @default("EUR")
+  description     Json?
+  attributes      Json          @default("{}") // { finish: "palladium", color: "black" }
+  priceCents      Int
+  currency        String        @default("EUR")
   // Total stock — application keeps this == stockLis + stockVng on
   // every write (manual edit + Excel upload). Kept as a stored column
   // so existing queries (catalogue card, low-stock KPI) don't have to
   // recompute on every read.
-  stock         Int      @default(0)
-  stockLis      Int      @default(0) // boutique Lisboa
-  stockVng      Int      @default(0) // boutique V. N. de Gaia
-  images        String[] @default([]) // ordered image URLs (CDN)
-  stripePriceId String? // Stripe Price id, set when synced
-  active        Boolean  @default(true)
+  stock           Int           @default(0)
+  stockLis        Int           @default(0) // boutique Lisboa
+  stockVng        Int           @default(0) // boutique V. N. de Gaia
+  images          String[]      @default([]) // ordered image URLs (CDN)
+  stripePriceId   String? // Stripe Price id, set when synced
+  active          Boolean       @default(true)
   // Lifecycle state — DISPONIVEL by default. INDISPONIVEL shows on site
   // with a badge + disabled Pedir-Informação; DESCONTINUADO hides
   // entirely. `active` stays as a legacy flag (already used by some
   // queries) — gradually phased out in favour of `status`.
-  status        VariantStatus @default(DISPONIVEL)
+  status          VariantStatus @default(DISPONIVEL)
   // ----- ERP-import fields (filled from the daily Starbrands Excel) -----
   // EAN / barcode — unique per SKU when present. Indexed for fast
   // scanner lookups in the admin panel.
-  ean                  String?   @unique
+  ean             String?       @unique
   // When the current priceCents took effect. Optional — for backwards
   // compat with rows imported before the column existed.
-  pvpStartDate         DateTime?
+  pvpStartDate    DateTime?
   // Active promotional price in cents (overrides priceCents in the UI
   // while the promo window is open). null = no promo on this variant.
-  promoPriceCents      Int?
-  promoStartDate       DateTime?
-  promoEndDate         DateTime?
+  promoPriceCents Int?
+  promoStartDate  DateTime?
+  promoEndDate    DateTime?
 
   product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   cartItems      CartItem[]
@@ -384,15 +384,15 @@ model LoginAttempt {
 // who triggered the action; nullable so seed / migration writes don't
 // fail.
 model AdminAction {
-  id        String   @id @default(cuid())
-  userId    String?
+  id         String   @id @default(cuid())
+  userId     String?
   // entityType: VARIANT | PRODUCT | PROMO | UPLOAD_BATCH
   // action:    UPDATE | CREATE | DELETE | UPLOAD
   entityType String
   action     String
   entityId   String? // e.g. variant sku or product slug
-  before     Json?   // snapshot of changed fields before the write
-  after      Json?   // snapshot after the write
+  before     Json? // snapshot of changed fields before the write
+  after      Json? // snapshot after the write
   note       String? // optional human-readable summary
   // Groups all per-row writes from one Excel upload under a single id.
   // The UPLOAD_BATCH summary row shares this id with every VARIANT /
@@ -514,13 +514,13 @@ model Payment {
 // store login is shared, so the operator is chosen per sale, not derived from
 // the session. Each belongs to one boutique.
 model Operator {
-  id               String    @id @default(cuid())
+  id               String   @id @default(cuid())
   initials         String // PR, MA, …
   name             String?
   eciCode          String? // ECI employee number
   boutique         Boutique
   monthlyGoalCents Int? // optional monthly sales target
-  active           Boolean   @default(true)
+  active           Boolean  @default(true)
 
   sales     Sale[]
   movements StockMovement[]
@@ -536,17 +536,17 @@ model Operator {
 // line-per-row (Mov_POS_Loja); we group into a sale so the terminal can ring
 // up several items at once. Date/time are system-stamped (soldAt).
 model Sale {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   boutique           Boutique
   operatorId         String
-  type               SaleType @default(VENDA)
-  soldAt             DateTime @default(now())
+  type               SaleType  @default(VENDA)
+  soldAt             DateTime  @default(now())
   // Totals denormalised from items for fast reporting (all cents).
-  grossCents         Int      @default(0) // Σ ValorVend (incl. VAT)
-  netCents           Int      @default(0) // Σ V.Rec (gross / 1.23, ex-VAT)
-  eciCommissionCents Int      @default(0) // netCents * 0.19 (ECI concession fee)
+  grossCents         Int       @default(0) // Σ ValorVend (incl. VAT)
+  netCents           Int       @default(0) // Σ V.Rec (gross / 1.23, ex-VAT)
+  eciCommissionCents Int       @default(0) // netCents * 0.19 (ECI concession fee)
   note               String?
-  touristCard        Boolean  @default(false) // cliente usou Cartão Turista?
+  touristCard        Boolean   @default(false) // cliente usou Cartão Turista?
   // For a DEVOLUCAO, the original sale being reversed (optional).
   originalSaleId     String?
   // For a REPARACAO, the Repair record whose customer is picking up. Set
@@ -557,8 +557,8 @@ model Sale {
   // Uma venda mal registada (operador errado, código lido duas vezes, preço
   // trocado) é ANULADA, não apagada: a linha fica para se poder auditar o que
   // aconteceu e quem o desfez. Toda a contabilidade filtra por voidedAt: null.
-  voidedAt     DateTime?
-  voidedReason String?
+  voidedAt           DateTime?
+  voidedReason       String?
 
   operator     Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
   originalSale Sale?      @relation("SaleReturns", fields: [originalSaleId], references: [id], onDelete: SetNull)
@@ -579,23 +579,23 @@ model Sale {
 // A sale line — one row of Mov_POS_Loja. Snapshots sku/desc/price/brand (like
 // OrderItem) so the record is stable even if the catalogue changes later.
 model SaleItem {
-  id             String         @id @default(cuid())
-  saleId         String
-  source         SaleItemSource @default(DUPONT) // DUPONT variant vs OTHER_BRAND item
-  variantId      String? // link to our catalogue (null for OTHER_BRAND / EAN not in catalogue)
+  id               String         @id @default(cuid())
+  saleId           String
+  source           SaleItemSource @default(DUPONT) // DUPONT variant vs OTHER_BRAND item
+  variantId        String? // link to our catalogue (null for OTHER_BRAND / EAN not in catalogue)
   otherBrandItemId String? // set when source = OTHER_BRAND
-  sku            String
-  ean            String?
-  descSnapshot   String
-  brand          String? // Marca
-  quantity       Int
-  unitPriceCents Int // PVP at time of sale
-  discountPct    Float   @default(0) // Desc % as 0..1
-  grossCents     Int // quantity * unitPriceCents * (1 - discountPct)
-  netCents       Int // grossCents / 1.23
+  sku              String
+  ean              String?
+  descSnapshot     String
+  brand            String? // Marca
+  quantity         Int
+  unitPriceCents   Int // PVP at time of sale
+  discountPct      Float          @default(0) // Desc % as 0..1
+  grossCents       Int // quantity * unitPriceCents * (1 - discountPct)
+  netCents         Int // grossCents / 1.23
 
-  sale         Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  sale           Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  variant        ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
   otherBrandItem OtherBrandItem? @relation(fields: [otherBrandItemId], references: [id], onDelete: SetNull)
 
   @@index([saleId])
@@ -641,10 +641,10 @@ model StockMovement {
 // One row per SKU ("Ref" column in the ECI_VNG_Controlo Excel).
 model OtherBrandItem {
   id        String  @id @default(cuid())
-  brand     String  // Marca — LAMY, KAWECO, PARKER, …
+  brand     String // Marca — LAMY, KAWECO, PARKER, …
   sku       String  @unique // Ref column — internal SKU (always present)
   ean       String? @unique // barcode; sparse (some internal SKUs lack one)
-  descricao String  // free-text description from the Excel
+  descricao String // free-text description from the Excel
   pvpCents  Int? // PVP in cents; null when the Excel has no price
   stock     Int     @default(0) // theoretical stock (Stock Teórico)
   active    Boolean @default(true) // soft-disable without deleting history
@@ -666,40 +666,40 @@ model OtherBrandItem {
 // Atualizações · Último contacto (data/staff/via/obs.) · Outras obs. · Tlm ·
 // Outros contactos.
 model Repair {
-  id           String       @id @default(cuid())
-  boutique     Boutique     @default(LIS) // qual loja acompanha o processo
+  id                 String       @id @default(cuid())
+  boutique           Boutique     @default(LIS) // qual loja acompanha o processo
   // Qual folha do Excel deu origem à linha (para a UI poder filtrar). Novos
   // registos criados pela app assumem REPARACAO por defeito.
-  bucket       RepairBucket @default(REPARACAO)
+  bucket             RepairBucket @default(REPARACAO)
   // 1ª_Visita — data automática em novos processos (default now()); nullable
   // porque o histórico importado tem linhas com data desconhecida ("??").
-  firstVisitAt DateTime?    @default(now())
-  staff        String // Staff — iniciais do operador (PR, MA, …)
-  status       RepairStatus @default(EM_VERIFICACAO_LOJA) // Estado [Ir atualizando]
-  customerName String // Cli_Nome
-  reference    String // Ref. — histórico ECI (mantido; a UI usa repairType + modelName)
-  repairType   RepairType? // Tipo — Isqueiro / Escrita / Pele (null = por definir)
-  modelName    String? // nome/modelo da peça (substitui a REF na UI)
+  firstVisitAt       DateTime?    @default(now())
+  staff              String // Staff — iniciais do operador (PR, MA, …)
+  status             RepairStatus @default(EM_VERIFICACAO_LOJA) // Estado [Ir atualizando]
+  customerName       String // Cli_Nome
+  reference          String // Ref. — histórico ECI (mantido; a UI usa repairType + modelName)
+  repairType         RepairType? // Tipo — Isqueiro / Escrita / Pele (null = por definir)
+  modelName          String? // nome/modelo da peça (substitui a REF na UI)
   estimatedCostCents Int? // Custo estimado (orçamento) em cêntimos
   // ----- Ficha de assistência (o papel que o cliente leva) -----
   // Sequência POR LOJA, atribuída na criação e imóvel a partir daí. Tinha de
   // deixar de ser calculada por ordenação: o cliente leva o número escrito
   // num papel, e um processo inserido com data anterior fazia deslizar todos
   // os seguintes — o papel dele deixava de bater certo com o sistema.
-  ticketNumber  Int?
-  serialNumber  String? // Nº de série gravado na peça
-  usageMarks    String? // Marcas de uso visíveis à entrada — a nossa protecção
-  underWarranty Boolean? // Garantia SIM/NÃO (null = ainda por apurar)
-  subject      String // Assunto — descrição do problema/pedido
-  updates      String? // Atualizações — notas do processo
+  ticketNumber       Int?
+  serialNumber       String? // Nº de série gravado na peça
+  usageMarks         String? // Marcas de uso visíveis à entrada — a nossa protecção
+  underWarranty      Boolean? // Garantia SIM/NÃO (null = ainda por apurar)
+  subject            String // Assunto — descrição do problema/pedido
+  updates            String? // Atualizações — notas do processo
   // Último_Contato — data & staff / via / observação
-  lastContactAt    DateTime? // Último_Contato_Data
-  lastContactStaff String? // & Staff que fez o contacto
-  lastContactVia   String? // Último_Contato (Whatsapp, Chamada tlf., Em loja, E-mail, SMS…)
-  lastContactNote  String? // Último_Contato_Obs.
-  otherObs         String? // Outras_Obs._Contatos (ex.: "Não ligar! Enviar msg")
-  phone            String? // Tlm_WhatsApp
-  otherContacts    String? // Outros_Contatos (e-mail / outro telefone)
+  lastContactAt      DateTime? // Último_Contato_Data
+  lastContactStaff   String? // & Staff que fez o contacto
+  lastContactVia     String? // Último_Contato (Whatsapp, Chamada tlf., Em loja, E-mail, SMS…)
+  lastContactNote    String? // Último_Contato_Obs.
+  otherObs           String? // Outras_Obs._Contatos (ex.: "Não ligar! Enviar msg")
+  phone              String? // Tlm_WhatsApp
+  otherContacts      String? // Outros_Contatos (e-mail / outro telefone)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -782,4 +782,62 @@ model HomeCarouselItem {
 
   @@unique([rail, sku])
   @@index([rail, position])
+}
+
+// Reporte de problema. Nasce de um botão no cabeçalho do painel, de um error
+// boundary que apanhou uma página a rebentar, ou de uma rota da API que falhou.
+//
+// A descrição que a pessoa escreve é opcional de propósito: quem está ao balcão
+// com um cliente à frente escreve "não deu", e o valor do reporte tem de vir do
+// que é apanhado sozinho — os passos, o erro, a versão, o estado do ecrã.
+//
+// Nada aqui guarda dados de clientes. As reparações têm nome, telefone e email,
+// e por isso a recolha é por lista de permissões: cada página declara o que
+// pode ser capturado, em vez de se despejar o estado todo. Corpos de pedidos e
+// respostas nunca entram — só método, caminho, código e mensagem de erro.
+model Reporte {
+  id          String    @id @default(cuid())
+  // ── Quem ────────────────────────────────────────────────────────────────
+  userId      String?
+  email       String?
+  role        String?
+  // ── O que a pessoa disse. Dois cliques, e o texto é opcional. ────────────
+  // VENDA | ARTIGO | PAGINA | NUMEROS | OUTRO — e AUTOMATICO quando ninguém
+  // carregou em nada e foi o sistema a reportar-se a si próprio.
+  categoria   String
+  bloqueado   Boolean   @default(false)
+  descricao   String?
+  // ── Onde e em que versão ────────────────────────────────────────────────
+  url         String
+  rota        String
+  // O commit em produção. Sem isto não se sabe se o erro já foi corrigido.
+  commit      String?
+  // ── Contexto apanhado no browser ────────────────────────────────────────
+  passos      Json? // os últimos ~20 acontecimentos, com marcas de tempo
+  erros       Json? // window.onerror, promessas rejeitadas, stack do boundary
+  pedidos     Json? // pedidos falhados: método, caminho, código, duração
+  estado      Json? // estado do ecrã, só o que a página autorizou
+  ambiente    Json? // browser, sistema, ecrã, offline, desvio do relógio
+  // ── Acrescentado pelo servidor quando o reporte chega ────────────────────
+  auditoria   Json? // as últimas acções auditadas deste utilizador
+  servidor    Json? // saúde da base e o que mais o browser não pode saber
+  // BOTAO | BOUNDARY | API
+  origem      String    @default("BOTAO")
+  // ── Anti-ruído ──────────────────────────────────────────────────────────
+  // O mesmo erro na mesma linha é uma entrada com contador, não cinquenta.
+  impressao   String
+  ocorrencias Int       @default(1)
+  // ── Tratamento ──────────────────────────────────────────────────────────
+  resolvido   Boolean   @default(false)
+  nota        String?
+  // Se já foi enviado por email. Guarda-se sempre na base primeiro: se o
+  // envio falhar, o reporte não se perde.
+  enviadoEm   DateTime?
+
+  createdAt DateTime @default(now())
+  ultimaEm  DateTime @default(now())
+
+  @@index([impressao])
+  @@index([createdAt])
+  @@index([resolvido])
 }
