@@ -281,7 +281,7 @@ export default async function ReportsPage({
         </div>
 
         {/* Best-sellers — independent vertical rail on the right. */}
-        <aside className="w-full shrink-0 xl:sticky xl:top-6 xl:w-64">
+        <aside className="w-full shrink-0 xl:sticky xl:top-[calc(var(--admin-header-h)+1.5rem)] xl:w-64">
           <div className="border border-line bg-paper p-5">
             <h2 className="font-serif text-base text-ink">Mais vendidos</h2>
             <p className="mt-1 text-[0.65rem] text-muted">

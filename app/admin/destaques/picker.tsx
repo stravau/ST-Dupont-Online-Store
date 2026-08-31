@@ -261,7 +261,7 @@ export function FeaturedPicker({
       </section>
 
       {/* Selecção */}
-      <aside className="xl:sticky xl:top-6 xl:self-start">
+      <aside className="xl:sticky xl:top-[calc(var(--admin-header-h)+1.5rem)] xl:self-start">
         <div className="border border-line bg-paper p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="font-serif text-lg text-ink">No carrossel</h2>

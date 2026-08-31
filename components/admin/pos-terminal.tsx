@@ -533,7 +533,7 @@ export function PosTerminal({
       </div>
 
       {/* Right — checkout panel (shared across the three tabs) */}
-      <aside className="h-fit border border-line bg-paper p-5 lg:sticky lg:top-6">
+      <aside className="h-fit border border-line bg-paper p-5 lg:sticky lg:top-[calc(var(--admin-header-h)+1.5rem)]">
         <div className="flex rounded-sm border border-line p-0.5">
           {(["VENDA", "DEVOLUCAO", "REPARACAO"] as const).map((t) => (
             <button key={t} type="button" onClick={() => setType(t)}

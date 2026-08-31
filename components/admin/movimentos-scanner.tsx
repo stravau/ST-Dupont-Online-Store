@@ -290,7 +290,7 @@ export function MovimentosScanner({
       </div>
 
       {/* Right — confirm panel + session history */}
-      <aside className="h-fit border border-line bg-paper p-5 lg:sticky lg:top-6">
+      <aside className="h-fit border border-line bg-paper p-5 lg:sticky lg:top-[calc(var(--admin-header-h)+1.5rem)]">
         <label className="block">
           <span className="overline text-[0.55rem] text-muted">Motivo *</span>
           <select

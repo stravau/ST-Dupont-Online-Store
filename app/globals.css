@@ -158,6 +158,11 @@ h1, h2, h3, .font-serif {
    os headings (h1/h2/h3 e .font-serif) em Cormorant Garamond para preservar
    o tom Maison. Storefront público não é afectado. */
 .admin-scope {
+  /* Altura do cabeçalho fixo, num sítio só. Tudo o que dentro do painel
+     também é sticky — a barra de selecção do stock, os painéis laterais
+     dos relatórios e do POS — encosta-se a esta variável em vez de a um
+     número próprio. Mexer no cabeçalho passa a ser mexer aqui. */
+  --admin-header-h: 165px; /* valor de arranque; o cabeçalho corrige-o ao montar */
   font-family: var(--font-admin-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Números tabulares em toda a interface — dinheiro, contagens, datas
      ficam alinhados sem `tabular-nums` per-cell. */

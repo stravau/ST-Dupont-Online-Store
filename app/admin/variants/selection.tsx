@@ -148,7 +148,7 @@ export function SelectionToolbar() {
   }
 
   return (
-    <div className="sticky top-0 z-20 mb-3 border border-gold/50 bg-paper shadow-lg">
+    <div className="sticky top-[var(--admin-header-h)] z-20 mb-3 border border-gold/50 bg-paper shadow-lg">
       <div className="flex flex-wrap items-center gap-3 px-4 py-3">
         <span className="text-sm font-medium text-ink">
           {sel.count} {sel.count === 1 ? "artigo selecionado" : "artigos selecionados"}

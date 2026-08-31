@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { signOut } from "@/auth";
 import { currentStaff } from "@/lib/admin-auth";
-import { AdminSidebar, AdminMobileBar } from "@/components/admin/sidebar";
+import { AdminHeader } from "@/components/admin/header";
 import { ToastProvider } from "@/components/admin/toast";
 
 // Font: Inter para o admin body (leitura densa de tabelas, KPIs, listas).
@@ -51,14 +51,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <div className={`admin-scope flex min-h-screen bg-cream text-ink ${adminBody.variable}`}>
-        <AdminSidebar email={email} role={role} signOutAction={signOutAction} />
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <AdminMobileBar email={email} role={role} signOutAction={signOutAction} />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:px-8 sm:py-10">
-            {children}
-          </main>
-        </div>
+      <div className={`admin-scope flex min-h-screen flex-col bg-cream text-ink ${adminBody.variable}`}>
+        <AdminHeader email={email} role={role} signOutAction={signOutAction} />
+        {/* Sem a barra lateral sobram 288px de largura, por isso o limite sobe
+            dos 7xl para 1600px — as tabelas de stock e os relatórios são o que
+            mais agradece. */}
+        <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-7 sm:px-7 sm:py-9">
+          {children}
+        </main>
       </div>
     </ToastProvider>
   );
