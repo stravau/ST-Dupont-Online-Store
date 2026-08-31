@@ -297,7 +297,7 @@ export function AdminHeader({
                               title={it.hint}
                               className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
                                 sec.hero
-                                  ? "h-full w-full rounded-xl px-6 py-3 text-[0.95rem] font-semibold"
+                                  ? "h-full w-full rounded-xl px-10 py-3 text-[0.95rem] font-semibold"
                                   : sec.solo
                                     ? "min-h-[52px] rounded-full px-5 py-3 text-[0.86rem]"
                                     : "min-h-[38px] rounded-full px-3 py-2 text-[0.78rem]"

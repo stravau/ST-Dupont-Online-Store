@@ -231,11 +231,38 @@ export async function POST(req: Request) {
     if (!(file instanceof File)) return NextResponse.json({ ok: false, error: "no file" }, { status: 400 });
     const apply = form.get("apply") === "true";
     const storeOverride = form.get("store");
-    const store: EciStore | null =
-      storeOverride === "LIS" || storeOverride === "VNG" ? storeOverride : detectEciStore(file.name);
+    const doNome = detectEciStore(file.name);
+    const escolhida: EciStore | null =
+      storeOverride === "LIS" || storeOverride === "VNG" ? storeOverride : null;
+
+    // A loja escolhida tem de bater certo com a que o nome do ficheiro anuncia.
+    // Antes a escolha explícita substituía a detecção sem verificação nenhuma:
+    // com "Lisboa" seleccionada e o ficheiro de Gaia largado por engano, isto
+    // escrevia o stock de Gaia como sendo de Lisboa E apagava as vendas, os
+    // movimentos e as reparações de Lisboa que não viessem no ficheiro — o sync
+    // é autoritativo. Um clique errado custava um dia de trabalho da loja.
+    if (escolhida && doNome && escolhida !== doNome) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            `A boutique seleccionada é ${escolhida} mas o ficheiro chama-se "${file.name}", ` +
+            `que parece de ${doNome}. Confirma qual dos dois está errado — este sync apaga ` +
+            `tudo o que não vier no ficheiro.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    const store: EciStore | null = escolhida ?? doNome;
     if (!store) {
       return NextResponse.json(
-        { ok: false, error: "não deu para detetar a loja (LIS/VNG) pelo nome do ficheiro — escolhe manualmente", needStore: true },
+        {
+          ok: false,
+          error:
+            "não deu para detetar a loja (LIS/VNG) pelo nome do ficheiro — escolhe a boutique no cabeçalho",
+          needStore: true,
+        },
         { status: 400 },
       );
     }

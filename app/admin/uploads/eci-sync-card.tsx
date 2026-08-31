@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/admin/toast";
 import { IconUpload } from "@/components/admin/icons";
 
@@ -115,7 +117,21 @@ export function EciSyncCard() {
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [store, setStore] = useState<"" | "LIS" | "VNG">("");
+  // A loja é a do filtro do cabeçalho, não estado próprio deste cartão. Com
+  // "Geral" escolhido não há loja nenhuma, e é assim que deve ser: um sync que
+  // reescreve o stock de UMA boutique não tem sentido sem saber qual.
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const boutiqueParam = search.get("boutique");
+  const store: "" | "LIS" | "VNG" =
+    boutiqueParam === "LIS" || boutiqueParam === "VNG" ? boutiqueParam : "";
+  // Mesma construção do cabeçalho: troca a loja e deixa o resto da query
+  // intacto, para os dois comandos escreverem no sítio exactamente igual.
+  const hrefLoja = (v: "LIS" | "VNG") => {
+    const q = new URLSearchParams(search.toString());
+    q.set("boutique", v);
+    return `${pathname}?${q}`;
+  };
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SyncResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -164,6 +180,13 @@ export function EciSyncCard() {
   }
 
   function pick(f: File) {
+    // Sem loja escolhida não se avança. Antes havia o "Auto", que adivinhava
+    // pelo nome do ficheiro; agora quem manda é o filtro do cabeçalho, e um
+    // sync autoritativo sem saber a boutique é a definição de perigoso.
+    if (!store) {
+      toast.push("error", "Escolhe a boutique no cabeçalho — Lisboa ou V.N. Gaia — antes de carregar o ficheiro.");
+      return;
+    }
     setFile(f);
     setResult(null);
     void run(f, false); // auto-preview on pick
@@ -191,15 +214,39 @@ export function EciSyncCard() {
             antes de qualquer gravação.
           </p>
         </div>
-        <label className="shrink-0 text-xs">
+        {/* Não é um selector à parte: escreve no mesmo ?boutique= que o filtro
+            do cabeçalho lê, portanto é o MESMO estado visto de dois sítios.
+            Mudar aqui muda lá em cima, e vice-versa.
+
+            O "Auto" desapareceu de propósito. Adivinhava a loja pelo nome do
+            ficheiro, e num ecrã que apaga tudo o que não vier nele, adivinhar
+            era o pior que podia fazer. */}
+        <div className="shrink-0 text-xs">
           <span className="overline mb-1 block text-[0.55rem] text-muted">Loja</span>
-          <select value={store} onChange={(e) => setStore(e.target.value as "" | "LIS" | "VNG")}
-            className="border border-line bg-paper px-2 py-1.5 text-sm outline-none focus:border-gold">
-            <option value="">Auto</option>
-            <option value="LIS">Lisboa</option>
-            <option value="VNG">V. N. Gaia</option>
-          </select>
-        </label>
+          <div className="flex gap-1">
+            {([
+              { v: "LIS", label: "Lisboa" },
+              { v: "VNG", label: "V. N. Gaia" },
+            ] as const).map((o) => {
+              const activa = store === o.v;
+              return (
+                <Link
+                  key={o.v}
+                  href={hrefLoja(o.v)}
+                  scroll={false}
+                  aria-current={activa ? "true" : undefined}
+                  className={`border px-3 py-1.5 text-sm transition-colors ${
+                    activa
+                      ? "border-gold bg-gold/10 text-ink"
+                      : "border-line bg-paper text-muted hover:border-gold hover:text-ink"
+                  }`}
+                >
+                  {o.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <label
