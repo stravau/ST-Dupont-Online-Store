@@ -49,18 +49,18 @@ export function BigKPIs({
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {/* HOJE */}
-      <div className="painel-card hero-reveal p-5" style={{ animationDelay: "0ms" }}>
+      <div className="painel-card hero-reveal p-4" style={{ animationDelay: "0ms" }}>
         <div className="flex items-baseline justify-between">
           <p className="overline text-[0.6rem] text-gold">Hoje</p>
           <p className="text-[0.62rem] tracking-[0.12em] text-muted uppercase tabular-nums">
             {new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "long" })}
           </p>
         </div>
-        <p className="hero-number mt-3 text-5xl">
+        <p className="hero-number mt-2 text-[2.6rem]">
           {eur(today.now.grossCents)}
           <DeltaBadge pct={today.deltaGrossPct} />
         </p>
-        <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[0.72rem] text-muted">
+        <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-2.5 text-[0.72rem] text-muted">
           <div>
             <dt className="text-[0.58rem] tracking-[0.1em] text-muted uppercase">Líquido</dt>
             <dd className="mt-0.5 font-medium text-ink tabular-nums">{eur2(today.now.netCents)}</dd>
@@ -76,18 +76,18 @@ export function BigKPIs({
       </div>
 
       {/* ESTE MÊS */}
-      <div className="painel-card hero-reveal p-5" style={{ animationDelay: "120ms" }}>
+      <div className="painel-card hero-reveal p-4" style={{ animationDelay: "120ms" }}>
         <div className="flex items-baseline justify-between">
           <p className="overline text-[0.6rem] text-gold">Este mês</p>
           <p className="text-[0.62rem] tracking-[0.12em] text-muted uppercase capitalize">
             {monthName}
           </p>
         </div>
-        <p className="hero-number mt-3 text-5xl">
+        <p className="hero-number mt-2 text-[2.6rem]">
           {eur(month.now.grossCents)}
           <DeltaBadge pct={month.deltaGrossPct} />
         </p>
-        <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[0.72rem] text-muted">
+        <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-2.5 text-[0.72rem] text-muted">
           <div>
             <dt className="text-[0.58rem] tracking-[0.1em] text-muted uppercase">Líquido</dt>
             <dd className="mt-0.5 font-medium text-ink tabular-nums">{eur2(month.now.netCents)}</dd>

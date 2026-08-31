@@ -31,7 +31,7 @@ function PulseCard({ title, subtitle, stores }: { title: string; subtitle?: stri
         <p className="overline text-[0.55rem] text-muted">{title}</p>
         {subtitle && <span className="text-[0.6rem] tracking-[0.14em] text-muted uppercase">{subtitle}</span>}
       </div>
-      <p className="mt-3 font-serif text-4xl text-ink tabular-nums">{eur0(total.grossCents)}</p>
+      <p className="mt-3 text-4xl font-semibold text-ink tabular-nums">{eur0(total.grossCents)}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div className="border-t border-line pt-2">
@@ -80,7 +80,7 @@ export function SalesTrend({ points, action }: { points: DayPoint[]; action?: Re
           as tabs de loja no canto direito os dois textos sobrepunham-se. */}
       <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
         <div className="min-w-0">
-          <h2 className="font-serif text-xl text-ink">Tendência de vendas</h2>
+          <h2 className="text-[0.62rem] font-semibold tracking-[0.18em] text-gold uppercase">Tendência de vendas</h2>
           <p className="mt-1 text-[0.6rem] tracking-[0.18em] text-muted uppercase">últimos 30 dias</p>
         </div>
         {action && <div className="shrink-0">{action}</div>}

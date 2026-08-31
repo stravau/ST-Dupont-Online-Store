@@ -39,7 +39,7 @@ export function SalesHeatmap({ perScope }: { perScope: Record<Scope, Heatmap> })
     <section className="painel-card card-in flex h-full flex-col p-6">
       <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
         <div className="min-w-0">
-          <h2 className="font-serif text-xl text-ink">Ritmo semanal</h2>
+          <h2 className="text-[0.62rem] font-semibold tracking-[0.18em] text-gold uppercase">Ritmo semanal</h2>
           <p className="mt-1 text-[0.6rem] tracking-[0.18em] text-muted uppercase">
             últimas {data.weeks} semanas
           </p>

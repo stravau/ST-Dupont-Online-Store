@@ -165,6 +165,35 @@ h1, h2, h3, .font-serif {
    os headings (h1/h2/h3 e .font-serif) em Cormorant Garamond para preservar
    o tom Maison. Storefront público não é afectado. */
 .admin-scope {
+  /* ---- Paleta do painel -------------------------------------------------
+     Marfim em vez de branco frio: parece papel de qualidade, e nao ecra. O
+     azul institucional deixa de ser fundo e passa a ser so navegacao. Fica
+     confinado ao .admin-scope — o storefront tem a sua propria identidade e
+     nao se mexe. */
+  --cream: #f6f5f2;  /* fundo da pagina */
+  --paper: #ffffff;  /* cartoes */
+  --line:  #e5e2da;  /* bordas, agora quentes e discretas */
+  --ink:   #1e2430;  /* texto principal — 14,3:1 sobre marfim */
+  --muted: #667085;  /* texto secundario — 4,6:1, AA */
+
+  /* O dourado sao dois, e tem de ser. O champanhe e mais elegante mas da
+     2,84:1 sobre marfim — falha em texto pequeno, e os titulos de seccao sao
+     exactamente isso. Entao: champanhe para decoracao e para fundos escuros,
+     onde e visto grande ou sobre azul (4,76:1); e um tom mais fundo, da mesma
+     familia quente, para dourado que seja TEXTO sobre claro (4,59:1, AA). */
+  --gold-base: #b08d57;
+  --gold-deep: #8a6a35;
+
+  /* Borda de campo em tom quente, para acompanhar. A --line e decorativa
+     (1,29:1) e assim deve ser; esta identifica um controlo e cumpre os 3:1. */
+  --field-line: #898883;
+
+  /* Azul institucional. Navbar, cabecalho, estados activos — e mais nada. */
+  --admin-hero-top:    #142848;
+  --admin-hero-bottom: #1b3358;
+  --admin-hero-card:   #1b2f4c;
+  --admin-hero-line:   #2a4670;
+
   /* Altura do cabeçalho fixo, num sítio só. Tudo o que dentro do painel
      também é sticky — a barra de selecção do stock, os painéis laterais
      dos relatórios e do POS — encosta-se a esta variável em vez de a um
@@ -204,8 +233,8 @@ h1, h2, h3, .font-serif {
 .admin-hero {
   background-color: var(--admin-hero-top);
   background-image:
-    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.03) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.03) 0 1px, transparent 1px 26px),
     linear-gradient(180deg, var(--admin-hero-top) 0%, var(--admin-hero-bottom) 100%);
   color: var(--cream);
   border-bottom: 1px solid rgba(181, 138, 52, 0.4);
@@ -995,64 +1024,29 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
   border-color: var(--field-line);
 }
 
-/* --- Painel: fundo azul, cartões brancos -----------------------------------
-   A inversão do que estava. Antes era uma faixa escura no topo sobre corpo
-   claro; agora o fundo é azul de ponta a ponta e são os cartões que se
-   destacam — brancos, arredondados, com o mesmo contorno fino que as pastilhas
-   do cabeçalho usam. O contraste passa a estar no cartão e não na banda.
-
-   O fundo é `fixed` e não um bloco no fluxo: o contentor da página está preso
-   a 1600px e um bloco lá dentro deixaria as margens em cream. Assim cobre a
-   largura toda, e começa por baixo do cabeçalho, que é sticky e tem fundo
-   próprio. */
+/* --- Painel ----------------------------------------------------------------
+   O azul deixa de ser fundo. Passa a marfim, com o azul reservado a navegacao
+   e a estados activos, e os cartoes a destacarem-se por sombra e nao por
+   contorno. A informacao passa a ser o que se ve primeiro; a decoracao deixa
+   de competir com ela. */
 .painel {
   position: relative;
-  /* Sobre azul, o dourado volta ao tom da marca. O tom fundo do .admin-scope
-     serve para texto sobre claro e aqui apagava-se. */
-  --gold: var(--gold-base);
-  color: var(--cream);
-}
-.painel::before {
-  content: "";
-  position: fixed;
-  inset: var(--admin-header-h) 0 0 0;
-  background-color: var(--admin-hero-top);
-  background-image:
-    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
-    linear-gradient(180deg, var(--admin-hero-top) 0%, var(--admin-hero-bottom) 100%);
-  z-index: 0;
-  pointer-events: none;
-}
-.painel > * {
-  position: relative;
-  z-index: 1;
 }
 
-/* O cartão do painel: branco, arredondado, contorno fino. É a mesma linguagem
-   das pastilhas do cabeçalho, à escala de um bloco. */
+/* O cartao: branco sobre marfim, cantos redondos, contorno quase invisivel e
+   uma sombra larga e fraca. E a sombra que separa o cartao do fundo — a borda
+   forte fazia cada bloco parecer uma caixa fechada em vez de uma superficie
+   pousada. */
 .painel-card {
   background: var(--paper);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(30, 36, 48, 0.05);
   border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
   color: var(--ink);
 }
 
-/* Dentro de um cartão branco o texto volta às cores de superfície clara — os
-   componentes do painel foram escritos para fundo escuro e herdavam cream. */
+/* O numero grande dos KPI: dourado fundo, que e o que passa AA sobre branco. */
 .painel-card .hero-number {
   color: var(--gold-deep);
 }
 
-/* Dentro do painel a banda do hero funde-se com o fundo: era ela a superfície
-   escura quando o corpo era claro, e agora seria uma caixa dentro de outra da
-   mesma cor, com uma linha dourada a separar o que já é contínuo. */
-.painel .admin-hero {
-  background: none;
-  border-bottom: 0;
-  padding-left: 0;
-  padding-right: 0;
-}
-.painel .admin-hero::after {
-  display: none;
-}

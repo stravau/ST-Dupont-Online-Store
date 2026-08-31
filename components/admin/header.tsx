@@ -299,7 +299,7 @@ export function AdminHeader({
                                 sec.hero
                                   ? "h-full w-full rounded-xl px-10 py-3 text-[0.95rem] font-semibold"
                                   : sec.solo
-                                    ? "min-h-[52px] rounded-full px-5 py-3 text-[0.86rem]"
+                                    ? "min-h-[44px] rounded-full px-5 py-2.5 text-[0.86rem]"
                                     : "min-h-[38px] rounded-full px-3 py-2 text-[0.78rem]"
                               } ${
                                 active
