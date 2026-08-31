@@ -26,7 +26,7 @@ function PulseCard({ title, subtitle, stores }: { title: string; subtitle?: stri
   const total = sumStores(stores);
   const get = (b: BoutiqueCode) => stores.find((s) => s.boutique === b)?.grossCents ?? 0;
   return (
-    <div className="border border-line border-l-[3px] border-l-gold bg-paper p-6">
+    <div className="painel-card border-l-[3px] border-l-gold p-6">
       <div className="flex items-baseline justify-between">
         <p className="overline text-[0.55rem] text-muted">{title}</p>
         {subtitle && <span className="text-[0.6rem] tracking-[0.14em] text-muted uppercase">{subtitle}</span>}
@@ -75,7 +75,7 @@ export function SalesTrend({ points, action }: { points: DayPoint[]; action?: Re
   const mid = Math.floor(points.length / 2);
 
   return (
-    <section className="flex h-full flex-col border border-line bg-paper p-6">
+    <section className="painel-card flex h-full flex-col p-6">
       {/* "últimos 30 dias" vive por baixo do título, não à direita dele: com
           as tabs de loja no canto direito os dois textos sobrepunham-se. */}
       <div className="flex items-start justify-between gap-4 border-b border-line pb-3">

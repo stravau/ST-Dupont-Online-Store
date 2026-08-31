@@ -70,7 +70,7 @@ export function TopOperatorsBar({
 }) {
   const boutiques = Object.keys(perBoutique) as BoutiqueCode[];
   return (
-    <section className="card-in border border-line bg-paper p-5">
+    <section className="painel-card card-in p-5">
       <div className="flex items-baseline justify-between border-b border-line pb-3">
         <h2 className="font-serif text-lg text-ink">Top vendedores</h2>
         <span className="text-[0.6rem] tracking-[0.14em] text-muted uppercase capitalize">

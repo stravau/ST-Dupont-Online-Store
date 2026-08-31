@@ -36,7 +36,7 @@ export function SalesHeatmap({ perScope }: { perScope: Record<Scope, Heatmap> })
   const totalHeight = data.weeks * (cellHeight + cellGap) + 14;
 
   return (
-    <section className="card-in flex h-full flex-col border border-line bg-paper p-6">
+    <section className="painel-card card-in flex h-full flex-col p-6">
       <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
         <div className="min-w-0">
           <h2 className="font-serif text-xl text-ink">Ritmo semanal</h2>

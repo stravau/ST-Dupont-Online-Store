@@ -994,3 +994,65 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
 .admin-scope :where(input, select, textarea).border-line:not(:focus) {
   border-color: var(--field-line);
 }
+
+/* --- Painel: fundo azul, cartões brancos -----------------------------------
+   A inversão do que estava. Antes era uma faixa escura no topo sobre corpo
+   claro; agora o fundo é azul de ponta a ponta e são os cartões que se
+   destacam — brancos, arredondados, com o mesmo contorno fino que as pastilhas
+   do cabeçalho usam. O contraste passa a estar no cartão e não na banda.
+
+   O fundo é `fixed` e não um bloco no fluxo: o contentor da página está preso
+   a 1600px e um bloco lá dentro deixaria as margens em cream. Assim cobre a
+   largura toda, e começa por baixo do cabeçalho, que é sticky e tem fundo
+   próprio. */
+.painel {
+  position: relative;
+  /* Sobre azul, o dourado volta ao tom da marca. O tom fundo do .admin-scope
+     serve para texto sobre claro e aqui apagava-se. */
+  --gold: var(--gold-base);
+  color: var(--cream);
+}
+.painel::before {
+  content: "";
+  position: fixed;
+  inset: var(--admin-header-h) 0 0 0;
+  background-color: var(--admin-hero-top);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(216, 189, 124, 0.045) 0 1px, transparent 1px 26px),
+    linear-gradient(180deg, var(--admin-hero-top) 0%, var(--admin-hero-bottom) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+.painel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* O cartão do painel: branco, arredondado, contorno fino. É a mesma linguagem
+   das pastilhas do cabeçalho, à escala de um bloco. */
+.painel-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  color: var(--ink);
+}
+
+/* Dentro de um cartão branco o texto volta às cores de superfície clara — os
+   componentes do painel foram escritos para fundo escuro e herdavam cream. */
+.painel-card .hero-number {
+  color: var(--gold-deep);
+}
+
+/* Dentro do painel a banda do hero funde-se com o fundo: era ela a superfície
+   escura quando o corpo era claro, e agora seria uma caixa dentro de outra da
+   mesma cor, com uma linha dourada a separar o que já é contínuo. */
+.painel .admin-hero {
+  background: none;
+  border-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.painel .admin-hero::after {
+  display: none;
+}

@@ -55,8 +55,10 @@ export default async function AdminHome() {
     // O filtro de loja vive no hero mas comanda a página toda — por isso o
     // provider envolve tudo, e os cards de baixo não têm selector próprio.
     <DashboardScopeProvider>
-    <div className="space-y-10">
-      {/* Banda escura executiva — a coisa que o patrão vê primeiro. */}
+    <div className="painel space-y-10">
+      {/* O cumprimento e o contexto. A banda escura deixou de ser precisa: o
+          fundo da página inteira e que e azul agora, e sao os cartoes brancos
+          que se destacam contra ele. */}
       <AdminHero
         eyebrow="Painel"
         title={greeting}
@@ -116,7 +118,7 @@ function JumpCard({ href, eyebrow, title, body, Icon }: {
   Icon: (p: { className?: string }) => React.ReactElement;
 }) {
   return (
-    <Link href={href} className="group card-in flex items-start justify-between gap-5 border border-line bg-paper p-7 transition-colors hover:border-gold">
+    <Link href={href} className="painel-card group card-in flex items-start justify-between gap-5 p-7 transition-colors hover:border-gold">
       <div>
         <div className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center border border-line text-gold transition-colors group-hover:border-gold group-hover:bg-gold/10">

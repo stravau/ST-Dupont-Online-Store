@@ -36,7 +36,7 @@ function typeBadge(type: "VENDA" | "DEVOLUCAO" | "REPARACAO") {
     );
   }
   return (
-    <span className="mr-1.5 border border-gold-soft/40 bg-gold-soft/10 px-1.5 py-0.5 text-[0.55rem] font-medium tracking-wide text-gold-soft uppercase">
+    <span className="mr-1.5 border border-gold-soft/40 bg-gold-soft/10 px-1.5 py-0.5 text-[0.55rem] font-medium tracking-wide text-gold uppercase">
       Rep.
     </span>
   );
@@ -60,17 +60,17 @@ function TickerColumn({
   const hiddenCount = Math.max(0, rows.length - initialVisible);
 
   return (
-    <div>
+    <div className="painel-card p-5">
       {showLabel && (
         <div className="mb-2 flex items-center gap-2">
           <span className="live-dot" />
-          <p className="overline text-[0.55rem] text-gold-soft">
+          <p className="overline text-[0.55rem] text-gold">
             {BOUTIQUE_LABEL[boutique]} · últimas {rows.length}
           </p>
         </div>
       )}
       {rows.length === 0 ? (
-        <p className="text-[0.72rem] text-cream/40">Sem vendas ainda.</p>
+        <p className="text-[0.72rem] text-muted">Sem vendas ainda.</p>
       ) : (
         <>
           <ul className="space-y-1.5">
@@ -79,13 +79,13 @@ function TickerColumn({
                 key={r.id}
                 className={`grid grid-cols-[auto_auto_1fr_auto] items-baseline gap-2 border-l border-transparent px-2 py-1 text-[0.72rem] transition-colors hover:border-l-gold/40 ${newIds.has(r.id) ? "ticker-row-new" : ""}`}
               >
-                <time className="tabular-nums text-cream/50">{relativeTime(r.soldAt)}</time>
-                <span className="font-mono text-[0.68rem] text-gold-soft">{r.operator}</span>
-                <span className="min-w-0 truncate text-cream/80">
+                <time className="tabular-nums text-muted">{relativeTime(r.soldAt)}</time>
+                <span className="font-mono text-[0.68rem] text-gold">{r.operator}</span>
+                <span className="min-w-0 truncate text-ink">
                   {typeBadge(r.type)}
                   {r.itemsSummary}
                 </span>
-                <span className="tabular-nums font-medium text-cream/95">{eur(r.grossCents)}</span>
+                <span className="tabular-nums font-medium text-ink">{eur(r.grossCents)}</span>
               </li>
             ))}
           </ul>
@@ -93,7 +93,7 @@ function TickerColumn({
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="mt-2 w-full border-t border-cream/10 py-1.5 text-[0.62rem] tracking-[0.14em] text-gold-soft uppercase transition-colors hover:text-gold-glow"
+              className="mt-2 w-full border-t border-line py-1.5 text-[0.62rem] tracking-[0.14em] text-gold uppercase transition-colors hover:text-gold-deep"
             >
               {expanded ? "Mostrar menos ▲" : `Mostrar mais ${hiddenCount} ▾`}
             </button>
