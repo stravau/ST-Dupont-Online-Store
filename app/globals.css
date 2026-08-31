@@ -27,10 +27,16 @@
   --charcoal: #112842; /* slightly lifted navy */
   --cream: #eef3fa; /* cool near-white: page background & light-on-dark text */
   --paper: #ffffff; /* clean white surfaces (cards) */
-  --gold: #b58a34; /* antique gold accent */
+  --gold-base: #b58a34; /* o dourado da marca, tal e qual */
+  --gold: var(--gold-base); /* antique gold accent */
   --gold-soft: #d8bd7c; /* lighter gold for fine details on dark */
   --muted: #4a5a72; /* slate-blue secondary text — AA contrast on cream */
-  --line: #d4deec; /* light blue-grey borders */
+  --line: #d4deec; /* light blue-grey borders — filetes decorativos */
+  /* Contorno de CAMPO. A --line da 1,36:1 sobre branco: serve para separar
+     seccoes, nao para dizer que ali ha um campo. A WCAG 1.4.11 exige 3:1 para
+     o que identifica um controlo, e este da 3,72 sobre branco e 3,33 sobre
+     cream — a mesma matiz azul-acinzentada, escurecida ate passar. */
+  --field-line: #7f858e;
 
   /* --- Extensions for the admin dashboard rebrand ------------------------- */
   /* Bright gold for hero numbers / accent highlights on the dark navy band.
@@ -78,6 +84,7 @@
   --color-gold-deep: var(--gold-deep);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-field-line: var(--field-line);
   --color-ink-line: var(--ink-line);
   --color-emerald: var(--emerald);
   --color-claret: var(--claret);
@@ -162,6 +169,14 @@ h1, h2, h3, .font-serif {
      também é sticky — a barra de selecção do stock, os painéis laterais
      dos relatórios e do POS — encosta-se a esta variável em vez de a um
      número próprio. Mexer no cabeçalho passa a ser mexer aqui. */
+  /* Dentro do painel quase tudo e superficie clara, e o dourado da marca da
+     so 2,83:1 sobre o cream — falha a WCAG ate no minimo de texto grande, e a
+     .overline usa-o a 0,7rem. Aqui --gold passa a ser o tom fundo, que da
+     4,67:1 (AA). Nao e cor nova: e o --gold-deep que ja existia. Como o
+     Tailwind resolve text-gold/border-gold por var(--gold), isto apanha as
+     130 ocorrencias de uma vez, incluindo os estados de hover. */
+  --gold: var(--gold-deep);
+
   --admin-header-h: 165px; /* valor de arranque; o cabeçalho corrige-o ao montar */
   font-family: var(--font-admin-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Números tabulares em toda a interface — dinheiro, contagens, datas
@@ -180,6 +195,12 @@ h1, h2, h3, .font-serif {
    as .monogram-bg but com um tom navy mais lift (não tão preto), gerido
    por tokens dedicados (--admin-hero-top/-bottom) para não afectar login
    ou storefront. Hairline gold em baixo anchor a transição para o cream. */
+/* Sobre a faixa escura o dourado da marca brilha a 6:1 — o tom fundo e que
+   la se apagaria. Repoe-se o original so aqui dentro. */
+.admin-scope .admin-hero {
+  --gold: var(--gold-base);
+}
+
 .admin-hero {
   background-color: var(--admin-hero-top);
   background-image:
@@ -959,4 +980,17 @@ header[data-transparent="false"] img[src*="dupont-logo"] {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+}
+
+/* --- Contorno dos campos do painel ---------------------------------------
+   A --line (1,36:1 sobre branco) serve para separar secções, não para dizer
+   que ali há um campo. A WCAG 1.4.11 exige 3:1 para o que identifica um
+   controlo, e um contorno que mal se vê é precisamente isso.
+
+   Aplicado por ELEMENTO e não classe a classe: são dezenas de campos em vinte
+   ficheiros, e o que os distingue é serem campos, não a utility que lhes
+   calhou. O :where() não soma especificidade e o :not(:focus) deixa o estado
+   de foco em dourado como está — o contorno mais escuro é só o de repouso. */
+.admin-scope :where(input, select, textarea).border-line:not(:focus) {
+  border-color: var(--field-line);
 }
