@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
+import { Logo } from "@/components/logo";
 import { ReporteBotao } from "@/components/admin/reporte-botao";
 import {
   IconDashboard,
@@ -379,8 +380,23 @@ export function AdminHeader({
           tocar no vidro. A mesma folga na linha de navegação por baixo, senão
           o Painel deixa de alinhar com o logótipo. */}
       <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-5">
-        <Link href={home} className="group flex min-w-0 items-baseline gap-3">
-          <span className="font-serif text-xl leading-none text-cream">S.T. Dupont</span>
+        {/* O logótipo oficial em vez do nome escrito à mão. O ficheiro já é
+            branco e já tem fundo transparente, por isso entra em variant
+            "light" — sem filtro nenhum por cima. O width={520} é o tamanho
+            intrínseco que o next/image usa para gerar o srcset; quem manda no
+            tamanho no ecrã é a classe w-[...]. priority porque isto está no
+            topo de todas as páginas do painel e não deve piscar.
+
+            items-center e não items-baseline: uma imagem tem a linha de base
+            no rodapé, e ao lado de texto isso empurrava a localização para
+            fora do sítio. */}
+        <Link href={home} className="group flex min-w-0 items-center gap-3.5">
+          <Logo
+            variant="light"
+            width={520}
+            priority
+            className="w-[104px] shrink-0 sm:w-[116px]"
+          />
           <span className="hidden truncate text-[0.63rem] tracking-[0.16em] text-cream/60 uppercase sm:block">
             {locationFor(role)}
           </span>
