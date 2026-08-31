@@ -103,11 +103,14 @@ export function ReporteBotao() {
       });
       const data = (await res.json()) as { ok?: boolean; repetido?: boolean; error?: string };
       if (data.ok) {
+        // As duas dizem o mesmo à cabeça, porque as duas são um sucesso: o
+        // reporte ficou registado. A segunda só acrescenta que já lá estava —
+        // saber isso é útil, mas não pode parecer que a coisa não pegou.
         toast.push(
           "success",
           data.repetido
-            ? "Obrigado — já tínhamos este problema registado e ficou com mais uma ocorrência."
-            : "Reporte enviado. Obrigado.",
+            ? "Problema reportado com sucesso — já o tínhamos registado e ficou com mais uma ocorrência."
+            : "Problema reportado com sucesso",
         );
         setAberto(false);
         setCategoria("");
