@@ -110,6 +110,14 @@ function sectionsFor(role?: string): Section[] {
     });
   }
 
+  // As filas so existem para caber. O patrao tem onze destinos e cinco areas,
+  // e ai partir a Loja em 2/2/1 mantem a faixa baixa; um login de loja tem
+  // seis, cabem todos numa linha, e mante-los empilhados era desenhar para um
+  // aperto que nao existe. Achata-se.
+  if (!isAdmin) {
+    return sections.map((s) => ({ ...s, rows: [s.rows.flat()] }));
+  }
+
   return sections;
 }
 
@@ -221,7 +229,8 @@ export function AdminHeader({
   };
 
   const sections = sectionsFor(role);
-  const home = role === "ADMIN" ? "/admin" : "/admin/pos";
+  const ehPatrao = role === "ADMIN";
+  const home = ehPatrao ? "/admin" : "/admin/pos";
 
   // As três lojas empilhadas. É a coluna mais alta da faixa, e é ela que passa
   // a mandar na altura do cabeçalho — o Painel estica-se até lá e as áreas de
@@ -296,12 +305,11 @@ export function AdminHeader({
         </form>
       </div>
 
-      {/* Faixa de navegação alinhada à esquerda, e não distribuída pela linha.
-          O justify-between enchia bem a largura com as seis áreas do patrão,
-          mas um login de loja só tem duas — e nesse caso atirava-as para os
-          extremos opostos com um vazio no meio. Alinhar à esquerda funciona
-          nos dois casos; o preço é sobrar algum branco à direita nos ecrãs
-          largos, que é o comportamento normal de um menu.
+      {/* O alinhamento depende de quem entrou, porque as duas vistas não têm
+          nada a ver uma com a outra. O patrão tem cinco áreas e onze destinos
+          que quase enchem a linha — alinhados à esquerda, como um menu. Um
+          login de loja tem duas áreas e seis destinos, e à esquerda ficava a
+          faixa toda a pender para um lado; centrados, a margem reparte-se.
 
           Cada área é uma COLUNA, e dentro dela os botões
           organizam-se em filas centradas umas sobre as outras — Catálogo 2+1,
@@ -309,7 +317,11 @@ export function AdminHeader({
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
       <div className="border-t border-white/10 bg-white/[0.03]">
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-3 px-4 py-2.5 sm:justify-start sm:px-7">
+        <nav
+          className={`mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-3 px-4 py-2.5 sm:px-7 ${
+            ehPatrao ? "sm:justify-start" : "sm:justify-center"
+          }`}
+        >
           {sections.map((sec, i) => (
             <Fragment key={sec.title}>
               {/* O filtro de loja entra logo a seguir ao Painel: é o contexto
