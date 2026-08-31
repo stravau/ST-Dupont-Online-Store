@@ -269,7 +269,7 @@ export function AdminHeader({
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
       <div className="border-t border-line/70 bg-cream/40">
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-4 px-4 py-3 sm:justify-start sm:px-7">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-4 px-4 py-3 sm:justify-between sm:px-7">
           {sections.map((sec, i) => (
             <Fragment key={sec.title}>
               {/* O filtro de loja entra logo a seguir ao Painel: é o contexto
