@@ -370,8 +370,15 @@ export function AdminHeader({
 
   return (
     <header ref={ref} className="admin-topo sticky top-0 z-40">
-      {/* Faixa de identidade */}
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-2 sm:px-7">
+      {/* Faixa de identidade.
+
+          Sem max-width e sem mx-auto DE PROPÓSITO: uma barra centrada num ecrã
+          largo deixa duas faixas mortas de centenas de pixels e o logótipo
+          fica a boiar. Isto é uma barra de aplicação, não uma página de texto
+          — cada extremo encosta ao seu canto, com a folga mínima para não
+          tocar no vidro. A mesma folga na linha de navegação por baixo, senão
+          o Painel deixa de alinhar com o logótipo. */}
+      <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-5">
         <Link href={home} className="group flex min-w-0 items-baseline gap-3">
           <span className="font-serif text-xl leading-none text-cream">S.T. Dupont</span>
           <span className="hidden truncate text-[0.63rem] tracking-[0.16em] text-cream/60 uppercase sm:block">
@@ -441,7 +448,7 @@ export function AdminHeader({
       >
         {/* Espaçador — dá à faixa a altura de uma linha de título e mais nada. */}
         {colapsavel && (
-          <div aria-hidden className="invisible px-4 py-2 sm:px-7">
+          <div aria-hidden className="invisible px-4 py-2 sm:px-5">
             <span className="block text-[0.56rem] font-semibold tracking-[0.12em] uppercase">A</span>
           </div>
         )}
@@ -456,7 +463,7 @@ export function AdminHeader({
           }
         >
           <nav
-            className={`mx-auto flex w-full max-w-[1600px] items-start gap-y-3 px-4 pt-2 pb-2.5 sm:px-7 ${
+            className={`flex w-full items-start gap-y-3 px-4 pt-2 pb-2.5 sm:px-5 ${
               ehPatrao ? "sm:justify-between" : "flex-wrap justify-center"
             }`}
           >
