@@ -203,7 +203,7 @@ export function AdminHeader({
   // um botão único e inerte.
   const filtroLoja =
     role !== "ADMIN" ? null : (
-      <div className="flex shrink-0 items-stretch gap-5 sm:gap-7">
+      <div className="flex shrink-0 items-stretch gap-4 sm:gap-6">
         <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />
         <div className="flex shrink-0 flex-col">
           <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
@@ -221,7 +221,7 @@ export function AdminHeader({
                   key={o.v}
                   href={hrefLoja(o.v)}
                   aria-current={activa ? "true" : undefined}
-                  className={`inline-flex min-h-[34px] flex-1 items-center justify-center rounded-full px-4 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+                  className={`inline-flex min-h-[34px] flex-1 items-center justify-center rounded-full px-3 py-1.5 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
                     activa
                       ? "bg-ink text-cream shadow-sm"
                       : "border border-line bg-paper text-ink hover:border-gold hover:text-gold"
@@ -269,14 +269,14 @@ export function AdminHeader({
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
       <div className="border-t border-line/70 bg-cream/40">
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-x-5 gap-y-4 px-4 py-3 sm:justify-start sm:gap-x-7 sm:px-7">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-4 px-4 py-3 sm:justify-start sm:px-7">
           {sections.map((sec, i) => (
             <Fragment key={sec.title}>
               {/* O filtro de loja entra logo a seguir ao Painel: é o contexto
                   em que tudo o resto é lido, e por isso vive ao lado do
                   destino principal e não perdido no fim da fila. */}
               {i === 1 && filtroLoja}
-            <div className="flex shrink-0 items-stretch gap-5 sm:gap-7">
+            <div className="flex shrink-0 items-stretch gap-4 sm:gap-6">
               {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-line sm:block" />}
               <div className="flex shrink-0 flex-col">
                 <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.16em] text-muted uppercase sm:text-left">
@@ -297,10 +297,10 @@ export function AdminHeader({
                               title={it.hint}
                               className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
                                 sec.hero
-                                  ? "h-full w-full rounded-xl px-7 py-3 text-[0.95rem] font-semibold"
+                                  ? "h-full w-full rounded-xl px-6 py-3 text-[0.95rem] font-semibold"
                                   : sec.solo
-                                    ? "min-h-[52px] rounded-full px-6 py-3 text-[0.86rem]"
-                                    : "min-h-[38px] rounded-full px-3.5 py-2 text-[0.78rem]"
+                                    ? "min-h-[52px] rounded-full px-5 py-3 text-[0.86rem]"
+                                    : "min-h-[38px] rounded-full px-3 py-2 text-[0.78rem]"
                               } ${
                                 active
                                   ? "bg-ink text-cream shadow-sm"
