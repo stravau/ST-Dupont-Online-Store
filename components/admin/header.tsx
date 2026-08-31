@@ -395,7 +395,7 @@ export function AdminHeader({
             variant="light"
             width={520}
             priority
-            className="w-[104px] shrink-0 sm:w-[116px]"
+            className="w-[122px] shrink-0 sm:w-[138px]"
           />
           <span className="hidden truncate text-[0.63rem] tracking-[0.16em] text-cream/60 uppercase sm:block">
             {locationFor(role)}
