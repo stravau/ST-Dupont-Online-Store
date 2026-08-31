@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BOUTIQUE_SHORT } from "@/components/admin/boutique-scope";
@@ -175,6 +175,27 @@ export function AdminHeader({
   // o que dentro do painel tambem e sticky encosta-se a essa variavel. Medido
   // em vez de escrito a mao porque o html esta a 19px e o body tem zoom 0.9 —
   // qualquer constante ficaria errada a primeira mudanca de tipo ou de padding.
+  // Abre por hover E por foco. Um menu so-de-rato deixa de fora quem navega
+  // por teclado, e o fecho tem folga de 220ms para o rato poder atravessar do
+  // titulo ate ao painel sem o perder pelo caminho — mesma mecanica do
+  // mega-menu da loja.
+  const [aberto, setAberto] = useState(false);
+  const fecho = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelarFecho = useCallback(() => {
+    if (fecho.current) {
+      clearTimeout(fecho.current);
+      fecho.current = null;
+    }
+  }, []);
+  const abrir = useCallback(() => {
+    cancelarFecho();
+    setAberto(true);
+  }, [cancelarFecho]);
+  const agendarFecho = useCallback(() => {
+    cancelarFecho();
+    fecho.current = setTimeout(() => setAberto(false), 220);
+  }, [cancelarFecho]);
+
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -189,6 +210,21 @@ export function AdminHeader({
 
   const pathname = usePathname();
   const search = useSearchParams();
+
+  // Uma pagina nova nunca herda o painel aberto da anterior.
+  useEffect(() => {
+    setAberto(false);
+  }, [pathname]);
+
+  // Escape fecha — quem abriu por teclado tem de conseguir sair por teclado.
+  useEffect(() => {
+    if (!aberto) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAberto(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [aberto]);
   const isActive = (href: string) => {
     const [path, qs] = href.split("?");
     if (path === "/admin") return pathname === "/admin";
@@ -230,6 +266,12 @@ export function AdminHeader({
 
   const sections = sectionsFor(role);
   const ehPatrao = role === "ADMIN";
+  // So o patrao esconde a navegacao. Ele tem cinco areas e onze destinos, e a
+  // faixa custa-lhe um quarto do primeiro ecra. Um login de loja tem duas
+  // areas numa linha: encolher isso nao devolve espaco nenhum e passa a exigir
+  // um gesto para chegar ao que ja estava a vista.
+  const colapsavel = ehPatrao;
+  const mostraTudo = !colapsavel || aberto;
   const home = ehPatrao ? "/admin" : "/admin/pos";
 
   // As três lojas empilhadas. É a coluna mais alta da faixa, e é ela que passa
@@ -322,7 +364,52 @@ export function AdminHeader({
           Loja 3+2. As áreas de um destino só (Geral, Sistema) recebem-no maior
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
-      <div className="border-t border-white/10 bg-white/[0.03]">
+      {/* A faixa fina — só os nomes das áreas. É esta a altura real do
+          cabeçalho, e é ela que o --admin-header-h publica.
+
+          O painel com os botões abre POR CIMA da página, não empurrando-a: se
+          crescesse no fluxo, a altura do cabeçalho mudava a cada passagem do
+          rato e tudo o que está preso por baixo dele saltava. Assim a página
+          não se mexe e o painel cobre a faixa, ocupando o lugar dela.
+
+          O nome da área onde se está fica dourado mesmo com o painel fechado —
+          senão, encolhido, o cabeçalho deixava de dizer onde se está. */}
+      <div
+        className={`border-t border-white/10 bg-white/[0.03] ${colapsavel ? "relative" : ""}`}
+        onMouseEnter={colapsavel ? abrir : undefined}
+        onMouseLeave={colapsavel ? agendarFecho : undefined}
+        onFocusCapture={colapsavel ? abrir : undefined}
+        onBlurCapture={colapsavel ? agendarFecho : undefined}
+      >
+        {colapsavel && (
+        <div
+          className="mx-auto flex w-full max-w-[1600px] gap-6 px-4 py-2 sm:justify-between sm:gap-10 sm:px-7"
+          aria-hidden={aberto}
+        >
+          {sections.map((sec) => (
+            <span
+              key={sec.title}
+              className={`text-[0.56rem] font-semibold tracking-[0.12em] uppercase transition-colors ${
+                sec.rows.flat().some((it) => isActive(it.href)) ? "text-gold-soft" : "text-cream/50"
+              }`}
+            >
+              {sec.title}
+            </span>
+          ))}
+          <span className="text-[0.56rem] font-semibold tracking-[0.12em] text-cream/50 uppercase">
+            Boutique
+          </span>
+        </div>
+        )}
+
+        {mostraTudo && (
+          <div
+            className={
+              colapsavel
+                ? "menu-panel admin-topo absolute inset-x-0 top-0 z-10 border-b border-gold/35 shadow-2xl"
+                : ""
+            }
+          >
         <nav
           className={`mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-3 px-4 py-2.5 sm:px-7 ${
             ehPatrao ? "sm:justify-between" : "sm:justify-center"
@@ -378,7 +465,9 @@ export function AdminHeader({
             </div>
             </Fragment>
           ))}
-        </nav>
+          </nav>
+          </div>
+        )}
       </div>
     </header>
   );
