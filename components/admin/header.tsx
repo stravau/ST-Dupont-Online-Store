@@ -265,6 +265,12 @@ export function AdminHeader({
   };
 
   const sections = sectionsFor(role);
+
+  // Uma lista unica de colunas — titulo, se esta activa, e o corpo. Antes a
+  // faixa fechada e o painel aberto construiam a sua propria lista, e a ordem
+  // divergia: a Boutique aparecia em segundo no painel e em ultimo na faixa.
+  // Com uma fonte so, isso deixa de poder acontecer.
+  const colunas: { title: string; activa: boolean; corpo: React.ReactNode }[] = [];
   const ehPatrao = role === "ADMIN";
   // So o patrao esconde a navegacao. Ele tem cinco areas e onze destinos, e a
   // faixa custa-lhe um quarto do primeiro ecra. Um login de loja tem duas
@@ -285,40 +291,79 @@ export function AdminHeader({
   //
   // Só para o patrão: um login de loja tem uma boutique só, e o filtro seria
   // um botão único e inerte.
+  // So o corpo: o titulo e o filete sao da coluna, como em qualquer outra area.
   const filtroLoja =
     role !== "ADMIN" ? null : (
-      <div className="flex shrink-0 items-stretch gap-3 sm:gap-5">
-        <span aria-hidden className="hidden w-px shrink-0 bg-white/[0.07] sm:block" />
-        <div className="flex shrink-0 flex-col">
-          <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.12em] text-cream/50 uppercase sm:text-left">
-            Boutique
-          </p>
-          <div role="group" aria-label="Filtrar por loja" className="flex flex-1 flex-col gap-1.5">
-            {[
-              { v: "all", label: "Geral" },
-              { v: "LIS", label: BOUTIQUE_SHORT.LIS },
-              { v: "VNG", label: BOUTIQUE_SHORT.VNG },
-            ].map((o) => {
-              const activa = (boutique ?? "all") === o.v;
-              return (
-                <Link
-                  key={o.v}
-                  href={hrefLoja(o.v)}
-                  aria-current={activa ? "true" : undefined}
-                  className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
-                    activa
-                      ? "bg-paper text-ink shadow-sm"
-                      : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
-                  }`}
-                >
-                  {o.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+      <div role="group" aria-label="Filtrar por loja" className="flex flex-1 flex-col gap-1.5">
+        {[
+          { v: "all", label: "Geral" },
+          { v: "LIS", label: BOUTIQUE_SHORT.LIS },
+          { v: "VNG", label: BOUTIQUE_SHORT.VNG },
+        ].map((o) => {
+          const activa = (boutique ?? "all") === o.v;
+          return (
+            <Link
+              key={o.v}
+              href={hrefLoja(o.v)}
+              aria-current={activa ? "true" : undefined}
+              tabIndex={mostraTudo ? undefined : -1}
+              className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+                activa
+                  ? "bg-paper text-ink shadow-sm"
+                  : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
+              }`}
+            >
+              {o.label}
+            </Link>
+          );
+        })}
       </div>
     );
+
+  // O corpo de uma área de navegação: as suas filas de pastilhas.
+  const corpoSeccao = (sec: Section) => (
+    <>
+      {sec.rows.map((row, r) => (
+        <ul key={r} className={`flex justify-center gap-1.5 ${sec.hero ? "flex-1 items-stretch" : "items-center"}`}>
+          {row.map((it) => (
+            <li key={it.href} className={sec.hero ? "flex flex-1" : undefined}>
+              <Link
+                href={comBoutique(it.href)}
+                aria-current={isActive(it.href) ? "page" : undefined}
+                title={it.hint}
+                tabIndex={mostraTudo ? undefined : -1}
+                className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
+                  sec.hero
+                    ? "h-full w-full rounded-xl px-8 py-2 text-[0.9rem] font-semibold"
+                    : sec.solo
+                      ? "min-h-[40px] rounded-full px-5 py-2 text-[0.84rem]"
+                      : "min-h-[34px] rounded-full px-3 py-1.5 text-[0.78rem]"
+                } ${estado(isActive(it.href), it.peso)}`}
+              >
+                <it.Icon
+                  className={sec.hero ? "h-5 w-5 shrink-0" : sec.solo ? "h-[18px] w-[18px] shrink-0" : "h-4 w-4 shrink-0"}
+                />
+                {it.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ))}
+    </>
+  );
+
+  for (const [i, sec] of sections.entries()) {
+    colunas.push({
+      title: sec.title,
+      activa: sec.rows.flat().some((it) => isActive(it.href)),
+      corpo: corpoSeccao(sec),
+    });
+    // O filtro de loja entra logo a seguir ao Painel: é o contexto em que tudo
+    // o resto é lido, e por isso vive ao lado do destino principal.
+    if (i === 0 && filtroLoja) {
+      colunas.push({ title: "Boutique", activa: false, corpo: filtroLoja });
+    }
+  }
 
   return (
     <header ref={ref} className="admin-topo sticky top-0 z-40">
@@ -364,110 +409,82 @@ export function AdminHeader({
           Loja 3+2. As áreas de um destino só (Geral, Sistema) recebem-no maior
           e centrado a meio da altura que as de duas filas ocupam, para o
           cabeçalho ler como uma linha e não como um degrau. */}
-      {/* A faixa fina — só os nomes das áreas. É esta a altura real do
-          cabeçalho, e é ela que o --admin-header-h publica.
+      {/* Uma estrutura só, não duas. A faixa fechada e o painel aberto são o
+          MESMO markup: os títulos estão sempre lá, no mesmo sítio, e o que
+          muda é a altura da zona dos botões. Assim a ordem das áreas não pode
+          divergir entre os dois estados — divergia, porque eram duas listas —
+          e a abertura constrói-se a partir do que já se via em vez de deslizar
+          uma coisa por cima de outra.
 
-          O painel com os botões abre POR CIMA da página, não empurrando-a: se
-          crescesse no fluxo, a altura do cabeçalho mudava a cada passagem do
-          rato e tudo o que está preso por baixo dele saltava. Assim a página
-          não se mexe e o painel cobre a faixa, ocupando o lugar dela.
+          O bloco todo é `absolute`, e a altura da faixa vem de um espaçador
+          invisível. Sem isso o cabeçalho crescia a cada passagem do rato e
+          tudo o que está preso por baixo dele — a barra de selecção do stock,
+          os painéis laterais do POS e dos relatórios — saltava.
 
-          O nome da área onde se está fica dourado mesmo com o painel fechado —
-          senão, encolhido, o cabeçalho deixava de dizer onde se está. */}
+          As colunas mantêm a largura dos botões mesmo fechadas, porque os
+          botões continuam no fluxo horizontal; só a altura é que colapsa. É o
+          que faz os títulos ficarem exactamente onde estavam ao abrir. */}
       <div
-        className={`border-t border-white/10 bg-white/[0.03] ${colapsavel ? "relative" : ""}`}
+        className={`relative border-t border-white/10 ${aberto ? "" : "bg-white/[0.03]"}`}
         onMouseEnter={colapsavel ? abrir : undefined}
         onMouseLeave={colapsavel ? agendarFecho : undefined}
         onFocusCapture={colapsavel ? abrir : undefined}
         onBlurCapture={colapsavel ? agendarFecho : undefined}
       >
+        {/* Espaçador — dá à faixa a altura de uma linha de título e mais nada. */}
         {colapsavel && (
-        <div
-          className="mx-auto flex w-full max-w-[1600px] gap-6 px-4 py-2 sm:justify-between sm:gap-10 sm:px-7"
-          aria-hidden={aberto}
-        >
-          {sections.map((sec) => (
-            <span
-              key={sec.title}
-              className={`text-[0.56rem] font-semibold tracking-[0.12em] uppercase transition-colors ${
-                sec.rows.flat().some((it) => isActive(it.href)) ? "text-gold-soft" : "text-cream/50"
-              }`}
-            >
-              {sec.title}
-            </span>
-          ))}
-          <span className="text-[0.56rem] font-semibold tracking-[0.12em] text-cream/50 uppercase">
-            Boutique
-          </span>
-        </div>
-        )}
-
-        {mostraTudo && (
-          <div
-            className={
-              colapsavel
-                ? "menu-panel admin-topo absolute inset-x-0 top-0 z-10 border-b border-gold/35 shadow-2xl"
-                : ""
-            }
-          >
-        <nav
-          className={`mx-auto flex w-full max-w-[1600px] flex-wrap items-stretch justify-center gap-y-3 px-4 py-2.5 sm:px-7 ${
-            ehPatrao ? "sm:justify-between" : "sm:justify-center"
-          }`}
-        >
-          {sections.map((sec, i) => (
-            <Fragment key={sec.title}>
-              {/* O filtro de loja entra logo a seguir ao Painel: é o contexto
-                  em que tudo o resto é lido, e por isso vive ao lado do
-                  destino principal e não perdido no fim da fila. */}
-              {i === 1 && filtroLoja}
-            <div className="flex shrink-0 items-stretch gap-3 sm:gap-5">
-              {i > 0 && <span aria-hidden className="hidden w-px shrink-0 bg-white/[0.07] sm:block" />}
-              <div className="flex shrink-0 flex-col">
-                <p className="mb-1.5 px-1 text-center text-[0.56rem] font-semibold tracking-[0.12em] text-cream/50 uppercase sm:text-left">
-                  {sec.title}
-                </p>
-                {/* justify-center no eixo vertical: é o que põe o botão solitário
-                    a meio das duas filas do lado, em vez de encostado ao topo. */}
-                <div className={`flex flex-1 flex-col gap-1.5 ${sec.hero ? "" : "justify-center"}`}>
-                  {sec.rows.map((row, r) => (
-                    <ul key={r} className={`flex justify-center gap-1.5 ${sec.hero ? "flex-1 items-stretch" : "items-center"}`}>
-                      {row.map((it) => {
-                        const active = isActive(it.href);
-                        return (
-                          <li key={it.href} className={sec.hero ? "flex flex-1" : undefined}>
-                            <Link
-                              href={comBoutique(it.href)}
-                              aria-current={active ? "page" : undefined}
-                              title={it.hint}
-                              className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
-                                sec.hero
-                                  ? "h-full w-full rounded-xl px-8 py-2 text-[0.9rem] font-semibold"
-                                  : sec.solo
-                                    ? "min-h-[40px] rounded-full px-5 py-2 text-[0.84rem]"
-                                    : "min-h-[34px] rounded-full px-3 py-1.5 text-[0.78rem]"
-                              } ${estado(active, it.peso)}`}
-                            >
-                              <it.Icon
-                                className={
-                                  sec.hero ? "h-5 w-5 shrink-0" : sec.solo ? "h-[18px] w-[18px] shrink-0" : "h-4 w-4 shrink-0"
-                                }
-                              />
-                              {it.label}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ))}
-                </div>
-              </div>
-            </div>
-            </Fragment>
-          ))}
-          </nav>
+          <div aria-hidden className="invisible px-4 py-2 sm:px-7">
+            <span className="block text-[0.56rem] font-semibold tracking-[0.12em] uppercase">A</span>
           </div>
         )}
+
+        <div
+          className={
+            colapsavel
+              ? `absolute inset-x-0 top-0 z-10 border-white/10 transition-shadow duration-300 ${
+                  aberto ? "admin-topo border-b border-gold/35 shadow-2xl" : ""
+                }`
+              : ""
+          }
+        >
+          <nav
+            className={`mx-auto flex w-full max-w-[1600px] items-start gap-y-3 px-4 pt-2 pb-2.5 sm:px-7 ${
+              ehPatrao ? "sm:justify-between" : "flex-wrap justify-center"
+            }`}
+          >
+            {colunas.map((col, i) => (
+              <div key={col.title} className="flex shrink-0 items-stretch gap-3 sm:gap-5">
+                {i > 0 && (
+                  <span
+                    aria-hidden
+                    className={`hidden w-px shrink-0 bg-white/[0.07] transition-opacity duration-300 sm:block ${
+                      mostraTudo ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                )}
+                <div className="flex shrink-0 flex-col">
+                  <p
+                    className={`px-1 text-center text-[0.56rem] font-semibold tracking-[0.12em] uppercase transition-colors sm:text-left ${
+                      col.activa ? "text-gold-soft" : "text-cream/50"
+                    }`}
+                  >
+                    {col.title}
+                  </p>
+                  {/* A zona que cresce. max-height animada em vez de display,
+                      para haver o que animar; overflow-hidden para os botões
+                      não assomarem enquanto ela está fechada. */}
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-out ${
+                      mostraTudo ? "mt-1.5 max-h-40 opacity-100" : "mt-0 max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="flex flex-col justify-center gap-1.5">{col.corpo}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </nav>
+        </div>
       </div>
     </header>
   );
