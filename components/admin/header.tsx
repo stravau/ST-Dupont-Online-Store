@@ -76,14 +76,18 @@ function sectionsFor(role?: string): Section[] {
 
   sections.push({
     title: "Loja",
+    // Tres filas, agrupadas pelo que se faz junto: registar movimento em cima,
+    // consultar no meio, pos-venda em baixo.
     rows: [
       [
         { href: "/admin/pos", label: "Vender", hint: "Registar venda por código de barras", Icon: IconPos, peso: "primario" },
         { href: "/admin/movimentos", label: "Movimentos", hint: "Entradas e saídas por scan", Icon: IconPos, peso: "secundario" },
-        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports, peso: "secundario" },
       ],
       [
+        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports, peso: "secundario" },
         { href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar },
+      ],
+      [
         { href: "/admin/reparacoes", label: "Reparações", hint: "Assistência e pós-venda", Icon: IconRepair },
       ],
     ],
@@ -123,8 +127,13 @@ function sectionsFor(role?: string): Section[] {
 function estado(activo: boolean, peso?: Peso): string {
   if (activo) return "bg-paper text-ink shadow-sm";
   if (peso === "primario") return "bg-gold-soft/90 text-ink hover:bg-gold-soft";
-  if (peso === "secundario") return "border border-cream/30 text-cream hover:border-gold-soft hover:text-gold-soft";
-  return "border border-transparent text-cream/65 hover:bg-white/10 hover:text-cream";
+  if (peso === "secundario") return "border border-cream/35 text-cream hover:border-gold-soft hover:text-gold-soft";
+  // Terciario TEM contorno, so que fraco. Sem contorno nenhum deixava de se
+  // ler como hierarquia e passava a ler-se como defeito: dentro do mesmo
+  // grupo ficavam botoes com e sem caixa, e o olho le isso como coisa
+  // partida, nao como "este importa menos". A diferenca vive na forca da
+  // linha e na do texto, nao na sua ausencia.
+  return "border border-cream/25 text-cream/90 hover:border-gold-soft hover:text-gold-soft";
 }
 
 // A boutique por baixo do wordmark, conforme o login. O patrão vê as duas

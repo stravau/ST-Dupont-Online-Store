@@ -16,9 +16,18 @@ const iso = (d: Date | null): string => {
   return `${y}-${m}-${day}`;
 };
 
-export default async function ReparacoesPage() {
+export default async function ReparacoesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ boutique?: string }>;
+}) {
+  const sp = await searchParams;
   const staff = await currentStaff();
-  const boutiques = boutiquesForRole(staff?.role ?? null);
+  // O filtro do cabeçalho aplica-se à listagem. Passa pelo resolveScope e não
+  // em cru, portanto um login de loja não consegue espreitar a outra
+  // escrevendo ?boutique= no URL — o pedido é intersectado com o que o papel
+  // permite.
+  const { boutiques } = resolveScope(sp.boutique, boutiquesForRole(staff?.role ?? null));
 
   const [rows, operators] = await Promise.all([
     prisma.repair.findMany({
