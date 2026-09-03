@@ -33,7 +33,11 @@ export default async function PosPage() {
         subtitle={`Registo interno de vendas, devoluções e reparações por código de barras · ${scope}`}
       />
       <div className="mx-auto max-w-5xl">
-        <PosTerminal operators={operators as { boutique: BoutiqueCode; initials: string }[]} boutiques={boutiques} />
+        <PosTerminal
+          operators={operators as { boutique: BoutiqueCode; initials: string }[]}
+          boutiques={boutiques}
+          isAdmin={staff?.role === "ADMIN"}
+        />
       </div>
     </div>
   );

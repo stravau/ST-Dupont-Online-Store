@@ -76,21 +76,31 @@ function sectionsFor(role?: string): Section[] {
     ],
   });
 
+  // O que se FAZ ao balcao, separado do que se CONSULTA depois. Estavam juntos
+  // numa "Loja" de tres filas, e os relatorios — que sao de leitura, e mais do
+  // fim do dia — ficavam no meio de duas filas de registo.
   sections.push({
     title: "Loja",
-    // Tres filas, agrupadas pelo que se faz junto: registar movimento em cima,
-    // consultar no meio, pos-venda em baixo.
     rows: [
       [
         { href: "/admin/pos", label: "Vender", hint: "Registar venda por código de barras", Icon: IconPos, peso: "primario" },
         { href: "/admin/movimentos", label: "Movimentos", hint: "Entradas e saídas por scan", Icon: IconPos, peso: "secundario" },
       ],
       [
-        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas, comissão e mais vendidos", Icon: IconReports, peso: "secundario" },
-        { href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar },
-      ],
-      [
         { href: "/admin/reparacoes", label: "Reparações", hint: "Assistência e pós-venda", Icon: IconRepair },
+      ],
+    ],
+  });
+
+  sections.push({
+    title: "Relatórios",
+    rows: [
+      [
+        // As vendas do dia a frente: e o que se abre todos os dias ao fechar.
+        { href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar, peso: "primario" },
+        // A dica nao fala de comissao: as lojas veem este menu e a comissao
+        // ECI nao e informacao delas — ate o relatorio ja lha esconde.
+        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas e mais vendidos", Icon: IconReports, peso: "secundario" },
       ],
     ],
   });
@@ -296,31 +306,36 @@ export function AdminHeader({
   // Só para o patrão: um login de loja tem uma boutique só, e o filtro seria
   // um botão único e inerte.
   // So o corpo: o titulo e o filete sao da coluna, como em qualquer outra area.
+  const botaoLoja = ({ v, label }: { v: string; label: string }) => {
+    const activa = (boutique ?? "all") === v;
+    return (
+      <Link
+        key={v}
+        href={hrefLoja(v)}
+        aria-current={activa ? "true" : undefined}
+        tabIndex={mostraTudo ? undefined : -1}
+        className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+          activa
+            ? "bg-paper text-ink shadow-sm"
+            : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
+        }`}
+      >
+        {label}
+      </Link>
+    );
+  };
+
   const filtroLoja =
     role !== "ADMIN" ? null : (
+      // Duas filas em vez de tres: o "Geral" em cima, as duas lojas lado a
+      // lado por baixo. Empilhadas as tres, esta coluna era a mais alta de
+      // todas e puxava a altura do menu inteiro para cima.
       <div role="group" aria-label="Filtrar por loja" className="flex flex-1 flex-col gap-1.5">
-        {[
-          { v: "all", label: "Geral" },
-          { v: "LIS", label: BOUTIQUE_SHORT.LIS },
-          { v: "VNG", label: BOUTIQUE_SHORT.VNG },
-        ].map((o) => {
-          const activa = (boutique ?? "all") === o.v;
-          return (
-            <Link
-              key={o.v}
-              href={hrefLoja(o.v)}
-              aria-current={activa ? "true" : undefined}
-              tabIndex={mostraTudo ? undefined : -1}
-              className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
-                activa
-                  ? "bg-paper text-ink shadow-sm"
-                  : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
-              }`}
-            >
-              {o.label}
-            </Link>
-          );
-        })}
+        {botaoLoja({ v: "all", label: "Geral" })}
+        <div className="flex flex-1 gap-1.5">
+          {botaoLoja({ v: "LIS", label: BOUTIQUE_SHORT.LIS })}
+          {botaoLoja({ v: "VNG", label: BOUTIQUE_SHORT.VNG })}
+        </div>
       </div>
     );
 
@@ -479,7 +494,12 @@ export function AdminHeader({
           }
         >
           <nav
-            className={`flex w-full items-start gap-y-3 px-4 pt-2 pb-2.5 sm:px-5 ${
+            // items-stretch e nao items-start: com o start cada coluna ficava
+            // com a sua altura natural, e o botao do Painel — que e `h-full`
+            // dentro de um `flex-1` — nao tinha altura nenhuma para encher. Com
+            // stretch todas as colunas ficam a altura da mais alta e o Painel
+            // aproveita o espaco todo, alinhado com as outras.
+            className={`flex w-full items-stretch gap-y-3 px-4 pt-2 pb-2.5 sm:px-5 ${
               ehPatrao ? "sm:justify-between" : "flex-wrap justify-center"
             }`}
           >
@@ -505,11 +525,11 @@ export function AdminHeader({
                       para haver o que animar; overflow-hidden para os botões
                       não assomarem enquanto ela está fechada. */}
                   <div
-                    className={`overflow-hidden transition-all duration-300 ease-out ${
+                    className={`flex-1 overflow-hidden transition-all duration-300 ease-out ${
                       mostraTudo ? "mt-1.5 max-h-40 opacity-100" : "mt-0 max-h-0 opacity-0"
                     }`}
                   >
-                    <div className="flex flex-col justify-center gap-1.5">{col.corpo}</div>
+                    <div className="flex h-full flex-col justify-center gap-1.5">{col.corpo}</div>
                   </div>
                 </div>
               </div>

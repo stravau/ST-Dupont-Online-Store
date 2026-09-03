@@ -5,16 +5,13 @@
 
 import type { BoutiqueCode } from "@/lib/pos";
 
+// A condicao "Expediente de envio" foi retirada por decisao da loja. A
+// numeracao no talao e `list-decimal`, portanto acerta-se sozinha.
 export const REPAIR_TERMS: { title: string; body: string }[] = [
   {
     title: "Artigo em garantia",
     body:
       "Sem qualquer custo para o cliente, podendo ser substituído por artigo semelhante e de igual valor na eventualidade de a reparação não ser possível.",
-  },
-  {
-    title: "Expediente de envio",
-    body:
-      "O cliente suportará custos com expediente e envio do artigo para reparação até à oficina da marca e retorno à loja, no valor de € 30,00 (IVA incluído), na eventualidade do orçamento de reparação não ser aceite pelo cliente. Procedendo à reparação, por aceitação do respectivo orçamento, este valor será deduzido ao valor total da reparação a cobrar.",
   },
   {
     title: "Garantia de reparação",

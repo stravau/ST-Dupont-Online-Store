@@ -51,9 +51,15 @@ const eur = (cents: number) =>
 export function PosTerminal({
   operators,
   boutiques,
+  isAdmin = false,
 }: {
   operators: OperatorLite[];
   boutiques: BoutiqueCode[];
+  // A comissao do ECI so se mostra ao patrao. As lojas registam a venda pelo
+  // valor cheio; quanto e que o centro comercial leva daquilo e negociacao
+  // dele e nao informacao de balcao. Os relatorios ja lha escondiam — faltava
+  // aqui, que e onde se regista cada venda.
+  isAdmin?: boolean;
 }) {
   const [boutique, setBoutique] = useState<BoutiqueCode>(boutiques[0]);
   const [type, setType] = useState<PosType>("VENDA");
@@ -588,7 +594,9 @@ export function PosTerminal({
         <dl className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
           <div className="flex justify-between"><dt className="text-muted">Bruto (c/ IVA)</dt><dd className="tabular-nums">{eur(grossTotal)}</dd></div>
           <div className="flex justify-between"><dt className="text-muted">Líquido (s/ IVA)</dt><dd className="tabular-nums">{eur(netTotal)}</dd></div>
-          <div className="flex justify-between text-[0.8rem]"><dt className="text-muted">Comissão ECI ({Math.round(eciRate * 100)}%)</dt><dd className="tabular-nums text-muted">− {eur(eciTotal)}</dd></div>
+          {isAdmin && (
+            <div className="flex justify-between text-[0.8rem]"><dt className="text-muted">Comissão ECI ({Math.round(eciRate * 100)}%)</dt><dd className="tabular-nums text-muted">− {eur(eciTotal)}</dd></div>
+          )}
         </dl>
 
         <button type="button" onClick={confirm}
