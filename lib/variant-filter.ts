@@ -19,9 +19,19 @@ export function buildVariantWhere(p: VariantFilterParams): Prisma.ProductVariant
   const where: Prisma.ProductVariantWhereInput = {};
   const q = (p.q ?? "").trim();
   if (q) {
+    // Nome tambem, alem da referencia e do codigo de barras: quem esta ao
+    // balcao lembra-se de "colar marker" e nao de 700002.
+    //
+    // `mode: "insensitive"` em todas: os campos de nome sao JSON e a
+    // comparacao do Postgres e sensivel a maiusculas, portanto sem isto
+    // procurar "colar" nao encontrava "Colar Marker".
     where.OR = [
       { sku: { contains: q, mode: "insensitive" } },
       { ean: { contains: q, mode: "insensitive" } },
+      { name: { path: ["pt"], string_contains: q, mode: "insensitive" } },
+      { name: { path: ["en"], string_contains: q, mode: "insensitive" } },
+      { product: { name: { path: ["pt"], string_contains: q, mode: "insensitive" } } },
+      { product: { name: { path: ["en"], string_contains: q, mode: "insensitive" } } },
     ];
   }
   if (p.status === "DISPONIVEL" || p.status === "INDISPONIVEL" || p.status === "DESCONTINUADO") {

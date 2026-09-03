@@ -209,7 +209,7 @@ export default async function AdminVariantsPage({ searchParams }: SearchProps) {
           <input
             name="q"
             defaultValue={q}
-            placeholder="Pesquisa por SKU ou EAN — STD000430, 3597390000118…"
+            placeholder="Pesquisa por nome, REF ou EAN — Colar Marker, STD000430, 3597390000118…"
             className="w-full border border-line bg-paper py-2.5 pl-10 pr-3 text-sm outline-none focus:border-gold"
           />
         </div>

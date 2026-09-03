@@ -216,6 +216,9 @@ export function OtherBrandRow({
         />
       </td>
       <td className="px-4 py-2 text-right align-middle">
+        {/* Mesma razao da tabela S.T. Dupont: o simbolo tem de ficar na
+            linha do valor, senao a linha cresce sem necessidade. */}
+        <span className="inline-flex items-center justify-end gap-0.5">
         <input
           value={eurStr}
           onChange={(e) => setEurStr(e.target.value)}
@@ -226,7 +229,8 @@ export function OtherBrandRow({
           inputMode="decimal"
           className={`w-24 rounded-sm border border-transparent bg-transparent px-2 py-2 text-right text-sm font-medium tabular-nums transition-colors sm:py-1 ${canEdit ? editableCell : lockedCell}`}
         />
-        {eurStr && <span className="ml-0.5 text-xs text-muted">€</span>}
+          {eurStr && <span className="text-xs text-muted">€</span>}
+        </span>
       </td>
       <td className="px-4 py-2 text-right align-middle">
         <input

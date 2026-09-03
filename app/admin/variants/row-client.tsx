@@ -212,6 +212,10 @@ export function VariantRow({
         <span className="block max-w-[28rem] truncate text-sm text-ink" title={desc}>{desc}</span>
       </td>
       <td className="px-4 py-2 text-right align-middle">
+        {/* O valor e o simbolo numa so linha. Eram irmaos soltos dentro da
+            celula: quando o espaco apertava o "€" caia para baixo e a linha
+            da tabela crescia ao dobro, so por causa disso. */}
+        <span className="inline-flex items-center justify-end gap-0.5">
         <input
           value={eurStr}
           onChange={(e) => setEurStr(e.target.value)}
@@ -221,7 +225,8 @@ export function VariantRow({
           inputMode="decimal"
           className={`w-20 rounded-sm border border-transparent bg-transparent px-2 py-2 text-right text-sm font-medium tabular-nums transition-colors sm:py-1 ${isAdmin ? editableCell : lockedCell}`}
         />
-        <span className="ml-0.5 text-xs text-muted">€</span>
+          <span className="text-xs text-muted">€</span>
+        </span>
       </td>
       <td className="px-4 py-2 align-middle">
         {isAdmin ? (
