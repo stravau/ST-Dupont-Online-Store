@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, EB_Garamond } from "next/font/google";
 import { AnalyticsClient } from "@/components/analytics-client";
+import { BarraNavegacao } from "@/components/barra-navegacao";
 import "./globals.css";
 
 // Root layout — sole owner of <html>, <body> and the global CSS /
@@ -46,6 +47,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} h-full motion-safe:scroll-smooth`}>
       <body className="min-h-full bg-cream text-ink">
+        {/* Fio de progresso no topo enquanto uma pagina carrega. Montado na
+            RAIZ, como o AnalyticsClient e pela mesma razao: assim serve o
+            storefront e o /admin com um so sitio a mante-lo. E no admin que
+            faz mais falta — nao ha um unico loading.tsx la dentro. */}
+        <BarraNavegacao />
         {children}
         {/* AnalyticsClient hosts the Vercel Analytics + Speed
             Insights components. It's a client component because
