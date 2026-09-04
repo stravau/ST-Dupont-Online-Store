@@ -3,6 +3,7 @@ import {
   SkeletonChipRow,
   SkeletonGrid,
 } from "@/components/skeletons";
+import { EsqueletoActivo } from "@/components/esqueleto-activo";
 
 // Rendered during filter navigation on /c/<category>. Holds the
 // full page shape — hero slider, filter chip row, sort pill, product
@@ -10,17 +11,21 @@ import {
 // Dimensions match the real components; no CLS when the page paints.
 export default function Loading() {
   return (
-    <div>
-      <SkeletonHeroSlider />
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="mb-6">
-          <SkeletonChipRow count={6} />
+    <>
+      {/* Diz a barra do topo que a espera ainda nao acabou. */}
+      <EsqueletoActivo />
+      <div>
+        <SkeletonHeroSlider />
+        <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="mb-6">
+            <SkeletonChipRow count={6} />
+          </div>
+          <div className="mt-10 flex justify-end">
+            <div className="skeleton h-8 w-40 rounded" />
+          </div>
+          <SkeletonGrid />
         </div>
-        <div className="mt-10 flex justify-end">
-          <div className="skeleton h-8 w-40 rounded" />
-        </div>
-        <SkeletonGrid />
       </div>
-    </div>
+    </>
   );
 }

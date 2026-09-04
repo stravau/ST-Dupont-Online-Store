@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { haEsqueleto, ouvirEsqueletos } from "@/components/esqueleto-activo";
 
 // Fio dourado no topo do ecrã enquanto uma página está a ser carregada.
 //
@@ -16,8 +17,18 @@ import { usePathname, useSearchParams } from "next/navigation";
 // no fim da espera que queremos mostrar. Portanto ouve-se o clique em fase de
 // captura (antes de o Link o tratar) e é daí que arranca.
 //
-// COMO SABE QUANDO ACABA: aí sim, da rota — pathname + query. É o sinal de
-// que o servidor respondeu e o React já pintou.
+// COMO SABE QUANDO ACABA: a rota é condição necessária, não suficiente. No
+// storefront há um loading.tsx na raiz do /[lang], e por isso o App Router
+// confirma o URL logo que tem o ESQUELETO para mostrar — muito antes do
+// conteúdo real. Terminar aí apagava a barra ao primeiro terço do caminho.
+// Portanto espera-se pelas duas coisas: a rota ter mudado E não haver nenhum
+// esqueleto no ecrã. Quem sabe a segunda são os próprios loading.tsx, que
+// montam um marcador (components/esqueleto-activo) cujo desmontar é o
+// instante exacto em que o conteúdo os substitui.
+//
+// No /admin não há um único loading.tsx, portanto lá a contagem é sempre zero
+// e o sinal é só a rota — que é o certo, porque sem esqueleto a rota só muda
+// quando a página está mesmo pronta.
 //
 // Cobre navegação, que é onde está o vazio. Os formulários do painel (gravar
 // um preço, registar uma venda) já têm o seu próprio estado de espera dentro
@@ -47,15 +58,20 @@ function Barra() {
   const passo = useRef<number | null>(null);
   const seguranca = useRef<number | null>(null);
   const saida = useRef<number[]>([]);
+  const confirmacao = useRef<number | null>(null);
 
   const limpar = useCallback(() => {
-    for (const r of [atraso, passo, seguranca]) {
+    for (const r of [atraso, passo, seguranca, confirmacao]) {
       if (r.current !== null) window.clearTimeout(r.current);
       r.current = null;
     }
     for (const t of saida.current) window.clearTimeout(t);
     saida.current = [];
   }, []);
+
+  // A rota já chegou nesta navegação? Sozinha não chega para terminar — falta
+  // o conteúdo real substituir o esqueleto.
+  const rotaChegou = useRef(false);
 
   const terminar = useCallback(() => {
     if (!aCarregar.current) return;
@@ -68,9 +84,35 @@ function Barra() {
     saida.current.push(window.setTimeout(() => setPct(0), 480));
   }, [limpar]);
 
+  // As duas condições juntas — rota chegada E ecrã sem esqueleto — verificadas
+  // um instante DEPOIS do sinal que as desencadeou. O adiamento não é
+  // cosmético; sem ele nada disto funciona, por duas razões independentes:
+  //
+  //  1. Esta barra vive no layout de raiz, antes do {children}, e o React corre
+  //     os efeitos pela ordem da árvore. O efeito dela corre ANTES de o
+  //     marcador do esqueleto chegar a montar, portanto uma verificação
+  //     imediata vê sempre zero esqueletos e termina à mesma — que foi
+  //     exactamente o que se mediu antes disto existir: a barra apagada aos
+  //     764ms com o esqueleto no ecrã até aos 6103ms.
+  //  2. Em desenvolvimento o StrictMode monta, desmonta e volta a montar cada
+  //     efeito, e a contagem passa por zero a meio dessa dança.
+  //
+  // Um só temporizador, reiniciado a cada sinal: sinais em rajada resolvem-se
+  // numa verificação só, a última, que é a que tem o estado verdadeiro.
+  const verificar = useCallback(() => {
+    if (confirmacao.current !== null) window.clearTimeout(confirmacao.current);
+    confirmacao.current = window.setTimeout(() => {
+      confirmacao.current = null;
+      if (!aCarregar.current || !rotaChegou.current) return;
+      if (haEsqueleto()) return;
+      terminar();
+    }, 60);
+  }, [terminar]);
+
   const arrancar = useCallback(() => {
     if (aCarregar.current) return;
     aCarregar.current = true;
+    rotaChegou.current = false;
     limpar();
     setPct(0);
     atraso.current = window.setTimeout(() => {
@@ -143,11 +185,15 @@ function Barra() {
     };
   }, [arrancar]);
 
-  // A rota MUDOU: a página nova chegou. É o único fim honesto.
+  // A rota mudou. Metade do sinal: pode ainda estar só o esqueleto no ecrã.
   useEffect(() => {
-    terminar();
+    rotaChegou.current = true;
+    verificar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, search?.toString()]);
+
+  // A outra metade: um esqueleto entrou ou saiu de cena.
+  useEffect(() => ouvirEsqueletos(verificar), [verificar]);
 
   // Desmontar sem deixar temporizadores a correr.
   useEffect(() => limpar, [limpar]);
