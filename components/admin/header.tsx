@@ -499,7 +499,14 @@ export function AdminHeader({
             // dentro de um `flex-1` — nao tinha altura nenhuma para encher. Com
             // stretch todas as colunas ficam a altura da mais alta e o Painel
             // aproveita o espaco todo, alinhado com as outras.
-            className={`flex w-full items-stretch gap-y-3 px-3 pt-2 pb-2.5 sm:px-4 ${
+            // O gap-x encolhe a partir do sm, ao contrario do costume, e de
+            // proposito: abaixo do sm as divisorias estao escondidas e o gap E
+            // a separacao entre colunas; a partir do sm a divisoria fica no MEIO
+            // de dois gaps, portanto cada metade tem de valer metade, senao o
+            // espaco entre colunas duplicava e a faixa deixava de caber num
+            // portatil de 1280. Onde sobra largura, o justify-between alarga-os
+            // por igual e o aspecto e o mesmo.
+            className={`flex w-full items-stretch gap-x-2 gap-y-3 px-3 pt-2 pb-2.5 sm:gap-x-1.5 sm:px-4 ${
               // flex-wrap tambem no patrao. Sao sete areas com shrink-0: o
               // que nao cabia era cortado em silencio, e a Auditoria e os
               // Problemas ficavam metade fora do ecra. A envolver, num ecra
@@ -508,11 +515,19 @@ export function AdminHeader({
             }`}
           >
             {colunas.map((col, i) => (
-              <div key={col.title} className="flex shrink-0 items-stretch gap-2 sm:gap-3">
+              // A divisoria e IRMA das colunas, nao filha da coluna da direita.
+              // Enquanto estava dentro dela, o espaco livre que o
+              // justify-between reparte caia todo antes do risco e nenhum
+              // depois: ficava colado a coluna seguinte, e num ecra largo — em
+              // que ha muito espaco a repartir — via-se logo que nao estava a
+              // meio. Como item da faixa, o justify-between da-lhe a mesma
+              // folga dos dois lados e ela centra-se sozinha, seja qual for a
+              // largura. O espacamento minimo passa a ser do <nav> (gap-x).
+              <Fragment key={col.title}>
                 {i > 0 && (
                   <span
                     aria-hidden
-                    className={`hidden w-px shrink-0 bg-white/[0.07] transition-opacity duration-300 sm:block ${
+                    className={`hidden w-px shrink-0 self-stretch bg-white/[0.07] transition-opacity duration-300 sm:block ${
                       mostraTudo ? "opacity-100" : "opacity-0"
                     }`}
                   />
@@ -536,7 +551,7 @@ export function AdminHeader({
                     <div className="flex h-full flex-col justify-center gap-1.5">{col.corpo}</div>
                   </div>
                 </div>
-              </div>
+              </Fragment>
             ))}
           </nav>
         </div>
