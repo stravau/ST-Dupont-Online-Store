@@ -130,7 +130,11 @@ const dictionaries = {
     },
     ss26: {
       eyebrow: "Selecção da Estação",
-      title: "S.T. Dupont Spring Summer Selection 2026",
+      // O mesmo nome que o letreiro sobre o video da homepage
+      // (hero.ss26Wordmark), que e de onde se chega aqui: quem clica em
+      // "Coleção Primavera Verão 2026" tem de aterrar numa pagina com esse
+      // nome. Estava com o texto ingles — o unico do bloco por traduzir.
+      title: "S.T. Dupont Coleção Primavera Verão 2026",
       lede: "A selecção que a Maison publicou para a primavera / verão 2026 — instrumentos de escrita, isqueiros e pele reunidos numa única leitura.",
     },
     categoryStory: "A Arte da Casa",
