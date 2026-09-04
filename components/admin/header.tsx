@@ -314,7 +314,7 @@ export function AdminHeader({
         href={hrefLoja(v)}
         aria-current={activa ? "true" : undefined}
         tabIndex={mostraTudo ? undefined : -1}
-        className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+        className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-2.5 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
           activa
             ? "bg-paper text-ink shadow-sm"
             : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
@@ -353,10 +353,10 @@ export function AdminHeader({
                 tabIndex={mostraTudo ? undefined : -1}
                 className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
                   sec.hero
-                    ? "h-full w-full rounded-xl px-8 py-2 text-[0.9rem] font-semibold"
+                    ? "h-full w-full rounded-xl px-5 py-2 text-[0.9rem] font-semibold"
                     : sec.solo
-                      ? "min-h-[40px] rounded-full px-5 py-2 text-[0.84rem]"
-                      : "min-h-[34px] rounded-full px-3 py-1.5 text-[0.78rem]"
+                      ? "min-h-[40px] rounded-full px-4 py-2 text-[0.84rem]"
+                      : "min-h-[34px] rounded-full px-2.5 py-1.5 text-[0.78rem]"
                 } ${estado(isActive(it.href), it.peso)}`}
               >
                 <it.Icon
@@ -499,12 +499,16 @@ export function AdminHeader({
             // dentro de um `flex-1` — nao tinha altura nenhuma para encher. Com
             // stretch todas as colunas ficam a altura da mais alta e o Painel
             // aproveita o espaco todo, alinhado com as outras.
-            className={`flex w-full items-stretch gap-y-3 px-4 pt-2 pb-2.5 sm:px-5 ${
-              ehPatrao ? "sm:justify-between" : "flex-wrap justify-center"
+            className={`flex w-full items-stretch gap-y-3 px-3 pt-2 pb-2.5 sm:px-4 ${
+              // flex-wrap tambem no patrao. Sao sete areas com shrink-0: o
+              // que nao cabia era cortado em silencio, e a Auditoria e os
+              // Problemas ficavam metade fora do ecra. A envolver, num ecra
+              // estreito passam a linha de baixo em vez de desaparecerem.
+              ehPatrao ? "flex-wrap sm:justify-between" : "flex-wrap justify-center"
             }`}
           >
             {colunas.map((col, i) => (
-              <div key={col.title} className="flex shrink-0 items-stretch gap-3 sm:gap-5">
+              <div key={col.title} className="flex shrink-0 items-stretch gap-2 sm:gap-3">
                 {i > 0 && (
                   <span
                     aria-hidden
