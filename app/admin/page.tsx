@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IconList, IconUpload, IconChevronRight } from "@/components/admin/icons";
 import { DashboardScopeProvider, DashboardHeroScope, SalesTrendScope } from "@/components/admin/dashboard-scope";
 import { SalesHeatmap } from "@/components/admin/sales-heatmap";
+import { blocoValido, ancoraDoBloco, SEMANAS_BLOCO } from "@/lib/heatmap-blocos";
 import { TopOperatorsBar } from "@/components/admin/top-operators-bar";
 import {
   getDashboardSnapshot,
@@ -24,7 +25,17 @@ export const dynamic = "force-dynamic";
 // SalesTrend 30d e as jump cards + últimas alterações.
 //
 // LOJA_* nunca chega aqui — são redirected para /admin/pos.
-export default async function AdminHome() {
+export default async function AdminHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ bloco?: string }>;
+}) {
+  // Que janela de 8 semanas mostrar no mapa de calor. 0 e a que acaba hoje.
+  // As regras vivem num modulo neutro partilhado com o widget: aqui valida-se
+  // o URL, la desenham-se as setas, e nao podem divergir.
+  const { bloco } = await searchParams;
+  const blocoMapa = blocoValido(bloco);
+
   const staff = await currentStaff();
   if (staff?.role !== "ADMIN") redirect("/admin/pos");
 
@@ -38,15 +49,18 @@ export default async function AdminHome() {
   const today = dayWindow(now);
   const trendFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
   const BOTH: BoutiqueCode[] = ["LIS", "VNG"];
+  // Recuar a ancora e tudo o que e preciso para deslocar a janela: o mapa
+  // continua a desenhar "as 8 semanas que acabam nesta data".
+  const ancoraMapa = ancoraDoBloco(blocoMapa, now);
 
   const [snapshot, kpisPerScope, trendPerScope, ticker, heatmapAll, heatmapLIS, heatmapVNG, topOps] = await Promise.all([
     getDashboardSnapshot(BOTH, now),
     getDashboardKpisPerScope(BOTH, now),
     dailySalesSeriesPerScope(BOTH, trendFrom, today.to),
     getTickerRows(BOTH, 15), // fetch 15 per boutique, ticker shows 5 + expand
-    getHeatmap(BOTH, 8, now),
-    getHeatmap(["LIS"], 8, now),
-    getHeatmap(["VNG"], 8, now),
+    getHeatmap(BOTH, SEMANAS_BLOCO, ancoraMapa),
+    getHeatmap(["LIS"], SEMANAS_BLOCO, ancoraMapa),
+    getHeatmap(["VNG"], SEMANAS_BLOCO, ancoraMapa),
     getTopOperatorsPerBoutique(BOTH, 3, now),
   ]);
 

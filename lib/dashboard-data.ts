@@ -186,10 +186,16 @@ function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
 
-// Heatmap 8 semanas × 7 dias (Segunda→Domingo). Cada célula tem o gross
+// Heatmap de N semanas × 7 dias (Segunda→Domingo). Cada célula tem o gross
 // desse dia em cents. Semanas ordenadas mais antigas → mais recentes,
-// portanto a linha de baixo é a semana actual, a de cima 7 semanas atrás.
-// A semana começa a Segunda (ISO 8601). Devolve exactamente 8 * 7 = 56 células.
+// portanto a linha de baixo é a semana actual, a de cima N-1 semanas atrás.
+// A semana começa a Segunda (ISO 8601). Devolve exactamente N * 7 células.
+//
+// A janela é sempre de 8 semanas; o que se escolhe no widget é QUAL — a que
+// acaba hoje, as oito anteriores, e assim para trás (?bloco= no URL). O
+// deslocamento faz-se recuando o `now` que entra aqui, e por isso as janelas
+// encaixam sem sobrepor nem deixar buracos: o bloco seguinte acaba no domingo
+// anterior à segunda em que o bloco actual começa.
 export interface HeatmapCell {
   date: string; // YYYY-MM-DD
   weekIdx: number; // 0..7 (0 = mais antiga, 7 = actual)
@@ -199,6 +205,8 @@ export interface HeatmapCell {
 export interface Heatmap {
   cells: HeatmapCell[];
   weeks: number;
+  fromDate: string; // YYYY-MM-DD da segunda-feira mais antiga do mapa
+  toDate: string; // YYYY-MM-DD do domingo mais recente do mapa
   maxGross: number; // para normalizar cores
   insightText: string; // ex.: "Sábados são 2.1× a média"
 }
@@ -263,7 +271,7 @@ export async function getHeatmap(
     ? `${weekdays[bestIdx]} são ${ratio.toFixed(1)}× a média da semana`
     : "Sem grande variação por dia da semana";
 
-  return { cells, weeks, maxGross, insightText };
+  return { cells, weeks, fromDate: ymd(fromDate), toDate: ymd(toDate), maxGross, insightText };
 }
 
 function ymd(d: Date): string {
