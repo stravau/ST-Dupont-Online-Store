@@ -92,16 +92,18 @@ function sectionsFor(role?: string): Section[] {
     ],
   });
 
+  // Duas filas, como as outras areas. Lado a lado esta era a coluna mais larga
+  // da faixa — 260px, um quinto da largura util — e era ela que mandava no
+  // ponto em que a faixa deixava de caber. Empilhada mede 137px e devolve
+  // esses 123px a todos os espacamentos.
   sections.push({
     title: "Relatórios",
     rows: [
-      [
-        // As vendas do dia a frente: e o que se abre todos os dias ao fechar.
-        { href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar, peso: "primario" },
-        // A dica nao fala de comissao: as lojas veem este menu e a comissao
-        // ECI nao e informacao delas — ate o relatorio ja lha esconde.
-        { href: "/admin/relatorios", label: "Relatórios", hint: "Vendas e mais vendidos", Icon: IconReports, peso: "secundario" },
-      ],
+      // As vendas do dia a frente: e o que se abre todos os dias ao fechar.
+      [{ href: "/admin/relatorio-vendas", label: "Vendas do Dia", hint: "Escolher um dia e exportar Excel", Icon: IconCalendar, peso: "primario" }],
+      // A dica nao fala de comissao: as lojas veem este menu e a comissao
+      // ECI nao e informacao delas — ate o relatorio ja lha esconde.
+      [{ href: "/admin/relatorios", label: "Relatórios", hint: "Vendas e mais vendidos", Icon: IconReports, peso: "secundario" }],
     ],
   });
 
@@ -314,7 +316,7 @@ export function AdminHeader({
         href={hrefLoja(v)}
         aria-current={activa ? "true" : undefined}
         tabIndex={mostraTudo ? undefined : -1}
-        className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-2.5 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
+        className={`inline-flex min-h-[30px] flex-1 items-center justify-center rounded-full px-3 py-1 text-[0.78rem] font-medium whitespace-nowrap transition-colors ${
           activa
             ? "bg-paper text-ink shadow-sm"
             : "border border-cream/25 text-cream hover:border-gold-soft hover:text-gold-soft"
@@ -353,10 +355,10 @@ export function AdminHeader({
                 tabIndex={mostraTudo ? undefined : -1}
                 className={`inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors ${
                   sec.hero
-                    ? "h-full w-full rounded-xl px-5 py-2 text-[0.9rem] font-semibold"
+                    ? "h-full w-full rounded-xl px-6 py-2 text-[0.9rem] font-semibold"
                     : sec.solo
-                      ? "min-h-[40px] rounded-full px-4 py-2 text-[0.84rem]"
-                      : "min-h-[34px] rounded-full px-2.5 py-1.5 text-[0.78rem]"
+                      ? "min-h-[40px] rounded-full px-5 py-2 text-[0.84rem]"
+                      : "min-h-[34px] rounded-full px-3 py-1.5 text-[0.78rem]"
                 } ${estado(isActive(it.href), it.peso)}`}
               >
                 <it.Icon
@@ -506,12 +508,21 @@ export function AdminHeader({
             // espaco entre colunas duplicava e a faixa deixava de caber num
             // portatil de 1280. Onde sobra largura, o justify-between alarga-os
             // por igual e o aspecto e o mesmo.
-            className={`flex w-full items-stretch gap-x-2 gap-y-3 px-3 pt-2 pb-2.5 sm:gap-x-1.5 sm:px-4 ${
+            className={`flex w-full items-stretch gap-x-2 gap-y-3 px-3 pt-2 pb-2.5 sm:px-4 ${
               // flex-wrap tambem no patrao. Sao sete areas com shrink-0: o
               // que nao cabia era cortado em silencio, e a Auditoria e os
               // Problemas ficavam metade fora do ecra. A envolver, num ecra
               // estreito passam a linha de baixo em vez de desaparecerem.
-              ehPatrao ? "flex-wrap sm:justify-between" : "flex-wrap justify-center"
+              // O gap minimo vive aqui, e nao na base, porque depende de quem
+              // reparte a folga. No patrao e o justify-between que alarga os
+              // espacos ate onde houver largura, logo o minimo pode ser curto
+              // — e curto e o que deixa as sete colunas caberem num 1280. Na
+              // loja sao tres colunas centradas: nao ha folga para repartir,
+              // e sem um gap maior os riscos ficavam colados ao texto quando
+              // ha ecra de sobra.
+              ehPatrao
+                ? "flex-wrap sm:justify-between sm:gap-x-1.5"
+                : "flex-wrap justify-center sm:gap-x-8"
             }`}
           >
             {colunas.map((col, i) => (
