@@ -739,6 +739,28 @@ footer [role="button"]:active {
   animation-delay: 0.1s;
 }
 
+/* A folha de Contactar / Encontrar Loja sobe do fundo, e o escurecido por
+   trás dela aparece ao mesmo tempo. Antes surgia de uma vez — era o
+   "flash" ao carregar no botão. */
+@keyframes menuFolhaSobe {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+.menu-folha {
+  animation: menuFolhaSobe 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes menuVeuEntra {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.menu-veu {
+  animation: menuVeuEntra 0.28s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-folha, .menu-veu { animation: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .menu-lista-entra > li,
   .menu-rodape-entra { animation: none; }

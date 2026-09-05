@@ -233,13 +233,13 @@ export function MobileNav({
               {(() => null)()}
 
               {!selected && (
-                <ul className="menu-lista-entra mx-auto flex w-full max-w-sm flex-col">
+                <ul className={`${open ? "menu-lista-entra " : ""}mx-auto flex w-full max-w-sm flex-col`}>
                   {items.map((c) => (
-                    <li key={c.slug} className="border-b border-line/60">
+                    <li key={c.slug} className="border-b border-line/35">
                       <button
                         type="button"
                         onClick={() => setSelected(c)}
-                        className="flex w-full items-center justify-between py-4 text-left text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                        className="flex w-full items-center justify-between py-4 rounded-xl px-3 -mx-3 active:bg-line/25 text-left text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
                         <span>{c.name}</span>
                         <svg
@@ -256,11 +256,11 @@ export function MobileNav({
                     </li>
                   ))}
                   {aboutLink && (
-                    <li className="border-b border-line/60">
+                    <li className="border-b border-line/35">
                       <Link
                         href={aboutLink.href}
                         onClick={close}
-                        className="flex w-full items-center justify-between py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                        className="flex w-full items-center justify-between py-4 rounded-xl px-3 -mx-3 active:bg-line/25 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
                         <span>{aboutLink.label}</span>
                         <svg
@@ -354,12 +354,12 @@ export function MobileNav({
                   : null;
                 if (nav) {
                   return (
-                    <ul className="menu-lista-entra mx-auto flex w-full max-w-sm flex-col">
-                      <li className="border-b border-line/60">
+                    <ul className={`${open ? "menu-lista-entra " : ""}mx-auto flex w-full max-w-sm flex-col`}>
+                      <li className="border-b border-line/35">
                         <Link
                           href={`/${lang}/c/${selected.slug}`}
                           onClick={close}
-                          className="block py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                          className="block py-4 rounded-xl px-3 -mx-3 active:bg-line/25 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                         >
                           {labels.viewAll}
                         </Link>
@@ -367,7 +367,7 @@ export function MobileNav({
                       {nav.map((entry, i) => {
                         if (entry.kind === "item") {
                           return (
-                            <li key={`flat-${i}`} className="border-b border-line/60">
+                            <li key={`flat-${i}`} className="border-b border-line/35">
                               <Link
                                 href={itemHref(entry)}
                                 onClick={close}
@@ -385,7 +385,7 @@ export function MobileNav({
                         const sectionKey = `section:${entry.title.en}`;
                         const sectionOpen = expanded.has(sectionKey);
                         return (
-                          <li key={`sec-${i}`} className="border-b border-line/60">
+                          <li key={`sec-${i}`} className="border-b border-line/35">
                             <button
                               type="button"
                               onClick={() => toggleExpanded(sectionKey)}
@@ -482,12 +482,12 @@ export function MobileNav({
                   );
                 }
                 return (
-                  <ul className="menu-lista-entra mx-auto flex w-full max-w-sm flex-col">
-                    <li className="border-b border-line/60">
+                  <ul className={`${open ? "menu-lista-entra " : ""}mx-auto flex w-full max-w-sm flex-col`}>
+                    <li className="border-b border-line/35">
                       <Link
                         href={`/${lang}/c/${selected.slug}`}
                         onClick={close}
-                        className="block py-4 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
+                        className="block py-4 rounded-xl px-3 -mx-3 active:bg-line/25 text-[0.8rem] font-medium tracking-[0.18em] text-ink uppercase transition-colors hover:text-gold"
                       >
                         {labels.viewAll}
                       </Link>
@@ -497,7 +497,7 @@ export function MobileNav({
                     {[...selected.collections]
                       .sort((a, b) => a.localeCompare(b, locale, { sensitivity: "base" }))
                       .map((col) => (
-                      <li key={col} className="border-b border-line/60">
+                      <li key={col} className="border-b border-line/35">
                         <Link
                           href={`/${lang}/c/${selected.slug}?col=${encodeURIComponent(col)}`}
                           onClick={close}
@@ -514,14 +514,14 @@ export function MobileNav({
 
             {/* Footer — Contact + Find Store icons. Pinned to the bottom
                 of the panel; visible across both views. */}
-            <div className="menu-rodape-entra border-t border-line/60 bg-cream">
+            <div className={`${open ? "menu-rodape-entra " : ""}border-t border-line/60 bg-cream px-4 pb-3`}>
               <div className="mx-auto grid w-full max-w-sm grid-cols-2">
                 <button
                   type="button"
                   aria-haspopup="dialog"
                   aria-expanded={contactOpen}
                   onClick={() => setSheet("contact")}
-                  className="flex flex-col items-center gap-2 border-r border-line/60 py-5 text-ink transition-colors hover:text-gold"
+                  className="flex flex-col items-center gap-2 rounded-2xl py-5 text-ink transition-colors hover:text-gold active:bg-line/25"
                 >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path
@@ -536,7 +536,7 @@ export function MobileNav({
                   aria-haspopup="dialog"
                   aria-expanded={sheet === "store"}
                   onClick={() => setSheet("store")}
-                  className="flex flex-col items-center gap-2 py-5 text-ink transition-colors hover:text-gold"
+                  className="flex flex-col items-center gap-2 rounded-2xl py-5 text-ink transition-colors hover:text-gold active:bg-line/25"
                 >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" strokeLinejoin="round" />
@@ -551,7 +551,7 @@ export function MobileNav({
                 onde o polegar está — a mesma zona do botão que a abriu. */}
             {contactOpen && (
               <div
-                className="absolute inset-0 z-10 flex flex-col justify-end bg-ink/45 backdrop-blur-[2px]"
+                className="menu-veu absolute inset-0 z-10 flex flex-col justify-end bg-ink/45 backdrop-blur-[2px]"
                 onClick={() => setSheet(null)}
                 role="dialog"
                 aria-modal="true"
@@ -559,8 +559,11 @@ export function MobileNav({
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="border-t border-line bg-cream px-6 pt-5 pb-7"
+                  className="menu-folha rounded-t-[1.6rem] border-t border-line bg-cream px-6 pt-3 pb-7 shadow-[0_-18px_40px_-24px_rgba(6,16,32,0.45)]"
                 >
+                  {/* Pega: diz que isto se arrasta e fecha, e tira à folha o
+                      ar de rectângulo colado ao fundo do ecrã. */}
+                  <div aria-hidden className="mx-auto mb-4 h-1 w-10 rounded-full bg-line" />
                   <div className="mx-auto w-full max-w-sm">
                     <div className="flex items-baseline justify-between">
                       <p className="text-[0.62rem] tracking-[0.2em] text-muted uppercase">
