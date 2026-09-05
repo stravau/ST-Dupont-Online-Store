@@ -49,6 +49,35 @@ export function LatestCarousel({
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
+  // Aquecer as fotos quando o carril se aproxima do ecrã — e não antes.
+  //
+  // As fotos entram em `loading=lazy`, e o browser só as vai buscar quando já
+  // estão quase à vista. Numa passagem lenta chega; numa rápida não, e ficam
+  // cartões brancos. A margem de antecipação que o Chrome usa ainda encolhe
+  // quando detecta ligação fraca, que é precisamente o telemóvel.
+  //
+  // Passar `loading` a `eager` num <img> que ainda não carregou dispara a ida
+  // buscar. Fazê-lo aqui, e não no arranque da página, é o compromisso: não
+  // pesa na abertura da homepage de quem nunca desce até cá, e quem desce tem
+  // as fotos prontas muito antes de conseguir arrastar até elas. A lista é
+  // triplicada mas os endereços repetem-se, por isso são ~n pedidos e não 3n.
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entradas) => {
+        if (!entradas.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        for (const img of el.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')) {
+          img.loading = "eager";
+        }
+      },
+      { rootMargin: "300px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [n]);
+
   const canRotate = n > visible;
 
   // Largura de uma cópia da lista (= largura de um cartão × n).

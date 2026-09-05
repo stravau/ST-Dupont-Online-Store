@@ -97,7 +97,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     ? curadasNovidades
     : [...byProduct.values()].slice(0, 10);
   const latest = fonteNovidades.map(({ product, sku }) => (
-    <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
+    <ProductCard key={`${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} emCarril />
   ));
 
   // "Em Destaque" — rail curado à mão em /admin/destaques. Independente das
@@ -105,7 +105,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // desenhada de todo (em vez de aparecer vazia).
   const curated = await getCuratedCards();
   const featured = curated.map(({ product, sku }) => (
-    <ProductCard key={`feat-${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} />
+    <ProductCard key={`feat-${product.slug}-${sku}`} product={product} lang={locale} variantSku={sku} emCarril />
   ));
 
   // Fundo da faixa, escolhido no admin. Sem escolha, fica o que vem com o

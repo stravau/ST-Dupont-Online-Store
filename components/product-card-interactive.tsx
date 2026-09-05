@@ -20,6 +20,21 @@ export interface CardSwatch {
 // name + collection + price. No colour swatches, no inquire CTA on
 // the tile; those live on the product detail page. The card itself
 // is the tap / click target.
+// Quanto do ecra ocupa a FOTO de um cartao, por contexto. E o que o browser
+// usa para escolher a versao certa do srcset, e enganar-se aqui custa dos
+// dois lados: a menos, a foto sai mole; a mais, descarrega-se peso a toa.
+//
+// Na GRELHA sao dois cartoes por linha no telemovel, tres a partir de sm e
+// quatro a partir de lg.
+//
+// No CARRIL e um so cartao no telemovel — a largura quase toda. Os valores
+// ficam abaixo do teorico (88 em vez de 100) porque o body tem zoom 0.9 e o
+// carril vive dentro de um contentor com padding: a foto renderiza sempre
+// mais pequena do que a fraccao do ecra sugere.
+const SIZES_GRELHA = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw";
+const SIZES_CARRIL =
+  "(max-width: 640px) 88vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 23vw";
+
 export function ProductCardInteractive({
   href,
   seed,
@@ -34,7 +49,12 @@ export function ProductCardInteractive({
   swatches,
   basePrice,
   initialSwatch = 0,
+  emCarril = false,
 }: {
+  // Num carril o cartao ocupa o ecra quase todo no telemovel; na grelha sao
+  // dois por linha. E a mesma peca com larguras diferentes, e o `sizes` tem de
+  // dizer a verdade sobre cada uma — ver a constante SIZES.
+  emCarril?: boolean;
   href: string;
   seed: string;
   title: string;
@@ -146,7 +166,7 @@ export function ProductCardInteractive({
               src={image}
               alt={title}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
+              sizes={emCarril ? SIZES_CARRIL : SIZES_GRELHA}
               className="object-contain"
             />
           ) : (

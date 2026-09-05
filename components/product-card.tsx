@@ -11,6 +11,7 @@ export async function ProductCard({
   lang,
   variantType,
   variantSku,
+  emCarril = false,
 }: {
   product: Product;
   lang: Locale;
@@ -22,6 +23,10 @@ export async function ProductCard({
   // the catalogue grids to render one card per (product, colourway) instead
   // of a single tile with picker swatches.
   variantSku?: string;
+  // Num carril o cartão ocupa quase todo o ecrã no telemóvel; na grelha são
+  // dois por linha. Só serve para o `sizes` da foto dizer a verdade sobre a
+  // largura real — não muda nada no aspecto.
+  emCarril?: boolean;
 }) {
   const dict = getDictionary(lang);
   // O selo "Novidade" deixa de sair do `featured`, que era um sinal antigo e
@@ -209,6 +214,7 @@ export async function ProductCard({
       basePrice={formatPrice(base.priceCents, base.currency, lang)}
       baseSku={base.sku}
       initialSwatch={initialSwatch}
+      emCarril={emCarril}
       inquireLabel={dict.product.inquire}
       inquireSubject={dict.product.inquireSubject}
       inquireBody={dict.product.inquireBody}
