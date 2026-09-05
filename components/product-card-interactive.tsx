@@ -224,7 +224,10 @@ export function ProductCardInteractive({
             Ref. {refLabel}
           </p>
         )}
-        <p className="mt-1 font-serif text-base font-semibold text-ink sm:mt-1.5 sm:text-xl">{price}</p>
+        {/* Sem font-semibold: a Tenor Sans só tem um peso, e pedir-lhe negrito
+            faz o browser engrossar as hastes a martelo. O preço distingue-se
+            pelo tamanho e pela cor, que chega. */}
+        <p className="mt-1 font-serif text-base text-ink sm:mt-1.5 sm:text-xl">{price}</p>
       </div>
     </article>
   );
