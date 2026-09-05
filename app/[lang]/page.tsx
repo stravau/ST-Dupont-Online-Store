@@ -295,15 +295,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 As setas do carrossel ficam de fora (`:not(button *)` + `:not(button)`):
                 assentam num círculo bg-cream/80, portanto precisam de continuar
                 escuras para se verem. */}
-            {/* O fundo dos cartões passa a véu escuro a 40%, para a geoda se
-                ver através deles em vez de ficarem caixas brancas pousadas em
-                cima. O contorno acompanha: a --line é um azul-acinzentado claro
-                e sobre o escuro lia-se como moldura acesa.
-
-                As setas do carrossel ficam de fora das duas regras, como já
-                ficavam das do texto: assentam num círculo claro e precisam de
-                continuar a ver-se. */}
-            <div className="reveal mt-14 [&_.text-ink:not(button):not(button_*)]:!text-cream [&_.text-muted:not(button):not(button_*)]:!text-cream/70 [&_.bg-paper]:!bg-ink/40 [&_.border-line:not(button)]:!border-cream/20">
+            <div className="reveal mt-14 [&_.text-ink:not(button):not(button_*)]:!text-cream [&_.text-muted:not(button):not(button_*)]:!text-cream/70">
               <LatestCarousel
                 items={featured}
                 prevLabel={dict.common.prev}
