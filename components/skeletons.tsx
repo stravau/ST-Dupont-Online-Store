@@ -49,7 +49,7 @@ export function SkeletonGrid({ count = 12 }: { count?: number }) {
 export function SkeletonHeroSlider() {
   return (
     <div className="border-b border-line">
-      <div className="mx-auto flex max-w-7xl gap-4 overflow-x-auto px-6 py-6">
+      <div className="mx-auto flex max-w-7xl gap-4 overflow-x-auto overflow-y-hidden [touch-action:pan-x_pinch-zoom] px-6 py-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="skeleton h-40 w-40 shrink-0" />
         ))}
