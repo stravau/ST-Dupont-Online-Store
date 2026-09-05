@@ -36,6 +36,11 @@ export function HeaderShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/pt" || pathname === "/en";
   const [transparent, setTransparent] = useState(isHome);
+  // Separado do `transparent` porque as duas situações não se parecem: por
+  // cima do vídeo do topo a barra desaparece por completo, por cima de uma
+  // faixa escura fica um véu de creme a 30% — vê-se a imagem através dela,
+  // mas há barra. O texto é creme nos dois casos, que é o que os une.
+  const [emFaixa, setEmFaixa] = useState(false);
   const [hovered, setHovered] = useState(false);
   const barra = useRef<HTMLElement>(null);
 
@@ -66,6 +71,7 @@ export function HeaderShell({ children }: { children: ReactNode }) {
         }
       }
       setTransparent(noHeroi || sobreFaixa);
+      setEmFaixa(sobreFaixa);
     };
 
     // Uma medição por frame, não uma por evento de scroll.
@@ -96,6 +102,7 @@ export function HeaderShell({ children }: { children: ReactNode }) {
   // chrome. The context, data attribute, bg class and CSS rules all flow
   // from this one value, so logo, text and bg flip together.
   const effective = transparent && !hovered;
+  const comVeu = emFaixa && !hovered;
 
   return (
     <HeaderTransparentContext.Provider value={effective}>
@@ -114,7 +121,11 @@ export function HeaderShell({ children }: { children: ReactNode }) {
         }}
         data-transparent={effective}
         className={`sticky top-0 z-50 transition-colors duration-300 ${
-          effective ? "bg-transparent" : "bg-cream/95 backdrop-blur"
+          effective
+            ? comVeu
+              ? "bg-cream/30 backdrop-blur"
+              : "bg-transparent"
+            : "bg-cream/95 backdrop-blur"
         }`}
       >
         {children}
