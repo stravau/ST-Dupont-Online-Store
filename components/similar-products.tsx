@@ -98,9 +98,16 @@ export function SimilarProducts({
         {/* `-mx-6 px-6 scroll-px-6` lets the row bleed past the parent's
             padding so the first card snaps flush to the viewport edge while
             the rest of the page stays centred. `snap-x snap-mandatory`
-            makes each card click into place. `touch-pan-x` keeps mobile
-            scroll predictable. The native scrollbar is hidden via
-            .no-scrollbar for the cleaner luxury look. */}
+            makes each card click into place. The native scrollbar is hidden
+            via .no-scrollbar for the cleaner luxury look.
+
+            `overflow-y-hidden` não é decoração: sem ele o CSS transforma este
+            carril também num contentor de scroll vertical (basta um dos eixos
+            deixar de ser `visible` para o outro passar a `auto`), e a roda do
+            rato deixava de subir para a página. Aqui esteve `touch-pan-x` a
+            tentar resolver o mesmo no telemóvel — fazia o contrário: `pan-x`
+            proíbe o gesto vertical em vez de o entregar à página. Num carril
+            de scroll nativo não se mexe no touch-action. */}
         <div
           ref={trackRef}
           className="no-scrollbar -mx-6 overflow-x-auto px-6 pb-4 scroll-px-6 snap-x snap-mandatory overflow-y-hidden"
