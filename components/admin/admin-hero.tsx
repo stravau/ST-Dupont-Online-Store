@@ -1,8 +1,11 @@
 import type React from "react";
 
-// Executive strip do topo das páginas admin com dados live (dashboard,
-// relatórios, POS). Fundo navy-deep com monograma dourado ao fundo,
-// hairline gold em baixo a marcar a transição para o corpo em cream.
+// Faixa do topo das páginas admin com dados live (painel, relatórios, POS).
+//
+// ATENÇÃO à cor: esta faixa JÁ NÃO tem fundo navy — desde o redesign assenta
+// no marfim da página e os cartões lá dentro são brancos. Tudo o que se
+// escreve aqui usa os tokens da superfície clara (--ink, --muted, --gold).
+// text-cream aqui é texto invisível: no painel --cream É o fundo.
 //
 // Usa a utility .admin-hero declarada em globals.css. Padding vem daqui
 // (não da utility) para permitir compact/normal/wide per contexto.
@@ -10,7 +13,7 @@ import type React from "react";
 // Slots:
 //   • eyebrow: overline pequena em gold (opcional)
 //   • title: heading serif grande
-//   • subtitle: legenda em cream/60 (opcional)
+//   • subtitle: legenda em muted (opcional)
 //   • action: bloco à direita — normalmente um MonthPicker, um DateRangePicker,
 //             ou um botão de acção (Novo, Exportar, etc.)
 //   • children: KPIs, boutique split, ticker, etc. — layoutados livremente
@@ -37,10 +40,13 @@ export function AdminHero({
   return (
     <section
       className={[
-        "admin-hero mb-8",
+        "admin-hero",
         "-mx-5 -mt-8 px-5",
         "sm:-mx-8 sm:-mt-10 sm:px-8",
-        compact ? "pt-6 pb-5 sm:pt-8 sm:pb-6" : "pt-8 pb-7 sm:pt-10 sm:pb-8",
+        // A margem de baixo acompanha o compact. Antes era mb-8 fixo, e nas
+        // paginas compactas somava-se ao mt do primeiro bloco a seguir —
+        // eram tres folgas empilhadas a fazer um vazio de mais de 100px.
+        compact ? "mb-5 pt-6 pb-5 sm:pt-8 sm:pb-6" : "mb-8 pt-8 pb-7 sm:pt-10 sm:pb-8",
       ].join(" ")}
     >
       <header className="flex flex-wrap items-end justify-between gap-5">

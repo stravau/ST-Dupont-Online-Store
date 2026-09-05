@@ -102,23 +102,27 @@ export default async function ReportsPage({
   return (
     <div>
       <AdminHero
+        compact
         eyebrow="Operações"
         title="Relatórios"
         subtitle={`${periodLabel} · ${multi ? "ambas as boutiques" : BOUTIQUE_LABEL[boutiques[0]]} (líquido de devoluções)`}
         action={<ReportDatePicker from={fromYmd} to={toYmd} showExport={false} />}
       >
-        {/* Totals per store dentro do hero — grande contraste sobre navy. */}
+        {/* Totais por loja dentro do hero. O cartão é BRANCO desde o
+            redesign — nada aqui pode usar text-cream, que no painel é a cor
+            do fundo da página e desaparece por completo. Rótulo em muted,
+            valor em ink. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stores.map((s) => (
             <div key={s.boutique} className="admin-hero-card p-4">
               <p className="overline text-[0.55rem] text-gold-soft">{BOUTIQUE_LABEL[s.boutique]}</p>
               <p className="hero-number mt-2 text-3xl">{eur(s.grossCents)}</p>
-              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
-                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(s.netCents)}</dd></div>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-ink">{eur(s.netCents)}</dd></div>
                 {showCommission && (
-                  <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums text-cream/90">− {eur(s.eciCommissionCents)}</dd></div>
+                  <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums text-ink">− {eur(s.eciCommissionCents)}</dd></div>
                 )}
-                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-cream/90">{s.sales} · {s.returns}</dd></div>
+                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-ink">{s.sales} · {s.returns}</dd></div>
               </dl>
             </div>
           ))}
@@ -126,12 +130,12 @@ export default async function ReportsPage({
             <div className="admin-hero-card border-l-[3px] border-l-gold p-4">
               <p className="overline text-[0.55rem] text-gold">Total · as duas lojas</p>
               <p className="hero-number mt-2 text-3xl">{eur(combined.grossCents)}</p>
-              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
-                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(combined.netCents)}</dd></div>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-ink">{eur(combined.netCents)}</dd></div>
                 {showCommission && (
-                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums text-cream/90">− {eur(combined.eciCommissionCents)}</dd></div>
+                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums text-ink">− {eur(combined.eciCommissionCents)}</dd></div>
                 )}
-                <div className="flex justify-between"><dt>Total de vendas</dt><dd className="tabular-nums text-cream/90">{combined.sales}</dd></div>
+                <div className="flex justify-between"><dt>Total de vendas</dt><dd className="tabular-nums text-ink">{combined.sales}</dd></div>
               </dl>
             </div>
           )}
@@ -146,7 +150,9 @@ export default async function ReportsPage({
               Excel Estat_Calc pivot. Independent of the month filter above. */}
           {/* O filtro de loja subiu para o cabeçalho, onde vale para o painel
               todo. Aqui fica só a exportação, que continua a herdar o âmbito. */}
-          <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
+          {/* Sem mt: a folga de baixo do hero ja separa, e somar as duas
+              era o que abria o vazio. */}
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <ExportChoice from={fromYmd} to={toYmd} boutique={scope === "all" ? "" : scope} />
           </div>
 

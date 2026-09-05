@@ -72,6 +72,7 @@ export default async function DailyReportPage({
   return (
     <div>
       <AdminHero
+        compact
         eyebrow="Operações"
         title="Relatório de Vendas"
         subtitle={
@@ -82,19 +83,20 @@ export default async function DailyReportPage({
         }
         action={<ReportDatePicker from={fromYmd} to={toYmd} />}
       >
-        {/* Summary embutido no hero para o patrão ver os totais em cima
-            do fundo navy — Big-picture antes do detalhe. */}
+        {/* Resumo dentro do hero: o panorama antes do detalhe. O cartão é
+            BRANCO desde o redesign — nada aqui pode usar text-cream, que no
+            painel é a cor do fundo da página e desaparece por completo. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stores.map((s) => (
             <div key={s.boutique} className="admin-hero-card p-4">
               <p className="overline text-[0.55rem] text-gold-soft">{BOUTIQUE_LABEL[s.boutique]}</p>
               <p className="hero-number mt-2 text-3xl">{eur(s.grossCents)}</p>
-              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
-                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(s.netCents)}</dd></div>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-ink">{eur(s.netCents)}</dd></div>
                 {showCommission && (
-                  <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums text-cream/90">− {eur(s.eciCommissionCents)}</dd></div>
+                  <div className="flex justify-between"><dt>Comissão ECI ({pctLabel[s.boutique]})</dt><dd className="tabular-nums text-ink">− {eur(s.eciCommissionCents)}</dd></div>
                 )}
-                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-cream/90">{s.sales} · {s.returns}</dd></div>
+                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-ink">{s.sales} · {s.returns}</dd></div>
               </dl>
             </div>
           ))}
@@ -102,12 +104,12 @@ export default async function DailyReportPage({
             <div className="admin-hero-card border-l-[3px] border-l-gold p-4">
               <p className="overline text-[0.55rem] text-gold">Total do período · as duas lojas</p>
               <p className="hero-number mt-2 text-3xl">{eur(combined.grossCents)}</p>
-              <dl className="mt-3 space-y-1 text-[0.72rem] text-cream/70">
-                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-cream/90">{eur(combined.netCents)}</dd></div>
+              <dl className="mt-3 space-y-1 text-[0.72rem] text-muted">
+                <div className="flex justify-between"><dt>Líquido s/ IVA</dt><dd className="tabular-nums text-ink">{eur(combined.netCents)}</dd></div>
                 {showCommission && (
-                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums text-cream/90">− {eur(combined.eciCommissionCents)}</dd></div>
+                  <div className="flex justify-between"><dt>Comissão ECI</dt><dd className="tabular-nums text-ink">− {eur(combined.eciCommissionCents)}</dd></div>
                 )}
-                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-cream/90">{combined.sales} · {combined.returns}</dd></div>
+                <div className="flex justify-between"><dt>Vendas · Devoluções</dt><dd className="tabular-nums text-ink">{combined.sales} · {combined.returns}</dd></div>
               </dl>
             </div>
           )}
@@ -115,7 +117,7 @@ export default async function DailyReportPage({
       </AdminHero>
 
       {/* The window's register — a preview of what the Excel export contains. */}
-      <section className="mt-6">
+      <section>
         <h2 className="font-serif text-lg text-ink">Registo</h2>
         {log.length === 0 ? (
           <p className="mt-3 text-sm text-muted">Sem vendas registadas neste intervalo.</p>

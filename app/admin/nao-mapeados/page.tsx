@@ -102,19 +102,19 @@ export default async function NaoMapeadosPage() {
           <div className="admin-hero-card p-4">
             <p className="overline text-[0.55rem] text-gold-soft">Com stock</p>
             <p className="hero-number mt-2 text-3xl">{comStock.length}</p>
-            <p className="mt-1 text-[0.72rem] text-cream/70">{unidades} unidades</p>
+            <p className="mt-1 text-[0.72rem] text-muted">{unidades} unidades</p>
           </div>
           <div className="admin-hero-card border-l-[3px] border-l-gold p-4">
             <p className="overline text-[0.55rem] text-gold">Valor parado</p>
             <p className="hero-number mt-2 text-3xl">
               {(valorTotal / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })}
             </p>
-            <p className="mt-1 text-[0.72rem] text-cream/70">stock que ninguém encontra no site</p>
+            <p className="mt-1 text-[0.72rem] text-muted">stock que ninguém encontra no site</p>
           </div>
           <div className="admin-hero-card p-4">
             <p className="overline text-[0.55rem] text-gold-soft">Sem stock</p>
             <p className="hero-number mt-2 text-3xl">{semStock}</p>
-            <p className="mt-1 text-[0.72rem] text-cream/70">podem esperar</p>
+            <p className="mt-1 text-[0.72rem] text-muted">podem esperar</p>
           </div>
         </div>
       </AdminHero>
