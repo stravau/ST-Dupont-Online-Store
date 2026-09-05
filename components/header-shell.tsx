@@ -40,36 +40,55 @@ export function HeaderShell({ children }: { children: ReactNode }) {
   const barra = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const faixas = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-topo-transparente]"),
-    );
-    // Sem herói e sem faixas escuras não há nada a observar — não vale um
-    // listener de scroll em todas as páginas do site.
-    if (!isHome && faixas.length === 0) {
-      queueMicrotask(() => setTransparent(false));
-      return;
-    }
-    const onScroll = () => {
-      // Start opaque once we've left the hero — give a small buffer so the
-      // swap doesn't happen the moment a finger touches the trackpad.
+    let pendente = false;
+
+    const medir = () => {
+      pendente = false;
+      // A lista das faixas é lida A CADA MEDIÇÃO e não uma vez no arranque.
+      // Há um loading.tsx nesta rota, portanto a página entra dentro de um
+      // Suspense: quando este efeito corre pela primeira vez, o cabeçalho já
+      // montou mas o conteúdo real ainda não chegou ao DOM. Guardar a lista
+      // aqui dava sempre vazia, e a barra nunca sabia que havia uma faixa
+      // escura por baixo — só ficava transparente sobre o vídeo do topo.
+      const faixas = document.querySelectorAll<HTMLElement>("[data-topo-transparente]");
       const noHeroi = isHome && window.scrollY < window.innerHeight - 120;
       // A meio da barra: é o que está atrás desse ponto que decide. Usar a
-      // linha média em vez de qualquer das bordas dá o mesmo comportamento à
-      // entrada e à saída da faixa, sem o meio-termo em que metade da barra
-      // está sobre a imagem e a outra metade sobre o creme.
+      // linha média em vez de uma das bordas dá o mesmo comportamento à
+      // entrada e à saída, e é onde o texto do menu assenta — que é o que
+      // tem de continuar legível quando a cor troca.
       const meio = (barra.current?.getBoundingClientRect().height ?? 0) / 2;
-      const sobreFaixa = faixas.some((f) => {
+      let sobreFaixa = false;
+      for (const f of faixas) {
         const r = f.getBoundingClientRect();
-        return r.top < meio && r.bottom > meio;
-      });
+        if (r.top < meio && r.bottom > meio) {
+          sobreFaixa = true;
+          break;
+        }
+      }
       setTransparent(noHeroi || sobreFaixa);
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+
+    // Uma medição por frame, não uma por evento de scroll.
+    const agendar = () => {
+      if (pendente) return;
+      pendente = true;
+      requestAnimationFrame(medir);
+    };
+
+    medir();
+    window.addEventListener("scroll", agendar, { passive: true });
+    window.addEventListener("resize", agendar, { passive: true });
+    // E quando a altura do documento muda — que é exactamente o que acontece
+    // quando o conteúdo em streaming substitui o esqueleto, ou quando uma
+    // imagem acaba de carregar. Sem isto, uma página aberta já a meio do
+    // scroll ficava com a cor errada até alguém lhe tocar.
+    const observador = new ResizeObserver(agendar);
+    observador.observe(document.documentElement);
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", agendar);
+      window.removeEventListener("resize", agendar);
+      observador.disconnect();
     };
   }, [isHome, pathname]);
 
