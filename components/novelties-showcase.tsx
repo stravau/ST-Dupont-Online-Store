@@ -79,7 +79,7 @@ export function NoveltiesShowcase({
             O carril é scroll nativo: o polegar arrasta na horizontal e a
             página continua a andar na vertical, sem gestos a competir. */}
         <div
-          className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden [touch-action:pan-x_pinch-zoom] lg:overflow-y-visible lg:[touch-action:auto] px-6 pb-16
+          className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden lg:overflow-y-visible px-6 pb-16
                      [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
                      lg:mt-14 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-10 lg:overflow-visible lg:px-10 lg:pb-28 xl:px-16"
         >

@@ -122,7 +122,7 @@ export function LatestCarousel({
         onScroll={onScroll}
         onPointerEnter={() => { pausedUntil.current = Date.now() + PAUSE_MS; }}
         onTouchStart={() => { pausedUntil.current = Date.now() + PAUSE_MS; }}
-        className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [touch-action:pan-x_pinch-zoom]
+        className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain
                    [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {belt.map((node, i) => (

@@ -91,7 +91,7 @@ export function CategoryHeroSlider({
 
           <div
             ref={trackRef}
-            className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden [touch-action:pan-x_pinch-zoom] scroll-smooth [justify-content:safe_center] sm:gap-6"
+            className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-hidden scroll-smooth [justify-content:safe_center] sm:gap-6"
           >
             {thumbnails.map((m) => (
               <Link

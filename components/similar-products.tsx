@@ -103,7 +103,7 @@ export function SimilarProducts({
             .no-scrollbar for the cleaner luxury look. */}
         <div
           ref={trackRef}
-          className="no-scrollbar -mx-6 overflow-x-auto px-6 pb-4 scroll-px-6 snap-x snap-mandatory overflow-y-hidden [touch-action:pan-x_pinch-zoom]"
+          className="no-scrollbar -mx-6 overflow-x-auto px-6 pb-4 scroll-px-6 snap-x snap-mandatory overflow-y-hidden"
         >
           <ul className="flex gap-5 sm:gap-7">
             {items.map((it, i) => (

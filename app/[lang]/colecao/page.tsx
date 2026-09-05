@@ -78,7 +78,7 @@ export default async function CollectionPage({
           (justify-start) so every category stays reachable even when
           "Isqueiros" would otherwise get centred off-screen. */}
       <nav className="sticky top-16 z-40 border-y border-line bg-cream/95 backdrop-blur md:top-[85px]">
-        <ol className="mx-auto flex max-w-7xl items-center justify-start gap-4 overflow-x-auto overflow-y-hidden [touch-action:pan-x_pinch-zoom] px-6 py-3 md:justify-center md:gap-6">
+        <ol className="mx-auto flex max-w-7xl items-center justify-start gap-4 overflow-x-auto overflow-y-hidden px-6 py-3 md:justify-center md:gap-6">
           {sections.map(({ category }, i) => (
             <li key={category.slug} className="flex items-center gap-4 md:gap-6">
               {i > 0 && <span className="text-line">·</span>}
