@@ -696,6 +696,54 @@ footer [role="button"]:active {
   }
 }
 
+
+/* --- Menu do telemóvel: entrada dos itens -------------------------------- */
+/* As linhas das categorias e das colecções entram da direita, em cascata; o
+   rodapé (Contactar / Encontrar Loja) sobe.
+
+   A cascata vem do `nth-child` e não de um `animationDelay` inline em cada
+   item: as listas deste menu são três — categorias, colecções, e a dos
+   acessórios com secções aninhadas — e marcá-las item a item era garantir
+   que a próxima a aparecer ficava de fora. Só os filhos DIRECTOS animam,
+   para as sub-listas dos acessórios não recomeçarem de zero dentro da linha
+   que as abriu. */
+@keyframes menuLinhaEntra {
+  from { opacity: 0; transform: translateX(22px); }
+  to   { opacity: 1; transform: none; }
+}
+.menu-lista-entra > li {
+  animation: menuLinhaEntra 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.menu-lista-entra > li:nth-child(1) { animation-delay: 0.020s; }
+.menu-lista-entra > li:nth-child(2) { animation-delay: 0.055s; }
+.menu-lista-entra > li:nth-child(3) { animation-delay: 0.090s; }
+.menu-lista-entra > li:nth-child(4) { animation-delay: 0.125s; }
+.menu-lista-entra > li:nth-child(5) { animation-delay: 0.160s; }
+.menu-lista-entra > li:nth-child(6) { animation-delay: 0.195s; }
+.menu-lista-entra > li:nth-child(7) { animation-delay: 0.230s; }
+.menu-lista-entra > li:nth-child(8) { animation-delay: 0.265s; }
+.menu-lista-entra > li:nth-child(9) { animation-delay: 0.300s; }
+.menu-lista-entra > li:nth-child(10) { animation-delay: 0.335s; }
+.menu-lista-entra > li:nth-child(11) { animation-delay: 0.370s; }
+.menu-lista-entra > li:nth-child(12) { animation-delay: 0.405s; }
+/* Listas compridas: a partir daqui entram todas juntas, senão a última linha
+   chegava quase meio segundo depois da primeira. */
+.menu-lista-entra > li:nth-child(n + 13) { animation-delay: 0.405s; }
+
+@keyframes menuRodapeEntra {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+.menu-rodape-entra {
+  animation: menuRodapeEntra 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.1s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-lista-entra > li,
+  .menu-rodape-entra { animation: none; }
+}
+
 /* --- Mega-menu open animation ------------------------------------------ */
 /* Panel drops in with a soft blur clear; items inside stagger up. The
    per-item delay is supplied inline via `style={{animationDelay}}`. */

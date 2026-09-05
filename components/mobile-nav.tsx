@@ -217,7 +217,7 @@ export function MobileNav({
             </div>
 
             {/* Body — scrollable; pushes the footer icons to the bottom. */}
-            <nav className="flex flex-1 flex-col overflow-y-auto px-6 pb-6">
+            <nav className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-6 pb-6">
               <Link
                 href={`/${lang}`}
                 aria-label="S.T. Dupont"
@@ -233,7 +233,7 @@ export function MobileNav({
               {(() => null)()}
 
               {!selected && (
-                <ul className="mx-auto flex w-full max-w-sm flex-col">
+                <ul className="menu-lista-entra mx-auto flex w-full max-w-sm flex-col">
                   {items.map((c) => (
                     <li key={c.slug} className="border-b border-line/60">
                       <button
@@ -354,7 +354,7 @@ export function MobileNav({
                   : null;
                 if (nav) {
                   return (
-                    <ul className="mx-auto flex w-full max-w-sm flex-col">
+                    <ul className="menu-lista-entra mx-auto flex w-full max-w-sm flex-col">
                       <li className="border-b border-line/60">
                         <Link
                           href={`/${lang}/c/${selected.slug}`}
@@ -482,7 +482,7 @@ export function MobileNav({
                   );
                 }
                 return (
-                  <ul className="mx-auto flex w-full max-w-sm flex-col">
+                  <ul className="menu-lista-entra mx-auto flex w-full max-w-sm flex-col">
                     <li className="border-b border-line/60">
                       <Link
                         href={`/${lang}/c/${selected.slug}`}
@@ -514,7 +514,7 @@ export function MobileNav({
 
             {/* Footer — Contact + Find Store icons. Pinned to the bottom
                 of the panel; visible across both views. */}
-            <div className="border-t border-line/60 bg-cream">
+            <div className="menu-rodape-entra border-t border-line/60 bg-cream">
               <div className="mx-auto grid w-full max-w-sm grid-cols-2">
                 <button
                   type="button"
