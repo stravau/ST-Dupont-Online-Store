@@ -8,8 +8,9 @@ import { usePathname } from "next/navigation";
 // each time an element scrolls back into view (up or down), not just on
 // first reveal.
 //
-// EXCEPÇÃO: dentro de um carril horizontal revela-se uma vez e fica. Ver
-// `dentroDeCarril` mais abaixo.
+// EXCEPÇÃO: um carril horizontal revela-se todo de uma vez, quando o primeiro
+// dos seus cartões chega ao ecrã, e nunca mais volta a ser observado. Ver
+// `carrilDe` mais abaixo.
 //
 // A `loading.tsx` Suspense boundary means the page content can stream into
 // the DOM AFTER this effect first runs (the pathname flips while the loading
@@ -33,14 +34,15 @@ export function RevealRoot() {
     // Detectado pela árvore e não por uma marca posta à mão em cada carril:
     // um carril esquecido volta a piscar, e hoje já se viu o que acontece a
     // uma correcção aplicada num sítio e esquecida nos outros.
-    const dentroDeCarril = (el: Element): boolean => {
+    // Devolve o carril que contém o elemento, ou null.
+    const carrilDe = (el: Element): Element | null => {
       for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
         if (p.scrollWidth > p.clientWidth + 1) {
           const ox = getComputedStyle(p).overflowX;
-          if (ox === "auto" || ox === "scroll") return true;
+          if (ox === "auto" || ox === "scroll") return p;
         }
       }
-      return false;
+      return null;
     };
 
     const io = new IntersectionObserver(
@@ -53,7 +55,20 @@ export function RevealRoot() {
             // don't keep dozens of compositor layers alive at rest.
             e.target.classList.add("is-revealing");
             e.target.classList.add("is-visible");
-            if (dentroDeCarril(e.target)) io.unobserve(e.target);
+            // Num carril, o primeiro cartão a chegar ao ecrã revela o carril
+            // INTEIRO e larga-o. Revelar cada cartão à medida que ele cruza a
+            // borda lateral parece bem a arrastar devagar, mas a arrastar
+            // depressa são fades de 0,8s a dispararem em fila — que é o que se
+            // via a piscar. Um carril é uma unidade: chega ao ecrã, está lá
+            // todo.
+            const carril = carrilDe(e.target);
+            if (carril) {
+              for (const alvo of carril.querySelectorAll(".reveal")) {
+                alvo.classList.add("is-revealing");
+                alvo.classList.add("is-visible");
+                io.unobserve(alvo);
+              }
+            }
           } else {
             e.target.classList.remove("is-visible");
             e.target.classList.remove("is-revealing");
