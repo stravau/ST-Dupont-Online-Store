@@ -386,9 +386,17 @@ h1, h2, h3, .font-serif {
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.lux-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 48px -28px rgba(6, 16, 32, 0.45);
+/* Só onde há mesmo um ponteiro. Sem esta guarda, um ecrã táctil aplica
+   :hover ao que está debaixo do dedo e leva-o consigo enquanto se arrasta:
+   num carrossel, cada cartão que passa levanta-se 4px e volta a cair, com
+   meio segundo de transição cada. É o tremer que se via ao deslizar de lado.
+   As utilidades hover: do Tailwind já vêm embrulhadas nesta media query —
+   esta regra é escrita à mão e ficou de fora. */
+@media (hover: hover) and (pointer: fine) {
+  .lux-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px -28px rgba(6, 16, 32, 0.45);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
