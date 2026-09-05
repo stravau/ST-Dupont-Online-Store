@@ -271,6 +271,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         // cristal fica no meio. bg-black em vez de bg-ink porque o fundo da
         // própria foto é preto: assim a emenda não se vê se sobrar bordo.
         <section
+          // A barra do topo fica transparente enquanto passa por cima desta
+          // faixa. O atributo é o contrato: o cabeçalho procura-o no DOM em
+          // vez de conhecer esta secção pelo nome, e assim a próxima faixa
+          // escura que aparecer só tem de o declarar.
+          data-topo-transparente
           className="relative bg-black text-cream"
           style={{
             backgroundImage: `url(${fundoDestaques})`,
