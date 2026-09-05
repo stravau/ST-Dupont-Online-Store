@@ -11,7 +11,7 @@ export function isLocale(value: string): value is Locale {
 
 const dictionaries = {
   pt: {
-    nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", collections: "Coleções", viewAll: "Ver tudo", about: "Sobre Nós", backHome: "Início", store: "Loja", products: "Produtos" },
+    nav: { lighters: "Isqueiros", writing: "Escrita", leather: "Pele", accessories: "Acessórios", search: "Pesquisar", collections: "Coleções", viewAll: "Ver tudo", about: "S.T. Dupont", backHome: "Início", store: "Loja", products: "Produtos" },
     common: {
       home: "Início",
       available: "Disponível na boutique",
@@ -306,7 +306,7 @@ const dictionaries = {
     },
   },
   en: {
-    nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", collections: "Collections", viewAll: "View all", about: "About Us", backHome: "Home", store: "Store", products: "Products" },
+    nav: { lighters: "Lighters", writing: "Writing", leather: "Leather", accessories: "Accessories", search: "Search", collections: "Collections", viewAll: "View all", about: "S.T. Dupont", backHome: "Home", store: "Store", products: "Products" },
     common: {
       home: "Home",
       available: "Available in boutique",
