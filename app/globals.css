@@ -757,8 +757,25 @@ footer [role="button"]:active {
   animation: menuVeuEntra 0.28s ease-out both;
 }
 
+/* A saída é a entrada ao contrário: mesma duração, mesma curva. Uma folha
+   que sobe devagar e desaparece de repente lê-se como avaria. */
+@keyframes menuFolhaDesce {
+  from { transform: none; }
+  to   { transform: translateY(100%); }
+}
+.menu-folha-sai {
+  animation: menuFolhaDesce 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes menuVeuSai {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.menu-veu-sai {
+  animation: menuVeuSai 0.28s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .menu-folha, .menu-veu { animation: none; }
+  .menu-folha, .menu-veu, .menu-folha-sai, .menu-veu-sai { animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

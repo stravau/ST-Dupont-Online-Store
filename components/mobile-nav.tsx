@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import Link from "next/link";
@@ -47,7 +47,19 @@ export function MobileNav({
   // dessa loja. São duas lojas com contactos e moradas diferentes — mandar
   // toda a gente para a mesma âncora obrigava a procurar a certa na página.
   const [sheet, setSheet] = useState<null | "contact" | "store">(null);
+  // A folha tem de continuar montada enquanto desce, senão desaparecia de
+  // repente — que era o que acontecia. `aSair` mantém-na no DOM durante a
+  // animação de saída e só depois a desmonta.
+  const [aSair, setASair] = useState(false);
   const contactOpen = sheet !== null;
+
+  const fecharFolha = useCallback(() => {
+    setASair(true);
+    setTimeout(() => {
+      setSheet(null);
+      setASair(false);
+    }, 340); // = duração de .menu-folha-sai
+  }, []);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   // Focus trap engages while `open` is true. Focus is restored to the
   // hamburger trigger on close. This does NOT interfere with the
@@ -136,7 +148,7 @@ export function MobileNav({
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       // Escape fecha primeiro a folha de contactos; só depois o menu.
-      if (contactOpen) setSheet(null);
+      if (contactOpen) fecharFolha();
       else close();
     }
     document.addEventListener("keydown", onKey);
@@ -551,15 +563,15 @@ export function MobileNav({
                 onde o polegar está — a mesma zona do botão que a abriu. */}
             {contactOpen && (
               <div
-                className="menu-veu absolute inset-0 z-10 flex flex-col justify-end bg-ink/45 backdrop-blur-[2px]"
-                onClick={() => setSheet(null)}
+                className={`${aSair ? "menu-veu-sai" : "menu-veu"} absolute inset-0 z-10 flex flex-col justify-end bg-ink/45 backdrop-blur-[2px]`}
+                onClick={fecharFolha}
                 role="dialog"
                 aria-modal="true"
                 aria-label={sheet === "store" ? findStoreLabel : contactLabel}
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="menu-folha rounded-t-[1.6rem] border-t border-line bg-cream px-6 pt-3 pb-7 shadow-[0_-18px_40px_-24px_rgba(6,16,32,0.45)]"
+                  className={`${aSair ? "menu-folha-sai" : "menu-folha"} rounded-t-[1.6rem] border-t border-line bg-cream px-6 pt-3 pb-7 shadow-[0_-18px_40px_-24px_rgba(6,16,32,0.45)]`}
                 >
                   {/* Pega: diz que isto se arrasta e fecha, e tira à folha o
                       ar de rectângulo colado ao fundo do ecrã. */}
@@ -571,7 +583,7 @@ export function MobileNav({
                       </p>
                       <button
                         type="button"
-                        onClick={() => setSheet(null)}
+                        onClick={fecharFolha}
                         aria-label={labels.close ?? "Fechar"}
                         className="text-muted transition-colors hover:text-ink"
                       >
