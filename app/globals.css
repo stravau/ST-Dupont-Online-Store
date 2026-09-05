@@ -30,7 +30,11 @@
   --gold-base: #b58a34; /* o dourado da marca, tal e qual */
   --gold: var(--gold-base); /* antique gold accent */
   --gold-soft: #d8bd7c; /* lighter gold for fine details on dark */
-  --muted: #4a5a72; /* slate-blue secondary text — AA contrast on cream */
+  /* Escurecido de #4a5a72 (6,3:1) para 8,7:1 sobre o cream. Uma
+     monoespacada tem hastes mais finas e mais ar entre letras do que a
+     Garamond que aqui estava: a mesma cor que antes chegava passou a ler-se
+     lavada. O painel tem o seu proprio --muted e nao e afectado. */
+  --muted: #35455c; /* slate-blue secondary text — 8,7:1 sobre cream */
   --line: #d4deec; /* light blue-grey borders — filetes decorativos */
   /* Contorno de CAMPO. A --line da 1,36:1 sobre branco: serve para separar
      seccoes, nao para dizer que ali ha um campo. A WCAG 1.4.11 exige 3:1 para
@@ -90,8 +94,10 @@
   --color-claret: var(--claret);
   --color-copper: var(--copper);
 
-  --font-serif: var(--font-display-serif);
-  --font-sans: var(--font-body-sans);
+  /* A loja fala pelas fontes novas; o painel repoe as antigas dentro do
+     seu proprio scope, mais abaixo. */
+  --font-serif: var(--font-store-display);
+  --font-sans: var(--font-store-body);
 
   --tracking-luxe: 0.22em;
 }
@@ -205,6 +211,13 @@ h1, h2, h3, .font-serif {
      Tailwind resolve text-gold/border-gold por var(--gold), isto apanha as
      130 ocorrencias de uma vez, incluindo os estados de hover. */
   --gold: var(--gold-deep);
+
+  /* O painel fica na tipografia que ja tinha. A loja mudou para Tenor Sans e
+     IBM Plex Mono, mas aqui os titulos sao Cormorant e as etiquetas .overline
+     sao EB Garamond — e esse desenho ja foi aprovado. Repor no scope custa
+     duas linhas e evita que uma decisao da loja atravesse a parede. */
+  --font-serif: var(--font-display-serif);
+  --font-sans: var(--font-body-sans);
 
   --admin-header-h: 165px; /* valor de arranque; o cabeçalho corrige-o ao montar */
   font-family: var(--font-admin-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, EB_Garamond } from "next/font/google";
+import { Cormorant_Garamond, EB_Garamond, IBM_Plex_Mono, Tenor_Sans } from "next/font/google";
 import { AnalyticsClient } from "@/components/analytics-client";
 import { BarraNavegacao } from "@/components/barra-navegacao";
 import "./globals.css";
@@ -19,6 +19,30 @@ const displaySerif = Cormorant_Garamond({
 
 const bodySans = EB_Garamond({
   variable: "--font-body-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// A tipografia da LOJA. O site oficial da maison corre em Simplon Mono com
+// SangBleu OG Sans por cima — as duas da Swiss Typefaces, as duas pagas, e a
+// SangBleu ja descontinuada. Estas sao as aproximacoes livres: a IBM Plex
+// Mono e a monoespacada com melhor acentuacao portuguesa e a unica com a
+// gama de pesos que o site ja usa; a Tenor Sans faz o papel de display.
+//
+// Ficam em variaveis PROPRIAS e nao por cima das antigas: o painel continua
+// a precisar da Cormorant nos titulos e da EB Garamond nas etiquetas, e o
+// patrao ja aprovou esse desenho. Ver a reposicao dentro de .admin-scope
+// em globals.css.
+const storeDisplay = Tenor_Sans({
+  variable: "--font-store-display",
+  subsets: ["latin"],
+  weight: ["400"], // so existe um peso; ver nota no commit
+  display: "swap",
+});
+
+const storeBody = IBM_Plex_Mono({
+  variable: "--font-store-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -45,7 +69,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt" className={`${displaySerif.variable} ${bodySans.variable} h-full motion-safe:scroll-smooth`}>
+    <html
+      lang="pt"
+      className={`${displaySerif.variable} ${bodySans.variable} ${storeDisplay.variable} ${storeBody.variable} h-full motion-safe:scroll-smooth`}
+    >
       <body className="min-h-full bg-cream text-ink">
         {/* Fio de progresso no topo enquanto uma pagina carrega. Montado na
             RAIZ, como o AnalyticsClient e pela mesma razao: assim serve o
